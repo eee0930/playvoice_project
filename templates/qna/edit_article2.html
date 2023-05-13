@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>Edit Article</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<script type="text/javascript" th:src="@{/se2/js/HuskyEZCreator.js}" charset="utf-8"></script>
+	
+<script th:inline="javascript">
+	$(document).ready(function() {
+		$('#editArticleBtn').click(function(e) {
+			e.preventDefault();
+			var form = $('#editArticleForm');
+			//form.action = self.location;
+			
+			if (document.getElementById("content").value.length <= 32700) {
+				// 에디터의 내용이 textarea에 적용된다.
+				oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
+
+				// 에디터의 내용에 대한 값 검증은 이곳에서
+				// document.getElementById("ir1").value를 이용해서 처리한다.
+				$("#content").attr("id", "content");
+				//---------------
+				form.submit();
+				//---------------
+			} else {
+				alert('최대 32700자를 초과 하였습니다.\n현재 글자수 : '
+						+ document.getElementById("content").value.length +"자");
+			}
+		});
+		
+		$('#resetBtn').click(function(e) {
+			if(!confirm("변경을 취소할까요?")){
+				return;
+			}
+			location.reload(true);
+			$.load('[[@{/qna/{boardAlias}/edit/{articleId}(boardAlias=${#boardUtil.getBoardAlias(article.category)}, articleId=${article.aid}) }]]');
+		});
+		
+		$('#removeFileBtns .jsAction').click(function(e) {
+			if(!confirm("파일을 삭제 할까요?")){
+				return;
+			}
+			var attachmentId = $(this).attr("data-attachmentId");
+			var obj = {
+				attachmentId:attachmentId
+				//csrf:csrf
+			};
+			$.ajax({
+				type:'post',
+				url: '/attachment/del/'+ obj.attachmentId,
+				data:JSON.stringify(obj), 
+				dataType: 'text',
+				/* beforeSend : function(xhr){
+					xhr.setRequestHeader(obj.csrf.headerName, obj.csrf.token);
+				}, */
+				contentType: "application/json",
+				success:function(){
+					alert("해당 파일이 삭제되었습니다.");
+					$('#removeFileBtns > div[id=f-'+attachmentId+']').remove();
+				},
+				error: function(e){
+					alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+					console.log("ERROR : ", e);
+				}
+			});
+		});
+		
+		$('#backListBtn').click(function(e) {
+			e.preventDefault();
+			self.location =/*[[@{/qna/{boardAlias}/list(boardAlias=${board.alias})}]]*/null;
+		});
+	});
+</script>
+</head>
+
+
+
+<section layout:fragment="content">
+	<h3>게시글 수정</h3>
+	<div class="py-2">
+		<!-- 2. Edit Article Form -->
+		<div id="editArticleFormContainer" class="formContainer">
+			<!--/*폼 헤더 박스*/-->
+			<h3>
+				Editing Article Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> Ok</button>
+				<span>Please fill the text in the field.</span>
+			</h3>
+			
+			<!--/*응답메세지 박스 : server*/-->
+			<div class="resMsgs" style="display:none;">
+				<h3>
+					Response Messages
+					<span>Your request was processed.</span>
+				</h3>
+				<ul th:each="msg:${resMsgs}">
+					<li th:text="${msg}"></li>
+				</ul>
+			</div>
+			
+			<!--/*응답메세지 박스 : script*/-->
+			<div id="resMsgs" style="display:none;">
+				<h4>Respond Messages</h4>
+				<ul th:each="msg:${resMsgs}">
+					<li th:text="${msg}"></li>
+				</ul>
+				<div id="scriptMsgs"></div>
+			</div>
+			
+			<form id="fileListForm" method="post" class="form-horizontal">
+				<div id="attachedFileDiv">
+					<!--/*첨부파일 목록*/-->
+					<div class="form-group row" th:if="${#lists.size(article.attachedFiles) > 0}">
+						<label for="file" class="col-lg-2 col-3 control-label headerLabel text-right">첨부파일</label>
+						<div class="col-lg-10 col-9" >
+							<div id="removeFileBtns">
+								<th:block th:each="attachedFile, status : ${article.attachedFiles}" >
+									<div th:id="|f-${attachedFile.aid}|">
+										<span th:data-attachmentId="${attachedFile.aid}"  
+											class="glyphicon glyphicon-remove jsAction" 
+											style="color: red;"></span>
+											
+										<span th:text="${attachedFile.fileName}"></span>
+									</div>
+								</th:block>
+							</div>
+						</div>
+					</div>
+				</div>
+			</form>
+			
+			<form id="editArticleForm" th:action="${#request.requestURI}" th:object="${article}"  method="post"
+					class="form-horizontal" enctype="multipart/form-data" >
+				<div id="articleDiv">
+					<!--/*게시글 아이디 */-->
+					<div class="form-group row">
+						<label for="title" class="col-lg-2 col-3 control-label headerLabel text-right">Id</label>
+						<div class="col-lg-10 col-9">
+							<input type="text" th:field="*{aid}" class="form-control" readonly="readonly" style="border:1px dotted	#F0F8FF;"/>
+						</div>
+					</div>
+					
+					<!--/*타이틀 */-->
+					<div class="form-group row">
+						<label for="title" class="col-lg-2 col-3 control-label headerLabel text-right">타이틀</label>
+						<div class="col-lg-10 col-9">
+							<input type="text" th:field="*{title}"class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/*내용 */-->
+					<div class="form-group row">
+						<label for="content" class="col-lg-2 control-label headerLabel d-none d-lg-block text-right">내용</label>
+						<div class="col-lg-10 col-12">
+							<textarea name="content" id="content" class="form-control" th:field="*{content}"></textarea>
+							<script type="text/javascript" th:inline="javascript">
+								var oEditors = [];
+								nhn.husky.EZCreator.createInIFrame({
+									oAppRef: oEditors,
+									elPlaceHolder: "content",
+									sSkinURI: /*[[@{/se2/SmartEditor2Skin.html}]]*/ '/',
+									fCreator: "createSEditor2"
+								});
+							</script>
+						</div>
+					</div>
+					
+					<!--/*작성자 */-->
+					<div class="form-group row">
+						<label for="writer" class="col-lg-2 col-3 control-label headerLabel text-right">작성자</label>
+						<div class="col-lg-10 col-9">
+							<input type="text" th:field="*{personacon.alias}" class="form-control" readonly="readonly" style="border:1px dotted	#F0F8FF;"/>
+							<!-- <input type="text" th:field="*{personacon.alias}"class="form-control"/>
+							<input type="text" th:field="*{personacon.pid}" class="form-control"/> -->
+						</div>
+					</div>
+					
+					<!--/*최종 수정일 */-->
+					<div class="form-group row">
+						<label for="updateDate" class="col-lg-2 col-3 control-label headerLabel text-right">최종 수정일</label>
+						<div class="col-lg-10 col-9">
+							<span th:text="${#dates.format(article.updateDate, 'yyyy-MM-dd (E) hh:mm:dd')}" class="form-control2"></span>
+							<!-- <input type="text" th:field="*{regDate}" class="form-control"/> -->
+						</div>
+					</div>
+					
+					<!--/*카테고리 */-->
+					<div class="form-group row">
+						<label for="fileDesc" class="col-lg-2 col-3 control-label headerLabel text-right">카테고리</label>
+						<div class="col-lg-10 col-9">
+							<input type="text" th:field="*{category}"class="form-control"/>
+						</div>
+					</div>
+					
+					<th:block th:if="${article.category == T(com.varxyz.playvoice.common.Constants).BOARD_LIBRARY}">
+					<!--/*첨부파일 */-->
+					<div class="form-group row" >
+						<label for="file" class="col-lg-2 col-3 control-label headerLabel text-right">첨부파일</label>
+						<div class="col-lg-10 col-9">
+							<input type="file" name="attachedFiles[0]" class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/*첨부파일 경로 */-->
+					<div class="form-group row" th:if="${#lists.size(article.attachedFiles)>0}">
+						<label for="fileDesc" class="col-lg-2 col-3 control-label headerLabel text-right">첨부파일 경로</label>
+						<div class="col-lg-10 col-9">
+							<span th:each="attachedFile : ${article.attachedFiles}"  th:text="*{attachedFiles[0].filePath}" class="form-control2"></span>
+							<!--/* <input type="text" name="attachedFileIds[0]" th:value="*{attachedFiles[0].aid}"/> */-->
+						</div>
+					</div>
+					</th:block>
+				</div>
+				
+				<!--/*submit 컨트롤 박스*/-->
+				<div class="form-group row" id="submitDiv">
+					<div class="ml-auto col-lg-10 col-12">
+						<input type="button" id="editArticleBtn" value="Modify" class="btn btn-primary"/>
+						<input type="reset" id="resetBtn" value="Cancel" class="btn btn-default"/>
+						<input type="button" id="backListBtn" value="Back to List" class="btn btn-info"/>
+						<!--/* <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> */-->
+					</div>
+				</div>
+			 </form>
+			 <div class="errorMsgs" style="display: none;">
+			 	<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre></pre>
+		 	</div>
+		</div><!-- end of formContainer -->
+	</div>
+	<!--/* <h3>댓글 보기</h3>
+	<div><span style="font: bold  15px NanumGothic ; color: #292A2C;">댓글추가(로그인 이후 처리)</span></div>
+	<div style="border: 1px solid #red; font-family: NanumGothic; font-size: 10pt;" th:each="reply : ${article.replies}">
+		<div th:style="${reply.parentId} ? 'padding-left: 50px;' : '' "  th:styleappend=" 'border:1px solid #F7F7F7; margin-bottom:5px;' ">
+			[[${reply.personacon.alias}]][[${reply.parentId}]]
+			[[${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}]]<br>
+			[[${reply.comment}]]<br>
+			좋아요: [[${reply.likeCount}]]
+			싫어요: [[${reply.dislikeCount}]]
+		</div>
+	</div>
+	<h3>목록 보기</h3> */-->
+	
+</section><!-- end of content -->

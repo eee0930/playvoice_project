@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playboard_layout}">
+<head>
+<title>플레이보드 (Play Board) - 플레이보이스 | Playvoice</title>
+
+ <!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '플레이보드 (Play Board) - 플레이보이스 | Playvoice', 
+	metaDescription = '여정에서의 경험, To write interesting diaries and stories.
+	플레이보이드는 다양한 주제의 글을 작성하는 게시판으로써, 잠깐의 여유를 만끽하고 싶은 여러분을 위해 만들어진 쉬어가는 공간입니다.', 
+	metaImage = '/images/app/board/index_board.jpg'"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {#httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 보드'} }"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">	
+<!-- datepicker -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/css/app/playboard_header_color.css}"> 
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+   
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+
+<script th:inline="javascript">
+	
+$(document).ready(function() {
+	//[게시글 목록]-----------------------------------------------------------------
+	$('.articleLink').click(function(e){
+		e.preventDefault();
+		var aid = $(this).attr("data-aid");
+		var boardAlias = $(this).attr("data-boardAlias");
+		
+		var link = '/board/';
+		link += boardAlias+'/list/'+aid;
+		location.href=link;
+	});
+});
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div id="boardIndexSection" class="mt-lg-5 mt-4">	
+
+<div id="introductionSection" class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png" alt="플레이보이스 플레이보드"
+			style="background: url('/images/app/board/index_board.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			Welcome to <span class="pv-tm">Play Board</span><br>
+			<small><b>여정에서의 경험,</b> To write interesting diaries and stories</small>
+		</div>
+	</div>
+</div>	
+
+
+	
+<!-- -----------------------[1. BEST Contents]------------------------------ -->
+<div id="bestArticleSection" class="index-article-list-section row no-gutters">
+	<!-- [1.1 주간 베스트] -->
+	<div id="weeklyBestDiv" class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3>주간 베스트 TOP 10 <i class="fa fa-star fa-fw"></i></h3>
+			</div>
+			<div id="bestBoard">
+				<table id="searchResultTable" class="board-table table table-hover table-sm text-center"
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}"><tbody>
+					<tr th:each="article, status : ${bestWeek}">
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<!--/* title */-->
+							<a href="javascript:void(0)" class="articleLink" 
+								th:data-aid="${article.id56}" 
+								th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+								[[${article.title}]]
+							</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">[[${article.bestRank}]]</span>
+						</td>
+						<td class="t-date text-center" 
+							th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+							?#dates.format(article.regDate, 'HH:mm')
+							:#dates.format(article.regDate, 'MM-dd')}">날짜
+						</td>
+					</tr></tbody>
+				</table>
+			</div><!-- /#bestBoard -->
+		</div>
+	</div><!-- end of weeklyBestDiv -->
+	
+	<!-- [1.2 월간 베스트] -->
+	<div id="monthlyBestDiv" class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3>월간 베스트 TOP 10 <i class="fa fa-star fa-fw"></i></h3>
+			</div>
+			
+			<div id="bestMonthBoard">
+				<table id="searchResultTable" class="board-table table table-hover table-sm text-center"
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+					<tbody>
+						<tr th:each="article, status : ${bestMonth}">
+							<td class="t-title text-left">
+								<span class="badge badge-danger best">BEST</span>
+								<!--/* title */-->
+								<a href="javascript:void(0)" class="articleLink" 
+									th:data-aid="${article.id56}" 
+									th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+									[[${article.title}]]
+								</a>
+							</td>
+							<td class="t-info text-right hidden-xs">
+								<span class="badge badge-pill badge-danger best-count">[[${article.bestRank}]]</span>
+							</td>
+							<td class="t-date text-center" 
+								th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+								?#dates.format(article.regDate, 'HH:mm')
+								:#dates.format(article.regDate, 'MM-dd')}">날짜
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div><!-- end of monthlyBestDiv -->
+</div><!-- end of bestArticleSection -->
+
+<!--/* -----------------------------[광고]--------------------------------- */-->
+<div id="playBoardIndexAdSection" class="playboard-index-ad-section">
+	<div class="playboard-index-ad-cover">
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+		<!-- 플레이보드 index PC -->
+		<ins class="adsbygoogle" style="display:block"
+		     data-ad-client="ca-pub-7152306695077047"
+		     data-ad-slot="1872146418" data-ad-format="horizontal"
+		     data-full-width-responsive="false"></ins>
+		<script>
+		     (adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+	</div>	
+</div>	
+	
+<th:block class="main-body" th:with="loopSize = ${#lists.size(boards)}%2 == 0?
+	${#lists.size(boards)}/2 : (${#lists.size(boards)-1}/2)+1, index=0">
+					
+<div id="newArticleSection" class="index-article-list-section row no-gutters" 
+	th:each="row:${#numbers.sequence(0,loopSize-1)}">
+		
+	<!--/* 왼쪽 게시판 */-->
+	<div th:with="index = ${row*2}" class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3 th:text="${boards[index].korName}" style="display: inline-block;">게시판 1</h3>
+				<a th:href="@{/board/{alias}/list(alias=${boards[index].alias})}" class="float-right">
+					<span class="badge badge-info">더보기</span>
+				</a>
+			</div>
+			
+			<div id="freeBoard">
+				<table id="searchResultTable" class="board-table table table-hover table-sm text-center" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+					<tbody>
+					<tr th:each="article, status : ${boards[index].board}">
+						<td class="t-title text-left">
+							<a href="javascript:void(0)" class="articleLink" 
+								th:data-aid="${article.id56}" 
+								th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+								[[${article.title}]]
+							</a> 
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label" 
+								th:if="${article.newArticle}">N</span>
+							<span class="badge badge-warning pic-label" 
+								th:if="${article.pics}">P</span>
+							<span class="badge badge-info video-label" 
+								th:if="${article.video}">V</span>
+						</td>
+						<td class="t-date text-center" 
+							th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+							?#dates.format(article.regDate, 'HH:mm')
+							:#dates.format(article.regDate, 'MM-dd')}">날짜
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div><!--/* end of left */-->
+	
+	
+	<th:block th:with="index = ${(row*2) +1}" >
+	<!--/* 오른쪽 게시판 */-->
+	<div th:if="${index < #lists.size(boards)}"	class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3 th:text="${boards[index].korName}" style="display: inline-block;">게시판 2</h3>
+				<a th:href="@{/board/{alias}/list(alias=${boards[index].alias})}" class="float-right">
+					<span class="badge badge-info">더보기</span>
+				</a>
+			</div>
+	
+			<div id="freeBoard">
+				<table id="searchResultTable" class="board-table table table-hover table-sm text-center" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+					<tbody>
+					<tr th:each="article, status : ${boards[index].board}">
+						<td class="t-title text-left">
+							<a href="javascript:void(0)" class="articleLink" 
+								th:data-aid="${article.id56}" 
+								th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+								[[${article.title}]]
+							</a> 
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label" 
+								th:if="${article.newArticle}">N</span>
+							<span class="badge badge-xs badge-warning pic-label" 
+								th:if="${article.pics}">P</span>
+							<span class="badge badge-info video-label" 
+								th:if="${article.video}">V</span>
+						</td>
+						<td class="t-date text-center" 
+							th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+							?#dates.format(article.regDate, 'HH:mm')
+							:#dates.format(article.regDate, 'MM-dd')}">날짜
+						</td>
+					</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	</th:block>
+	
+	<!--/* --------------------------[광고 영역]----------------------------- */-->
+	<div th:if="${(row*2+1) % 5 == 0}" class="playboard-index-ad-section col-12 px-3">
+		<div class="playboard-index-ad-cover">
+			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+			<!-- 플레이보드 index PC -->
+			<ins class="adsbygoogle" style="display:block"
+			     data-ad-client="ca-pub-7152306695077047"
+			     data-ad-slot="1872146418" data-ad-format="horizontal"
+			     data-full-width-responsive="false"></ins>
+			<script>
+			     (adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>	
+	</div>
+		
+</div><!-- end of newArticleSection -->
+</th:blcok>
+	
+
+</div><!-- end of boardIndexSection -->
+</section><!-- end of content -->
+
+
+
+
+

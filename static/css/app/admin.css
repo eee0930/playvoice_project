@@ -1,0 +1,329 @@
+h3 {
+	font-size: 1.2rem; 
+	font-weight: 600;
+	font-family: 'Nunito Sans', 'NanumSquare','나눔바른고딕';
+	margin: 1rem 0 0.5rem;
+}
+/* **********************************
+       admin_basic_layout.html
+************************************ */  
+#role-id{border-bottom: 1px solid #dcdcdc; margin-top:5px; margin-bottom: 20px; padding: 7px; text-align: center;}
+/* #menuContainer {border-top: 2px solid maroon; margin-top:20px; } */
+
+body {font-size: 14px;}
+
+.playvoice-footer-section {margin-top: 0;}
+/* **********************************
+     	  admin_menu.html
+************************************ */  
+.admin-menu-list-section {
+	height: 100%;
+}
+.admin-menu-list-section .admin-menu-list-cover {
+	padding: 0 1rem 1rem;
+}
+.admin-alias {
+	font-size: 15px;
+	font-family: 'Open Sans', Sans-Serif;
+}
+.admin-menu-title {
+	font-family: 'Graphik', 'NanumSquare', Sans-Serif;
+	font-size: 20px;
+	color: #1b1f40;
+	font-weight: 600;
+	margin-bottom: 1.5rem;
+}
+
+.adminMenuList .menuTitle {
+	cursor: pointer;
+	font-size: 14px;
+	font-family: 'Roboto','Nunito Sans', 'NanumGothic', Sans-Serif;
+	padding-left: 3px;
+	color: #1b1f40;
+}
+.adminMenuList .unfoldMenu {
+	color: rgb(128, 0, 0);
+	font-size: 16px;
+}
+.adminMenuList .foldMenu {
+	color: #303672;
+	font-size: 16px;
+}
+.subMenuList ul {padding-left: 1.4rem;}
+.subMenuList li {
+	font-size: 13px;
+	font-family: "Segoe UI", 'NanumGothic', Sans-Serif;
+	padding-left: 4px;
+}
+.subMenuList li.active {
+	color: #cb2026;
+	font-weight: 600;
+}
+
+li.devision-line {
+	list-style: none;
+	position: relative;
+	padding-bottom: 1rem;
+}
+li.devision-line:before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: -1rem;
+	padding-top: 0.5rem;
+	border-bottom: solid 1px #f0f0f0;
+	width: 100px;
+}
+
+
+
+/* 테이블 레이아웃 */
+table.table {table-layout: fixed;}
+.formContainer h3 {position: relative;}
+.formContainer .close-button {
+	position: absolute;
+	top: 0;
+	right: 0;
+	color: #363636;
+	font-size: 2rem;
+	cursor: pointer;
+}
+.admin-sentencebook-board .t-reference {
+	text-overflow:ellipsis; 
+	overflow:hidden;
+	white-space: nowrap; 
+	width: 100px;
+}
+table.table td.table-text-emp {color: #dd2138;}
+table.table td.table-text-success {
+	font-weight: 600;
+	color: #303672;
+}
+table.table tr.active {font-weight: 600;}
+table.table tr.activeSelectedElement {background-color: rgba(221,33,56,0.1);}
+
+
+
+/* div 영역 띄움 */
+.admin-section-divide {padding: 1rem 0;}
+
+
+/* 차트 크기 */
+.admin-stats-section canvas {
+	width: 100%;
+	height: 200px;
+}
+
+.btn-outline-main2.active {
+	background-color: #a55768;
+	border-color: #a55768;
+	color: #fff !important;
+}
+.btn-outline-main2.active i {text-shadow: 0 0 1px #fff, 0 0 1px #fff, 0 0 1px #fff;}
+
+/* 대시보드 영역 */
+.stats-group-row-section {
+	margin: 0.5rem 0;
+	border-top: solid 1px #e9e9e9;
+	padding: 1rem 0;
+}
+.stats-group-row-section h5 {
+	font-size: 14px;
+	margin: 0.5rem 0;
+	font-weight: 600;
+	color: #dd2138;
+	font-family: '-apple-system', 'apple sd gothic neo', 'Open Sans', 'NanumGothic';
+}
+.stats-group-row-section .stats-dashboard-cover {margin: 0 -0.5rem;}
+.admin-dashboard-section {margin-bottom: 30px;}
+.admin-dashboard-cover {margin: 0 -0.5rem;}
+.dashboard-section {padding: 0.5rem !important;}
+.dashboard-box {
+	padding: 0.9rem !important;
+	box-shadow: 0 1px 6px rgba(0,0,0,0.16), 0 1px 6px rgba(0,0,0,0.23);
+	border-radius: 5px;
+	min-height: 145px;
+	height: 100%;
+	font-family: 'Nunito Sans', 'NanumGothic', Sans-Serif;
+}
+.dashboard-box .title {
+	font-family: 'NanumSquare', Sans-Serif;
+	font-size: 15px;
+	font-weight: 600;
+	color: #1b1f40;
+}
+.dashboard-box .title b {font-weight: 600; color: #b01a2c;}
+.dashboard-box .sub-title {
+	font-size: 13px;
+	font-weight: 600;
+	color: #707070;
+	padding: 0.3rem 0;
+}
+.dashboard-box .content-section {min-height: 50px;}
+.dashboard-box .content-section ul {
+	padding-left: 1.5rem; 
+	margin-bottom: 0;
+}
+.dashboard-box .content-section.login-member {
+	max-height: 100px;
+	overflow-y: auto;
+}
+.dashboard-box .count,
+.dashboard-box .count-section {font-size: 13px;}
+.dashboard-box .count-section .num {font-size: 1.4rem;}
+.dashboard-box .period {
+	font-size: 12.5px;
+	letter-spacing: -0.5px;
+	font-family: 'Nunito Sans', 'NanumGothic', Sans-Serif;
+}
+.table-result-section .title {
+	position: relative;
+	margin: 1rem 0 0;
+}
+.table-result-section .close-button {
+	position: absolute;
+	font-size: 1.2rem;
+	cursor: pointer;
+	top: 50%;
+	transform: translateY(-50%);
+	right: 0;
+}
+
+
+/* 상세보기 영역 */
+.admin-view-detail-section h3 {font-family: 'Open Sans', 'NanumGothic';}
+.admin-view-detail-section .content-row {
+	margin: 0 0 1rem;
+}
+.admin-view-detail-section .content-label {
+	width: 180px;
+	text-align: right;
+	font-size: 14px;
+	font-family: 'Nunito Sans', 'NanumGothic';
+	font-weight: 600;
+	color: #303672;
+	padding-top: 3px;
+}
+.admin-view-detail-section .content-element {
+	padding: 0 1.5rem !important;
+	font-family: 'Open Sans', 'NanumGothic';
+	color: #1b1f40;
+	font-size: 13.5px;
+	word-break: keep-all;
+	word-wrap: break-word;
+}
+.admin-view-detail-section .content-element a {color: #253dbe !important;}
+.admin-view-detail-section .content-element a:hover {
+	border-color: #253dbe;
+	text-decoration: underline !important;
+}
+.admin-view-detail-section .content-element label {margin: 0;}
+.admin-view-detail-section .content-element .element-title {
+	font-weight: 600;
+	font-size: 12.5px;
+}
+.admin-view-detail-section .content-element .element-detail {
+	font-weight: 600;
+	color: #b01a2c;
+}
+.admin-view-detail-section .content-half-element.left {padding-right: 0.75rem !important;}
+.admin-view-detail-section .content-half-element.right {padding-left: 0.75rem !important;}
+.admin-view-detail-section .click-event-text {
+	cursor: pointer;
+	color: #3036a7;
+	position: relative;
+	font-weight: 600;
+}
+.admin-view-detail-section .click-event-text:hover::before {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	border-bottom: solid 1px #3036a7;
+}
+.admin-view-detail-section textarea.playvoice-form,
+.formContainer textarea {min-height: 120px;}
+.choice-radio-section {line-height: 2;}
+.choice-radio-section label {margin: 0 3px;}
+.choice-radio-section label input[type='radio'] {margin-right: 3px;}
+.choice-radio-section label.etc-text input {display: inline-block;}
+.choice-radio-section label.etc-text input[type='text'] {width: calc(100% - 80px);}
+.choice-voice-actor-section .count-voice-added-cover {
+	text-align: left;
+	font-family: 'Nunito Sans', 'NanumGothic';
+	color: #1b1f40;
+	font-size: 13px;
+	font-weight: 600;
+}
+.choice-voice-actor-section .count-voice-added-cover i {
+	color: #303672;
+	font-size: 14px;
+}
+.choice-voice-actor-section .count-voice-added-cover .todayDate {
+	color: #303672;
+	margin-right: 5px;
+	font-size: 14px;
+}
+.choice-voice-actor-section .count-voice-added-cover .num {
+	color: #b01a2c;
+	font-weight: 600;
+	font-size: 14px;;
+}
+.choice-voice-actor-section .voice-refer-name {
+	font-size: 1rem;
+	font-family: 'Nunito Sans';
+	font-weight: 600;
+	color: #303672;
+	margin-bottom: 0.5rem;
+	display: inline-block;
+	background-color: #303672;
+	color: #fff;
+	border-radius: 15px;
+	padding: 0.2rem 1rem;
+}
+.choice-voice-actor-section .group-name {
+	font-family: 'Open Sans', 'Roboto', 'NanumGothic';
+	font-size: 1rem;
+	color: #303672;
+	font-weight: 600;
+}
+.choice-voice-actor-section .voiceActorInfo {
+	font-size: 13px;
+	color: #1b1f40;
+}
+.choice-voice-actor-section .name {
+	font-family: 'Open Sans', 'Roboto';
+	font-size: 14px;
+	color: #303672;
+	font-weight: 600;
+}
+
+
+
+
+/* **********************************
+     	  add_level.html
+************************************ */  
+.playvoicebook-add-level-section .table-scroll-y { /* 테이블 스크롤 level */
+	display: block;
+	max-height: 350px;
+	overflow-y: auto;
+	-ms-overflow-style: -ms-autohiding-scrollbar;
+}
+.playvoicebook-add-stage-section .table-scroll-y2 { /* 테이블 스크롤 stage */
+	display: block;
+	max-height: 570px;
+	overflow-y: auto;
+	-ms-overflow-style: -ms-autohiding-scrollbar;
+}
+.playvoicebook-add-level-section .formContainer textarea {min-height: 160px;}
+.playvoicebook-add-stage-section .formContainer textarea {min-height: 220px;}
+
+
+
+
+
+
+
+

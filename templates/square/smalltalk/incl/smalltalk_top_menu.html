@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="menu">
+<div id="smalltalkTopMenuSection" class="smalltalk-menu row"><div class="col-12 p-0">
+	<div class="menu-cover py-2"><div class="row no-gutters menu">
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button class="menu-item" th:href="@{/square/smalltalk}" 
+				data-reg="/square/smalltalk$"
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i class="fa fa-beer fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스몰톡 HOME</span>
+				<span class="d-md-none">HOME</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button class="menu-item all" type="button"
+				th:href="@{/square/smalltalk/list}" 
+				data-reg="/square/smalltalk/list" 
+				onclick="location.href=$(this).attr('href')">
+				<i class="fa fa-book fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스토리 목록</span>
+				<span class="d-md-none">독해 학습</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button class="loginRequired menu-item"
+				th:href="@{/square/smalltalk/add}" 
+				data-reg="/smalltalk/add|/smalltalk/translate|/smalltalk/analyze|/smalltalk/category"
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i class="fa fa-pen fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스몰톡 등록</span>
+				<span class="d-md-none">스몰톡 등록</span>
+			</button>
+		</div>
+		<th:block th:if="${session?.userContainer}" 
+			th:with="personacon=${session?.userContainer?.personacon}">
+			<div class="menu-b col-md-auto col text-center align-self-center">
+				<button class="loginRequired menu-item plate" 
+					data-reg="/square/smalltalk/plate/" type="button"
+					th:href="@{/square/smalltalk/plate/{memberId56} 
+					(memberId56=${personacon.id56})}"
+					onclick="location.href=$(this).attr('href')">
+					<i th:if="${#strings.contains('PG', (personacon.memberType))}" 
+						class="forGold fa fa-crown fa-fw"></i>
+					<i class="fa fa-archive fa-fw"></i>
+					<br class="d-md-none">
+					<span class="d-none d-md-inline-block">스토리 보관함</span>
+					<span class="d-md-none">보관함</span>
+				</button>
+			</div>
+			<div class="menu-b col-md-auto col text-center align-self-center">
+				<button class="loginRequired menu-item my" 
+					data-reg="/square/smalltalk/mylist/"
+					th:href="@{/square/smalltalk/mylist/{memberId56} 
+					(memberId56=${personacon.id56})}"
+					onclick="location.href=$(this).attr('href')" type="button">
+					<i class="fa fa-street-view fa-fw"></i>
+					<br class="d-md-none">
+					<span class="d-none d-md-inline-block">내가 쓴 글 보기</span>
+					<span class="d-md-none">나의 컨텐츠</span>
+				</button>
+			</div>
+		</th:block>
+		<th:block th:unless="${session?.userContainer}">
+			<div class="menu-b col-md-auto col text-center align-self-center">
+				<button class="loginRequired menu-item" 
+					th:href="@{/square/smalltalk/list}" type="button">
+					<i class="fa fa-archive fa-fw"></i>
+					<br class="d-md-none">
+					<span class="d-none d-md-inline-block">스토리 보관함</span>
+					<span class="d-md-none">보관함</span>
+				</button>
+			</div>
+			<div class="menu-b col-md-auto col text-center align-self-center">
+				<button class="loginRequired menu-item" 
+					th:href="${#request.requestURI}" type="button">
+					<i class="fa fa-street-view fa-fw"></i>
+					<br class="d-md-none">
+					<span class="d-none d-md-inline-block">내가 쓴 글 보기</span>
+					<span class="d-md-none">나의 컨텐츠</span>
+				</button>
+			</div>
+		</th:block>
+	</div></div>
+</div></div>
+<script>
+// [선택된 메뉴들 active 효과]------------------------------------------------------
+$("#smalltalkTopMenuSection .menu-item").each(function(i, anchor){
+	// 현재 url과 맞는 정규식값을 'data-reg' 값으로 갖는 메뉴를 활성화 
+	// PC버전 메뉴의 각 <a>태그에 data-reg 값이 있어야 한다.
+	const matched = location.pathname.match($(anchor).attr("data-reg"));
+	if(matched != null && matched[0].length > 0){
+		$(anchor).addClass('menu-active');
+	}
+});
+// [상세보기 화면에서는 이전 주소를 사용해서 활성화]---------------------------------
+const viewPath = location.pathname.match('/square/smalltalk/view');
+if(viewPath != null && viewPath[0].length > 0){
+	var $selected = $("#smalltalkTopMenuSection .menu-item.[[${param.searchType?:'all'}]]");
+		$selected.addClass('menu-active');
+}
+</script>
+</div>
+</html>

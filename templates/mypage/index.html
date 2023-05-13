@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_index_layout}">
+
+<head>
+<title>Index Of My Page - playvoice</title>
+	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/mypage.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [알람 리스트 열기]------------------------------------------------------------
+	$("#displayAlarmList").click(function(){
+		$("#alarmListDiv").show(100);
+		$(this).hide();
+		$(".noticeBadge").hide(100);
+	});
+	
+	// [알림 페이지 넘기기]-----------------------------------------------------------
+	$(document).on("click", ".alarm-pagination a", function(e){
+		e.preventDefault();
+		//---------------------------------
+		searchAlarms($(this).attr("href"));
+		//---------------------------------
+	});
+	
+	// [알림 내용을 누를 경우 읽었음을 서버에 전달]--------------------------------------------
+	$(document).on("click", ".alarm-list a", function(){
+		//----------------------------------------------
+		alarmChecked($(this).attr("data-aid"), $(this));
+		//----------------------------------------------
+	})
+	
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	// [city 이미지 날짜별로 다르게 세팅]------------------------------------------------
+	var today = new Date();
+	var cityNum = today.getDate() % 4;
+	var memberLevelImage = $("#introductionSection .level-img");
+	var backgroundImage = "background: url('/images/app/mypage/cities/group"
+			+ memberLevelImage.attr('data-level') + cityNum + "_index.jpg') no-repeat;"
+			+ "background-size: cover; background-position: center; width: 100%;";
+	memberLevelImage.attr("style", backgroundImage);
+	
+});//end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 조회된 알람 리스트를 화면에 표시하고 페이지 번호 표시를 한다.
+ */
+function displayAlarms(pageMaker){
+	$("#alarmListDiv .alarm-list").remove();
+	// $alarmAppendPlace.before()로 각 요소 끼워넣기
+	var $alarmAppendPlace = $("#alarmListDiv .alarm-pagination");
+	
+	var alarms = pageMaker.result.content;
+	alarms.forEach(function(alarm, i) {
+		var $row = $("#divsForCopy .alarm-list").clone();
+		
+		if(!alarm.checked){
+			$row.addClass("active");
+		}
+		if(alarm.alarmType == 'c') {
+			$row.find(".active-section").html("<i class=\"fa fa-comment-dots fa-fw\"></i>");
+		} else if (alarm.alarmType == 'Babel-ANS') {
+			$row.find(".active-section").html("<i class=\"fa fa-coffee fa-fw\"></i>");
+		} else if (alarm.alarmType == 'Trunk') {
+			$row.find(".active-section").html("<i class=\"fa fa-child fa-fw\"></i>");
+		} else {
+			$row.find(".active-section").html("<i class=\"fa fa-bell fa-fw\"></i>");
+		}
+		$row.find("a").attr("href", alarm.uri)
+					  .attr("data-aid", alarm.aid);
+		$row.find(".alarmAlias").text(alarm.sender);
+		$row.find(".alarmContent").text(alarm.title);
+		$row.find(".alarmDate").text(alarm.regDate);
+		$alarmAppendPlace.before($row);
+	});
+};
+
+/**
+ * 조회된 알람 리스트에 대한 페이징 처리
+ */
+function displayAlarmNavigation(pageMaker) {
+	$(".alarm-pagination").empty();
+	var currentPageNum = pageMaker.currentPageNum - 1;
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var pageList = pageMaker.pageList;
+	
+	var $pagination = $(".alarm-pagination");
+	var links = "";
+	if(prevPage != null){
+		links += '<a href="/message/alarm/list?pageNum=' + (prevPage.pageNumber + 1) 
+			   + '"><i class="fa fa-angle-left"></i> prev</a>';
+	}
+	if(pageList != null ){
+		pageList.forEach(function(page, i) {
+			links += '<a' + ((page.pageNumber == currentPageNum)?' class="active"':'')
+				   + ' href="/message/alarm/list?pageNum=' 
+				   + (page.pageNumber + 1) + '">' + (page.pageNumber + 1) + '</a>';
+		})
+	}
+	
+	if(nextPage != null){
+		links += '<a href="/message/alarm/list?pageNum=' + (nextPage.pageNumber + 1) 
+			   + '">next <i class="fa fa-angle-right"></i></a>';
+	}
+	$pagination.append($(links));
+};
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+</script>
+</head>
+
+<section layout:fragment="content" class="container">
+<div class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/mypage/incl/mypage_top_menu::menu}" class="col-lg-10"></div>
+</div>
+<div th:insert="~{/mypage/incl/mypage_top_menu::menuMyPage}"></div>
+
+<div id="myPageIndexSection" class="row"><div class="col-lg-1"></div>
+
+<div class="col-lg-10">
+<div id="introductionSection" th:with="upperLevel=${#strings.toUpperCase(myCurrentLevel)}" 
+	class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<th:block th:if="${#strings.equals(myCurrentLevel, upperLevel)}" 
+		th:insert="~{/mypage/incl/index_level_incl::level_ + ${upperLevel}}"></th:block>
+	<th:block th:unless="${#strings.equals(myCurrentLevel, upperLevel)}" 
+		th:insert="~{/mypage/incl/index_level_incl::level_rejected}"></th:block>
+</div>
+
+<div id="introDiv" th:with="personacon = ${session.userContainer.personacon},
+	member = ${session.userContainer.member}">
+
+<div class="reg-date-section p-2 text-right">
+	<i class="far fa-calendar-plus fa-fw" 
+		th:title="${personacon.alias} + '님이 가입한지..'"></i>
+	<span class="mr-1"><span class="date-num">
+		[[${#dateUtil.elapsedDays(member.regDate)}]]</span> days passed,
+	</span>
+	<span>Since <span class="date-num">
+		[[${#dates.format(member.regDate, 'yyyy-MM-dd')}]]</span>
+	</span>
+</div>	
+
+
+<div class="index-container">
+
+<!-- ---------------------[Notification Alarm]------------------------------ -->
+<div class="my-alarm-section index-content-section">
+	<h3>
+		Notification <span class="index-text-color">Alarm</span>
+		<i class="fa fa-envelope fa-fw" style="color: pink;"></i>
+		<!-- 알림 뱃지 -->
+		<span th:if="${messageCount > 0}" class="noticeBadge badge badge-danger badge-pill notice-num">
+			[[${messageCount}]]
+		</span><br>
+		<small>
+			<span class="guide-title">[알람에 대한 새로운 생각] </span> 
+			알람을 확인하면서 해당 콘텐츠를 복습하세요.<br class="d-none d-md-block d-lg-none">
+			학습에 대한 비정기적 인출이 많을수록 장기 기억에 도움이 됩니다.
+		</small>
+	</h3>
+	
+	<div th:if="${messageCount > 0}" class="alarm-msg-guide">
+		<span id="displayAlarmList" class="jsAction">
+			<i class="fa fa-envelope fa-fw mr-2" style="color: pink;"></i>
+			<span class="alias">[[${personacon.alias}]]</span> 님에게
+			<span class="notice-num">[[${messageCount}]]</span> 개의 알람이 도착했습니다
+			<span class="click-guide">
+				<i class="fa fa-arrow-left text-dark"></i>
+				확인하기
+			</span>
+		</span>
+	</div>
+	<div th:unless="${messageCount > 0}" class="alarm-msg-guide">
+		<i class="fa fa-info-circle fa-fw"></i>
+		새로운 알람이 없습니다<br>
+	</div>
+	
+	<div id="alarmListDiv" class="alarm-list-cover" style="display: none;">
+		<div class="alarm-guide-small">※ 알람은 2주 후 자동 삭제됩니다.</div>
+		<div th:each="alarm : ${alarmPageMaker?.result}" class="alarm-list row no-gutters"
+			th:classappend="${alarm.checked?'':'active'}">
+			<div th:switch="${alarm.alarmType}" class="active-section col-md-auto col-1 pr-2">
+				<i th:case="'c'" class="fa fa-comment-dots fa-fw"></i>
+				<i th:case="'Babel-ANS'" class="fa fa-coffee fa-fw"></i>
+				<i th:case="'Trunk'" class="fa fa-child fa-fw"></i>
+				<i th:case="*" class="fa fa-bell fa-fw"></i>
+			</div>
+			<div class="col-md col-11">
+				<a th:href="${alarm.uri}" target="_sub" 
+					class="row no-gutters" th:data-aid="${alarm.aid}">
+					<!-- 알림 내용 (PC ver.) -->
+					<span class="alarm-alias col-auto d-none d-md-block">
+						<span class="normal">[</span><span th:text="${alarm.sender}"></span>
+					</span>
+					<span class="alarm-content col-auto d-none d-md-block">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						[[${alarm.title}]]
+					</span>
+					<span class="alarm-msg col d-none d-md-block">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+					</span>
+					<span class="alarm-date col-auto d-none d-md-block">
+						[[${#dates.format(alarm.regDate, 'yyyy-MM-dd')}]]
+					</span>
+					<!-- 알림 내용 (Mobile ver.) -->
+					<span class="d-md-none">
+						<span class="alarm-alias">
+							<span class="normal">[</span><span th:text="${alarm.sender}"></span>
+						</span>
+						<span class="alarm-content">
+							<span class="normal">]</span>
+							<i class="fa fa-quote-left ml-2"></i>
+							[[${alarm.title}]]
+						</span>
+						<span class="alarm-msg">
+							<i class="fa fa-quote-right mr-2 ml-1"></i>
+						</span>
+						<span class="alarm-date">
+							[[${#dates.format(alarm.regDate, 'yyyy-MM-dd')}]]
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+		
+		<!-- pagination -->
+		<div class="alarm-pagination text-center">
+			<a th:if="${alarmPageMaker?.prevPage}" th:href="${alarmPageMaker.prevPage.pageNumber} + 1">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+			<a th:each="page:${alarmPageMaker?.pageList}"
+				th:classappend="${page.pageNumber == alarmPageMaker.currentPageNum -1} ? active: '' " 
+				th:href="@{/message/alarm/list?pageNum={pageNum} (pageNum = ${page.pageNumber + 1})}">
+				[[${page.pageNumber}+1]]</a>
+			<a th:if="${alarmPageMaker?.nextPage}" th:href="${alarmPageMaker.nextPage.pageNumber} + 1">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+		
+	</div>
+</div>	
+
+<!-- -----------------------------[my ranking]------------------------------ -->
+<div class="my-ranking-section index-content-section">
+	<h3>
+		My <span class="index-text-color">Ranking</span>
+		<i class="fa fa-award fa-fw" style="color: #be86f8;"></i><br>
+		<small>Check out your total ranking</small>
+	</h3>
+	
+	<div class="my-ranking-cover row no-gutters">
+		<div class="image-position col-md pr-md-3">
+			<img th:if="${myRankNum < 1000}" alt="플레이보이스 playvoice" 
+				src="/images/app/mypage/mypage_mandrill.jpg">
+			<img th:unless="${myRankNum < 1000}" alt="플레이보이스 playvoice" 
+				src="/images/common/characters/goto_travel_evening.jpg">
+		</div>
+		<div class="my-ranking-ment col-md-auto text-md-right">
+			Excellence Is The Gradual Result<br class="d-none d-sm-block d-xl-none">
+			Of Always Striving To Do Better.<br class="d-none d-sm-block">
+			It Always Seems Impossible Until It’s Done.<br>
+			– Pat Riley &amp; Nelson Mandela
+		</div>
+		<div class="my-ranking-position col-md-6">
+			<div th:if="${myRankNum < 1000}" class="my-ranking confirm">
+				<div class="title">My Ranking</div>
+				<div class="my-rank">
+					<span class="rank-num">[[${myRankNum}]]</span> 등
+				</div>
+				<div class="ment">
+					모든 플레이보이스 랭킹 목록은 학습에 참여한 플보 멤버들의 부단한 노력과 
+					꾸준함에 대한 감사를 전달하고자 마련한 플레이보이스의 조그마한 성의입니다. 
+				</div>
+			</div>
+			<div th:unless="${myRankNum < 1000}" class="my-ranking">
+				<div class="title">My Ranking</div>
+				<div class="my-rank">
+					플레이보이스 랭킹은 1000등 안에 들 경우 등수를 제공합니다.
+				</div>
+				<div class="ment">
+					모든 플레이보이스 랭킹 목록은 학습에 참여한 플보 멤버들의 부단한 노력과 
+					꾸준함에 대한 감사를 전달하고자 마련한 플레이보이스의 조그마한 성의입니다. 
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+
+<!-- 플레이보이스 명예의 전당 설명 -->
+<div class="ranker-msg-section" align="center">
+	<div class="ranker-logo">
+		<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+	</div>
+	<div class="ranking-msg-cover">
+		<h5 class="ranking-msg-title">
+			Playvoice Hall of Fame
+		</h5>
+		<div class="ranking-msg">
+			플레이보이스 명예의 전당에 입성한 <b>최고의 랭커들입니다</b>.<br>
+			플레이보이스 랭킹 포인트는 영어 실력에 대한 평가가 아니라
+			목표를 향해 도전하는 보이지 않는 <b>노력에 대한 찬사</b>입니다.<br>
+		</div>
+	</div>
+</div>
+
+<!-- ---------------------[Hall of Fame (Play Point)]----------------------- -->
+<div class="member-ranking-section play-point">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-end pl-3">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">Play Point Top Rankers</span>
+			<i class="fas fa-trophy fa-fw" style="color: #ee6253;"></i><br>
+			<small>Members who got the high Play Points</small>
+		</span>
+	</h3>
+
+	<div class="ranking-bg bg2">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">[[${rankingUpdate}]]</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="topRanker, iter : ${topPpList}"
+					th:with="personacon = ${topRanker.personacon}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>[[${personacon.alias}]]</div>
+							<div class="info"></div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:if="${personacon.memberType} == 'M'">Play</div>
+							<div th:if="${personacon.memberType} == 'S'">Silver</div>
+							<div th:if="${personacon.memberType} == 'G'">Gold</div>
+							<div th:if="${personacon.memberType} == 'P'">Platinum</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->
+
+<!-- ------------------[Hall of Fame (Ranking Point)]----------------------- -->
+<div class="member-ranking-section">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-end pl-3">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">Ranking Point Top Rankers</span>
+			<i class="fas fa-trophy fa-fw" style="color: #ee6253;"></i><br>
+			<small>Members who got the high ranking points</small>
+		</span>
+	</h3>
+
+	<div class="ranking-bg bg1">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">[[${rankingUpdate}]]</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="topRanker, iter : ${topRpList}"
+					th:with="personacon = ${topRanker.personacon}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>[[${personacon.alias}]]</div>
+							<div class="info"></div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:if="${personacon.memberType} == 'M'">Play</div>
+							<div th:if="${personacon.memberType} == 'S'">Silver</div>
+							<div th:if="${personacon.memberType} == 'G'">Gold</div>
+							<div th:if="${personacon.memberType} == 'P'">Platinum</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->
+
+
+	
+</div>	
+</div><!-- end of introDiv -->
+	
+</div>
+</div><!-- end of myPageIndexSection -->
+
+
+<!-- -------------------- [divs For Copy] ---------------------------------- -->
+<div id="divsForCopy" style="display:none;">
+
+	<!-- ------------------------Alarm List--------------------------------- -->
+	<div class="alarm-list row no-gutters">
+		<div class="active-section col-md-auto col-1 pr-2"></div>
+		<div class="col-md col-11">
+			<a href="" class="row no-gutters" data-aid="">
+				<!-- 알림 내용 (PC ver.) -->
+				<span class="alarm-alias col-auto d-none d-md-block">
+					<span class="normal">[</span><span class="alarmAlias"></span>
+				</span>
+				<span class="alarm-content col-auto d-none d-md-block">
+					<span class="normal">]</span>
+					<i class="fa fa-quote-left ml-2"></i>
+					<span class="alarmContent"></span>
+				</span>
+				<span class="alarm-msg col d-none d-md-block">
+					<i class="fa fa-quote-right mr-2 ml-1"></i>
+					<span class="alarmMsg"></span>
+				</span>
+				<span class="alarmDate alarm-date col-auto d-none d-md-block"></span>
+				
+				<!-- 알림 내용 (Mobile ver.) -->
+				<span class="d-md-none">
+					<span class="alarm-alias">
+						<span class="normal">[</span><span class="alarmAlias"></span>
+					</span>
+					<span class="alarm-content">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						<span class="alarmContent"></span>
+					</span>
+					<span class="alarm-msg">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+						<span class="alarmMsg"></span>
+					</span>
+					<span class="alarmDate alarm-date"></span>
+				</span>
+			</a>
+		</div>
+	</div>
+	
+	
+</div>
+<!-- -------------------- /divs For Copy ----------------------------------- -->
+
+
+</section>

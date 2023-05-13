@@ -1,0 +1,1374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout}">
+<head>
+<title>다이제스트 (Digest) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '다이제스트 (Digest) - 플레이보이스 | Playvoice', 
+	metaDescription = '다이제스트는 영어 표현, 영어 문법, 영어와 우리말의 문화적 차이, 여러분들이 공부한 것들에 대한 정리 등
+	입시 시험에서는 잘 다루지는 않지만 중요한 내용들에 대해 함께 공유할 수 있는 공간입니다.', 
+	metaImage = '/images/app/playsquare/owl.jpg'"></th:block>
+	
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '다이제스트 아티클 목록'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/square/digest/list/'} }"></th:block>]
+</script>
+
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+var replyAppCode = /*[[${replyAppCode}]]*/0;
+var tempArticleKey;
+var mid = /*[[${session?.userContainer?.personacon?.pid}]]*/0;
+$(document).ready(function(){
+	
+	// [아티클 등록폼으로 이동]---------------------------------------------------------
+	$(".addDigestBtn").click(function(){
+		if($('#loginStatus').text() == 'true'){
+			location.href="/square/digest/add";
+		}else{
+			location.href="\/auth\/login"+"?destPage=/square/digest/add";
+		}
+	});
+	
+	// [현재 URI 주소에 따라 탭 선택] --------------------------------------------------
+	var currentUri = location.pathname;
+	var queryString = location.search;
+	if(queryString.length > 0 && queryString.indexOf("pageNum") > -1){
+		queryString = queryString.substring(0,queryString.indexOf("pageNum") - 1);
+	}
+	// [현재 URI 주소에 따라 탭 선택 (Mobile.ver)] --------------------------------------
+	$("#digestDropdownMenu a").each(function(index, anchor) {
+		if($(anchor).attr("href") == (currentUri + queryString)){
+			$(anchor).addClass("active");
+			$(".select-trans-list .btn-secondary span").text($(anchor).text().trim());
+		}
+	});
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	
+	var suggestionTimer;
+	// [검색어 입력시 제시어 요청 및 검색버튼 활성화]-------------------------------------------
+	$(document).on("input", "#searchKeyword", function(){
+		clearTimeout(suggestionTimer);
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		var input = $(this);
+		if($(this).val().length > 0){
+			suggestionTimer = setTimeout(function() {
+				//------------------------------------------------
+				getDigestTitleSuggestionList($("#searchType").val().charAt(0), input.val(), input);
+				//------------------------------------------------
+			}, 500);
+			
+			add_btn.prop("disabled", false);
+			
+		} else {
+			add_btn.prop("disabled", true);
+		}
+	});
+	
+	// [제시어 클릭하면 검색어로 입력 후 검색 폼 열기]------------------------------------------
+	$(document).on("click", ".suggest-list-cover li", function(){
+		$("#searchKeyword").val($(this).text());
+		$("#searchSentence_div .squareAddBtn").prop("disabled",false);
+		$("#searchSentence_div .suggest-list-cover").empty();
+	});
+	
+	// [텍스트 입력폼 클릭시 제시어 목록 다시 보이기 & 닫기]--------------------------------------
+	$("#searchKeyword").on("click", function(){
+		if($(this).siblings(".suggest-list-cover").children("li").length > 0){
+			$(this).siblings(".suggest-list-cover").toggle();
+		}
+	});
+	
+	// [텍스트 입력폼 외 클릭시 제시어 목록 닫기]---------------------------------------------
+	$(document).on("click", function(e){
+		var target = $(e.target);
+		e.stopPropagation();
+		if(!$(target).is("#searchKeyword")){
+			$(".suggest-list-cover").hide();
+		}
+	});
+	
+	// [주제 검색 실행]-------------------------------------------------------------
+	$("#searchForm").submit(function(e){
+		e.preventDefault();
+		//--------------------
+		searchDigest($("#searchSentence_div #searchType").val(), 
+					 $("#searchSentence_div .requireSentenceForm").val(), 1);
+		//--------------------
+		
+	});
+	
+	// [검색 결과 리스트 숨기기]--------------------------------------------------------
+	$("#closeResultSearchSentence_btn").click(function(){
+		$(this).closest(".result-search-section").hide();
+		$("#defaultDigestList, #defaultDigestPagination").show();
+	});
+
+
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	
+	// [다이제스트 리스트 펼치기]-------------------------------------------------------
+	var orgUrl = location.href;
+	$(document).on("click", "#translationSection .toggleDigestCover", function(){
+		var $parentDigestCover = $(this).closest(".trans-list");
+		var $cover = $(this).closest(".digest-cover");
+		var $articleListCover = $parentDigestCover.find(".digestBody");
+		var $adfitDiv = $('#articleAd');
+		
+		// 다른 다이제스트들 모두 감춤
+		$(".digestBody:visible").each(function(index,digestCover){
+			if(!$articleListCover.is(digestCover)){
+				$(digestCover).hide(100);
+				$(digestCover).closest(".trans-list").removeClass("articleOpen");
+			}
+		});
+		var digestId56 = $cover.find(".digestId56").val();
+		if($cover.is(".articleLoaded")){
+			$articleListCover.toggle(100, function(){
+				if($articleListCover.is(":visible")){
+					var linkId = $articleListCover.find('.copy-url-cover :text').val().split('/').pop();
+					history.replaceState(null,null, '/square/digest/list/' + linkId);
+					window.scrollTo(0, $cover.offset().top - $("#headerNavbar").height());
+					$parentDigestCover.addClass("articleOpen")
+									  .find('.viewArticleAdSection').append($adfitDiv);
+					
+				}else{
+					history.replaceState(null,null, orgUrl);
+					$parentDigestCover.removeClass("articleOpen");
+					$('#viewArticleAdDiv').append($adfitDiv);
+				}
+			});
+		}else{
+			//------------------------------------------------------------------
+			getDigestArticleList(digestId56, $articleListCover.find(".member-content-list"));
+			//------------------------------------------------------------------
+			$parentDigestCover.find('.viewArticleAdSection').append($adfitDiv);
+		}
+	});
+	
+	// [다이제스트 share link 클립보드로 복사]-------------------------------------------
+	$(document).on("click", ".clip-target", function(){
+		var clipParent = $(this).closest(".copy-url-section");
+		var inputClip = clipParent.find(".hide-input");
+		inputClip.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			clipParent.find(".successClip-guide").show();
+			setTimeout(function() {
+				clipParent.find(".successClip-guide").hide();
+			}, 2000);
+			
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+		inputClip.blur(); 
+	});
+	
+	// [다이제스트 주제 수정 폼]-------------------------------------------------------
+	$(document).on("click", ".editTitle", function(){
+		var digest = $(this).closest(".digest-content-section");
+		digest.find(".content").hide(100);
+		digest.find(".titleInput").closest(".titleEditArea")
+								  .show(100);
+		digest.find(".titleInput").focus();
+	});
+	
+	// [다이제스트 주제 수정 취소]-----------------------------------------------------
+	$(document).on("click", ".cancelTitleBtn", function(){
+		var orgTitle = $(this).closest(".digest-cover").find(".title-sent span").text();
+		$(this).closest(".digest-cover").find(".titleInput").val(orgTitle);
+		$(this).closest(".titleEditArea").hide(100);
+		$(this).closest(".digest-cover").find(".content").show(100);
+	});
+	
+	// [다이제스트 주제 수정 실행]-----------------------------------------------------
+	$(document).on("click", ".editTitleBtn", function(){
+		var titleSpan = $(this).closest(".digest-cover").find(".title-sent span");
+		var title = $(this).closest(".digest-cover").find(".titleInput").val();
+		if(title.trim().length == 0){
+			alert("주제는 비울 수 없습니다.");
+			return;
+		}
+		var digestId = $(this).closest(".digest-cover").find(".digestId").val();
+		var obj = {
+				digestId : digestId,
+				title : title
+		};
+		//------------------------------
+		editDigestTitle(obj, titleSpan);
+		//------------------------------
+	})
+	
+	// [다이제스트 주제 신고]---------------------------------------------------------
+	$(document).on('click', '.digestReport', function(){
+		var digestId = $(this).closest(".digest-cover").find(".digestId").val();
+		var digestWriter = $(this).closest(".digest-cover").find(".digestWriterAlias").val();
+		var reportReadyResource = {
+				appResourceId: Number(digestId),
+				appCodeName: 'DigestBook',
+				reporterId: mid,
+				repAlias: /*[[${session?.userContainer?.personacon?.alias}]]*/null,
+				posAlias: digestWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	})
+	
+	// [특정 주제의 다이제스트 추가 폼으로 이동]----------------------------------------------
+	$(document).on("click", ".trans-list .moveMemberContent-form", function(){
+		if($("#addArticleForm:visible").length == 0 || confirm("기존 작성중이던 내용은 사라집니다.\n계속하시겠습니까?")){
+			$("#addArticleForm:visible button[type='reset']").click();
+			$(this).closest(".digestBody").find(".member-trans-form,.member-trans-guide").hide();
+			
+			var editor = $(this).closest(".digestBody").find(".member-trans-editor");
+			var list = $(this).closest(".digestBody")
+							  .find(".member-content-list");
+			if(editor.children().length > 0){
+				editor.show();
+			}else{
+				$(".member-trans-editor").empty();
+				var digestId = $(this).closest(".trans-list").find(".digestId").val();
+				var title = $(this).closest(".trans-list").find(".title-sent span").text();
+				var next = '/square/digest/add';
+				
+				editor.load(next + " #addArticleForm", function(){
+					// [썸머노트 에디터가 로드되기 전 임시저장된 작성글 불러오기]------------------------------------
+					tempArticleKey = /*[[${session?.userContainer?.personacon?.alias}]]*/null;
+					var tempDigestArticle = sessionStorage.getItem('tempDigestArticle_' + tempArticleKey);
+					if(tempDigestArticle != null && tempDigestArticle.length > 0
+						&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+						$("#summernote").text(tempDigestArticle);
+					}
+					//---------------------------------------
+					insertSummernoteEditor($("#summernote"));
+					//---------------------------------------
+					// digestId 설정
+					createHidden(editor.find("form")[0], "digestId", digestId);
+					// title 설정
+					editor.find(".added-title span").text(title);
+					editor.find(".added-title").show();
+					editor.find("#title").val(title)
+										 .prop("readonly", true)
+										 .parent().hide();
+					
+					
+					// Register 버튼 재정의
+					editor.find("#save").attr("type","button").on("click", function(){
+						//------------------------------------------------------
+						var content = filterSummernoteContent($("#summernote"));
+						//------------------------------------------------------
+						var len = content.length;
+						if( len == 0 || len > 65000) {
+							alert("Content length must be between 0 and 65,000."
+							+" Total Length : "
+							+ content.length +" characters");
+							return;
+						}else{
+							editor.find("textarea[name='content']").val(content);
+							sessionStorage.removeItem('tempDigestArticle_' + tempArticleKey);
+							//--------------------------------------
+							appendDigest(editor.find("form"), list);
+							//--------------------------------------
+						}
+						
+					})
+					
+					// Cancel 버튼 재정의
+					editor.find("button[type='reset']").text("Cancel").on("click", function(){
+						editor.closest(".digestBody").find(".member-trans-form,.member-trans-guide").show();
+						editor.hide();
+					})
+				});
+			}
+			editor.show();
+			//----------------------
+			initSessionMonitor(120);
+			//----------------------
+		}
+	});
+	
+	// [아티클 펼치기]--------------------------------------------------------------
+	$(document).on("click", ".trans-list .displayDigestArticle", function(){
+		var articleDetail = $(this).closest(".member-info").siblings(".viewArticle_div");
+		articleDetail.toggle(100, function(){
+			if(articleDetail.is(":visible")){
+				window.scrollTo(0, articleDetail.closest(".content-cover").offset().top - $("#headerNavbar").height());
+			}
+		});
+	});
+	
+	// [아티클 접기]---------------------------------------------------------------
+	$(document).on("click", ".trans-list .hideArticle", function(){
+		var articleTop = $(this).closest('.articleView').offset().top;
+		if($("#headerNavbar").is(':visible')){
+			articleTop -= $("#headerNavbar").height();
+		}
+		$(this).closest(".viewArticle_div").hide(100, function(){
+			if(scrollY > articleTop){
+				window.scrollTo(0, articleTop);
+			}
+		});
+	});
+	
+	// [아티클 수정폼 표시]-----------------------------------------------------------
+	$(document).on("click", ".editArticle", function(){
+		if($("#addArticleForm:visible").length == 0 || confirm("기존 작성중이던 내용은 사라집니다.\n계속하시겠습니까?")){
+			$("#addArticleForm:visible button[type='reset']").click();
+			var article = $(this).closest(".content-cover");
+			var editor = $("<div class='member-trans-editor py-4'></div>");
+			var writers = $(this).closest(".trans-list").find(".digest-content-section .personal-cover");
+			var digestId = $(this).closest(".trans-list").find(".digestId").val();
+			var articleId = article.find(".articleId").val();
+			var title = $(this).closest(".trans-list").find(".title-sent span").text();
+			var subtitle = article.find(".subtitle").val();
+			var content = article.find(".contentText").html();
+			var likeCount = article.find(".articleLikeCount").text().trim();
+			
+			editor.load("/square/digest/article/edit #addArticleForm", function(){
+				editor.find("textarea[name='content']").val(content);
+				// [썸머노트 에디터가 로드되기 전 임시저장된 작성글 불러오기]------------------------------------
+				tempArticleKey = /*[[${session?.userContainer?.personacon?.alias}]]*/null;
+				var tempDigestArticle = sessionStorage.getItem('tempDigestArticle_' + tempArticleKey);
+				if(tempDigestArticle != null && tempDigestArticle.length > 0
+					&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+					$("#summernote").text(tempDigestArticle);
+				}
+				//-------------------------------------
+				insertSummernoteEditor($("#summernote"));
+				//-------------------------------------
+				
+				// digestId 설정
+				createHidden(editor.find("form")[0], "digestId", digestId);
+				// articleId 설정
+				createHidden(editor.find("form")[0], "articleId", articleId);
+				createHidden(editor.find("form")[0], "likeCount", likeCount);
+				// title 설정
+				editor.find("#title").val(title)
+									 .prop("readonly", true)
+									 .parent().hide();
+				editor.find(".added-title span").text(title);
+				editor.find(".added-title").show();
+				// subtitle 설정
+				editor.find("#subtitle").val(subtitle);
+				
+				
+				// Register 버튼 재정의
+				editor.find("#save").attr("type","button").on("click", function(){
+								//------------------------------------------
+					var content = filterSummernoteContent($("#summernote"));
+								//------------------------------------------
+					var len = content.length;
+					if( len == 0 || len > 65000) {
+						alert("Content length must be between 0 and 65,000."
+						+" Total Length : "
+						+ content.length +" characters");
+						return;
+					}else{
+						editor.find("textarea[name='content']").val(content);
+						sessionStorage.removeItem('tempDigestArticle_' + tempArticleKey);
+						//--------------------------------------
+						editDigestArticle(editor.find("form"), article);
+						//--------------------------------------
+					}
+					
+				})
+				
+				// Cancel 버튼 재정의
+				editor.find("button[type='reset']").text("Cancel").on("click", function(){
+					editor.remove();
+					article.children().show();
+				})
+			});
+			article.children().hide();
+			article.append(editor);
+			editor.show();
+			initSessionMonitor(120);
+		}
+		
+	});
+	
+	// [아티클 추천 실행]--------------------------------------------------------------
+	$(document).on('click', '.likeArticleBtn', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if($("#loginStatus").text() != 'true'){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = '/auth/login?destPage=' + location.href;
+			}
+			return;
+		}
+		
+		if($(this).is(":not(.active)")){
+			var contentId = $(this).closest(".content-cover").find(".articleId").val();
+			var mid = $("#yourId").val();
+			var likeCount = $(this).closest(".content-cover").find('.articleLikeCount').text().trim();
+			
+			var obj = {
+				contentId : contentId,
+				memberId : mid,
+				likeCount : Number(likeCount)
+			}
+			//-----------------------------
+			handleDigestArticleLike(obj, $(this));
+			//-----------------------------
+		}else{
+			alert("이미 처리 되었습니다.");
+			return;
+		}
+	});	
+	
+	// [아티클 신고]----------------------------------------------------------------
+	$(document).on('click','.articleReport', function(){
+		var digestId = $(this).closest(".trans-list").find(".digestId").val();
+		var articleId = $(this).closest(".content-cover").find(".articleId").val();
+		var articleWriter = $(this).closest(".member-info").find(".alias:eq(0)").text().trim();
+		var reportReadyResource = {
+				appResourceId: Number(digestId),
+				appContentId: Number(articleId),
+				appCodeName: 'DigestBook_Article',
+				reporterId: mid,
+				repAlias: /*[[${session?.userContainer?.personacon?.alias}]]*/null,
+				posAlias: articleWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	})
+	
+	// [댓글 리스트 펼치기]-----------------------------------------------------------
+	$(document).on("click", ".trans-list .openCommentList", function(){
+		if($(this).is('.replyLoaded')){
+			var commentListSection = $(this).closest(".recommend-section").siblings(".comment-list-section");
+			   commentListSection.toggle(100, function(){
+				   if(commentListSection.is(":visible")){
+					   window.scrollTo(0, commentListSection.offset().top - $("#headerNavbar").height());
+				   }
+			   });
+		}else{
+			$(this).closest(".viewArticle_div")
+				   .find(".comment-list-section .comment-title")
+				   .before($("#commentForCopy>div").clone());
+			var commentListSection = $(this).closest(".recommend-section").siblings(".comment-list-section");
+			
+			var content = $(this).closest(".content-cover");
+			var articleId = content.find(".articleId").val();
+			var parentId = content.closest('.trans-list').find(".digestId").val();
+			var url = "/reply/digest/list/"+ articleId;
+			
+			reloadAll(url, commentListSection.find(".commentPage"));
+			//댓글 폼 placeholder 변경
+			$(".comment-textarea").attr("placeholder", "다이제스트에 대한 의견이나 궁금한 점을 남겨봅시다.");
+			
+			commentListSection.find(".appContentWriter").val(content.find(".member-info>.alias").text());
+			commentListSection.find(".appDomain").val("digest");
+			commentListSection.find(".appContentId").val(articleId);
+			commentListSection.find(".parentContentId").val(parentId);
+			$(this).addClass('replyLoaded');
+			commentListSection.show(100);
+		}
+		
+	});
+	
+	//[댓글 리스트 접기]-------------------------------------------------------------
+	$(document).on("click", ".trans-list .comment-title", function(){
+		$(this).closest(".comment-list-section").hide(100);
+	});
+	
+	// [페이지 로드 직후 첫번째 다이제스트 목록 포커싱]-----------------------------------------
+	// window.scrollTo는 페이지 로딩 직후엔 잘 적용 안됨.
+	// $(document).ready의 가장 아래에 위치할 것
+	if($(".articleLoaded").length > 0){
+		if ('scrollRestoration' in history) {
+		    // Back off, browser, I got this...
+		    history.scrollRestoration = 'manual';
+		}
+		$("html").animate({
+			scrollTop: $(".articleLoaded").offset().top - $("#headerNavbar").height()
+		});
+	    if($(window).width() < 768){
+		    $(".member-content-list .viewArticle_div").hide();
+	    }
+	}
+	
+}); //end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 세션이 만료되어 자동 로그아웃하기 직전에 작성 중이던 본문 내용을 브라우저에 저장
+ */
+function beforeLogout() {
+	if($(".digest-form-div:visible").length > 0){
+		var content = filterSummernoteContent($("#summernote"));
+		sessionStorage.setItem('tempDigestArticle_' + tempArticleKey, content);
+		alert("작성 제한 시간이 만료되어 자동 로그아웃 합니다.\n작성 중이던 내용은 브라우저를 종료하실 때까지 보관됩니다.");
+	}
+}
+
+/**
+ * 검색된 주제들을 화면에 표시
+ */
+function displayDigestList(digestList, currentPageNum, total){
+	
+	$('.result-search-section .trans-list-page').siblings('.trans-list').remove();
+	
+	var num=1;	
+	var fetchSize = 10;
+	
+	$.each(digestList, function(index, digest){
+		num = (total-index)-(currentPageNum-1)*fetchSize;
+		
+		var row = $("#divsForCopy .trans-list").clone();
+		row.find(".digestId").val(digest.did)
+		row.find(".digestId56").val(digest.id56)
+		row.find(".digestTitle").text(digest.title);
+		row.find(".titleInput").val(digest.title);
+		row.find(".digestHits").text(digest.hits);
+		var date = new Date(digest.regDate);
+		var dateString = date.getFullYear() 
+						+ "-" + parseInt(date.getMonth() + 1).zf(2)
+						+ "-" + date.getDate().zf(2);
+		row.find(".date").text(dateString);
+		if(digest.articleCount > 3){
+			row.find(".personal-other").text("+ " + (digest.articleCount - 3));
+		}else{
+			row.find(".personal-other").parent().remove();
+		}
+		row.find(".articleWriterCount").text(digest.articleCount);
+		
+		// 다이제스트 소유자도 아니면서 관리자도 아니면 타이틀 수정 불가
+		var memberId = row.find(".dropdown-menu .editTitle").attr("viewer");
+		if((digest.personaconList.length > 1 || digest.personaconList[0].pid != memberId)
+			&& row.find(".dropdown-menu .editTitle").attr('data-admin') == 'false'){
+			row.find(".dropdown-menu .editTitle").remove();
+		}else{
+			row.find(".dropdown-menu .editTitle").removeAttr('data-admin');
+		}
+		digest.personaconList.forEach(function(personacon,index){
+			if(index < 3){
+				var slice = $("#divsForCopy").children(".personal-cover").clone();
+				if(personacon.iconPath != null && personacon.iconPath != ""){
+					slice.find("img")
+					.css("background","url('/resource/profile/" + personacon.iconPath +"') no-repeat")
+					.css("background-position","center")
+					.css("background-size","cover");
+				}
+				row.find(".contentWritersProf").before(slice);
+			}
+		});
+		
+		$('.result-search-section .trans-list-page').before(row);
+	});
+}
+/**
+ * 검색된 주제의 페이징 표시
+ */
+function displayDigestPageNavigationForSearch(pageMaker, sType){
+	
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var ul = $('.result-search-section .trans-list-page ul');
+	ul.empty();
+	
+	if(prevPage != null){
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' )
+						.html('PREV'+parseInt(prevPage.pageNumber+1));
+		link.attr('onclick','searchDigest("'
+								+ sType+ '","'+ $("#searchKeyword").val() 
+								+ '",' +parseInt(prevPage.pageNumber+1) 
+								+ ')');
+		link.appendTo(li);
+		li.appendTo(ul);
+		
+	}
+	
+	$.each(pageList, function(index, page){
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="page-link"></a>');
+		link.attr('href', 'javascript:void(0)');
+		link.attr('onclick','searchDigest("'+sType+ '","'+ $("#searchKeyword").val() + '",' +parseInt(page.pageNumber+1)+ ')');
+		link.html(parseInt(page.pageNumber + 1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	});
+	
+	if(nextPage != null){
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+		html('NEXT'+parseInt(nextPage.pageNumber+1));
+		link.attr('onclick','searchDigest("'+sType+ '","'+ $("#searchKeyword").val() + '",' +parseInt(nextPage.pageNumber+1)+ ')');
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+}
+
+
+
+
+/**
+ * 주제 제시어 목록 표시
+ */
+function displayGetSuggestionList(titleList, element) {
+	var suggestUl = $(element).siblings(".suggest-list-cover");
+	var exist = false;
+	suggestUl.empty();
+	titleList.forEach(function(title, index) {
+		var li = "<li class='dropdown-item'><a>"
+				 + title + "</a></li>";
+		suggestUl.append(li);
+	});
+	suggestUl.show();
+} 
+
+/**
+ * 아티클 목록이 조회됐을 경우 화면 후처리.
+ * url주소 변경, popup주소 설정, 모바일 경우 아티클 모두 접기
+ */
+function successGetDigestArticleList($targetDiv) {
+	if($targetDiv.find('.articleView').length > 0){
+		$targetDiv.closest('.digestBody').show(100, function(){
+			var $parent = $targetDiv.closest('.trans-list');
+			var $cover = $parent.find('.digest-cover');
+			window.scrollTo(0, $cover.offset().top - $("#headerNavbar").height());
+			$cover.addClass("articleLoaded");
+			$parent.addClass("articleOpen");
+		});
+		var digestId56 = $targetDiv.find('.copy-url-cover :text').val().split('/').pop();
+		history.replaceState(null,null, '/square/digest/list/' + digestId56);
+		$targetDiv.find(".loginRequired").attr("href", location.href);
+		$targetDiv.find(".openDigest")
+					.attr("href", "/square/digest/page/" + digestId56);
+		if($(window).width() < 768) {
+			$targetDiv.find(".viewArticle_div").hide();
+		}
+	} else {
+		confirm('로그인 정보가 없거나 만료되었습니다. 확인/취소를 누르면 로그인 페이지로 이동합니다.');
+		location.href = '/auth/login?destPage=' + location.pathname;
+	}
+}
+
+/**
+ * 다이제스트 주제 수정 성공하면 주제 수정폼을 숨김
+ */
+function successEditDigestTitle(title, titleSpan) {
+	titleSpan.text(title);
+	titleSpan.closest(".digest-content-section").find(".titleEditArea").hide(100);
+	titleSpan.closest(".content").show(100);
+}
+
+/**
+ * 다이제스트 아티클 수정 후 주제 표시 수정 및 아티클 표시
+ */
+function successEditDigestArticle(resultTarget, articlePage) {
+	// destroy 명령을 쓰지 않으면 popover메뉴가 사라지지 않음
+	$("#summernote").summernote("destroy");
+	if(resultTarget!=null){
+		var $contentPage = $(articlePage);
+		var $content = $contentPage.find(".contentText");
+		var $articleHeader = $contentPage.find('.displayDigestArticle');
+		var replyCount = $(resultTarget).find('.replyCount').text();
+		var likeCount = $(resultTarget).find('.articleLikeCount').text();
+		// 좋아요 갱신
+		$articleHeader.find('.articleLikeCount').text(likeCount);
+		
+		// 부제목 갱신
+		resultTarget.find('.displayDigestArticle').replaceWith($articleHeader);
+		
+		// 본문 갱신
+		resultTarget.find('.contentText').replaceWith($content);
+		resultTarget.attr("tabindex","-1").focus();
+		resultTarget.closest(".content-cover").children().show();
+		resultTarget.closest(".content-cover").find(".member-trans-editor").remove();
+	}
+	//-------------------------------
+	popupModal("본문이 수정되었습니다.");
+	//-------------------------------
+}
+
+/**
+ * 다이제스트 아티클 추가 후 주제 표시 수정 및 아티클 표시
+ */
+function successAppendDigest(resultTarget, articlePage) {
+	// destroy 명령을 쓰지 않으면 popover메뉴가 사라지지 않음
+	$("#summernote").summernote("destroy");
+	var $articleList = $(resultTarget).closest(".digestBody");
+	$articleList.find(".member-trans-form,.member-trans-guide").show();
+	$articleList.find(".member-trans-editor").empty();
+	// 작성자 중복 검사
+	var writers = []
+	resultTarget.find(":not(.comment-list-section) .alias").each(function(i, element) {
+		writers.push($(element).text());
+	})
+	// 아티클 리스트 마지막에 신규 아티클 추가
+	resultTarget.append($(articlePage).find(".content-cover"));
+	resultTarget.find(".content-cover:last").attr("tabindex","-1").focus();
+	
+	// 중복된 아티클 작성자가 없을 경우 다이제스트 주제에 아티클 작성자 부분 갱신
+	if(writers.indexOf(unescape(/*[[${session?.userContainer?.personacon?.alias}]]*/null)) == -1){
+		writerNumber = resultTarget.closest(".trans-list")
+								   .find(".digest-content-section .personal-cover:has(img)")
+								   .length;
+		if(writerNumber <3){
+			var img = '<div class="personal-cover toggleDigestCover col-auto align-self-center">' 
+				+ '<img src="/images/app/member/profile_paper.png" '
+				+ 'style="background: url(';
+			if(/*[[${session?.userContainer?.personacon?.iconPath}]]*/null != null){
+				img += '\'/resource/profile/' + /*[[${session?.userContainer?.personacon?.iconPath}]]*/null + '\')';
+			}else{
+				img += '\'/images/app/member/profile_default.png\')';
+			}
+			img += ' no-repeat; background-position: center; background-size: cover;"></div>';
+			resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-cover:has(img):last")
+						.after(img);
+		}else if(writerNumber == 3){
+			var ext = resultTarget.closest(".trans-list")
+   								  .find(".digest-content-section .personal-other");
+   			if(ext.length > 0){
+   				ext.text("+ " + (Number(ext.text().replace("+","").trim()) + 1));
+   			}else{
+   				ext = '<div class="personal-cover toggleDigestCover col-auto align-self-center">'
+					+ '<div class="personal-other">+ 1</div></div>';
+				resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-cover:has(img):last")
+						.after(ext);
+   			}
+		}else{
+			resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-other")
+						.text("+ " + (writerNumber + 1));
+		}
+		
+	}
+	
+	// 다이제스트 주제에 아티클수 부분 갱신
+	resultTarget.closest(".trans-list")
+	   			.find(".digest-content-section .content-writers:eq(1)")
+				.text(resultTarget.find(".content-cover").length + " article(s) in this theme");
+	//-------------------------------
+	popupModal("아티클이 등록되었습니다.");
+	//-------------------------------
+}
+
+function resetForm(obj){
+	$(obj).closest("form").find(".squareSentenceForm").css("height", "36px");
+	$(obj).closest("form").find(".squareAddBtn").attr("disabled", "disabled");
+}
+
+/**
+ * 메세지를 모달로 띄운다.
+ */
+function popupModal(msg){
+	$("#modalMsg").text(msg);
+	$("#popModalDiv").modal({
+		show: true
+	});
+}
+
+/**
+ * 댓글 수 갱신하기
+ */
+function updateReplyCount(selector, quantity) {
+   var replyCount = $(selector).closest(".viewArticle_div").find(".openCommentList span");
+   replyCount.text(parseInt(replyCount.text()) + quantity);
+} 
+
+/**
+ * (Mobile) 드롭다운 메뉴 active
+ */
+function activePVDropdownMenu(obj, open) {
+	if(open) {
+		var menu = $(obj).closest(".playvoice-dropdown-group").find(".playvoice-dropdown-menu");
+		menu.addClass("active");
+		$("html").addClass("modalOpen");
+	} else {
+		var menu = $(obj).closest(".playvoice-dropdown-menu");
+		menu.removeClass("active");
+		$("html").removeClass("modalOpen");
+	}
+} 
+</script>
+</head>
+
+<section layout:fragment="content">
+<input type="hidden" id="yourId" th:value="${session?.userContainer?.personacon?.pid}">
+<!-- ------------------------[digest guide modal]--------------------------- -->
+<div id="popModalDiv" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<span id='modalMsg'>수정에 성공하였습니다</span>
+			</div>
+			<div class="modal-footer align-self-center">
+				<button type="button" class="btn" data-dismiss="modal">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- ---------------------------[1. 다이제스트 소개]----------------------------- -->
+<div id="introductionSection" class="introduction-section digest mt-4">
+	<h3 class="row no-gutters">
+		<label class="pv-tm col-auto">Digest</label>
+		<label class="search-button-section col text-right d-md-none">
+			<a class="addDigestBtn"><i class="fa fa-pen fa-flip-horizontal fa-fw"></i></a>
+			<a class="squareSearchBtn"><i class="fa fa-search"></i></a>
+		</label>
+	</h3>
+	<div class="sub">We all build libraries of small pieces of knowledge about English.</div>
+</div>
+
+
+<div id="translationSection" class="translation-section digest">
+	<!-- ---[1.1 앱 컨셉 바 (PC ver.)]--- -->
+	<div class="trans-list only-PC"><div class="translation-cover gold-membership 
+		row no-gutters">
+		<div class="logo col-md-auto align-self-center">
+			<i class="fa fa-crown fa-3x"></i> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership">
+				Join in <span class="pv-tm">Playvoice</span> Membership
+			</div>
+			<div>
+				플레이보이스는 일상에서 자신의 삶에 도움이 되는 실리적 영어 학습 캠페인을 전개하고 있습니다.<br class="d-none d-sm-block">
+				사람들에게 필요한 것은 새로운 컨텐츠가 아니라 영어를 사용할 환경을 제공하는 것이라고 봅니다.<br>
+				지금 플레이보이스 계정을 만들어 보세요 
+				<i class="fa fa-comment-dollar fa-lg"></i>
+				재미있고 흥미로운 일들을 만날 수 있습니다  
+				<i class="far fa-grin-squint fa-lg"></i>
+			</div>
+		</div>
+		<div class="star col-md-auto col-12 align-self-center">
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+		</div>
+	</div></div>
+	
+	<div id="digestContentsListDiv" class="translation-bg">
+		<!-- ---[1.2 wise saying (PC ver.)]--- -->
+		<div class="trans-list only-PC" 
+			style="box-shadow: none; background-color: transparent;">
+			<div class="translation-cover wise-saying">
+			<div class="wise-saying-cover text-center">
+				<i class="fa fa-quote-left"></i>
+				<div class="saying">
+					학습은 암기를 얼마나 열심히 했는지, 혹은 얼마나 많이 아는 지가 아니다.<br class="d-none d-sm-block"> 
+					중요한 것은 <b>아는 것과 모르는 것을 구분할 줄 아는 능력</b>이다.
+				</div>
+				<div class="who">
+					- <b>Anatole France</b>, 
+					 French poet, journalist -
+				</div>
+				<i class="fa fa-quote-right"></i>
+			</div>
+		</div></div>
+		
+		<!-- ---[1.3 다이제스트 등록 버튼/ 검색 버튼 (PC ver.)]--- -->
+		<div class="d-none d-md-block"><div class="translation-guide row no-gutters">
+			<div class="add-digest-button-div col-auto align-self-center">
+				<button type="button" class="addDigestBtn btn btn-digest loginRequired">
+					<span class="d-none d-md-inline-block">다이제스트 등록</span> 
+					<i class="fa fa-pen fa-fw"></i>
+				</button>
+				<div class="add-guide">
+					작성하려는 다이제스트와 같은 주제가 있는지 오른쪽의 검색 버튼을 눌러 먼저 <b>검색</b>해 보세요
+					<i class="far fa-grin-alt"></i>
+				</div>
+			</div>
+			<div class="add-babel-guide col px-2 align-self-center py-1 only-PC">
+				영어 표현, 영어 문법, 영어와 우리말의 문화적 차이, 여러분들이 공부한 것들에 대한 정리 등<br class="d-none d-md-block">
+				입시 시험에서는 잘 다루지는 않지만 중요한 내용들에 대해 함께 공유해 보세요.
+			</div>
+			<div class="search-button-section col-auto align-self-center">
+				<a class="squareSearchBtn" title="주제 검색">
+					<i class="fa fa-search" style="color: #494c66!important;"></i>
+				</a>
+			</div>
+		</div></div>
+		
+		
+		<!-- ---[1.4 search digest]--- -->
+		<div id="searchResult" th:insert="~{/square/incl/search_sentences::search}"></div>
+		<script th:inline="javascript">
+			$("#searchType").val("title");
+		</script>
+	
+	
+		<!-- ---[1.5 앱 컨셉 바, 다이제스트 리스트 sort 버튼 (Mobile ver.)]--- -->
+		<div class="mobile-concept-bar-section box-cover-mobile box-main d-md-none">
+			<!-- 앱 컨셉 바 -->
+			<div class="trans-list only-mobile"><div class="toggleAppConceptBar
+				translation-cover gold-membership">
+				<div class="logo"><label><i class="fa fa-book"></i></label></div>
+				<div class="guide"><div class="detail-cover">
+					<div class="point">
+						<b>언어는 생각의 집이다</b>
+					</div>
+					<div class="detail">
+					문법책에서 알려주지 않는 영어에 대한 소프트한 주제들을 가볍게 다뤄봅니다.<br>
+					우리말과 어떻게 다른지 형식과 내용은 물론이고 문화적 배경까지 살펴봅시다. 
+					하나의 언어를 문법책의 목차 속에서만 볼 게 아니라 사람들간의 의사소통을 위한
+					공감성 차원에서 본다면 외국어에 대한 이해 폭을 더 넓힐 수 있을 것입니다.
+					</div>
+				</div></div>
+			</div></div>
+			<!-- 바벨 리스트 sort 버튼 -->
+			<div class="translation-guide">
+				<div class="select-trans-list playvoice-dropdown-group">
+					<button class="btn btn-secondary w-100" type="button" 
+						onclick="activePVDropdownMenu(this, true)">
+						<span>전체보기</span>
+						<i class="fa fa-caret-down fa-fw float-right"></i>
+					</button>
+					<div id="digestDropdownMenu" class="playvoice-dropdown-menu">
+						<div class="playvoice-dropdown-back"
+							onclick="activePVDropdownMenu(this, false)"></div>
+						<div class="playvoice-dropdown-content">
+							<div class="dropdown-menu-list-cover">
+								<a th:href="@{/square/digest/list}" class="menu-item">
+									전체보기</a>
+								<a th:if="${session?.userContainer}" class="menu-item" 
+									th:href="@{/square/digest/mylist/} + ${session?.userContainer?.personacon?.id56}">
+									내가 쓴 글 보기</a>
+							</div>
+							<div class="playvoice-dropdown-close-section"
+								onclick="activePVDropdownMenu(this, false)">close</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+			
+		<div id="defaultDigestList">
+			<!-- ---[1.6 다이제스트 리스트 sort 버튼 (PC ver.)]--- -->
+			<div class="d-none d-md-block">
+				<div class="select-trans-list list-pc text-right">
+					<a th:href="@{/square/digest/list}" th:classappend="${(#strings.containsIgnoreCase(#request.requestURI,'/list'))?'active':''}">
+						<i class="fa fa-list fa-fw mr-1"></i> <span>전체 보기</span></a>
+					<a th:if="${session?.userContainer}" th:classappend="${(#strings.containsIgnoreCase(#request.requestURI,'/mylist'))?'active':''}" 
+					   th:href="@{/square/digest/mylist/} + ${session?.userContainer?.personacon?.id56}">
+					   	<i class="fa fa-brain fa-fw mr-1"></i> <span>내가 쓴 글 보기</span></a>
+				</div>
+			</div>
+			
+			<!-- --------------------[2. 다이제스트 컨텐츠 영역]-------------------- -->
+			<div class="bookstore-list-section">
+			<th:block th:each="digest, iter : ${pageMaker?.result?.content}">
+				<!-- ---[2.1 다이제스트 리스트 단위]--- -->
+				<div class="trans-list"><div class="digest-cover row no-gutters" 
+					th:classappend="${digest.articleList != null ? 'articleLoaded':''}">
+					<input type="hidden" class="digestId" th:value="${digest.did}">
+					<input type="hidden" class="digestWriterAlias" th:value="${digest.personaconList[0].alias}">
+					<input type="hidden" class="digestId56" th:value="${digest.id56}">
+					<div class="category-icon col-auto align-self-center text-center">
+						<i class="far fa-lemon fa-3x"></i>
+					</div>
+					<div class="digest-content-section col row no-gutters">
+						<!-- 주제 정보 -->
+						<div class="content toggleDigestCover col-12 pr-md-3">
+							<div class="title-sent">
+								<i class="fas fa-quote-left mr-1"></i>
+								<span>[[${digest.title}]]</span>
+								<i class="fas fa-quote-right ml-1"></i>
+							</div>
+						</div>
+						<!-- 관리 버튼 -->
+						<th:block th:if="${session?.userContainer != null}">
+							<div th:if="${#strings.equals(digest.personaconList[0].pid,
+								session?.userContainer?.personacon?.pid)}
+								OR ${session?.userContainer?.personacon?.memberType} == 'A'" 
+								class="titleEditArea col-12 pr-md-3 row no-gutters" 
+								style="display: none;">
+								<div class="col-md col-12">
+									<input type="text" class="titleInput form-control" 
+										th:value="${digest.title}">
+								</div>
+								<div class="col-md-auto col-12 pl-md-2 py-1 text-right">
+									<button class="cancelTitleBtn btn btn-sm btn-playsquare2" 
+										type="reset">취 소</button>
+									<button class="editTitleBtn btn btn-sm btn-playsquare" 
+										type="button">수 정</button>
+								</div>
+							</div>
+						</th:block>
+						<!-- written by, 조회수 -->
+						<div class="content-writers toggleDigestCover col-md-6 pb-2">written by</div>
+						<div class="digest-info toggleDigestCover col-md-6 col-12 pr-md-3 
+							text-right d-none d-md-inline-block">
+							<span class="view" title="조회 수">
+								<i class="fa fa-paw fa-fw"></i>
+								<span>[[${digest.hits}]]</span>
+							</span>
+							<span th:text="${#dates.format(digest.regDate, 'yyyy-MM-dd')}" 
+								class="date ml-3"></span>
+						</div>
+						<div class="w-100"></div>
+						<!-- 콘텐츠 작성자 -->
+						<div th:each="personacon, iter3:${digest.personaconList}" 
+							class="personal-cover toggleDigestCover col-auto align-self-center"
+							th:classappend="${(iter3.count > 3)? 'displaynone':''}">
+							<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/member/profile_default.png') no-repeat;
+								background-position: center; background-size: cover;">
+						</div>
+						
+						<div th:if="${#lists.size(digest.personaconList) > 3}" 
+							class="personal-cover toggleDigestCover col-auto align-self-center">
+							<div class="personal-other">+ [[${#lists.size(digest.personaconList) - 3}]]</div>
+						</div>
+						<!-- 아티클 개수 메세지 -->
+						<div class="content-writers col-md col-10 px-md-4 toggleDigestCover pt-md-2 pt-2">
+							[[${digest.articleCount}]] article(s) in this theme
+						</div><div class="toggleDigestCover col d-md-none"></div>
+						<div class="digest-info toggleDigestCover col-auto px-2 d-md-none align-self-end">
+							<i class="fa fa-paw fa-fw"></i> <span>[[${digest.hits}]]</span>
+						</div>
+						<!-- 수정, 신고 버튼 -->
+						<div th:if="${session?.userContainer}" 
+							class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+							<div class="etc btn-group">
+								<a class="dropdown-toggle" data-toggle="dropdown">
+									<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									<th:block th:if="${#strings.equals(digest.personaconList[0].pid,session.userContainer.personacon.pid)}
+										OR ${session?.userContainer?.personacon?.memberType} == 'A'">
+										<li th:if="${#lists.size(digest.personaconList) == 1}
+											OR ${session?.userContainer?.personacon?.memberType} == 'A'" 
+									    	class="editTitle dropdown-item text-center">수정</li>
+								    </th:block>
+								    <li th:if="${!#strings.equals(digest.personaconList[0].pid,session.userContainer.personacon.pid)}" 
+								    	class="digestReport dropdown-item text-center">신고</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- --------------------[아티클 리스트 영역]--------------------- -->
+				<div class="digestBody member-digest-cover" 
+					th:style="${digest.articleList != null}?'':'display: none;'">
+					<!-- article 리스트 -->
+					<div class="member-content-list" 
+						th:with="articleList=${digest.articleList}">
+						<th:block th:replace="~{/square/digest/view_digest}"></th:block>
+					<!-- [아티클 삽입 되는 영역] -->
+					</div>
+					<!-- 광고 삽입되는 부분 -->
+					<div class="viewArticleAdSection"></div>
+		
+					<div th:if="${session?.userContainer}" class="member-trans-form">
+						<div class="moveMemberContent-form loginRequired text-center jsAction">
+							<div class="member-write-btn d-none d-md-block">
+								주제 관련 내용 작성하기 <i class="fa fa-pencil-alt"></i>
+							</div>
+							<div class="member-write-btn-xs d-md-none">
+								<i class="fa fa-pencil-alt"></i>
+							</div> 
+						</div>
+					</div>
+					<div th:unless="${session?.userContainer}" class="member-trans-form">
+						<div class="loginContents-form text-center jsAction">
+							<a th:href="${#request.requestURI}" class="loginRequired">
+								로그인이 필요한 서비스입니다.<br class="d-sm-none">
+								<span class="click">click !</span>
+								<i class="far fa-smile-wink"></i> 
+							</a>
+						</div>
+					</div>
+					<div class="member-trans-guide d-none d-md-block">
+						플보 멤버들이 남긴 설명이 도움이 되었거나 공감이 된다면 추천을 눌러주세요<br>
+						공유할 내용이 있다면 직접 설명을 적어 플보 멤버들에게 컨텐츠를 제공해 보세요 <i class="far fa-grin-alt"></i>
+					</div>
+					<!-- article 추가 폼 -->
+					<div class="member-trans-editor py-4" style="display: none;"></div>
+				</div></div>
+				
+				<!-- ---[2.2 다이제스트 광고]--- -->
+				<div th:if="${iter.count%4 == 0}" class="trans-list">
+					<div class="digest-cover promotion">
+						<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+							<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+							<!-- (Mobile) Digest list -->
+							<ins class="adsbygoogle"
+							     style="display:block"
+							     data-ad-client="ca-pub-7152306695077047"
+							     data-ad-slot="8040928934"
+							     data-ad-format="horizontal"
+							     data-full-width-responsive="false"></ins>
+							<script>
+							     (adsbygoogle = window.adsbygoogle || []).push({});
+							</script>
+						</th:block>
+						<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+							<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+							<!-- (PC) Digest list -->
+							<ins class="adsbygoogle"
+							     style="display:block"
+							     data-ad-format="fluid"
+							     data-ad-layout-key="-hg+g+2d-dw+ff"
+							     data-ad-client="ca-pub-7152306695077047"
+							     data-ad-slot="8243287101"></ins>
+							<script>
+							     (adsbygoogle = window.adsbygoogle || []).push({});
+							</script>
+						</th:block>
+					</div>
+				</div>
+				
+				
+			</th:block>
+			<!-- 아티클 삽입 광고 -->
+			<div id="viewArticleAdDiv" class="append-view-article-section">
+				<!-- 광고 (Mobile) -->
+				<div th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+					id="articleAd" class="digest-ad-section">
+					<ins class="kakao_ad_area" style="display:none;" 
+						data-ad-unit    = "DAN-pkqpcEFOyku8JMhj" 
+						data-ad-width   = "320" 
+						data-ad-height  = "50"></ins> 
+					<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+				</div>
+				
+				<!-- 광고 (PC) -->
+				<div th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+					id="articleAd" class="digest-ad-section">
+					<ins class="kakao_ad_area" style="display:none;" 
+						data-ad-unit    = "DAN-V8herii7KQJoMAOK" 
+						data-ad-width   = "728" 
+						data-ad-height  = "90"></ins> 
+					<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+				</div>
+			</div>
+			</div>
+		</div><!-- end of defaultDigestList -->
+	</div><!-- end of digestContentsListDiv -->
+	
+	<!-- pagination -->
+	<div id="defaultDigestPagination">
+		<div class="d-none d-md-block" th:with="option=${param.option}">
+			<div class="trans-list-page row no-gutters my-3">
+				<div class="col-md-3 text-center text-left align-self-center">
+					<a th:if="${pageMaker?.prevPage}" 
+					   th:href="${#request.requestURI + '?pageNum=' + (pageMaker.prevPage.pageNumber + 1)}" 
+						class="btn btn-playsquare2">
+						<i class="fa fa-angle-left"></i> prev
+					</a>
+				</div>
+				<div class="col-md-6 text-center align-self-center">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item" th:each="page:${pageMaker?.pageList}"
+							th:classappend="${page.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+							<a class="page-link" th:href="${#request.requestURI + '?pageNum=' + (page.pageNumber + 1)}">
+							[[${page.pageNumber}+1]]</a>
+						</li>
+					</ul>
+				</div>
+				<div class="col-md-3 text-center text-right align-self-center">
+					<a th:if="${pageMaker?.nextPage}" 
+					   th:href="${#request.requestURI + '?pageNum=' + (pageMaker.nextPage.pageNumber + 1)}" 
+						class="btn btn-playsquare2">
+						next <i class="fa fa-angle-right"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+		<div class="d-md-none">
+			<div class="trans-list-page row no-gutters my-3">
+				<div class="col-6 text-left">
+					<a th:if="${pageMaker?.currentPageNum != 1}" 
+					th:href="${#request.requestURI + '?pageNum=' + (pageMaker?.currentPageNum -1)}" 
+						class="btn btn-playsquare2">
+						<i class="fa fa-angle-left"></i> prev
+					</a>
+				</div>
+				<div class="col-6 text-right">
+					<a th:if="${pageMaker?.currentPageNum != (pageMaker?.totalPageNum)}" 
+						th:href="${#request.requestURI + '?pageNum=' + (pageMaker?.currentPageNum +1)}" 
+						class="btn btn-playsquare2">
+						next <i class="fa fa-angle-right"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of translationSection -->
+
+
+<!-- ------------------------- div area for copy --------------------------- -->
+<div id="divsForCopy" style="display: none;">
+
+	<!-- -------------------- digest List for Copy ------------------------- -->
+	<div class="trans-list">
+	<div class="digest-cover row no-gutters">
+		<!-- digest.did -->
+		<input type="hidden" class="digestId">
+		<input type="hidden" class="digestId56">
+		<div class="category-icon col-auto align-self-center text-center">
+			<i class="far fa-lemon fa-3x"></i>
+		</div>
+		<div class="digest-content-section col row no-gutters">
+			<!-- 주제 정보 -->
+			<div class="content toggleDigestCover col-12 pr-md-3">
+				<div class="title-sent">
+					<i class="fas fa-quote-left mr-1"></i>
+					<span class="digestTitle"><!-- digest.title --></span>
+					<i class="fas fa-quote-right ml-1"></i>
+				</div>
+			</div>
+			<div class="titleEditArea col-12 pr-md-3 row no-gutters" 
+				th:viewer="${session?.userContainer?.personacon?.pid}"
+				style="display: none;">
+				<div class="col-md col-12">
+					<input type="text" class="titleInput form-control">
+				</div>
+				<div class="col-md-auto col-12 pl-md-2 py-1 text-right">
+					<button class="cancelTitleBtn btn btn-sm btn-playsquare2" type="reset">취 소</button>
+					<button class="editTitleBtn btn btn-sm btn-playsquare" type="button">수 정</button>
+				</div>
+			</div>
+			<!-- written by 조회수 -->
+			<div class="content-writers toggleDigestCover col-md-6 pb-2">written by</div>
+			<div class="digest-info toggleDigestCover col-md-6 col-12 pr-md-3 
+				text-right d-none d-md-inline-block">
+				<span class="view" title="조회 수">
+					<i class="fa fa-paw fa-fw"></i>
+					<span class="digestHits"><!-- digest.hits --></span>
+				</span>
+				<!-- #dates.format(digest.regDate, 'yyyy-MM-dd') -->
+				<span class="date ml-3"></span>
+			</div>
+			<div class="w-100"></div>
+			<!-- 콘텐츠 작성자 contentWritersProf 전으로 추가 -->
+			<div class="contentWritersProf" style="display: none;"></div>
+			<!-- if="${digest.articleCount > 3}" -->
+			<div class="personal-cover toggleDigestCover col-auto align-self-center">
+				<div class="personal-other">+ <!-- digest.articleCount - 3 --></div>
+			</div>
+			<!-- 아티클 개수 메세지 -->
+			<div class="content-writers col-md col-10 px-md-4 toggleDigestCover pt-md-2 pt-2">
+				<span class="articleWriterCount"></span> article(s) in this theme
+			</div><div class="toggleDigestCover col d-md-none"></div>
+			<div class="digest-info toggleDigestCover col-auto px-2 d-md-none align-self-end">
+				<i class="fa fa-paw fa-fw"></i> 
+				<span class="digestHits"><!-- digest.hits --></span>
+			</div>
+			<div th:if="${session?.userContainer}" 
+				class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+				<div class="etc btn-group">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-h fa-lg"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right" role="menu">
+					    <li data-th-viewer="${session?.userContainer?.personacon?.pid}"
+					    	th:data-admin="${#strings.toString(session?.userContainer?.personacon?.memberType) == 'A'}" 
+					    	class="editTitle dropdown-item text-center"><a>수정</a></li>
+					    <li class="digestReport dropdown-item text-center"><a>신고</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-------------------------- article 영역 ------------------------------->
+	<div class="digestBody member-digest-cover" style="display: none;">
+		<!-- article 리스트 -->
+		<div class="member-content-list"></div>
+		<!-- 아티클 등록 영역 -->
+		<div th:if="${session?.userContainer}" class="member-trans-form">
+			<div class="moveMemberContent-form loginRequired text-center jsAction">
+				<div class="member-write-btn d-none d-md-block">
+					주제 관련 내용 작성하기 <i class="fa fa-pencil-alt"></i>
+				</div>
+				<div class="member-write-btn-xs d-md-none">
+					<i class="fa fa-pencil-alt"></i>
+				</div> 
+			</div>
+		</div>
+		<div th:unless="${session?.userContainer}" class="member-trans-form">
+			<div class="loginContents-form text-center jsAction">
+				<a th:href="${#request.requestURI}" class="loginRequired">
+					로그인이 필요한 서비스입니다.<br class="d-sm-none">
+					<span class="click">click !</span>
+					<i class="far fa-smile-wink"></i> 
+				</a>
+			</div>
+		</div>
+		<div class="member-trans-guide d-none d-md-block">
+			플보 멤버들이 남긴 설명이 도움이 되었거나 공감이 된다면 추천을 눌러주세요<br>
+			공유할 내용이 있다면 직접 설명을 적어 플보 멤버들에게 컨텐츠를 제공해 보세요 <i class="far fa-grin-alt"></i>
+		</div>
+		<!-- article 추가 폼 -->
+		<div class="member-trans-editor py-4" style="display: none;"></div>
+	</div>
+	</div>
+	<!-- -------------------- /digest List for Copy ------------------------ -->
+	
+	<!-- -------------- digest.personaconList for Copy --------------------- -->
+	<!-- th:classappend="${(iter3.count > 3)? 'displaynone':''}" -->
+	<div class="personal-cover toggleDigestCover col-auto align-self-center">
+		<!-- 퍼스나콘 img 표시 -->
+		<img src="/images/app/member/profile_paper.png" 
+		style="background: url('/images/app/member/profile_default.png') no-repeat;
+		background-position: center; background-size: cover;">
+	</div>
+	<!-- ---------------- /digest.personaconList for Copy ------------------ -->
+	<div id="commentForCopy" th:insert="~{/common/comment::comment}"></div>
+</div>
+
+</section>
+</html>

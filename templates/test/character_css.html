@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout2}">
+
+<head>
+
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<script th:inline="javascript">
+$(document).ready(function() {
+	$("#cardContainer").click(function(){
+		if($(this).is(".active")) {
+
+			$(this).removeClass("active");
+		} else {
+
+			$(this).addClass("active");
+		}
+	});
+	
+	
+});//end of ready
+
+
+
+
+
+</script>
+
+<style>
+* {
+	box-sizing: border-box;
+	/* font-family: Roboto-Regular, HelveticaNeue, Arial, sans-serif; */
+}
+
+#cardContainer {
+	position: relative;
+	width: 340px;
+	height: 100px;
+	/* background: rgb(194, 194, 194); */
+	border-radius: 5px;
+	transform-origin: bottom;
+	margin: 20px;
+	cursor: pointer;
+	height: 100px;
+	transition: all 0.9s ease 0s;
+}
+
+#cardContainer.active {
+	height: 300px !important;
+	transition: all 0.9s ease 0s !important;
+}
+
+#firstDisplay {
+	width: 100%;
+	height: 100px;
+	position: absolute;
+	background: #fff;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	padding: 18px 23px;
+	flex-wrap: wrap;
+	backface-visibility: hidden;
+	box-shadow: 0px 0px 25px -1px rgba(0, 0, 0, 0.17);
+}
+
+#flightDetail {
+	font-size: 23px;
+	font-weight: bold;
+	color: #3f3f3f;
+	flex: 0.5;
+}
+
+#detailLabel {
+	color: #686868;
+	font-size: 10px;
+	font-weight: 100;
+}
+
+#animContainer {
+	padding-left: 0px;
+	position: absolute;
+	width: 19px;
+	height: 10px;
+	top: 16.5px;
+	left: 15px;
+	overflow: hidden;
+}
+
+#anim {
+	width: 54px;
+	position: absolute;
+	display: flex;
+	animation: slidein 1s infinite linear;
+}
+
+#circle {
+	width: 5px;
+	height: 5px;
+	background: #707070;
+	border-radius: 50%;
+	margin-right: 13px;
+}
+
+#first {
+	width: 340px;
+	height: 100px;
+	position: absolute;
+	border-radius: 5px;
+	color: #000;
+	transform-origin: bottom;
+	transform-style: preserve-3d;
+	transition: 0.5s;
+	border-radius: 8px;
+	display: flex;
+	/* backface-visibility: hidden; */
+}
+
+.active #first {
+	transform: rotate3d(1, 0, 0, -180deg) !important;
+	transition-delay: 0s !important;
+}
+
+#firstTop {
+	width: 340px;
+	height: 100px;
+	position: absolute;
+	background: #ffffff;
+	backface-visibility: hidden;
+	border-radius: 8px;
+	border-radius: 8px;
+	box-shadow: 0px 0px 3px 0px rgba(132, 132, 132, 0.15);
+	display: flex;
+	justify-content: space-around;
+}
+
+#timecontainer {
+	display: flex;
+	padding-right: 10px;
+	padding-top: 14px;
+}
+
+#detailDate {
+	color: #a09a9a;
+	font-size: 9px;
+	padding-top: 11px;
+}
+
+#detailTime {
+	font-weight: bold;
+	font-size: 21px;
+	color: #000;
+}
+
+#firstBehind {
+	width: 340px;
+	height: 100px;
+	position: absolute;
+	background: #fff;
+	transform-origin: center;
+	transform: rotate3d(1, 0, 0, -180deg);
+	backface-visibility: hidden;
+	border-radius: 8px;
+	border: 1px dashed #d1d1d1;
+	border-left: none;
+	border-right: none;
+}
+
+#firstBehindDisplay {
+	width: 100%;
+	height: 100px;
+	position: absolute;
+	background: #fff;
+	border-radius: 8px;
+	padding: 12px 23px;
+	display: flex;
+	justify-content: space-between;
+	box-shadow: 0px 11px 25px -1px rgba(0, 0, 0, 0.17);
+}
+
+#firstBehindRow {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	margin-top: 7px;
+	text-align: left;
+}
+
+#detail {
+	font-size: 15px;
+	color: rgb(69, 69, 69);
+	font-weight: bold;
+}
+
+#second {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	bottom: -2px;
+	transform-origin: bottom;
+	transform-style: preserve-3d;
+	transition: 0.2s;
+	border-radius: 8px;
+}
+
+.active #second {
+	transform: rotate3d(1, 0, 0, -180deg) !important;
+	transition-delay: 0.2s !important;
+}
+
+#secondTop {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	background: rgb(231, 231, 231);
+	backface-visibility: hidden;
+	border-radius: 8px;
+}
+
+#secondBehind {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	background: #fff;
+	transform-origin: center;
+	transform: rotate3d(1, 0, 0, -180deg);
+	backface-visibility: hidden;
+	border-radius: 8px;
+	border: 1px dashed #d1d1d1;
+	border-left: none;
+	border-right: none;
+}
+
+#secondBehindDisplay {
+	width: 100%;
+	height: 50px;
+	position: absolute;
+	background: #fff;
+	border-radius: 8px;
+	border-bottom: 1px dashed #d1d1d1;
+	display: flex;
+	justify-content: space-between;
+	padding: 10px 23px;
+	box-shadow: 0px 11px 25px -1px rgba(0, 0, 0, 0.17);
+}
+
+#price {
+	color: #2d2d2d;
+	font-weight: bold;
+	font-size: 15px;
+	display: flex;
+	flex-direction: column;
+	margin-top: -2px;
+}
+
+#priceLabel {
+	color: #747474;
+	font-weight: 100;
+	font-size: 10px;
+	text-align: left;
+}
+
+#barCode {
+	width: 98px;
+	height: 30px;
+}
+
+#third {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	transform-origin: bottom;
+	transform-style: preserve-3d;
+	transition: 0.2s;
+	border-radius: 8px;
+}
+
+.active #third {
+	transform: rotate3d(1, 0, 0, -180deg) !important;
+	transition-delay: 0.4s !important;
+}
+
+#thirdTop {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	background: rgb(190, 190, 190);
+	backface-visibility: hidden;
+	border-radius: 8px;
+}
+
+#secondBehindBottom {
+	width: 340px;
+	height: 50px;
+	position: absolute;
+	background: #fff;
+	transform-origin: center;
+	transform: rotate3d(1, 0, 0, -180deg);
+	backface-visibility: hidden;
+	border-radius: 0px 0px 8px 8px;
+	border-radius: 8px;
+	box-shadow: 0px 11px 25px -1px rgba(0, 0, 0, 0.17);
+}
+
+#button {
+	color: #2d2d2d;
+	font-size: 19px;
+	font-weight: bold;
+	padding: 4px 124px;
+	border: 1px solid #2d2d2d;
+	background: #fff;
+	border-radius: 4px;
+	margin-top: 9px;
+}
+
+@keyframes slidein { 
+	100% {transform: translateX(-18px);}
+	0% {transform: translateX(0px);}
+}
+
+
+
+/* welcome page characters */
+.welcome-transition-container {
+	height: auto;
+	color: #1b1f40;
+	-webkit-font-smoothing: antialiased;
+}
+.welcome-transition-container .welcome-images-section {
+	height: calc(100vh - 80px);
+	min-height: 600px;
+	position: relative;
+	background-color: #1b1f40;
+}
+/* 암스트롱 깨다 */
+.amstrong-section.awake {
+	width: 200px;
+	height: 250px;
+}
+.amstrong-section.awake .dog {
+	position: absolute;
+	bottom: 0;
+}
+.amstrong-section.awake .dog-body {
+	width: 100px;
+	height: 100px;
+	border-radius: 50%;
+	animation: none;
+}
+.amstrong-section.awake .dog-head {
+	animation: none;
+}
+
+/* welcome 여행가방 */
+.welcome-transition-container .travel-case-section {
+	margin: 0 auto;
+	width: 200px;
+	height: 270px;
+	bottom: 37px;
+}
+.welcome-transition-container .travel-case {
+	height: 215px;
+	z-index: 1;
+}
+.welcome-transition-container .wheel-section .wheel {
+	width: 25px;
+	height: 20px;
+}
+.welcome-transition-container .case-verti,
+.welcome-transition-container .case-verti:before,
+.welcome-transition-container .case-verti:after {
+	height: 60%;
+	top: 20%;
+	left: 47.5%;
+	width: 5%;
+	border-radius: 10px;
+	background-color: #282d5e;
+}
+.welcome-transition-container .case-verti:before,
+.welcome-transition-container .case-verti:after {
+	content: '';
+	width: 100%;
+	height: 100%;
+	top: 0;
+}
+.welcome-transition-container .case-verti:before {left: -45px;}
+.welcome-transition-container .case-verti:after {left: 45px;}
+.welcome-transition-container .mark-playvoice {
+	width: 30px;
+    height: 30px;
+    line-height: 33px;
+    bottom: 20px;
+    left: 20px;
+    font-size: 1.2rem;
+}
+.welcome-transition-container .handle {
+	top: -70px;
+	left: 17.5%;
+	width: 65%;
+	background-color: #e91e63;
+}
+.welcome-transition-container .handle:before, 
+.welcome-transition-container .handle:after {
+	width: 9px;
+	height: 110px;
+	top: 9px;
+}
+
+</style>
+
+
+</head>
+
+<section layout:fragment="content">
+	<div>
+
+		<div id="cardContainer">
+			<div id="firstDisplay">
+				<div id="flightDetail">
+					<div id="detailLabel"
+						style="color: rgb(13, 28, 83); font-weight: bold;">FROM</div>
+					BLR
+					<div id="detailLabel">Kempegowda International</div>
+				</div>
+				<div id="flightDetail" style="margin-top: 15px;">
+					<div id="animContainer">
+						<div id="anim">
+							<div id="circle"></div><div id="circle"></div><div id="circle"></div>
+						</div>
+					</div>
+					<div id="animContainer" style="left: 62px;">
+						<div id="anim">
+							<div id="circle"></div><div id="circle"></div><div id="circle"></div>
+						</div>
+					</div>
+					<img src="https://github.com/pizza3/asset/blob/master/airplane2.png?raw=true"
+						style="width: 30px;">
+				</div>
+				<div id="flightDetail">
+					<div id="detailLabel" style="color: rgb(13, 28, 83); font-weight: bold;">TO</div>
+					DEL
+					<div id="detailLabel">Indira Gandhi International</div>
+				</div>
+			</div>
+			<div id="first"
+				style="transform: rotate3d(1, 0, 0, 0deg); transition-delay: 0.3s;">
+				<div id="firstTop">
+					<img src="https://beebom.com/wp-content/uploads/2018/12/Lufthansa-Logo.jpg"
+						style="height: 51px; margin: 22px 12px;">
+					<div id="timecontainer">
+						<div id="detailDate">
+							Bengaluru
+							<div id="detailTime">6 : 20</div>
+							June 12
+						</div>
+						<img src="https://github.com/pizza3/asset/blob/master/airplane2.png?raw=true"
+							style="width: 30px; height: 26px; margin-top: 22px; margin-left: 16px; margin-right: 16px;">
+						<div id="detailDate">
+							New Delhi
+							<div id="detailTime">8 : 45</div>
+							June 12
+						</div>
+					</div>
+				</div>
+				<div id="firstBehind">
+					<div id="firstBehindDisplay">
+						<div id="firstBehindRow">
+							<div id="detail">
+								6:20 - 8:45
+								<div id="detailLabel">Flight Time</div>
+							</div>
+							<div id="detail">
+								No <div id="detailLabel">Transfer</div>
+							</div>
+						</div>
+						<div id="firstBehindRow">
+							<div id="detail">
+								2h 25 min
+								<div id="detailLabel">Duration</div>
+							</div>
+							<div id="detail">
+								8 <div id="detailLabel">Gate</div>
+							</div>
+						</div>
+						<div id="firstBehindRow">
+							<div id="detail">
+								5:35 <div id="detailLabel">Boarding</div>
+							</div>
+							<div id="detail">
+								20A <div id="detailLabel">Seat</div>
+							</div>
+						</div>
+					</div>
+					<div id="second" style="transform: rotate3d(1, 0, 0, 0deg); transition-delay: 0.2s;">
+						<div id="secondTop"></div>
+						<div id="secondBehind">
+							<div id="secondBehindDisplay">
+								<div id="price">
+									$100 <div id="priceLabel">Price</div>
+								</div>
+								<div id="price">
+									Economy <div id="priceLabel">Class</div>
+								</div>
+								<img id="barCode"
+									src="https://github.com/pizza3/asset/blob/master/barcode.png?raw=true">
+							</div>
+							<div id="third"
+								style="transform: rotate3d(1, 0, 0, 0deg); transition-delay: 0s;">
+								<div id="thirdTop"></div>
+								<div id="secondBehindBottom">
+									<button id="button" type="button"
+										style="color: rgb(13, 28, 83); border: 1px solid rgb(13, 28, 83);">Pay</button>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+		</div>
+
+
+
+	</div>
+	
+	
+	
+	
+	
+	
+	
+	
+	<div class="container" style="position: relative; background-color: #000;">
+		<!-- meerkat -->
+		<!-- <div class="meerkat-shape-section">
+			<div class="body">
+				<div class="leg-section">
+					<div class="leg"></div>
+					<div class="leg second"></div>
+				</div>
+				<div class="tail-section">
+					<div class="tail"><div class="tail">
+						<div class="tail"><div class="tail">
+							<div class="tail last"></div>
+						</div></div>
+					</div></div>
+				</div>
+			</div>
+			<div class="arm-section">
+				<div class="arm"></div>
+				<div class="arm second"></div>
+			</div>
+			<div class="ear-section">
+				<div class="ear"></div>
+				<div class="ear second"></div>
+			</div>
+			<div class="head">
+				<div class="eye"></div><div class="eye second"></div>
+				<div class="mouse"></div>
+				<div class="nose"></div>
+			</div>
+		</div> -->
+		
+		<div class="welcome-transition-container">
+			<!-- 암스트롱 -->
+			<div class="amstrong-section awake">
+				<div class="dog">
+					<div class="dog-paws">
+						<div class="dog-bl-leg leg">
+							<div class="dog-bl-top top"></div>
+						</div>
+						<div class="dog-fl-leg leg">
+							<div class="dog-fl-top top"></div>
+						</div>
+						<div class="dog-fr-leg leg">
+							<div class="dog-fr-top top"></div>
+						</div>
+					</div>
+					<div class="dog-body">
+						<div class="dog-tail"></div>
+					</div>
+					<div class="dog-ear-cover-l"></div>
+					<div class="dog-head">
+						<div class="dog-snout">
+							<div class="dog-nose"></div>
+							<div class="dog-eyes">
+								<div class="dog-eye-l"></div>
+								<div class="dog-eye-r"></div>
+							</div>
+						</div>
+					</div>
+					<div class="dog-ear-cover-r"></div>
+				</div>
+			</div>
+			<!-- 여행 가방 -->
+			<div class="travel-case-section">
+				<div class="handle"></div>
+				<div class="wheel-section">
+					<div class="wheel"></div><div class="wheel"></div>
+				</div>
+				<div class="travel-case">
+					<div class="case-verti"></div>
+					<div class="mark-playvoice"></div>
+				</div>
+			</div>
+			<!-- TY -->
+			<div class="TY-shape-section fly">
+				<div class="mane-section">
+					<div class="mane"></div>
+				</div>
+				<div class="bird-body">
+					<div class="face-section">
+						<div class="eye"></div><div class="eye"></div>
+						<div class="mouse"></div>
+					</div>
+					<div class="arm left-fly"></div>
+					<div class="arm right-fly"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+
+	
+<div id="playvoiceNetworkLoading" class="playvoice-network-loading-section" style="display: none;">
+	<div class="speed-section">
+		<span></span><span></span><span></span><span></span>
+	</div>
+	<div class="TY-fly-section">
+		<div class="TY-fly-cover">
+			<div class="mane-section">
+				<div class="mane"><div class="mane"></div></div>
+			</div>
+			<div class="body">
+				<div class="speed-section">
+					<span></span><span></span><span></span><span></span>
+				</div>
+				<div class="face-section">
+					<div class="eye"></div><div class="eye"></div>
+					<div class="mouse"></div>
+				</div>
+				<div class="arm fly"></div>
+				<div class="tail"></div>
+				<div class="leg-section">
+					<div class="leg"></div>
+					<div class="leg"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="cusion-section"></div>
+	<div class="loading-icon-section">
+		<div class="loading-icon">
+			<div class="playvoice-loader wind">
+				<div class="loader-outter"></div>
+				<div class="loader-inner"></div>
+			</div>
+		</div>
+		<div class="network-mention loading">Loading..</div>
+		<div class="network-mention fail">
+			네트워크 연결이 원활하지 않습니다.<br>
+			잠시 후 다시 시도하세요.
+		</div>
+	</div>
+</div>	
+
+
+
+
+</section>

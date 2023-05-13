@@ -1,0 +1,13 @@
+/***********************************
+		list_sentences.html
+************************************/  
+.admin-sentencebook-board {
+	table-layout: fixed;
+}
+
+.admin-sentencebook-board .t-reference {
+	text-overflow:ellipsis; 
+	overflow:hidden;
+	white-space: nowrap; 
+	width: 100px;
+}

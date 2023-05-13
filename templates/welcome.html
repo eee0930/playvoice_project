@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout}">
+<head>
+<title>플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:replace="~{/incl/meta_fragment::schemaLogo}"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" th:href="@{/css/index.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [가이드 타이틀 스라이드 애니메이션]--------------------------------------------------
+	$(window).on('scroll',function() {
+		var slideBackground = $(".slideBackground");
+		var slideBackground2 = $(".slideBackground2");
+		var slideBackground3 = $(".slideBackground3");
+		var slideBackground4 = $(".slideBackground4");
+		var bottomJoinButton = $(".join-button-section");
+		if(checkVisible($(slideBackground))) {
+			slideBackground.addClass("active");
+			$("#stickyMenuSection").show();
+		} else if(checkVisible($(slideBackground2))) {
+			slideBackground2.addClass("active");
+			$("#stickyMenuSection").show();
+		} else if(checkVisible($(slideBackground3))) {
+			slideBackground3.addClass("active");
+			$("#iconDeck").addClass("active");
+			$("#stickyMenuSection").show();
+		} else if(checkVisible($(slideBackground4))) {
+			slideBackground4.addClass("active");
+		} else if(checkVisible($(bottomJoinButton))) {
+			$("#stickyMenuSection").hide(300);
+		}
+	});
+	
+});
+
+/**
+ * 스크롤 시 화면 영역에 div가 보이는지 감지
+ */
+function checkVisible(elm, eval) {
+    eval = eval || "object visible";
+    var viewportHeight = $(window).height(), // Viewport Height
+        scrolltop = $(window).scrollTop(), // Scroll Top
+        y = $(elm).offset().top,
+        elementHeight = $(elm).height();   
+    
+    if (eval == "object visible") {
+    	return ((y < (viewportHeight + scrolltop)) && (y > (scrolltop - elementHeight)));
+    }
+    if (eval == "above") {
+    	return ((y < (viewportHeight + scrolltop)));
+    }
+}
+
+</script>
+
+<style>
+@font-face {
+	font-family: 'Cafe24Simplehae'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Simplehae.woff') format('woff'); 
+	font-weight: normal; font-style: normal; 
+}
+</style>
+
+</head>
+
+<section layout:fragment="content">
+<div class="playvoice-first-entry-section">
+
+<!-- --------------------------[welcome title]------------------------------ -->
+<div id="playvoiceWelcomeTitleSection" class="playvoice-guide-section title">
+	<div class="playvoice-title title-section">
+		<div class="sub-title">
+			<span class="eng-title">
+			<span class="episode">Episode<span class="i">I</span></span> 
+			- A Cosmopolitan Tourist</span>
+		</div>
+		<h1>
+			<span>Welcome to Playvoice</span>
+			<i><span>We</span>lc<span>o</span>m<span>e
+			to </span>P<span>layv</span>oi<span>ce</span></i>
+			<label class="hr"></label>
+			<i class="second">We<span>lc</span>o<span>m</span>e
+			to <span>P</span>layv<span>oi</span>ce</i>
+			<i class="fa fa-plane"></i>
+		</h1>
+		<div class="sub">
+			<span class="b-title">대한민국 영어 리부트 프로젝트,</span><br class="d-md-none">
+			서울에서 뉴욕까지의 여정을 통해 <b>영어를 경험하세요.</b>
+		</div>
+	</div>
+	<div class="playvoice-journey-image-section">
+		<div class="playvoice-journey-image-cover"><div class="journey-image-cover">
+			<div class="go-to-newyork"></div>
+			<div class="heoeok-journey"></div>
+		</div></div>
+	</div>
+</div><!-- end of playvoiceWelcomeTitleSection -->
+<div id="stickyMenuSection" class="playvoice-guide-menu">
+	<div class="menu-dependent-section">
+		<button th:href="@{/member/registration}"
+			class="btn menu-dependent" type="button"
+			onclick="location.href=$(this).attr('href')">
+			가입하기
+		</button>
+		<div class="playvoice-plane-section"></div>
+	</div>
+</div><!-- end of stickyMenuSection -->
+
+<!-- 구름 효과 -->
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud1"></div>
+</div>
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud4"></div>
+</div>
+
+<!-- ----------------------------[1 플레이보이스 소개]---------------------------- -->
+<div id="playvoiceStartSection" class="playvoiceGuideSection">
+<!-- [1.1 영어는 왜 어려울까요?] -->
+<div id="introPlayvoiceDiv" class="intro-playvocie-section">
+	<div class="guide-title-section">
+		<span class="num">01</span><i class="dot"></i>
+		<span class="title-text">Speaking English</span>
+		<span class="slideBackground title-back2"></span>
+	</div>
+	<div class="playvoice-guide-body-cover">
+		<th:block th:replace="~{/guide/incl/why_playvoice_incl::speakingEnglish}"></th:block>
+	</div>
+</div><!-- end of introPlayvoiceDiv -->
+
+<!-- 구름 효과 -->
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud3"></div>
+</div>
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud4"></div>
+</div>
+
+<!-- [1.2 플레이보이스] -->
+<div id="whyDifficultDiv" class="intro-playvocie-section">
+	<div class="guide-title-section">
+		<span class="num">02</span><i class="dot"></i>
+		<span class="title-text">playvoice</span>
+		<span class="slideBackground2 title-back"></span>
+	</div>
+	<div class="playvoice-guide-body-cover">
+		<th:block th:replace="~{/guide/incl/why_playvoice_incl::playvoice}"></th:block>
+	</div>
+</div><!-- end of whyDifficultDiv -->
+</div><!-- end of playvoiceStartSection -->
+
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud1"></div>
+</div>
+
+<!-- --------------------------[2. 플레이보이스 앱 소개]--------------------------- -->
+<div id="playvoiceAppGuideSection" class="playvoiceGuideSection">
+<!-- [2.1 플레이보이스 앱] -->
+<div id="playvoiceAppGuideDiv" class="intro-playvocie-section">
+	<div class="cloud-image cloud1"></div>
+	<div class="guide-title-section">
+		<span class="num">03</span><i class="dot"></i>
+		<span class="title-text">Playvoice App</span>
+		<span class="slideBackground3 title-back"></span>
+	</div>
+	<div class="playvoice-guide-body-cover app-content">
+		<th:block th:replace="~{/guide/incl/why_playvoice_incl::playvoiceApp}"></th:block>
+	</div>
+</div><!-- end of playvoiceAppGuideDiv -->
+
+<!-- 구름 효과 -->
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud4"></div>
+</div>
+<div class="cloud-gather-section">
+	<div class="cloud-image cloud2"></div>
+</div>
+
+<!-- [2.2 가입만으로 무료로 이용 가능] -->
+<div id="freeUseGuideDiv" class="intro-playvocie-section">
+	<div class="guide-title-section">
+		<span class="num">04</span><i class="dot"></i>
+		<span class="title-text">A Cosmopolitan Tourist</span>
+		<span class="slideBackground4 title-back2"></span>
+	</div>
+	<div class="playvoice-guide-body-cover">
+		<th:block th:replace="~{/guide/incl/why_playvoice_incl::cosmopolitanTourist}"></th:block>
+		<div class="intro-images-section cake"></div>
+		<div class="introduce-text-section">	
+			여러분의 원활한 커뮤니티 활동을 위해 <br>
+			플레이보이스는 <b>가입만으로<br class="d-sm-none"> 
+			컨텐츠를 무료로 이용</b>할 수 있습니다.
+		</div>
+		<div class="introduce-text-section">
+			지금 바로 가입해서 다양한 멤버들을 만나고<br>
+			여러분만의 여정을 만들어 보세요.
+		</div>
+		<div class="join-button-section">
+			<button th:href="@{/member/registration}"
+				class="btn btn-join" type="button"
+				onclick="location.href=$(this).attr('href')">
+				<i class="fa fa-rocket"></i> 플레이보이스 가입하기
+			</button>
+		</div>
+	</div>
+</div><!-- end of freeUseGuideDiv -->
+
+</div><!-- end of playvoiceAppGuideSection -->
+
+
+</div>
+
+<div class="newyork-image-section">
+	<div class="newyork-image-cover"></div>
+</div>
+<div style="display: none;">
+신규 방문자 정보 : [[${session.accessStatus}]]
+</div>
+</section><!-- end of content -->
+
+
+</html>

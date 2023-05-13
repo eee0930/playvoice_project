@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List DictationTheme</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[list_dictationTheme에서 선택한 테마들]-----------------------------------------
+	var dictationThemeList = JSON.parse(
+			sessionStorage.getItem('dictationThemeList'));
+	
+	displayAddDictationTable(dictationThemeList);
+	
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	
+	//[딕테이션 등록하기 버튼 클릭시 ]
+	$('.addDictation').click(function(e) {
+		//dictationbook.js 파일에 정의된 함수.
+		
+		addDictation($(":checkbox[name='chkList']:checked"));
+	});
+	
+	
+	//[예문 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchSentenceDiv').toggle();
+	});
+	
+	
+	//[제목 클릭시 테이블 접고 펼치기]----------------------------------------------------
+	$("#sentenceListTitle").click(function(e) {
+		console.log($('#dictationThemeListDiv').css('display'));
+		//block, none
+		if($('#sentenceListDiv').css('display') == 'block'){
+			$('#sentenceListDiv').hide();
+		}
+		else if($('#sentenceListDiv').css('display') == 'none'){
+			$('#sentenceListDiv').show();
+		}
+		
+	});
+	
+	
+	//[테이블 데이터(title) 클릭시 상세보기]-----------------------------------------------
+	$('.resultWrapper').on('click', '.dictationThemeDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.dictationThemeDetailPart').css('display','block');
+		//해당 테마의 문제목록 조회
+		//displayDictationList($(this).attr('data-tid'));
+		searchDictationList($(this).parent().attr('data-tid'), 1);
+
+		//상세보기 폼으로 이동 
+		window.scroll(0, getOffsetTop(document.getElementById("dictationListTable")));
+	});
+	
+	//['전체 체크' 체크시 해당 테이블 속의 체크박스를 모두 토글]-------------------------------------
+	$(document).on('click','.theme-checkbox',function(){
+		var columnIndex = $(this).closest('th').index();
+		var rows = $(this).closest('table').find('tbody tr');
+		rows.each(function(i, element) {
+			$(element).find('td:eq(' + columnIndex + ') :checkbox')
+			.prop('checked',function(){
+				return !$(this).prop('checked');
+			});
+		});
+	});
+})//end of reday
+
+
+
+
+
+</script>
+</head>
+
+
+<section layout:fragment="content"> 
+<div class="row"><div class="col-12">
+
+	<!--/* ----------------[inclule : Search Sentence Form]--------------- */-->
+	<div	id="searchSentenceDiv" 
+			th:insert="~{/admin/dictationBook/incl/search_sentence::search_sentence}" 
+			style="display: none"></div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	
+	<h3 id="sentenceListTitle">딕테이션 테마에 추가할 문장 선택 (Sentence List)</h3>  
+	<!--/* 1. 예문 목록 Table  */-->
+	<div id="sentenceListDiv">
+		<!-- table -->
+		<div th:with="result=${pageMaker.result}">
+			<div class="row">
+				<div class="text-left col-6"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;" lang="fa"></i></div>
+				<div class="text-right col-6"><i class="addDictation fas fa-save" style="font-size:15px; color: #5bc0de;" lang="fa"></i></div>
+			</div>
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-sentencebook-board"
+					style="table-layout:fixed;">
+				<thead>
+				<tr class="thead">
+					<!-- dictationbook.js의 displayDictationThemeList(dictationThemeList) -->
+					
+				</tr></thead>
+				<tbody> 
+					<!--/* 1.결과 목록 */-->
+					<tr th:each="sentence, status : ${result.content}">
+						<td th:text="${(pageMaker.result.totalElements-(status.index)) - 
+								( (pageMaker.currentPageNum -1) * 10)} ">
+						</td>
+						<td th:text="${sentence.sid}">id</td> 
+						<td th:utext="${sentence.eng} +'<br>'+ ${sentence.kor}"
+							class="text-left"></td>
+						<td th:text="${sentence.source}" style="vertical-align: middle;" class="text-truncate">출처</td> 
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		<!--/* 1.paging */-->
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker?.prevPage}">
+						<a class="page-link" th:href="${(pageMaker.currentPageNum > 100)?
+							(pageMaker.currentPageNum - 100) : 1}">
+							PREV[[${(pageMaker.currentPageNum > 100)?
+							(pageMaker.currentPageNum - 100) : 1}]]</a>
+					</li>				
+					<li class="page-item" th:if="${pageMaker?.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker?.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker?.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker?.nextPage}">
+						<a class="page-link" th:href="${(pageMaker.totalPageNum < pageMaker.currentPageNum + 100)?
+							pageMaker.totalPageNum : (pageMaker.currentPageNum + 100)}">
+							NEXT [[${(pageMaker.totalPageNum < pageMaker.currentPageNum + 100)?
+							pageMaker.totalPageNum : (pageMaker.currentPageNum + 100)}]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div> 
+
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:none; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+	<!-- success -->
+	<div id="successDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	
+	
+</div></div> <!--/* end of 예문 목록 */-->
+
+
+
+
+<!--/* =====================[테마 상세 보기/딕테이션(문제) 목록/ 딕테이션 삭제]====================== */-->	
+<div class="row dictationThemeDetailPart" style="display:none"><div class="col-12">
+	
+	<div class="formContainer" id="detailDictationTheme">
+		<h3>
+			View Detail &amp; DictationTheme  <button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		
+		<!--/*---------------------------- [등록된 Dictation 목록 정보]-------------------------------*/-->
+		<div class="row no-gutters" style="margin: 20px 0px 0px 0px;">
+			<div class="col-12" id="existingDictationList" style="display: block">
+				<table id="dictationListTable" class="table table-bordered table-sm table-hover text-center" style="table-layout:fixed;">
+					<thead>
+					<tr class="thead">
+						<th style="width: 60px;">번호</th>
+						<th style="width: 80px;">DID</th>
+						<th>영어</th>
+						<th>한국어</th>
+						<th style="width: 60px;">출제횟수</th>
+						<th style="width: 60px;">정답횟수</th>
+						<th style="width: 60px;">정답률</th>
+						<th style="width: 80px;">등록일</th>
+						<th style="width: 60px;">삭제</th>
+					</tr></thead>
+					<tbody id="dictationList"><!--/* 기존 등록된 딕테이션 목록 */--></tbody>
+				</table>
+			</div>
+		</div>
+		
+		
+	</div><!-- eidtDictationThemeFormContainer -->
+	
+</div></div><!--/* end of 테마 상세보기 */-->
+	 
+	
+
+
+<div class="text-right" style="color:red;">
+	source :: add_dictation.html	
+</div>
+</section><!-- end of section  -->

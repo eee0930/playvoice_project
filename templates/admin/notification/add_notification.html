@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Add Notification</title>
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+	<script th:src="@{/js/common.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	//[notification 등록 버튼 클릭 시 폼 전송]---------------------------------------------------
+	var formObj = $("#addNotificationForm");
+	$("#addNotificationBtn").click(function(e) {
+		e.preventDefault();
+		$("#addNotificationForm #msgTemplate")[0].trim();
+		$("#addNotificationForm #uriTemplate")[0].trim();
+		$("#addNotificationForm #msgCode")[0].trim(); 
+		$("#addNotificationForm #msgType")[0].trim(); 
+		
+		formObj.submit();
+	});
+
+	
+	//[알람 메시지 목록창 토글]---------------------------------------------------
+	$('.listIcon').click(function(e){
+		$('.notificationListView').toggle();
+		
+		var url = '/admin/notification/list';
+		$('.notificationListView').load(url+' .notificationListPage');
+		
+	});
+	
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	$(document).on("click",'.pagination a', function(e) {
+		e.preventDefault();
+		$("#pageForm").find('[name="page"]').val($(this).attr('href'));
+		$("#pageForm").submit();
+	});
+	
+}); //end of ready
+
+
+
+</script>
+</head>
+
+
+<section layout:fragment="content">
+
+<h3>알람메세지 등록 (Add Notification)</h3>
+
+<div class="row"><div class="col-12">
+
+	<!-- -------------------[Add Notification Form]------------------- -->
+	<div class="formContainer" id="addNotificationFormContainer" >
+		<form th:action="@{add}" th:object="${notification}"  id="addNotificationForm" 
+			class="form-horizontal" method="post" >
+		<h3>
+			Adding New Notification Form 
+			
+			<th:block th:if="${resMsgs}">
+				<button type="button" class="btn btn-info btn-xs">
+					<span class="glyphicon glyphicon-ok">[[${resMsgs}]]</span></button>
+			</th:block>
+			
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div>
+			<div class="row no-gutters">
+				<div class="imageDiv col-4">
+			</div>
+			
+			<div class="col-12">
+			
+				<!--/* 메세지 템플릿 div */-->
+				<div class="form-group row">
+					<label for="msgTemplate" class="col-2 control-label headerLabel text-right">메세지 템플릿</label>
+					<div class="col-10" id="msgTemplateDiv">
+						<input type="text" th:field="*{msgTemplate}" class="form-control"/>
+					</div>
+				</div>
+				
+				<!--/* uri 템플릿 div */-->
+				<div class="form-group row">
+					<label for="uriTemplate" class="col-2 control-label headerLabel text-right">uri 템플릿</label>
+					<div class="col-10" id="uriTemplateeDiv">
+						<input type="text" th:field="*{uriTemplate}" class="form-control"/>
+					</div>
+				</div>
+				
+				<!--/* msgCode div */-->
+				<div class="form-group row">
+					<label for="msgCode" class="col-2 control-label headerLabel text-right">메세지 코드</label>
+					<div class="col-10" id="msgCodeDiv">
+						<input type="text" th:field="*{msgCode}" class="form-control"/>
+					</div>
+				</div>
+				
+				<!--/* msgType div */-->
+				<div class="form-group row">
+					<label for="msgType" class="col-2 control-label headerLabel text-right">메세지 타입</label>
+					<div class="col-10" id="msgTypeDiv">
+						<input type="text" th:field="*{msgType}" class="form-control"/>
+					</div>
+				</div>
+				
+			</div></div>	
+				
+			<div class="row" id="submitDiv"><div class="col-12">
+				<div class="form-group row">
+					<div class="text-right col-6">  
+						<input type="button" id="addNotificationBtn" value="Register" class="btn btn-primary"/>
+					</div>
+				</div>
+			</div></div>
+		 </div>
+		 
+	 	</form>
+	</div><!-- end of formContainer -->
+	
+	
+	<div class="text-left">
+		<i class="fas fa-search-plus listIcon" style="font-size:15px; color: #5bc0de;"></i>
+		</div>
+	<div class="notificationListView" style="display: none"></div>
+
+</div></div>
+
+
+</section><!-- end of content -->
+
+<th:block layout:fragment="script">
+	<script th:inline="javascript">
+
+	</script>
+
+</th:block>

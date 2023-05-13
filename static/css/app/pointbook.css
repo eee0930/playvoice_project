@@ -1,0 +1,433 @@
+
+
+
+
+
+
+
+/**********************************************************
+ *					playpoint.html
+ **********************************************************/
+.play-point-guide-section {
+	color: #1B1F40;
+	font-family: 'Roboto', 'NanumGothic', Sans-Serif;
+	font-size: 13px;
+}
+.play-point-guide-section h3 {
+	font-family: 'Baloo Bhai', sans-serif; 
+	color: #1B1F40; 
+	font-weight: 400;
+	font-size: 2rem;
+	letter-spacing: -1px;
+	padding-bottom: 15px;
+	margin-bottom: 15px;
+	-webkit-box-shadow: 0 1px 0 0 #fff;
+	box-shadow: 0 1px 0 0 #fff;
+	border-bottom: 1px dashed #d2d2d2;
+}
+.play-point-guide-section h3 small {
+	line-height: 1.2;
+	display: block;
+	font-weight: 600;
+	color: #444; 
+	font-size: 13px;
+	letter-spacing: 0;
+	margin-top: 0.3rem;
+	font-family: Roboto, Arial, 'NanumGothic', Sans-Serif;
+}
+.play-point-guide-section h3 i {color: #dd2138;}
+.point-guide-divide {margin-bottom: 3rem;}
+.play-point-guide-section .for-se {display: none;}
+.play-point-guide-section .point-detail {
+	border-radius: 0.25rem;
+	background-color: #fff;
+	font-weight: 600;
+	font-family: Roboto, Arial, 'NanumSquare', Sans-Serif;
+	font-size: 15px;
+	padding: 1rem;
+	text-align: center;
+}
+.play-point-guide-section .point-detail .alias {
+	font-size: 1.2em;
+	color: #212861;
+}
+.play-point-guide-section .point-detail .alias i {
+	font-size: 0.5em;
+	position: relative;
+	top: -6px;
+}
+
+.play-point-guide-section .point-guide-title {
+	border-radius: 0.5rem;
+	overflow: hidden;
+	background-color: #f6f6ff;
+    color: #1B1F40;
+    width: 400px;
+    margin: 0 auto;
+    padding: 0.5rem;
+    text-align: center;
+}
+.play-point-guide-section .point-guide-title i {
+	color: #ff2d5c;
+	font-size: 1rem;
+	margin-right: 0.5rem;
+}
+.play-point-guide-section .point-guide-title .main-msg {
+    font-weight: 600;
+    font-size: 14px;
+    text-shadow: 1px 1px 1px #fff;
+	
+	border-radius: 0 5px 5px 0;
+	font-family: 'PT Sans', 'Nunito Sans', 'NanumSquare', Sans-Serif;
+}
+.play-point-guide-section .point-guide-title .main-msg .point {
+	color: #dd2138;
+	font-size: 2em;
+}
+
+.play-point-guide-section .playpoint-guide-cover {
+	margin: 1rem 0 3rem;
+	min-height: 333px;
+	position: relative;
+	border-radius: 0.5rem;
+	padding: 1.5rem;
+	box-shadow: rgba(27,31,64, 0.05) 0 2px 2px, rgba(27,31,64,0.05) 0 4px 4px, 
+	rgba(27,31,64,0.05) 0 4px 8px, rgba(27,31,64,0.05) 0 6px 16px, 
+	rgba(27,31,64,0.05) 0 22px 32px, rgba(27,31,64,0.05) 0 50px 64px;
+}
+.play-point-guide-section .playpoint-guide-cover i {
+	font-size: 1em;
+	margin: 0 5px;
+}
+.play-point-guide-section .playpoint-guide-cover .fa-comments {color: #2b3690;}
+
+.play-point-guide-section .playpoint-guide-cover .sub-title {
+	font-size: 1.5rem;
+	font-family: 'Baloo Bhai', 'PT Sans', 'NanumSquare', Sans-Serif;
+	color: #1B1F40;
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -1.5px;
+}
+.play-point-guide-section .playpoint-guide-cover .sub-title-small {
+	font-size: 1.2rem;
+	font-family: 'Baloo Bhai', 'PT Sans', 'NanumSquare', Sans-Serif;
+	color: #303672;
+	font-weight: 400;
+	line-height: 1.2;
+	letter-spacing: -1px;
+}
+.sub-title-detail {
+	font-family: 'Graphik', 'NanumSquare';
+	font-weight: 600;
+	font-size: 13px;
+	color: #1b1f40;
+	letter-spacing: -0.5px;
+}
+
+.play-point-guide-section .playpoint-guide-cover .sub-title small {
+	font-weight: 600;
+	font-size: 13.5px;
+}
+
+.play-point-guide-section .playpoint-guide-cover .playpoint-guide-detail {
+	margin: 1rem 0 0;
+	line-height: 1.7;
+}
+.play-point-guide-section .playpoint-guide-detail .guide-comment {
+	font-family: 'Open Sans', 'NanumGothic';
+	font-weight: 600;
+	font-size: 13px;
+	text-align: center;
+	line-height: 1.5;
+	margin-bottom: 3rem;
+}
+.play-point-guide-section .playpoint-guide-detail .guide-comment b {
+	color: #dd2138;
+	font-weight: 600;
+}
+.play-point-guide-section .playpoint-guide-detail .image-guide {margin-bottom: 1rem;}
+.play-point-guide-section .playpoint-guide-cover .recommend {
+	margin-top: 3rem;
+	font-size: 14.5px;
+	font-weight: 600;
+	font-family: 'NanumSquare', Sans-Serif;
+	color: #303672;
+	text-align: center;
+	margin-bottom: 1rem;
+}
+.play-point-guide-section .playpoint-guide-cover .recommend i {
+	position: relative;
+	font-size: 0.5em;
+	top: -2px;
+}
+
+.play-point-guide-section .recommend-title {
+	margin: 3rem auto 0;
+	font-size: 14px;
+	font-weight: 600;
+	font-family: 'NanumSquare', Sans-Serif;
+	color: #303672;
+	text-align: center;
+}
+
+/* 포인트 획득 방법 */
+.play-point-guide-section .recommend-list-section {margin: 1rem -0.5rem 0;}
+.play-point-guide-section .recommend-section {padding: 0.5rem !important;}
+.play-point-guide-section .recommend-cover {
+	padding: 1rem 0.7rem;
+	border-radius: 0.5rem;
+	background-color: #f5f6fa;
+	position: relative;
+	font-family: 'Open Sans', 'NanumGothic';
+	font-weight: 600;
+	font-size: 13px;
+	color: #1b1f40;
+	height: 100%;
+}
+.play-point-guide-section .recommend-cover .count {
+	border-radius: 50%;
+	position: absolute;
+	top: -10px;
+	left: -10px;
+	width: 30px;
+	height: 30px;
+	line-height: 31px;
+	font-size: 15px;
+	font-family: 'Nunito Sans';
+	background-color: #131875;
+	color: #fff;
+	font-weight: 600;
+	text-align: center;
+}
+
+.play-point-guide-section .recommend-cover .text-guide a {color: #e94169;}
+.play-point-guide-section .recommend-cover .text-guide a:hover {
+	border-bottom: solid 1px #e94169;
+}
+
+.play-point-guide-section .recommend-cover .image-guide {width: 91px;}
+.recommend-cover img.point-icon,
+.recommend-cover label.comment-icon {
+	width: 40px;
+	height: 40px;
+	border-radius: 10px;
+}
+.recommend-cover img.point-icon {
+	background: url('/images/common/images/take_point.jpg') no-repeat;
+	background-size: contain;
+	background-position: center;
+}
+.recommend-cover label.comment-icon {
+	margin: 0;
+	line-height: 40px;
+	font-size: 18px;
+	color: #fff;
+	background-color: #303672;
+	text-align: center;
+}
+
+.playpoint-guide-cover .playvoice-menu {
+	background-color: transparent;
+	margin: 0 !important;
+}
+.playpoint-guide-cover .playvoice-menu .menu {
+	padding: 25px 10px 5px;
+	line-height: 1.6;
+	width: 91px;
+}
+.playpoint-guide-cover .playvoice-menu .menu a {color: #1b1f40;}
+.playpoint-guide-cover .playvoice-menu .middle-icon {top: 8.5px;}
+.playpoint-guide-cover .playvoice-menu .icon {top: 0;}
+
+.play-point-guide-section .playpoint-guide-detail.gold-trial {
+	border-radius: 0.5rem;
+	background-color: #f5f6fa;
+	overflow: hidden;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .sub-title-small {
+	color: #f15082;
+	font-size: 1.5rem;
+	letter-spacing: -1.5px;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .sub-title-detail {
+	color: #fff;
+	font-weight: 500;
+	font-size: 15px;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .recommend {
+	margin-top: 0;
+	padding: 1rem;
+	background-color: #1b1f40;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .image-guide {
+	padding-right: 1rem !important;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .guide-comment {
+	text-align: left;
+	padding: 1rem 2rem 2rem;
+	box-shadow: none;
+	margin-bottom: 0;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-point {
+	color: #2f3a8b;
+	font-size: 13.5px;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-detail {
+	padding-top: 1rem;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-detail ul {
+	margin-left: 1rem;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-detail li {
+	padding-left: 1rem;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-detail li i {
+	color: #e94169;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .button-section {
+	text-align: center;
+	margin: 0;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-button {
+	background-color: rgb(221, 33, 56);
+	box-shadow: -5px -5px 10px 0 #fff, 
+				5px 5px 15px 0 rgba(13,39,80,0.36), 
+				inset -3px -3px 5px 0 #9f1728, 
+				inset 3px 3px 5px 0 #ee8a97;
+	cursor: pointer;
+	-webkit-box-align: center;
+	align-items: center;
+	backface-visibility: hidden;
+	display: inline-flex;
+	font-weight: 600;
+	height: unset;
+	-webkit-box-pack: center;
+	justify-content: center;
+	position: relative;
+	pointer-events: unset;
+	text-align: center;
+	width: 200px;
+	color: #fff !important;
+	font-size: 15px !important;
+	border-radius: 3rem;
+	border: none;
+	padding: 0.6rem 1.5rem;
+	transition: all 0.3s ease;
+}
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-button:hover,
+.play-point-guide-section .playpoint-guide-detail.gold-trial .trial-button:focus {
+	box-shadow: inset -5px -5px 5px 0 #eb7281, 
+				inset 5px 5px 5px 0 #9f1728 !important;
+}
+
+.playpoint-guide-detail.gold-trial .terms-section {
+	border-top: solid 1px #e2e2e2;
+	padding: 1rem 1.5rem 0;
+	font-size: 12px;
+	color: #888;
+	font-family: 'Roboto', '나눔바른고딕';
+}
+.playpoint-guide-detail.gold-trial .terms-section a {color: #303672 !important;}
+.playpoint-guide-detail.gold-trial .terms-section a:hover {
+	border-color: #303672;
+	text-decoration: underline;
+}
+.playpoint-guide-detail.gold-trial .terms-section ul {
+	padding-left: 1rem;
+}
+
+.playpoint-guide-cover .membership-guide-image {
+	height: 140px;
+	margin: 0 5px;
+}
+
+.play-point-guide-section .playpoint-guide-cover .button-section {
+	margin: 1.5rem 0;
+	text-align: center;
+}
+.play-point-guide-section .playpoint-guide-cover .button-section button {
+	border: none;
+	background-color: #b01a2c;
+	color: #fff !important;
+	font-family: 'Graphik', 'NanumSquare', Sans-Serif;
+	font-size: 15px;
+	font-weight: 600;
+	padding: 0.6rem 1.5rem;
+	border-radius: 3rem;
+	cursor: pointer;
+	box-shadow: -5px -5px 10px 0 #fff, 
+				5px 5px 15px 0 rgba(13,39,80,0.36), 
+				inset -3px -3px 5px 0 #9f1728, 
+				inset 3px 3px 5px 0 #ee8a97;
+}
+.play-point-guide-section .playpoint-guide-cover .button-section i {
+	position: static;
+	font-size: 1em;
+}
+
+@media (max-width: 1199.5px) {
+	.play-point-guide-section .playpoint-img {width: 160px;}
+	
+}
+@media (max-width: 991.5px) {
+	.play-point-guide-section .point-detail {font-family: 'Roboto', 'NanumGothic', Sans-Serif;}
+	.play-point-guide-section .point-guide-title .main-msg {
+		font-family: 'PT Sans', 'Nunito Sans', 'NanumGothic', Sans-Serif;
+	}
+	.play-point-guide-section .playpoint-guide-cover .button-section a,
+	.play-point-guide-section .playpoint-guide-cover .playpoint-guide-detail .recommend {
+		font-family: 'Roboto', 'NanumGothic', Sans-Serif;
+	}
+	.play-point-guide-section .playpoint-guide-cover .button-section a {
+		padding: .7rem 1.3rem;
+	}
+	
+	.play-point-guide-section .recommend-cover .image-guide {width: 105px;}
+	.playpoint-guide-cover .playvoice-menu {padding: 0;}
+	.playpoint-guide-cover .playvoice-menu .menu {
+		width: 105px;
+		padding: 25px 0 5px
+	}
+}
+@media (max-width: 767.5px) {
+	.play-point-guide-section .point-guide-title {width: 100%;}
+	.play-point-guide-section .point-detail {margin-bottom: 0;}
+	.play-point-guide-section .playpoint-img {
+		width: 70%;
+		margin: 1rem 0;
+	}
+	
+	.play-point-guide-section .playpoint-guide-cover .playpoint-guide-detail .recommend {
+		text-align: center;
+	}
+	.play-point-guide-section .playpoint-guide-cover .playpoint-guide-detail .recommend i {
+		display: none;
+	}
+	.play-point-guide-section .playpoint-guide-detail .image-guide {text-align: center;}
+	.play-point-guide-section .playpoint-guide-detail .guide-comment {
+		text-align: left;
+		background-color: transparent;
+	}
+	.play-point-guide-section .playpoint-guide-detail .guide-comment ul {padding-left: 1rem;}
+	.play-point-guide-section .recommend-cover {padding-left: 0;}
+	
+	.play-point-guide-section .playpoint-guide-detail.gold-trial .image-guide {
+		padding: 0 !important;
+	}
+	
+	.play-point-guide-section .playpoint-guide-cover .button-section button {font-size: 13.5px;}
+}
+
+
+@media (max-width: 320px) {
+	.playpoint-guide-cover .playpoint-guide-image {width: 100%;}
+	.playpoint-guide-cover .membership-guide-image {height: 110px;}
+}
+
+
+
+
+
+
+

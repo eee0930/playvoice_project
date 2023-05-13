@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Add Sentence</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/sentencebook.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function() {
+	var resMsgs = getParameter('resMsgs');
+	if(resMsgs=='ok'){
+		$('#addSentenceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'inline');
+	}else if(resMsgs=='fail'){
+		$('#addSentenceFormContainer > div[class=errorMsgs]').css("display",'block');
+	}
+	
+	//[폼추가]-------------------------------------------------------------------
+	$("#additioinal").click(function(e){
+		var sentenceDiv = createSentenceDiv();
+		$("#submitDiv").before(sentenceDiv);
+	});
+	
+	//[등록하기]-------------------------------------------------------------------
+	$("#addSentenceBtn2").click(function(e){
+		$('#addSentenceForm').submit();
+	});
+	
+	$("#addSentenceBtn").click(function(e){
+		//var formData = $("#addSentenceForm").serializeJSON();
+		//console.log("formData="+formData);
+		//formData = JSON.stringify(formData);
+		//var jsonString = JSON.stringify(formData);
+		//console.log("jsonString="+formData);
+		console.log("--------------------");
+		var formData = JSON.stringify($("#addSentenceForm").serializeArray());
+		//console.log("before formData="+formData);
+		//console.log("formData.length="+formData.length);
+		//console.log("type="+typeof formData);
+		
+		formData = formData.substring(1, formData.length-1);
+		console.log("after formData="+formData);
+		
+		var formDataSplit = formData.split('},');
+		var formDataArr = [];
+		for ( var i in formDataSplit ) {
+	        //console.log($.makeArray(formDataSplit[i].concat('}')));
+	        
+	        if(formDataSplit[i].match("}") == null){
+	        	formDataSplit[i] = formDataSplit[i].concat('}');
+	        }
+	        
+	        formDataArr[i]=$.makeArray(formDataSplit[i]);
+	        //console.log(i+"="+formDataArr[i]);
+	    } 
+		
+		//var formDataArr = $.makeArray(formData);
+		console.log("formDataArr="+formDataArr);
+		console.log("formDataArr.length="+formDataArr.length);
+		/* console.log("type="+typeof formDataArr);
+		console.log("0th="+formDataArr[0]); */
+		
+		
+		/* for(var ele in formData){
+			console.log("elt="+elt);
+		} */
+		
+	/* 	$.each(formData, function(i, elt) {
+			console.log("elt="+elt);
+			//var sens = $.makeArray(elt);
+			//console.log("sens="+sens);
+		}); */
+		
+		var index = 0;
+		var query="[{";
+		var obj = $.map(formDataArr, function(n, i){
+			//console.log("n="+ n); //n={"name":"sens[0].eng","value":"a"}
+			n = JSON.parse(n);
+			//console.log("n2="+ n);	//n2=[object Object]
+			
+			
+			var i = 0;
+			for(var key in n){
+				console.log("index="+index);
+				console.log((formDataArr.length-1)*2);
+				
+				query = query.concat(n[key]);
+				console.log("query="+query);
+				if(i == 0){
+					query = query.concat(":");
+				}else{
+					if(index%2 == 1 && index < (formDataArr.length-1)*2){
+						query = query.concat(",");
+					}
+				}
+				
+				i++;
+				index++;
+			}
+			console.log("querytemp="+query);
+			
+			return query;
+		});
+		query=query.concat("}]");
+		console.log("query="+query); 
+		addSentence(query);
+	});
+	
+	$(document).on("change", ".attachedFiles", function(){
+		var file_fath = $(this).val();
+		$(this).parent().children(".attachedFilesLabel").text(file_fath);
+	});
+	
+	reserveUpdateSession(1);
+	
+}); //end of ready
+
+function fixedEncodeURI (str) {
+    return str.replace(/%5B/g, '[').replace(/%5D/g, ']');
+}
+
+function addSentence(formData){
+	$.getJSON({
+		type: "POST",
+		url : '/admin/sentenceBook/add_a',
+		data : JSON.stringify($('#addSentenceForm').serializeArray()),//formData, 
+		dataType : 'json',
+		contentType : "application/json",
+		success : function(result){
+			$('#addSentenceFormContainer button[class="btn btn-info btn-xs"]')
+				.css("display", '');
+		},
+		error : function (e) {
+			$('#addSentenceFormContainer > div[class=errorMsgs]').css("display",'');
+			$('#addSentenceFormContainer > div[class=errorMsgs] pre').text(e.responseText);
+			
+            console.log("ERROR : ", e);
+        }
+	});
+}
+
+//동적 센텐스 폼 삭제
+function remove(target){
+	var id = target.getAttribute("id");
+	removeItem(id);
+}
+
+//동적 폼 생성
+var index = 0;
+function createSentenceDiv(){
+	index++;
+	var newDiv = create("div");
+	attr(newDiv, "id", "sentenceDiv"+index);
+	attr(newDiv, "class", "row");
+	
+	var closeDiv = create('div');
+	attr(closeDiv, "class", "col-12 text-right close");
+	newDiv.appendChild(closeDiv);
+	
+	var closeBtn = create('img');
+	attr(closeBtn, "src", [[@{/images/common/icon/delete.png}]]);
+	attr(closeBtn, "width", '20px');
+	attr(closeBtn, "onclick", "removeItem('sentenceDiv"+index+"')");
+	closeDiv.appendChild(closeBtn);
+	
+
+	var forIds= ["eng", "kor", "source", "firstWriter"];
+	var labelTitles = ["영어", "한국어", "출처", "작성자"];
+	var placeHolders = ["영어 예문" , "우리말 해석", "출처", "작성자"];
+	
+	var col12 = create("div");
+	attr(col12, "class", "col-12");
+	
+	for(var i = 0; i < 4 ; i++){
+		//formGroup div
+		var formGroup =  create("div");
+		attr(formGroup, "class", "form-group row");
+		newDiv.appendChild(formGroup);
+		
+		//label
+		var label = create("label");
+		attr(label, "for", forIds[i]);
+		attr(label, "class", "col-2 control-label headerLabel");
+		label.innerHTML = labelTitles[i];
+		
+		formGroup.appendChild(label);
+		
+		//div
+		var div = create("div");
+		attr(div, "class", "col-10");
+		
+		formGroup.appendChild(div);
+		
+		//input
+		var input = createInput("text", 'sens['+index+'].'+forIds[i]);
+		attr(input, "placeholder", placeHolders[i]);
+		attr(input, "class", "form-control");
+		if(i < 2){
+			attr(input, "value", "");
+		}else if(i==2){
+			attr(input, "value", document.getElementById("sens[0].source").value);
+		}else{
+			attr(input, "value", document.getElementById("sens[0].firstWriter").value);
+		}
+		
+		div.appendChild(input);
+		
+		col12.appendChild(formGroup);
+	}
+	newDiv.appendChild(col12);
+	
+	return newDiv;
+}
+</script>
+</head>
+
+<!-- <div layout:fragment="side-menu">
+	<div th:insert="~{/admin/sentenceBook/incl/sentencebook_menu::adminMenu}">관리자 메뉴</div>
+</div> -->
+
+<section layout:fragment="content">
+
+<h3>예문 등록 (Add Sentence)</h3>
+<!-- -------------------[inclule : Search Sentence Form]------------------- -->
+<div th:insert="~{/admin/sentenceBook/incl/search_sentence::search_sentence}"></div>
+<!-- ---------------------------------------------------------------------- -->
+
+<div class="row"><div class="col-12">
+	<!-- 2. Add Sentence Form -->
+	<div class="formContainer" id="addSentenceFormContainer">
+		<h3>
+			Adding New Sentences Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<div>
+			<form th:action="@{add}" th:object="${sentencePack}" method="post" class="form-horizontal" id="addSentenceForm">
+				<div id="sentenceDiv0" class="row"><div class="col-12">
+					<div class="form-group row">
+						<label for="eng" class="col-2 control-label headerLabel text-right">영어</label>
+						<div class="col-10">
+							<!-- <input type="text" th:field="*{sens[0].eng}" placeholder="영어 예문"  class="form-control"/> -->
+							<input type="text" th:id="sens[0].eng" name="sens[0].eng" 
+								placeholder="영어 예문"  class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="kor" class="col-2 control-label headerLabel text-right">한국어</label>
+						<div class="col-10">
+							<!-- <input type="text" th:field="*{sens[0].kor}"placeholder="우리말 해석"  class="form-control"/> -->
+							<input type="text" id="sens[0].kor" name="sens[0].kor" 
+								placeholder="우리말 해석"  class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">출처</label>
+						<div class="col-10 ">
+							<!-- <input type="text" th:field="*{sens[0].source}" placeholder="출처"  class="form-control"/> -->
+							<input type="text" th:id="sens[0].source" name="sens[0].source" 
+								value="playvoice.org" placeholder="출처"  class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="firstWriter" class="col-2 control-label headerLabel text-right">작성자</label>
+						<div class="col-10 ">
+							<!-- <input type="text" th:field="*{sens[0].firstWriter}" placeholder="작성자"  class="form-control"/> -->
+							<input type="text" th:id="sens[0].firstWriter" name="sens[0].firstWriter"
+									 th:value="${#authentication.name}" placeholder="작성자"  class="form-control" />
+						</div>
+					</div>
+				</div></div>	
+				
+				<div class="row" id="submitDiv"><div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="addSentenceBtn2" value="Register" class="btn btn-primary"/>
+							<input type="button" value="Additional" id="additioinal" class="btn btn-default" />
+						</div>
+					</div>
+				</div></div>
+			 </form>
+		 </div>
+		 <hr>
+		 <div>
+		 	<form th:action="@{/admin/sentenceBook/batch/add}" method="post" class="form-horizontal" 
+		 			id="batchSentenceForm" enctype="multipart/form-data" >
+		 		<div class="form-group row">
+					<label for="excelFile" class="col-2 control-label headerLabel text-right">배치파일</label>
+					<div class="col-10 ">
+						<div class="custom-file" style="width: 100%;">
+							<input type="file" name="batchFile" class="custom-file-input attachedFiles" id="batchFile">
+							<label class="custom-file-label attachedFilesLabel form-control" for="batchFile">엑셀 파일을 선택해주세요.</label>
+						</div>
+					</div>
+				</div>
+				<div class="row" id="submitDiv2"><div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="submit" id="batchSentenceBtn" value="Batch-Register" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div></div>
+		 	</form>
+		 </div>
+		 <div class="errorMsgs" style="display: none;">
+		 	<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre th:text="${errorMsg}"></pre>
+	 	</div>
+	</div><!-- end of formContainer -->
+</div></div>
+
+<div class="text-right" style="color:red;">
+	source :: add_sentence.html	
+</div>	
+
+</section><!-- end of content -->
+
+<th:block layout:fragment="script">
+	<script th:inline="javascript">
+
+	</script>
+
+</th:block>

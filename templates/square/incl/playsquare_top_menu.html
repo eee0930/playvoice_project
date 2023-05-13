@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="menu">
+<script th:inline="javascript">	
+$(document).ready(function(){
+	// [서브메뉴 열기 (mobile ver.)]-------------------------------------------------
+	$(".secondMenuToggle").click(function(e){
+		var secondMenu = $(this).find(".secondMenuMobile");
+		if(secondMenu.is(":visible")) {
+			$(this).removeClass("subMenuActive");
+			secondMenu.slideUp(200);
+		} else {
+			$(".secondMenuToggle").removeClass("subMenuActive");
+			$(this).addClass("subMenuActive");
+			$(".secondMenuMobile").hide();
+			secondMenu.slideDown(200);
+		}
+	});
+	$(document).mouseup(function (e){
+		var container = $(".secondMenuMobile, .secondMenuToggle");
+	    if(container.has(e.target).length == 0){
+	    	container.removeClass("subMenuActive");
+	    	$(".secondMenuMobile").hide();
+		}
+	});
+	
+	//[현재 선택된 픽셔너리 네비게이션 메뉴에 menu-active 적용]--------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.menuTab').addClass('menu-active');
+		}
+	});
+	
+	// [div 링크 메뉴 클릭 처리]-------------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	
+});
+</script>
+
+<div id="playSquareTopMenuSection">
+<!-- [1. PC ver.] -->	
+<div class="menu-cover d-none d-lg-block"><div class="row no-gutters menu">
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="home">
+		<a th:href="@{/square}" class="menuTab menu-item home" data-reg="/square$">
+			<i class="fa fa-home fa-fw"></i>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="babel">
+		<a th:href="@{/square/babel/list/eng}" class="menuTab menu-item babel"
+			data-reg="/square/babel/">
+			<i class="fa fa-coffee fa-fw"></i>
+			<span>BABEL 카페</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/square/babel/list/eng}" class="linkMove sub-menu col">
+				<div><i class="fa fa-coffee"></i>잉글리시 스택</div>
+			</div>
+			<div th:href="@{/square/babel/list/kor}" class="linkMove sub-menu col">
+				<div><i class="fa fa-mug-hot"></i>코리안 스택</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="plvo">
+		<a th:href="@{/square/digest/list}" class="menuTab menu-item plvo"
+			data-reg="/square/digest|/square/grammarBook">
+			<i class="fa fa-book fa-fw"></i>
+			<span>PLVO 북스토어</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/square/digest/list}" class="linkMove sub-menu col">
+				<div><i class="fa fa-book"></i>다이제스트</div>
+			</div>
+			<div th:href="@{/square/grammarBook/list}" class="linkMove sub-menu col">
+				<div><i class="fa fa-atlas"></i>그래머북</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="octopus">
+		<a th:href="@{/square/smalltalk}" class="menuTab menu-item octopus"
+			data-reg="/square/smalltalk|/square/aboutEnglish">
+			<i class="fa fa-beer fa-fw"></i>
+			<span>OCTOPUS 펍</span>
+		</a>
+		<div class="second-menu small row no-gutters">
+			<div th:href="@{/square/smalltalk}" class="linkMove sub-menu col">
+				<div><i class="fa fa-cocktail"></i>스몰톡</div>
+			</div>
+		</div>
+	</div>
+	<div class="col text-right d-none d-xl-inline menu-flages align-self-center">
+		<img src="/images/common/flags/NO.png">
+		<img src="/images/common/flags/RU.png">
+		<img src="/images/common/flags/IT.png">
+		<img src="/images/common/flags/AU.png">
+		<img src="/images/common/flags/CH.png">
+	</div>
+</div></div>
+
+<!-- [2. Mobile & Tablet ver.] -->
+<div class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/square}" data-reg="/square$" 
+			class="menuTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center"  
+		data-tab="babel">
+		<div class="menuTab menu-item">
+			<i class="fa fa-coffee fa-fw"></i><br>
+			<span>BABEL 카페</span>
+			<i class="fa fa-caret-down"></i>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/square/babel/list/eng}" data-reg="/square/babel/list/eng|
+				/square/babel/myanswer/list/eng|/square/babel/suspend/list/eng"
+				class="linkMove sub-menu col">
+				<div><i class="fa fa-coffee"></i>잉글리시 스택</div>
+			</div>
+			<div th:href="@{/square/babel/list/kor}" data-reg="/square/babel/list/kor|
+				/square/babel/myanswer/list/kor|/square/babel/suspend/list/kor" 
+				class="linkMove sub-menu col">
+				<div><i class="fa fa-mug-hot"></i>코리안 스택</div>
+			</div>
+		</div>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center"  
+		data-tab="plvo">
+		<div class="menuTab menu-item">
+			<i class="fa fa-book fa-fw"></i><br>
+			<span>PLVO 북스토어</span>
+			<i class="fa fa-caret-down"></i>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/square/digest/list}" data-reg="/square/digest"
+				class="linkMove sub-menu col">
+				<div><i class="fa fa-book"></i>다이제스트</div>
+			</div>
+			<div th:href="@{/square/grammarBook/list}" data-reg="/square/grammarBook" 
+				class="linkMove sub-menu col">
+				<div><i class="fa fa-atlas"></i>그래머북</div>
+			</div>
+		</div>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col d-none d-md-inline-block 
+		text-center align-self-center" data-tab="octopus">
+		<div class="menuTab menu-item">
+			<i class="fa fa-beer fa-fw"></i><br>
+			<span>OCTOPUS 펍</span>
+			<i class="fa fa-caret-down"></i>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/square/smalltalk}" data-reg="/square/smalltalk"
+				class="linkMove sub-menu col">
+				<div><i class="fa fa-cocktail"></i>스몰톡</div>
+			</div>
+		</div>
+	</div>
+</div></div>
+</div>
+
+</div>
+</html>

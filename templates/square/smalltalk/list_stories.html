@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>스몰톡 스토리 목록 (Smalltalk) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '스몰톡 스토리 목록 (Smalltalk) - 플레이보이스 | Playvoice', 
+	metaDescription = 'Smalltalk은 영어로 된 재미있는 주제들과 가십거리들을 회원들과 공유하고 가볍게 읽어볼 수 있는 공간입니다. 
+	지루하고 무의미했던 입시 시험용 독해에서 벗어나 인간관계에 보탬이 되고 흥미를 일으키는 스토리를 읽어보세요. 
+	플레이보이스는 영어로 인한 불필요한 노력과 비용을 줄이고 함께 학습할 수 있는 공간을 제공합니다.', 
+	metaImage = '/images/app/playsquare/story_default_image.jpg'"></th:block>
+	
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', '/square/smalltalk', 
+	#httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '스몰톡', '스몰톡 스토리 목록'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/square/smalltalk/list?page=1&searchType=title&keyword=', 
+	'/square/smalltalk/view/'} }"></th:block>]
+</script>
+		
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+
+</head>
+
+<section layout:fragment="content">
+
+<div id="contentSection">
+<!-- -------------------------[1. 스몰톡 소개/ 메뉴]----------------------------- -->
+<div id="introductionSection" class="introduction-section talktive mt-4">
+	<h3><span class="pv-tm">SmallTalk</span></h3>
+	<div class="sub">Share interesting stories and enjoy reading them.</div>
+</div>
+<div th:insert="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+
+<!-- --------------------------[2. 스토리 리스트]------------------------------- -->
+<div class="mt-4" th:insert="~{/square/smalltalk/incl/list_stories_incl::list}"></div>
+
+
+
+
+</div>
+</section>
+</html>

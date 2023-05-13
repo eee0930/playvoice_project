@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>Contact Us - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<script type="text/javascript" th:src="@{/se2/js/HuskyEZCreator.js}" charset="utf-8"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [아티클 수정]----------------------------------------------------------------
+	$('#editArticleBtn').click(function(e) {
+		e.preventDefault();
+		var form = $('#editArticleForm');
+		//form.action = self.location;
+		
+		if (document.getElementById("content").value.length <= 32700) {
+			// 에디터의 내용이 textarea에 적용된다.
+			oEditors.getById["content"].exec("UPDATE_CONTENTS_FIELD", []);
+
+			// 에디터의 내용에 대한 값 검증은 이곳에서
+			// document.getElementById("ir1").value를 이용해서 처리한다.
+			$("#content").attr("id", "content");
+			//---------------
+			form.submit();
+			//---------------
+		} else {
+			alert('최대 32700자를 초과 하였습니다.\n현재 글자수 : '
+					+ document.getElementById("content").value.length +"자");
+		}
+	});
+	
+	// [수정 취소]-----------------------------------------------------------------
+	$('#resetBtn').click(function(e) {
+		if(!confirm("변경을 취소할까요?")){
+			return;
+		}
+		location.reload(true);
+		$.load('[[@{/qna/{boardAlias}/edit/{articleId}(boardAlias=${#boardUtil.getBoardAlias(article.category)}, articleId=${article.aid}) }]]');
+	});
+
+	// [목록으로 돌아가기]------------------------------------------------------------
+	$('#backListBtn').click(function(e) {
+		e.preventDefault();
+		self.location ='/qna/' + /*[[${board.alias}]]*/'app' + '/list';
+	});
+});
+
+
+</script>
+</head>
+
+
+
+<section layout:fragment="content">
+<div class="add-board-article-section mt-lg-5">
+	<div class="article-introduction-section">
+		<h3 class="category"><span>Editing Article Form</span></h3>
+	</div>
+	<!-- ---------------------[1. Edit Article Form]------------------------ -->
+	<div id="editArticleFormContainer" class="formContainer"
+		th:with="personacon = ${session.userContainer.personacon}">
+		
+		<!--/*응답메세지 박스 : server*/-->
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+		</div>
+		
+		<!--/*응답메세지 박스 : script*/-->
+		<div id="resMsgs" style="display:none;">
+			<h4>Respond Messages</h4>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+			<div id="scriptMsgs"></div>
+		</div>
+		
+		<form id="editArticleForm" th:action="${#request.requestURI}" method="post" 
+			th:object="${article}" class="form-horizontal" enctype="multipart/form-data">
+			<div id="articleDiv">
+				<input type="hidden" th:field="*{aid}"/>
+				<input type="hidden" th:field="*{category}"/>
+				<span th:text="${#dates.format(article.updateDate, 
+					'yyyy-MM-dd (E) hh:mm:dd')}" style="display: none;"></span>
+				
+				<!-- [1.1 타이틀] -->
+				<div class="form-group row no-gutters">
+					<label for="title" class="col-md-1 control-label headerLabel">타이틀</label>
+					<div class="col-md-11">
+						<input type="text" th:field="*{title}"
+							class="form-control playvoice-form"/>
+					</div>
+				</div>
+				
+				<!-- [1.2 아티클 내용] -->
+				<div class="form-group row no-gutters">
+					<label for="content" class="col-md-1 control-label headerLabel
+						d-none d-md-inline-block">내용</label>
+					<div class="article-text-section col-md-11">
+						<textarea id="content" class="form-control playvoice-form" 
+							th:field="*{content}" name="content"></textarea>
+						<script type="text/javascript" th:inline="javascript">
+							var oEditors = [];
+							nhn.husky.EZCreator.createInIFrame({
+								oAppRef: oEditors,
+								elPlaceHolder: "content",
+								sSkinURI: /*[[@{/se2/SmartEditor2Skin.html}]]*/'',
+								fCreator: "createSEditor2"
+							});
+						</script>
+					</div>
+				</div>
+				
+				<!-- [1.3 작성자] -->
+				<div class="form-group row no-gutters">
+					<label for="writer" class="col-md-1 col-3 control-label 
+						headerLabel">작성자</label>
+					<div class="col-md-11 col">
+						<input type="text" th:field="*{personacon.alias}" 
+							class="form-control playvoice-form" readonly="readonly"/>
+					</div>
+				</div>
+				
+			</div>
+			
+			<!--/*submit 컨트롤 박스*/-->
+			<div id="submitDiv" class="submit-button-section row no-gutters">
+				<label class="col-md-1 col d-none d-md-inline-block"></label>
+				<div class="col-auto">
+					<button id="editArticleBtn" type="button" 
+						class="btn btn-playboard-submit">수정</button>
+				</div>
+				<div class="col-auto">
+					<button id="resetBtn" type="reset" 
+						class="btn btn-playboard-outline">취소</button>
+				</div>
+				<div class="col-auto">
+					<button id="backListBtn" type="button" 
+						class="btn btn-playboard-outline">목록으로</button>
+				</div>
+			</div>
+		 </form>
+		 <div class="errorMsgs" style="display: none;">
+		 	<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre></pre>
+	 	</div>
+	</div><!-- end of formContainer -->
+</div>
+	
+</section><!-- end of content -->

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="search_member">
+<script>
+$(document).ready(function(){
+	// [입력된 텍스트로 회원 검색]-------------------------------------------------------
+	$("#searchMemberForm").submit(function(e){
+		e.preventDefault();
+		var keyword = $("#searchMemberKeyword").val().trim();
+		if(keyword.length < 2){
+			alert("2글자 이상을 입력해 주세요.");
+			return;
+		}
+		$.ajax({
+			url: "/member/search/" + keyword,
+			type: "GET",
+			success: function(searchResult){
+				if(searchResult != null && searchResult.length > 0){
+					//--------------------------------
+					displaySearchMembers(searchResult);
+					//--------------------------------
+					$("#foundSearchMembers").show();
+					$("#notFoundSearchMembers").hide();
+				}else{
+					$("#foundSearchMembers").hide();
+					$("#notFoundSearchMembers").show();
+				}
+			},
+			error: function(xhr){
+				alert("회원 검색 중 오류가 발생했습니다.");
+			}
+		})
+	});
+})
+
+/**
+ * 검색된 회원 리스트를 표시
+ */
+function displaySearchMembers(searchResult) {
+	var $resultList = $("#searchMemberList");
+	$resultList.empty();
+	var length = searchResult.length;
+	for(var i = 0; i < length; i++){
+		var personacon = searchResult[i];
+		var $row = $("#resultSearchMemberDiv .searchMemberForCopy>div")
+						.clone();
+		$row.find(".alias").text(personacon.alias);
+		$row.find(".personacon-frame").addClass("frame-" + personacon.memberType);
+		$row.find(".member-personacon").attr("data-mid", personacon.id56);
+		if(personacon.memberType == 'P'){
+			$row.find(".member-personacon").addClass("membership-P");
+		}
+		if(personacon.iconPath != null){
+			$row.find(".personacon-profile")
+				.css("backgroundImage", "url(/resource/profile/" + personacon.iconPath + ")")
+				.css("backgroundRepeat", "no-repeat")
+				.css("backgroundPosition", "center")
+				.css("backgroundSize", "cover");
+		}else{
+			$row.find(".personacon-profile").addClass("profile-default");
+		}
+		$resultList.append($row);
+	}
+}
+
+</script>	
+
+<!-- -----------------------------[멤버 검색 폼]-------------------------------- -->	
+<div id="searchMemberFormDiv" class="search-member-form-section search-divide-div">
+<h3><i class="fa fa-search"></i> Searching for Playvoice members</h3>
+<form id="searchMemberForm">
+	<div class="search-member-form row no-gutters">
+		<div class="col">
+			<input type="text" id="searchMemberKeyword" 
+				placeholder="회원의 별명 또는 아이디를 입력해 주세요" 
+				class="search-member-text form-control"/>
+		</div>
+		<div class="col-auto">
+			<button class="btn search-btn">search <i class="fa fa-search"></i></button>
+		</div>
+	</div>
+	
+</form>	
+</div><!-- end of searchMemberFormDiv -->
+
+<!-- -----------------------------[멤버 검색 결과]------------------------------- -->	
+<div id="resultSearchMemberDiv" class="result-search-member-section search-divide-div">
+	<!-- 검색 결과 -->
+	<div id="foundSearchMembers" class="result-search-member-list" style="display: none;">
+		<div class="result-title"><i class="fa fa-ellipsis-v"></i> search results</div>
+		
+		<div id="searchMemberList" class="search-list-cover">
+			<!--/* 검색 결과들이 추가될 위치 */-->
+		</div>
+	</div>
+	
+	<!-- 검색 결과가 없을 경우 -->
+	<div id="notFoundSearchMembers" class="no-result-search-member" style="display: none;">
+		검색 결과를 찾을 수 없습니다
+	</div>
+	<!--/* 검색결과 복사용 */-->
+	<div class="searchMemberForCopy" style="display: none;">
+		<div class="result-item row no-gutters" >
+			<div class="personacon-section col-auto">
+				<div class="member-personacon openProfile jsAction" data-mid="">
+					<img src="/images/app/member/profile_paper.png" class="personacon-profile">
+					<img src="/images/app/member/profile_paper.png" class="personacon-frame">
+				</div>
+			</div>
+			<div class="alias col-auto align-self-center">별명</div>
+			<div class="checkbox-section col-auto text-right align-self-center">
+				<input class="selectMember select-member-check option-input checkbox" 
+					type="checkbox"/>
+			</div>
+		</div>	
+	</div>
+</div><!-- end of resultSearchMemberDiv -->	
+	
+		
+<div class="text-right" style="color: red;">
+	source :: /incl/search_member.html
+</div>
+
+</div>
+
+</html>

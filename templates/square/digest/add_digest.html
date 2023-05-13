@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout}">
+<head>
+<title>PlaySquare</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+
+
+<script th:inline="javascript" type="text/javascript">
+var writer; // 작성 본문 임시저장 시 소유자 정보
+$(document).ready(function(){
+	writer = /*[[${session.userContainer.personacon.alias}]]*/ null;
+	initSessionMonitor(120);
+	// [썸머노트 에디터가 로드되기 전 임시저장된 작성글 불러오기]------------------------------------
+	var tempDigestArticle = sessionStorage.getItem('tempDigestArticle_' + writer);
+	if(tempDigestArticle != null && tempDigestArticle.length > 0
+		&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+		$("#summernote").text(tempDigestArticle);
+	}
+	// [썸머노트 에디터 로드]-----------------------
+	insertSummernoteEditor($("#summernote"));
+	//---------------------------------------
+	
+	// [가이드 닫기]----------------------------------------------------------------
+	$("#closeGuide_btn").click(function(){
+		$(".add-digest-guide-cover").hide(100);
+		$(".openGuideBtn").show();
+	});
+	
+	// [가이드 열기]---------------------------------------------------------------
+	$(".openGuideBtn").click(function(){
+		$(this).hide();
+		$(".add-digest-guide-cover").show(100);
+	});
+	
+	// [다이제스트 작성 완료]----------------------------------------------------------
+	$("#digestFormDiv #save").click(function(e){
+		e.preventDefault();
+		var errorMsgs = [];
+		$("#scriptMsgs > ul").empty();
+		
+		if( $('#title').val().trim().length == 0 ) {
+			errorMsgs[0] ="Title is required";
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[0]+"</li>");
+		}
+		//------------------------------------------------------
+		var content = filterSummernoteContent($("#summernote"));
+		//------------------------------------------------------
+		
+		var len = content.length;
+		if( len == 0 || len > 65000) {
+			errorMsgs[1] ="Content length must be between 0 and 65,000."
+			+" Total Length : "
+			+ content.length +" characters";
+			
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[1	]+"</li>");
+		}else{
+			$("textarea[name='content']").val(content);
+		}
+		
+		if(errorMsgs.length > 0){
+			$("#resMsgs").show();
+			return;
+		}else{
+			$("#resMsgs").hide();
+			sessionStorage.removeItem('tempDigestArticle_' + writer);
+			$("#addArticleForm").submit();
+		}
+	});
+	// [작성 취소]-----------------------------------------------------------------
+	$("#addArticleForm").on("reset", function(){
+		$("#summernote").summernote('reset');
+	});
+	
+});
+
+/**
+ * 세션이 만료되어 자동 로그아웃하기 직전에 작성 중이던 본문 내용을 브라우저에 저장
+ */
+function beforeLogout() {
+	var content = filterSummernoteContent($("#summernote"));
+	sessionStorage.setItem('tempDigestArticle_' + writer, content);
+	alert("작성 제한 시간이 만료되어 자동 로그아웃 합니다.\n작성 중이던 내용은 브라우저를 종료하실 때까지 보관됩니다.");
+}
+
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+<div id="introductionSection" class="article-introduction-section digest mt-lg-5 mt-4">
+	<h3><span>Adding New Articles Form</span></h3>
+	<!-- 작성 목적 -->
+	<div class="add-purpose-info cha3 row no-gutters">
+		<div class="character-section col-auto">
+			<img class="character" src="/images/common/icon/icon_paper.png">
+		</div>
+		<div class="col">
+			<img class="character d-sm-none" src="/images/common/icon/icon_paper.png">
+			<div class="purpose-title">나만의 영어 지식 정리 공간</div>
+			<div>
+				다이제스트에서는 자신이 알고 있는 내용들을 정리하고 공유함으로써 함께 학습하는 공간을 마련합니다.<br class="d-none d-md-block">
+				글과 사진 영상 등을 이용하여 개성이 담긴 설명과 다양한 견해들을 남겨보세요.
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="addDigestSection" class="add-digest-section">
+	<!-- -----------------------[1. 작성 가이드]-------------------------------- -->
+	<div class="text-right">
+		<div class="open-guide-section mb-3 d-none d-md-block">
+		<a class="openGuideBtn" style="display: none;">
+			<i class="fa fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+		</div>
+	</div>
+	<div class="open-guide-section d-md-none">
+		<a class="openGuideBtn" style="display: none;">
+			<i class="far fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+	</div>
+	<div class="add-digest-guide-cover row no-gutters">
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="title">
+				<span>작성 가이드</span>
+				<span class="guide-icon"><i class="far fa-lightbulb fa-lg"></i></span>
+				<i id="closeGuide_btn" class="fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<ul>
+					<li><span class="num">1.</span> 
+						하나의 주제에 대한 회원들의 지식과 다양한 의견 교환이 다이제스트의 목적입니다.</li>
+					<li><span class="num">2.</span> 
+						따라서 작성하고자 하는 <b>동일 주제가 있는지 먼저 검색해 주세요.</b></li>
+					<li><span class="num">3.</span> 
+						작성하고자 하는 유사 주제가 있다면 해당 주제 아래에 새로운 아티클을 추가해 주세요.</li>
+					<li><span class="num">4.</span> 
+						특정 주제에 자신의 견해를 좀 더 명시하고자 한다면 부제를 설정해 보세요.</li>
+				</ul>
+			</div>
+			<div class="guide-text precaution">
+				회원들의 요청 및 관리상의 목적으로 작성된 아티클은 특정 주제로 예고 없이 이동될 수 있습니다.<br>
+				다른 회원이 추가 아티클을 작성하면 주제를 수정할 수 없으니 <b>주제를 다시 한번 확인해 주세요</b>.
+			</div>
+		</div>
+	</div>
+	<div class="translation-bg">
+		
+		<!--/*응답메세지 박스*/-->
+		<div id="resMsgs" class="respond-msg" style="display:none;">
+			<h4>Respond Messages</h4>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+			<div id="scriptMsgs">
+			<ul></ul>
+			</div>
+		</div>
+		
+		<form id="addArticleForm" th:action="@{/square/digest/add}" method="post">
+		
+		<div id="digestFormDiv" class="digest-form-div">
+			
+			<!--/*주제 */-->
+			<div class="form-group row">
+				<label for="title" class="col-md-1 control-label pl-md-0">주제</label>
+				<div class="col-md-11">
+					<input id="title" name="title" type="text" placeholder="주제를 입력해 주세요." class="form-control"/>
+				</div>
+				<!--/* 주제가 정해진 경우(다이제스트 수정 혹은 아티클 수정/추가) */-->
+				<div class="added-title col-md-11" style="display: none;">
+					<i class="fas fa-quote-left fa-fw"></i>
+					<span>다이제스트 주제</span>
+					<i class="fas fa-quote-right fa-fw"></i>
+				</div>
+			</div> 
+			<!--/*부제 */-->
+			<div class="form-group row">
+				<label for="subtitle" class="col-md-1 control-label pl-md-0">부제</label>
+				<div class="col-md-11">
+					<input id="subtitle" name="subtitle" type="text" placeholder="부제를 입력해 주세요.(선택 사항)" class="form-control"/>
+				</div>
+			</div>
+			
+			<!--/*내용 */-->
+			<div class="form-group row">
+				<label for="content" class="col-md-1 control-label pl-md-0">내용</label>
+				<div class="article-default-font-style col-md-11">
+					<textarea id="summernote" name="content" class="form-control" style="display: none;" th:text="${content}"></textarea>
+				</div>
+			</div>
+			
+			<!--/*작성자 */-->
+			<div class="form-group row">
+				<label for="writer" class="col-md-1 col-auto control-label pl-md-0">작성자</label>
+				<div class="form-alias col-md-10 col">
+					<span>[[${session.userContainer.personacon.alias}]]</span>
+					<input type="hidden" id="writerId" name="memberId"  th:value="${session.userContainer.personacon.pid}" class="form-control"/>
+				</div>
+			</div>
+			
+			<!--/*submit 컨트롤 박스*/-->
+			<div class="form-group row">
+				<div class="add-button-section col-md-11 ml-auto text-md-left text-center">
+					<button id="save" type="submit" class="btn btn-digest2 mr-3">Register</button>
+					<button type="reset" class="btn btn-playsquare2">Reset</button>
+				</div>
+			</div>
+			
+		</div><!-- end of digestFormDiv -->
+		
+		</form>
+		
+		<img class="pv-cha dong-dog" src="/images/common/icon/icon_paper.png">
+		
+		<div class="errorMsgs" style="display: none;">
+			<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre></pre>
+		</div>
+	</div>
+
+</div><!-- end of addDigestSection -->
+
+<div class="text-right" style="color:red;">
+   source :: square/digest/add_digest.html  
+</div> 
+</section>
+</html>

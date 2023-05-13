@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout2}">
+<head>
+<title>테스트 결과 (DictationBook) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = 'noindex', metaTitle = '테스트 결과 (DictationBook) - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 딕테이션북에서는 일상 생활에서 자주 접할 수 있는 영어 문장들을 받아쓰기로 연습할 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg'"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/common.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	
+	
+});
+
+</script>	
+</head>
+<body>
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/dictationBook/incl/dictationbook_menu2::menu}"></div>
+
+<div id="myRankSection" class="my-test-result-section mt-4">
+	<h3 class="test-title">
+		Your Test Result
+		<i class="fa fa-chart-bar fa-fw"></i><br>
+		<small>테스트 결과와 채점 결과를 확인해 보세요. '나의 시험정보'에서도 결과를 확인할 수 있습니다.</small>
+	</h3>
+	<div class="detail-cover">
+		<div class="detail-position">
+			<div class="detail-image">
+				<img src="/images/app/dictationbook/theme_paper3.png" alt="플레이보이스 딕테이션북"
+					style="background: url('/images/app/dictationbook/result_turtle3.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<div class="pv-tm">Dictation Book</div>
+			</div>
+			<div class="detail-ment">
+				<div class="detail-title">test result</div>
+				<div class="my-2">
+					<span class="alias">
+					<i class="fas fa-quote-left fa-fw"></i>
+					lazyhysong
+					<i class="fas fa-quote-right fa-fw"></i>
+					</span>님 수고하셨습니다.
+				</div>
+				<div >
+					축하합니다! <b>테스트를 통과하였습니다.</b>
+					<i class="fa fa-glass-cheers fa-lg"></i><br>
+				</div>
+				<div style="display: none;">
+					<b>아쉽게도 테스트를 통과하지 못하였습니다.</b>
+					<i class="far fa-sad-cry fa-lg"></i><br>
+					다음번엔 더 잘하실 수 있을 겁니다!<br>
+				</div>
+				<div>'바다서기'가 잘 되었나요? <br>
+				아래에 테스트 결과와 채점 결과를 확인해 보세요.</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="my-score-section row no-gutters">
+		<!--/*--------------[ 시험 자체의 정보(내점수, 평균점수..) ]-------------*/-->	
+		<div id="myScoreDiv" class="my-score-div col-md-8 px-lg-4 px-1">
+			<!-- Test result -->
+			<div class="my-score-cover score-style1">
+				<div class="title d-md-none">Test Score<br>
+					<span>이 테마에 대한 나의 테스트 점수입니다.</span>
+				</div>
+				<div class="title d-none d-md-block">테스트 결과</div>
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-grin-alt fa-fw fa-lg"></i>
+						Your Score
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 60%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">60</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-grin-alt fa-fw fa-lg"></i>
+						Your DSR Point 
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 22%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">22</div>
+						</div>
+					</div>
+				</div>
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-laugh-wink fa-fw fa-lg"></i>
+						Your ADSR Point
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 52.2%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">52.2</div>
+						</div>
+					</div>
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>DSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br><b>정답 개수</b>와 선택한 <b>음성 반복 횟수</b>를 함께 고려한 평가 포인트입니다.
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>ADSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br><b>정답 개수</b>와 선택한 <b>음성 반복 횟수</b> 
+					그리고 이 테마를 <b>테스트한 횟수</b>를 모두 고려한 평가 포인트입니다.
+					<br>딕테이션 북 랭킹의 평가 지표로 사용됩니다.
+				</div>
+			</div>
+			
+			<!-- Test evaluation -->
+			<div class="my-score-cover score-style2">
+				<div class="title d-md-none">Test Evaluation<br>
+					<span>이 테마의 평균 점수입니다.</span>
+				</div>
+				<div class="title d-none d-md-block">테스트 평가</div>
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-chart-bar fa-fw fa-lg"></i>
+						Average Score
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 67.6%;">
+								<div class="score-gragh"></div>
+							</div>
+							<div class="score-num">67.6</div>
+						</div>
+					</div>
+				</div>
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-chart-bar fa-fw fa-lg"></i>
+						Average DSR
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 32.65%;">
+								<div class="score-gragh"></div>
+							</div>
+							<div class="score-num">37.2</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="guide p-1 pt-2">
+					<span>Average Score란 <i class="fa fa-question-circle"></i></span>
+					<br><b>동일한 음성 반복 횟수</b> 테스트들에 대한 평균 점수입니다. 
+					<br>반복 횟수에 따라 평균 점수는 달라질 수 있습니다.
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>Average DSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br>정답 개수와 반복 횟수를 고려한 점수인 DSR Point의 평균을 구한 점수 입니다.(자신의 DSR Point와 비교해 보세요.)
+				</div>
+			</div>
+		</div>
+		
+		<!--/*---------------------[ Top 랭커 ]--------------------------*/-->
+		<div id="topRankerDiv" class="result-top-ranker-section 
+			col-md-4 px-lg-4 pr-md-0 pl-md-3">
+			<h3 class="d-md-none">
+				High Score Ranker Top 10
+				<i class="fa fa-trophy fa-lg fa-fw mr-2" style="color: gold;"></i><br>
+				<small>those who scored the highest on the test</small>
+			</h3>
+			<div class="top-ranker-cover">
+				<h3 class="px-3 d-none d-md-block">
+					High Score Ranker Top 10
+					<i class="fa fa-trophy fa-lg fa-fw mr-2" style="color: gold;"></i><br>
+					<small>those who scored the highest on the test</small>
+				</h3>
+				<div class="test-ranking-list p-1">
+					<div class="test-ranker-cover px-1 py-1">
+						<div class="rank-style px-lg-2 top1 p-1 row no-gutters">
+							<div class="rank-num-cover col-auto px-1 text-center align-self-center">
+								1<br>
+								<i class="fa fa-trophy fa-fw" style="color: gold;"></i>
+							</div>
+							<div class="personacon col-auto px-1 align-self-center">
+								<div class="member-personacon-sm">
+									<img src="/images/app/member/profile_paper.png" 
+										class="personacon-profile profile-default">
+									<img src="/images/app/member/profile_paper.png" 
+									class="personacon-frame frame-S">
+								</div>
+							</div>	
+							<div class="alias col px-1 align-self-center">
+								화욘이
+							</div>
+							<div class="testscore col-4 text-center align-self-center">
+								<div>ADSR Point <br class="d-none d-md-block d-xl-none">
+								<span>98.1</span></div>
+							</div>
+						</div>
+					</div>
+					<div class="test-ranker-cover px-1 py-1">
+						<div class="rank-style px-lg-2 p-1 row no-gutters">
+							<div class="rank-num-cover col-auto px-1 text-center align-self-center">
+								2<br>
+								<i class="fa fa-trophy fa-fw" style="color: gold;"></i>
+							</div>
+							<div class="personacon col-auto px-1 align-self-center">
+								<div class="member-personacon-sm">
+									<img src="/images/app/member/profile_paper.png" 
+										class="personacon-profile profile-default">
+									<img src="/images/app/member/profile_paper.png" 
+									class="personacon-frame frame-S">
+								</div>
+							</div>	
+							<div class="alias col px-1 align-self-center">
+								lazyhysong
+							</div>
+							<div class="testscore col-4 text-center align-self-center">
+								<div>ADSR Point <br class="d-none d-md-block d-xl-none">
+								<span>97.1</span></div>
+							</div>
+						</div>
+					</div>
+				
+				</div>
+			</div>
+		</div><!-- end of topRankerDiv -->
+	</div>
+	
+	<!-- 광고 section -->
+	<div class="result-page-ad"></div>
+	
+</div><!-- end of myRankSection -->
+
+<!--/* ----------------------[문제별 채점 정보]--------------------------------- */-->
+<div id="testResultSection" class="test-result">
+	<div class="test-result-list">
+		<div class="title d-md-none">Test Result</div>
+		<div class="title d-none d-md-block">채점 결과</div>
+		<!-- 결과 문제 리스트 -->
+		<div class="result-cover row no-gutters my-1 py-2 px-1">
+			<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+				<div class="right check">
+					<i class="fa fa-circle" title="정답" data-toggle="tooltip"></i>
+				</div>
+				<div class="wrong">
+					<i class="fa fa-circle" title="오답" data-toggle="tooltip"></i>
+				</div>
+			</div>
+			<div class="col-md-1 col-2 text-center">
+				<div class="num">1</div>
+				<div class="d-md-none">
+					<div class="right check"><i class="fa fa-circle"></i></div>
+					<div class="wrong"><i class="fa fa-circle"></i></div>
+				</div>
+			</div>
+			<div class="test-result-div col-md col px-1">
+				<div class="answer">
+					I have a boy friend.
+					<a><i class="fa fa-volume-up"></i></a>
+				</div>
+				<div class="my-answer">
+					<span>I have a boy friend.</span>
+				</div>
+				<div class="answer">
+					<span class="kor">나 남친있어.</span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="result-cover row no-gutters my-1 py-2 px-1">
+			<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+				<div class="right"><i class="fa fa-circle"></i></div>
+				<div class="wrong check"><i class="fa fa-circle"></i></div>
+			</div>
+			<div class="col-md-1 col-2 text-center">
+				<div class="num">2</div>
+				<div class="d-md-none">
+					<div class="right"><i class="fa fa-circle"></i></div>
+					<div class="wrong check"><i class="fa fa-circle"></i></div>
+				</div>
+			</div>
+			<div class="test-result-div col-md col px-1">
+				<div class="answer">
+					You have a face that only your mother loves.
+					<a><i class="fa fa-volume-up"></i></a>
+				</div>
+				<div class="my-answer">
+					<span>You have a face only your mother love.</span>
+				</div>
+				<div class="answer">
+					<span class="kor">너 졸라 못생겼어.</span>
+					<div class="wrong-list-cover" style="display: none;">
+						<div class="pt-1">I got the baby.</div>
+						<div class="pt-1">You have the face only you mother lover.</div>
+						<div class="pt-1">You have a face only your mother lover.</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of testResultSection -->
+
+
+<div class="result-button-section button-section">
+	<div class="retry-cover my-4">
+		<img src="/images/app/dictationbook/Herm.jpg" alt="플레이보이스 딕테이션북" 
+			class="herm-img rounded-circle float-left">
+		독일의 심리학자 헤르만 에빙하우스(Hermann Ebbinghaus)의 망각곡선에 따르면<br>
+		학습 후 10분까지는 학습한 내용이 머리 속에 남아 있습니다.<br>
+		즉, 같은 내용의 테스트를 곧이어 반복하는 것은 바로 이 단기 기억을 활용하는 것입니다.<br>
+		DictationBook은 여러분의 실질적 실력 검증을 위해 <b>매 번 테스트가 다른 문제들로 구성</b>되도록 설계되었습니다.
+	</div>
+	<div class="buttons-cover my-4 text-center">
+		<button type="button" class="button-cover jsAction" 
+			onclick="self.location='/dictationBook'">
+			<b>홈으로</b>
+			<i class="fa fa-home fa-fw"></i>
+		</button>
+	</div>
+</div>
+
+
+
+
+
+<!-- -----------------------  [문제 영역] ------------------------------------- -->
+<div id="result_copy" class="result-cover row no-gutters my-1 py-2 px-1" style="display: none;">
+	<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+		<div class="right"><i class="fa fa-circle"></i></div>
+		<div class="wrong"><i class="fa fa-circle"></i></div>
+	</div>
+	<div class="col-md-1 col-2 text-center">
+		<div class="num">1</div>
+		<div class="d-md-none">
+			<div class="right"><i class="fa fa-circle"></i></div>
+			<div class="wrong"><i class="fa fa-circle"></i></div>
+		</div>
+	</div>
+	<div class="test-result-div col-md col px-1">
+		<div class="answer">
+			<span class="eng">I have a boy friend.</span>
+			<a><i class="fa fa-volume-up"></i></a>
+		</div>
+		<div class="my-answer">
+			<span>I have a boy friend.</span>
+		</div>
+		<div class="answer">
+			<span class="kor">나 남친있어.</span><br class="d-sm-none">
+			<button type="button" class="btn btn-sm btn-wrong-answer">
+				<i class="far fa-laugh-squint"></i>
+				다른 멤버들의 오답 목록
+				<i class="fa fa-caret-down"></i>
+			</button>
+			<div class="wrong-list-cover" style="display: none;"></div>
+		</div>
+	</div>
+</div>
+<!-- ----------------------- [/문제 영역] ------------------------------------- -->
+</section>
+</body>
+</html>

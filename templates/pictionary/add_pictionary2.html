@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/pictionary_layout2}">
+<head>
+<title>Add Pictionary - 플레이보이스 (playvoice)</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+var canAddWord = false; //등록 가능한 단어인지 여부 (false면 등록 못함)
+var canAddMeaning = false; //등록 가능한 단어 뜻인지 여부
+$(document).ready(function(){
+	
+	// [등록 가이드 열고닫기]----------------------------------------------------------
+	$("#wordGuide_btn").click(function(){
+		$("#wordGuide").toggle(100);
+	});
+	$("#closeWordGuide_btn").click(function(){
+		$("#wordGuide").hide();
+	});
+	
+	
+	// [(step1) 단어 검색 버튼 활성화]-------------------------------------------------
+	$(document).on("change keyup keydown", ".searchFormAbled", function(){
+		if($(this).val().length > 0) {
+			$(this).siblings("button").prop("disabled", false);
+		} else {
+			$(this).siblings("button").prop("disabled", true);
+		}
+	});
+	
+	// [(step1) 단어 검색 클릭]------------------------------------------------------
+	$("#searchWord_btn").click(function(){
+		$("#authAddWord").show();
+		$(".searchWordGuide").hide();
+		$(".select-guide .word").text($(".searchFormAbled").val());
+	});
+	
+	// [단어 중복 여부 검사 실행]-------------------------------------------------------
+	$("#checkWord_btn").click(function() {
+		var title = $("[id='word.title']");
+		if(title.val().length > 0) {
+			checkWord(title.val());
+		} else {
+			canAddWord = false;
+			$("#titleConfirm").html('<font class=text-danger>등록할 단어를 입력해 주세요.</font>');
+			title.removeClass("is-valid");
+			title.addClass("is-invalid");
+		}
+	}); //end check  
+	
+	
+	// [(step2)단어 등록 폼 열기]-----------------------------------------------------
+	$("#showAddWordForm").click(function(){
+		$("#selectAddSection").hide();
+		$("#addWordSection").show();
+		
+		/* 등록 목적 설명 변경 */
+		$("#introductionSection").find(".purpose-title").show().text("단어 정보 입력");
+		$("#introductionSection").find(".purpose1").hide();
+		$("#introductionSection").find(".purpose2").show();
+		
+		/* 픽셔너리 등록 단계 active */
+		$(".step-num").hide();
+		$(".order-point").removeClass("active");
+		$(".step2").addClass("active").find(".step-num").show();
+	});
+	
+	
+	
+	// [검색 후 등록하려고 했던 단어 등록 취소]-----------------------------------------------
+	$("#cancelWord_btn").click(function(){
+		var title = $("[id='word.title']");
+		canAddWord = false;
+		title.val("");
+		title.removeAttr("readonly");
+		$("#cancelWord_btn").hide();
+		$("#checkWord_btn").show();
+		$("#titleConfirm").html("");
+	});
+	
+	// [단어 뜻 글자수 제한 메세지 보여주기]------------------------------------------------
+	$(".pictionary-mean").on("change paste keyup", function(){
+		var id = $(this).attr("id");
+		var msg_id;
+		for(var i = 0; i < $(".pictionary-mean").length; i++) {
+			if(id == 'pictionaryMean' + i) {
+				msg_id = 'mean_msg' + i;
+			}
+		}
+		if($(this).val().length > 50) {
+			$("#" + msg_id).html("<font class=text-danger>50자를 초과하였습니다. (" 
+					+ $(this).val().length + "자)</font>");
+			canAddMeaning = false;
+		} else {
+			$("#" + msg_id).html("");
+			canAddMeaning = true;
+		}
+	});
+	
+
+	
+	// [(step3)픽션 등록 폼 열기 ]-----------------------------------------------------
+	$("#showAddPictionForm").click(function(){
+		$(this).closest(".piction-guide").hide();
+		$("#addWordSection").hide();
+		$("#pictionGuideDiv, #addPictionDiv").show();
+		
+		/* 등록 목적 설명 변경 */
+		$("#introductionSection").find(".purpose-title").text("사진·예문 등록");
+		$("#introductionSection").find(".purpose2").hide();
+		$("#introductionSection").find(".purpose3").show();
+		
+		/* 픽셔너리 등록 단계 active */
+		$(".step-num").hide();
+		$(".order-point").removeClass("active");
+		$(".step3").addClass("active").find(".step-num").show();
+	});
+	
+	
+}); //end of ready		
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 단어 중복 검사 결과 표시
+ */
+function checkWordResult(wordId) {
+	var title = $("[id='word.title']")
+	if(wordId != null) {
+		var result = confirm('이미 등록 된 단어입니다. 해당 단어로 픽션을 등록하시겠습니까?'); 
+		if(result) { 
+			location.replace('/pictionary/piction/add/' + wordId); 
+		} else {
+			//no 
+			canAddWord = false;
+			$("[id='word.title']").val("");
+		}
+	} else {
+		canAddWord = true;
+		$("#titleConfirm").html('<font class=text-primary>등록 가능한 단어입니다.</font>');
+		title.removeClass("is-invalid");
+		title.addClass("is-valid");
+		title.attr("readonly", "readonly");
+		$("#cancelWord_btn").show();
+		$("#checkWord_btn").hide();
+	}
+};
+
+/**
+ * 단어 등록 후 픽션 등록 폼 표시
+ */
+function activeAddPictionForm(wordId) {
+	$("#addPictionSection").show();
+	$("#addWordButton_div").remove();
+	$("#addCompleteDiv").show();
+};
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-xl-1"></div>
+	<div th:insert="~{/pictionary/incl/pictionary_menu2::menu}" class="col-xl-10"></div>
+</div>
+
+<div class="row my-4"><div class="col-xl-1"></div>
+<div class="pictionary-all-add-section col-xl-10 p-0 px-xl-3">
+
+<!-- 픽셔너리 소개 및 등록 목적 -->
+<div id="introductionSection" class="article-introduction-section mt-4">
+	<h3><span>Adding New Pictionary Form</span></h3>
+	<!-- 작성 목적 -->
+	<div class="add-purpose-info row no-gutters">
+		<div class="character-section col-auto">
+			<img class="character" src="/images/common/icon/icon_paper.png">
+		</div>
+		<div class="col">
+			<img class="character d-sm-none" src="/images/common/icon/icon_paper.png">
+			<div class="purpose-title" style="display: none;"></div>
+			<div class="purpose1">
+				<span class="point">뇌는 그림에 더 잘 반응한다.</span><br>
+				단어의 <b>이미지</b>를 기억에서 꺼내면 의미를 쉽게 기억해내고 더욱 풍부하게 사용할 수 있습니다.
+				<br class="d-none d-lg-block">
+				평소 외우고 싶은 단어를 등록하거나, 특정 단어가 떠오르는 흥미로운 이미지를 발견했다면 픽셔너리를 등록해 보세요.
+				<br class="d-none d-lg-block">
+				직접 단어와 사진을 등록하여 시간과 정성을 들이면 단어를 더 오래 기억할 수 있습니다.
+			</div>
+			<div class="purpose2" style="display: none;">
+				단어의 품사별로 뜻을 입력해 주세요.
+				<br class="d-none d-lg-block">
+				오픈 사전이나 단어장을 이용하여 가장 많이 사용되는 의미, 또는 동사 중심으로 의미를 등록해 주세요.
+				<br class="d-none d-lg-block">
+				의미가 부족하거나, 오타 또는 잘못 등록된 의미가 있다면 다른 멤버에 의해 수정이 요청될 수 있습니다.
+			</div>
+			<div class="purpose3" style="display: none;">
+				많은 멤버들이 단어 의미를 쉽게 기억할 수 있도록 사진과 예문을 등록하여 멋진 컨텐츠로 만들어 보세요.
+				<br class="d-none d-lg-block">
+				사진과 예문으로 <span class="alias">'lazyhysong'</span>님의 유머, 재치, 상상력을 발휘해 보세요.
+				<br class="d-none d-lg-block">
+				사진과 예문을 등록하지 않은 경우 비어있는 단어로 등록됩니다.
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- 픽셔너리 등록 순서 표시 -->
+<div class="add-order-point row no-gutters"><div class="col"></div>
+	<div class="order-point step1 active col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 1</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step2 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num" style="display: none;">STEP 2</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step3 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num" style="display: none;">STEP 3</span>
+	</div>
+<div class="col"></div></div>
+
+<!-- --------------------------[step1. 단어 검색]------------------------------ -->
+<div id="selectAddSection" class="select-add-cover text-center">
+	
+	<div class="pictionary-add-info-section">
+		<div class="add-info-title">
+			단어 검색 <i class="fa fa-search"></i>
+		</div>
+		<div class="add-info-detail">
+			<i class="fa fa-caret-right"></i>
+			검색을 통해 단어의 등록 여부를 알아보세요.
+			<i class="fa fa-caret-left"></i>
+		</div>
+	</div>
+	
+	<!-- 단어 검색 -->
+	<div class="search-cover">
+		<form th:action="@{/pictionary/word/search}" method="get" enctype="multipart/form-data">
+			<div class="searchform-cover" style="position: relative;">
+				<input id="searchWord" name="title" type="text" placeholder="영어 단어 검색" 
+					class="searchFormAbled search-form-pc form-control"/>
+				<button id="searchWord_btn" type="button" disabled="disabled"
+					class="search-btn-pc btn">
+					<i class="fa fa-search fa-fw"></i> 검색
+				</button>
+				<div class="warning-msg-section" style="display: none;">
+					<div class="text-warning-msg">영어만 입력해 주세요.</div>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="searchWordGuide row no-gutters"><div class="col"></div>
+		<div class="word-search-guide-section col-auto py-3 px-1">
+			<div class="word-guide ask-word text-center">
+				<div class="important">
+					<i class="fa fa-walking fa-fw"></i>
+					단어는 <b>동사</b>와 <b>동사구</b> 위주로 등록해 주세요
+				</div>
+				<div class="sub-important pt-2">
+					동사는 많은 이미지적 요소를 가지고 있습니다.<br>
+					유창한 회화를 위해서는 단어에 대한 이미지가 풍부해야 합니다.
+				</div>
+			</div>
+		</div>
+	<div class="col"></div></div>
+	
+	
+	<!-- 검색 결과 (등록된 단어일 경우) -->
+	<div id="authAddPiction" class="select-guide" style="display: none;">
+		<div class="mb-3">
+			<span class="word">different</span>은(는) 등록된 단어입니다.
+			<input type="hidden" id="word"/>
+		</div>
+		<div class="row no-gutters">
+			<div class="col"></div>
+			<div class="col-md-4 py-2 px-3">
+				<div id="goAddPictionForm" class="select-add jsAction">
+					<span class="subject">
+						<i class="fa fa-quote-left fa-fw"></i>
+						<span class="word">different</span>
+						<i class="fa fa-quote-right fa-fw"></i><br>
+						상세보기로 이동하여<br>
+						사진과 예문 등록하기
+					</span><br>
+					<i class="far fa-images"></i>
+				</div>
+			</div>
+			<div class="col"></div>
+		</div>
+	</div>
+	<!-- 검색 결과 (등록되지 않은 단어일 경우) -->
+	<div id="authAddWord" class="select-guide" style="display: none;">
+		<div class="mb-3">
+			<span class="word">different</span>은(는) 등록되지 않은 단어입니다.
+		</div>
+		<div class="row no-gutters">
+			<div class="col"></div>
+			<div class="col-md-4 py-2 px-3">
+				<div id="showAddWordForm" class="select-add jsAction">
+					<span class="subject">
+						<i class="fa fa-quote-left fa-fw"></i>
+						<span class="word">different</span>
+						<i class="fa fa-quote-right fa-fw"></i>
+						<br>단어 등록하기
+					</span><br>
+					<i class="fa fa-cube"></i>
+				</div>
+			</div>
+			<div class="col"></div>
+		</div>
+	</div>
+		
+</div><!-- end of selectAddSection -->
+
+
+<!-- ---------------------[step2. pictionary word 등록]---------------------- -->
+<div id="addWordSection" class="add-word-container add"  style="display: none;">
+	
+	<div class="pictionary-add-info-section">
+		<div class="add-info-title">
+			단어 정보 입력 <i class="fa fa-cube"></i>
+		</div>
+		<div class="add-info-detail">
+			<i class="fa fa-caret-right"></i>
+			단어의 품사별로 뜻을 입력해 주세요.
+			<i class="fa fa-caret-left"></i>
+		</div>
+	</div>
+	
+	<!-- 단어 등록 가이드 -->
+	<div id="wordGuideDiv" class="mb-3">
+		<div class="pt-md-2 px-md-0 px-2 text-md-left text-center">
+			<a id="wordGuide_btn" class="open-guide-btn">
+				 <span class="d-none d-md-inline-block">
+					 <i class="fa fa-cube fa-fw"></i> 단어 작성 가이드
+					 <i class="fa fa-angle-down fa-fw"></i>
+				 </span>
+				 <span class="d-md-none">
+				 	<i class="far fa-question-circle"></i>
+				 </span>
+			</a>
+		</div>
+		<div id="wordGuide" class="piction-guide mt-md-2" style="display: none;">
+			<div class="title">
+				<span><i class="fa fa-cube fa-fw"></i> 단어 작성 가이드</span>
+				<i id="closeWordGuide_btn" title="가이드 닫기" 
+					class="fa fa-times float-right fa-lg"></i>
+			</div>
+			<div class="guide-text row no-gutters">
+				<div class="num col-1">1.</div> 
+				<div class="detail col-11">
+					<div>
+						<b>품사별로 단어의 뜻</b>을 적어주세요. 
+						품사의 각 단어 뜻은 100자 이내이며 입력란을 모두 채울 필요는 없습니다.<br>
+						단어 뜻의 양식은 다음과 같습니다
+					</div> 
+					<div class="ex-cover">
+						<b><span class="ex1">(지문)</span> <span class="ex2">단어 의미</span> 
+						<span class="ex3">[동의어, 유사어]</span></b><br>
+						ex) <span class="ex1">(~에게)</span> <span class="ex2">장난을 치다</span>, 
+						<span class="ex1">(테이프시디 등을)</span> <span class="ex2">틀다</span>
+						<span class="ex3">[들려주다]</span>
+					</div>
+				</div>
+				<div class="num col-1">2.</div>  
+				<div class="detail col-11">
+					입력란 하나당 하나의 품사만 입력해 주세요.<br>
+					예를 들어 품사 하나를 '동사'로 선택했다면 그다음 입력란엔 동사를 제외한 다른 품사를 선택하면 됩니다.
+				</div>
+				<div class="num col-1">3.</div>  
+				<div class="detail col-11">품사와 단어 뜻을 모두 입력했다면 '단어 등록' 버튼을 눌러주세요.</div>
+				<div class="num col-1">4.</div>  
+				<div class="detail col-11">입력한 단어 대신 다른 단어를 등록하고 싶다면 단어 입력란 옆의 '취소' 버튼을 누르고 <b>재검색</b>해 주세요.</div>
+				<div class="num col-1">5.</div>  
+				<div class="detail col-11">요청 및 관리상의 목적으로, 작성된 단어 뜻에는 다른 플보 크루들이 입력한 내용이 포함될 수 있습니다.</div> 
+			</div>
+			<div class="mt-3">
+				<span class="ex p-2">[작성 예시]</span><br>
+				<img src="/images/app/pictionary/pictionary_guide_PC.jpg"
+					 class="image-PC">
+				<img src="/images/app/pictionary/pictionary_guide_Mobile.jpg"
+					 class="image-mobile">
+			</div>
+		</div>
+	</div><!-- end of wordGuideDiv -->
+	
+	
+	<!-- 픽셔너리 단어 등록 폼 -->
+	<form id="pictionaryWordForm">
+	<input type="hidden" id="meanings" name="meaning"/>
+	<div id="addWordDiv" class="pictionary-word-section"><div class="word-cover px-md-4 px-2 py-3">
+		<div class="add-word-div row no-gutters pb-2">
+			<div class="col-md-5 col align-self-center">
+				<input type="text" class="form-control" autocomplete="off" readonly="readonly"
+					placeholder="단어 (입력 후 검색 클릭)"/>
+				<div class="warning-msg-section" style="display: none;">
+					<div class="text-warning-msg">영어만 입력해 주세요.</div>
+				</div>
+				<div id="titleConfirm"></div>
+			</div>
+			<div class="col-auto pl-1 pr-md-3 pr-0">
+				<input id="checkWord_btn" type="button" value="검색" 
+					class="btn btn-pictionary jsAction" style="display: none;"/>
+				<input id="cancelWord_btn" type="button" value="취소" 
+					class="btn btn-pictionary jsAction"/>
+				<i class="fa fa-spinner fa-spin ml-1" style="display: none;"></i>
+			</div>
+		</div>
+		<div class="pron row no-gutters pb-2">
+			<div class="col-md-5 col-12 align-self-center">
+				<input type="text" class="form-control" placeholder="해당 발음은 제공되지 않습니다." 
+					readonly="readonly" autocomplete="off"/>
+			</div>
+		</div>
+		<div class="meaning row no-gutters">
+			<div class="col-3 pb-1">
+				<select name="meanings[0][0]" class="form-control">
+					<option value="0">-- 품사--</option>
+					<option value="100">동사</option>
+					<option value="110">자동사</option>
+					<option value="120">타동사</option>
+					<option value="200">명사</option>
+					<option value="210">대명사</option>
+					<option value="300">형용사</option>
+					<option value="400">부사</option>
+					<option value="500">전치사</option>
+					<option value="600">접속사</option>
+					<option value="700">감탄사</option>
+				</select>
+			</div>
+			<div class="col px-2 pb-1">
+				<input type="text" id="pictionaryMean0" name="meanings[0][1]" 
+					class="pictionary-mean form-control" placeholder="단어 뜻 (50자 이내)" autocomplete="off"/>
+				<div id="mean_msg0"></div>
+			</div>
+			<div class="col-auto pb-1 align-self-center text-center" style="width: 30px;">
+				<button type="button" class="btn btn-pictionary2">
+					<i class="fa fa-plus"></i>
+				</button>
+				<button type="button" class="btn btn-danger btn-sm" style="display: none;">
+					<i class="fa fa-times"></i>
+				</button>
+			</div>
+		</div>
+		<div class="meaning row no-gutters">	
+			<div class="col-3 pb-1">
+				<select name="meanings[1][0]" class="form-control">
+					<option value="0">-- 품사--</option>
+					<option value="100">동사</option>
+					<option value="110">자동사</option>
+					<option value="120">타동사</option>
+					<option value="200">명사</option>
+					<option value="210">대명사</option>
+					<option value="300">형용사</option>
+					<option value="400">부사</option>
+					<option value="500">전치사</option>
+					<option value="600">접속사</option>
+					<option value="700">감탄사</option>
+				</select>
+			</div>
+			<div class="col px-2 pb-1">
+				<input type="text" id="pictionaryMean1" name="meanings[1][1]" 
+					class="pictionary-mean form-control" placeholder="단어 뜻 (50자 이내)" autocomplete="off"/>
+				<div id="mean_msg1"></div>
+			</div>
+			<div class="col-auto" style="width: 30px;"></div>
+		</div>
+		<div class="meaning row no-gutters">
+			<div class="col-3 pb-1">
+				<select name="meanings[2][0]" class="form-control">
+					<option value="0">-- 품사--</option>
+					<option value="100">동사</option>
+					<option value="110">자동사</option>
+					<option value="120">타동사</option>
+					<option value="200">명사</option>
+					<option value="210">대명사</option>
+					<option value="300">형용사</option>
+					<option value="400">부사</option>
+					<option value="500">전치사</option>
+					<option value="600">접속사</option>
+					<option value="700">감탄사</option>
+				</select>
+			</div>
+			<div class="col px-2 pb-1">
+				<input type="text" id="pictionaryMean2" name="meanings[2][1]" 
+					class="pictionary-mean form-control" placeholder="단어 뜻 (50자 이내)" autocomplete="off"/>
+				<div id="mean_msg2"></div>
+			</div>
+			<div class="col-auto pb-1" style="width: 30px;"></div>
+		</div>
+		<div class="meaning-guide row no-gutters pt-1">
+			<div class="col-auto pr-2" style="width: 100px;">단어 뜻 양식 :</div>
+			<div class="col text-left">
+				<span class="ex1">(지문)</span> <span class="ex2">단어 의미</span> 
+				<span class="ex3">[동의어, 유사어]</span>
+			</div>
+			<div class="w-100"></div>
+			<div class="col-auto pr-2" style="width: 100px;">ex)</div>
+			<div class="col text-left">
+				<span class="ex1">(테이프시디 등을)</span> <span class="ex2">틀다</span>
+				<span class="ex3">[들려주다]</span>,<br class="d-md-none">
+				<span class="ex1">(~에게)</span> <span class="ex2">장난을 치다</span> 
+			</div>
+		</div>
+		<div id="addCompleteDiv" class="complete-add-word-position" style="display: none;">
+			<span class="complete-add-word">
+				단어가 등록되었습니다! <i class="far fa-grin-squint"></i>
+			</span>
+			<img class="cha1" src="/images/common/icon/icon_paper.png">
+		</div>
+	</div></div><!-- end of addWordDiv -->
+	
+	<div id="addWordButton_div" class="addButtonDiv text-center">
+		<div id="add_fail_div" class="fail-msg pt-md-4 pb-3" style="display: none;">
+			<span id="add_fail_msg"></span>
+		</div>
+		<div class="pt-md-4 pt-0">
+			<button id="addWord" onclick="activeAddPictionForm()" type="button" 
+				class="submit-btn btn btn-pictionary jsAction">단어 등록</button>
+		</div>
+	</div>
+	</form>
+	
+</div><!-- end of addWordSection -->
+
+
+
+
+<!-- -------------------------[step3. piction 등록]-------------------------- -->
+<div id="addPictionSection" class="add-piction-cover" style="display: none;">
+	<div class="piction-guide mt-3 mx-md-0 mx-2 p-3 px-md-4">
+		<div class="row no-gutters">
+			<div class="image-section col-auto">
+				<img class="cha1" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="col">
+				등록된 단어는 <span class="point-added2">
+				lazyhysong님에 의해 최초로 생성</span> 되었습니다.<br>
+				앞으로 이 단어는 플보 크루들의 학습에 도움이 되는 소중한 컨텐츠가 되며 모두 함께 가꾸어 나갈 수 있습니다.<br>
+				이제 단어와 관련된 사진과 예문을 등록해 볼까요?<br>
+				사진과 예문을 등록하면 이 단어는 더욱 좋은 학습 컨텐츠가 됩니다.
+			</div>
+		</div>
+		<div class="text-center pt-3">
+			<button id="showAddPictionForm" class="btn btn-pictionary jsAction" type="button">
+				[step3] 사진·예문 등록하기 <i class="fa fa-caret-right"></i>
+			</button>
+		</div>
+	</div>
+	
+	
+	<div id="pictionGuideDiv" class="piction-guide-div mt-3" style="display: none;">
+		<div class="pictionary-add-info-section">
+			<div class="add-info-title">
+				<label class="added-word">
+					<i class="fa fa-cube fa-fw"></i> different
+				</label><br>
+				사진·예문 등록 <i class="far fa-image"></i>
+			</div>
+			<div class="add-info-detail">
+				<i class="fa fa-caret-right"></i>
+				단어와 관련된 사진, 단어가 포함된 예문을 등록해 주세요.
+				<i class="fa fa-caret-left"></i>
+			</div>
+		</div>
+		
+	</div><!-- end of pictionGuideDiv -->
+	
+	<!--/* 픽션 입력 폼 */-->
+	<form id="addPictionForm" method="post">
+	<div id="addPictionDiv" class="add-piction-div mt-1 mt-md-2" style="display: none;">
+		<div th:replace="~{/pictionary/incl/add_piction_incl2::add_piction}"></div>
+		<div class="addButtonDiv text-center">
+			<div id="add_fail_div" class="fail-msg pt-md-4 pb-3" style="display: none;">
+				<span id="add_fail_msg"></span>
+			</div>
+			<div class="pt-md-4 pt-3">
+				<button id="addPiction" type="button" class="submit-btn 
+					btn btn-pictionary jsAction"> 등 록 </button>
+				<button id="cancelAddPiction" type="reset" class="btn 
+					btn-outline-pictionary jsAction">등록 취소</button>
+			</div>
+		</div>
+	</div>
+	</form>
+</div><!-- end of addPictionSection -->
+
+
+
+	
+</div>
+</div>
+
+</section>
+
+

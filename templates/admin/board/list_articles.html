@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+<title>List of Articles</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+
+
+<script th:inline="javascript">
+	
+	$(document).ready(function() {
+		
+		var articleId = [[${board.articleId56}]];
+		if(articleId != null){
+			$('#viewArticle').empty();
+			
+			var scrollPosition = $('html, body').offset().top;			
+			$("html, body").animate({
+				scrollTop: scrollPosition
+			}, 0);
+			
+			var url=[[@{'/admin/board/'}]]+[[${board.alias}]]+'/view/'+articleId;
+			$('#viewArticle').load(url);
+		}
+		
+		//[게시글 상세 조회시]----------------------------------------------------------
+		$('.articleLink').click(function(e){
+			$('#viewArticle').empty();
+
+			var aid = $(this).attr("data-aid");
+			
+			var url=[[@{'/admin/board/'}]]+[[${board.alias}]]+'/view/'+aid;
+			
+			var scrollPosition = $('html, body').offset().top;			
+			$("html, body").animate({
+				scrollTop: scrollPosition
+			}, 0);
+
+			$('#viewArticle').load(url);
+		});
+		
+		//[게시글 검색시]----------------------------------------------------------
+		$('.search-article').click(function(e){
+			$('#searchFormDiv').toggle();
+		});
+		
+		//[게시글 작성시]----------------------------------------------------------
+		$('.new-article').click(function(e){
+			self.location = [[@{/admin/board/{boardAlias}/add(boardAlias=${board.alias})}]];
+		});
+		
+		
+		//[초기 sortMark 디스플레이 설정]--------------------------------------------
+		var defaultSortBy= $('#sortName').val();
+		var target = $('a[data-value='+defaultSortBy+']');
+		$('a[data-value='+defaultSortBy+']').next().css("display", "inline");
+		
+		//[next pagination 링크 전송]---------------------------------------------
+		var formObj = $("#pageForm");
+		$(".pagination a").click(function(e) {
+			e.preventDefault();
+			formObj.find('[name="page"]').val($(this).attr('href'));
+			formObj.submit();
+		});
+		
+		//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]---------------------------------------
+		$("#articleListByDefault a[class=thlink]").click(function(e) {
+			console.log("#articleListByDefault a[class=thlink]");
+			
+			//단순조회에서는 searchType은 불필요하다.
+			$('#searchType2').val('all');
+			
+			console.log("#end of articleListByDefault");
+		});
+		
+		//[현재 url을 보고 해당 게시판의 글작성 여부 결정]-------------------------------------
+		var pathName = window.location.pathname;
+		// ex) pathName = '/admin/board/notice/list'
+		var boardName = pathName.split('/')[2];	// ex) 'notice'
+		
+		//var onlyAdminWrite = {'notice', 'event', 'etc'}; 
+		
+		if(boardName == 'notice' || boardName == 'event' || boardName == 'etc'){
+			$('#newArticleDiv').hide();
+		}else{
+			$('#newArticleDiv').show();
+		}
+	});
+</script>
+</head>
+
+<div layout:fragment="widget-content" class="AdSense-y">
+	<img src="https://tpc.googlesyndication.com/simgad/13756663538836168259?sqp=4sqPyQQlQiMqIQhaEAEdAAC0QiABKAEwCTgDQPCTCUgAUAFYAWBacAJ4AQ&rs=AOga4qnAcBZtbGP4siSPDdYH4Qwu4d7dLQ">
+</div>
+
+<section layout:fragment="content">
+	<!--/* ------------------------[게시글 상세보기 표시 영역]------------------- */-->
+	<div id="viewArticle"></div>
+	
+	<h3 th:text="${board.korName}+' 목록'">게시판 목록 (List Articles)</h3>
+	
+	<!-- -----------------------[inclule : Search Article Form]------------ -->
+	<div th:insert="~{/admin/board/incl/search_article::search_article}" 
+		id="searchFormDiv" style="display: none;"></div>
+	<!-- ------------------------------------------------------------------ -->
+	
+	<!--/* --------------------------[게시글 목록]--------------------------- */-->
+	<div id="articleListByDefault">
+		<!-- Board Header-->
+		<!-- <div class="formContainer">
+			<div class="row">
+				<div class="col-9"><h5>English Messages</h5></div>
+				<div class="col-3 text-right">
+					<a th:href="@{/admin/board/{boardAlias}/add(boardAlias=${board.alias})}">
+						<button class="loginRequired btn btn-default">Write</button>
+					</a>
+				</div>
+			</div>
+		</div> -->
+		
+		<!--/* Article List table */-->
+		<div>
+			<!--/* 검색과 등록 아이콘 */-->
+			<div class="row">
+				<div class="col-10 text-left" >
+					<a href="javascript:void(0)" class="search-article">
+						<span class="fas fa-search" style="font-size:15px; color: #5bc0de;" lang="fa"></span>
+					</a>
+					<span><!-- Try not to become a man of success but rather try to become a man of value --></span>
+				</div>
+				
+				
+				<div id="newArticleDiv" class="col-2 text-right">
+					<a href="javascript:void(0)" class="new-article">
+						<span class="fas fa-edit" style="font-size:15px; color: #5bc0de;" lang="fa"></span>
+					</a>
+				</div>
+				
+				
+			</div>
+			
+			<!--**************** PC ver. ****************-->
+			<div class=" d-none d-lg-block">
+			<table th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}" 
+					class="board-table-l table table-sm table-bordered table-hover text-center" id="boardTable">
+				<thead>
+				<tr class="thead">
+					<th style="width: 60px;">번호</th>
+					<th>제목</th>
+					<th style="width: 60px;"><!-- N or P label --></th>
+					<th style="width: 60px;">등록일<span class="sortMark">▼</span></th>
+					<th style="width: 60px;">조회수</th>
+					<th style="width: 60px;">추천수</th>
+					<th style="width: 110px;">작성자</th>
+				</tr></thead>
+				
+				<tbody>
+				<!-----------------------/*공지 목록*/------------------------->
+				<tr th:each="article, status : ${noticeArticles}">
+					<td class="t-number"><span class="badge badge-danger best">Notice</span></td>
+					<!--/*제목*/-->
+					<td class="t-title text-left">
+						<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+							<span class="subject" th:text="${article.title}">제목<!--/*[[${article.aid}]] [[${isNew}]] */--></span>
+							<span class="comment-badge">
+								<span th:if="${article.replyCount > 0}" th:text="${article.replyCount}" class="badge badge-pill reply-count">
+									댓글수
+								</span>
+							</span>
+						</a>
+					</td>
+					<td class="t-info text-right">
+						<span class="badge badge-danger new-label" th:if="${article.newArticle}">N</span>
+						<span class="badge badge-warning pic-label" th:if="${article.pics}">P</span>
+						<span class="badge badge-warning video-label" th:if="${article.video}">V</span>
+					</td>
+					
+					
+					<td class="t-date" th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+						?#dates.format(article.regDate, 'HH:mm')
+						:#dates.format(article.regDate, 'MM-dd')}">등록일
+					</td>
+					
+					<td class="t-hits" th:text="${article.hits}">조회수</td>
+					<td class="t-likes" th:text="${article.likeCount}">추천수</td>
+					
+					<td class="t-writer text-left">
+						<img th:if="${article.memberType eq 'G'}" 
+							th:src="@{/images/app/member/frame_gold_sm.png}"
+							class="personacon-frame">
+						<img th:if="${article.memberType eq 'S'}" 
+							th:src="@{/images/app/member/frame_silver_sm.png}"
+							class="personacon-frame">
+						<img th:if="${article.memberType eq 'P'}" 
+							th:src="@{/images/app/member/frame_platinum_sm.png}"
+							class="personacon-frame">
+						<span th:text="${article.alias}">작성자</span>
+					</td>
+					
+				</tr>
+				
+
+				
+				
+				<!-----------------------/*게시글 목록*/------------------------->
+				<tr th:each="article, status : ${page.content}">
+					<!--/*번호*/-->
+					<td class="t-number" th:text="${(pageMaker.result.totalElements-(status.index)) - (
+							(pageMaker.currentPageNum -1) * 
+							T(com.varxyz.playvoice.common.Constants).FETCH_SIZE	)} ">
+					</td>
+					
+					<!--/*제목*/-->
+					<td class="t-title text-left">
+						<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+							<span class="subject" th:text="${article.title}">
+								제목 <!--/*[[${article.aid}]] [[${isNew}]] */-->
+							</span>
+							<span class="comment-badge">
+								<span th:if="${article.replyCount > 0}"  th:text="${article.replyCount}" class="badge badge-pill reply-count">
+									조회수
+								</span>
+							</span>
+						</a>
+					</td>
+					<td class="t-info text-right">
+						<span class="badge badge-danger new-label" th:if="${article.newArticle}">N</span>
+						<span class="badge badge-warning pic-label" th:if="${article.pics}">P</span>
+						<span class="badge badge-warning video-label" th:if="${article.video}">V</span>
+					</td>
+				
+					<!--/*등록일*/-->
+					<td class="t-date" th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+						?#dates.format(article.regDate, 'HH:mm')
+						:#dates.format(article.regDate, 'MM-dd')}">
+					</td>
+					
+					<!--/*조회수*/-->
+					<td class="t-hits" th:text="${article.hits}"></td>
+					
+					<!--/*추천수*/-->
+					<td class="t-likes" th:text="${article.likeCount}"></td>
+					
+					<!--/*작성자*/-->
+					<td class="t-writer text-left">
+						<img th:if="${article.memberType eq 'G'}" 
+							th:src="@{/images/app/member/frame_gold_sm.png}"
+							class="personacon-frame">
+						<img th:if="${article.memberType eq 'S'}" 
+							th:src="@{/images/app/member/frame_silver_sm.png}"
+							class="personacon-frame">
+						<img th:if="${article.memberType eq 'P'}" 
+							th:src="@{/images/app/member/frame_platinum_sm.png}"
+							class="personacon-frame">
+						<span>[[${article.alias}]]</span>
+					</td>
+				</tr>
+				</tbody>
+			</table></div>
+			
+			<!--*********** Mobile & Tablet ver. ************-->
+			<div class=" d-lg-none">
+			<table th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}" 
+					class="board-table-l table table-sm table-bordered table-hover text-center tboby-xs" id="boardTable">
+				<tbody>
+					<!------------/*베스트 목록*/------------>
+					<tr th:each="article, status : ${bestArticles}">
+						<td class="text-left">
+							<div class="t-title-xs">
+								<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+									<span class="subject-xs">
+										<span class="badge badge-danger best">BEST</span>[[${article.title}]]
+									</span>
+									<span class="comment-badge">
+										<span th:if="${article.replyCount > 0}" class="badge badge-pill reply-count">
+											[[${article.replyCount}]]
+										</span>
+									</span>
+								</a>
+							</div>
+							<div class="t-info-xs">
+								<span class="t-writer-xs" th:text="${article.alias}">
+									<img th:if="${article.memberType eq 'G'}" 
+										th:src="@{/images/app/member/frame_gold_sm.png}"
+										class="personacon-frame">
+									<img th:if="${article.memberType eq 'S'}" 
+										th:src="@{/images/app/member/frame_silver_sm.png}"
+										class="personacon-frame">
+									<img th:if="${article.memberType eq 'P'}" 
+										th:src="@{/images/app/member/frame_platinum_sm.png}"
+										class="personacon-frame">
+									<span>[[${article.alias}]]</span>
+								</span> 
+								<span class="t-date-xs">10-21</span> 
+								<span class="t-hits-xs"><i lang="fa" class="fa fa-eye"></i> 12355</span>
+								<span class="t-likes-xs"><i lang="fa" class="fa fa-heart"></i> 654</span>
+							</div>
+						</td>
+						<td class="text-right" style="width: 50px; padding-left:0;">
+							<span class="badge badge-warning pic-label" th:if="${article.pics}">P</span>
+							<span class="badge video-label" th:if="${article.video}">V</span>
+						</td>
+					</tr>
+					<!------------/*게시글 목록*/------------>
+					<tr th:each="article, status : ${page.content}">
+						<td class="text-left">
+							<div class="t-title-xs">
+								<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+									<span class="subject-xs">
+										<span th:if="${article.newArticle}" style="color: red;"><b>˙</b></span>
+										[[${article.title}]]
+									</span>
+									<span class="comment-badge">
+										<span th:if="${article.replyCount > 0}" class="badge badge-pill reply-count">
+											[[${article.replyCount}]]
+										</span>
+									</span>
+								</a>
+							</div>
+							<div class="t-info-xs">
+								<span class="t-writer-xs" th:text="${article.alias}">
+									<img th:if="${article.memberType eq 'G'}" 
+										th:src="@{/images/app/member/frame_gold_sm.png}"
+										class="personacon-frame">
+									<img th:if="${article.memberType eq 'S'}" 
+										th:src="@{/images/app/member/frame_silver_sm.png}"
+										class="personacon-frame">
+									<img th:if="${article.memberType eq 'P'}" 
+										th:src="@{/images/app/member/frame_platinum_sm.png}"
+										class="personacon-frame">
+									
+									<span>[[${article.alias}]]</span>
+								</span> 
+								<span class="t-date-xs">10-21</span> 
+								<span class="t-hits-xs"><i lang="fa" class="fa fa-eye"></i> 조회수</span>
+								<span class="t-likes-xs"><i lang="fa" class="fa fa-heart"></i> 좋아요</span>
+							</div>
+						</td>
+						<td class="text-right" style="width: 50px; padding-left:0;">
+							<span class="badge badge-warning pic-label" th:if="${article.pics}">P</span>
+							<span class="badge video-label" th:if="${article.video}">V</span>
+						</td>
+					</tr>
+				</tbody>
+			</table></div>
+		</div>
+		
+		<!--/* Paging */-->
+		<nav class="row mt-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]
+						</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active : '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]
+						</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div> <!-- end of articleListByDefault -->
+	
+	
+	<!-- <a th:href="@{/admin/board/{boardAlias}/view/{articleId}(boardAlias=${board.alias}, articleId=${articleId})}" id="auto" th:data-aid="${articleId}">vff</a> -->
+		
+	<!-- paging hidden values-->
+	<div id="searchFormHidden_list" class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div>
+	
+<div class="text-right" style="color:red;">
+	source :: Playboard  /admin/board/list_articles.html	
+</div>
+	
+	
+</section><!-- end of content -->

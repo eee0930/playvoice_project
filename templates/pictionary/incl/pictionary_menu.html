@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="menu" id="menuSection">
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [서브메뉴 열기 (mobile ver.)]-------------------------------------------------
+	$(".secondMenuToggle").click(function(e){
+		var secondMenu = $(this).find(".secondMenuMobile");
+		if(secondMenu.is(":visible")) {
+			$(this).removeClass("subMenuActive");
+			secondMenu.slideUp(200);
+		} else {
+			$(".secondMenuToggle").removeClass("subMenuActive");
+			$(this).addClass("subMenuActive");
+			$(".secondMenuMobile").hide();
+			secondMenu.slideDown(200);
+		}
+	});
+	$(document).mouseup(function (e){
+		var container = $(".secondMenuMobile, .secondMenuToggle");
+	    if(container.has(e.target).length == 0){
+	    	container.removeClass("subMenuActive");
+	    	$(".secondMenuMobile").hide();
+		}
+	});
+	
+	// [픽셔너리 링크 메뉴 클릭 처리]--------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	})
+	
+	// [현재 선택된 픽셔너리 네비게이션 메뉴에 menu-active 적용]----------------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null){
+			$(element).closest('.mainTab').find('.pictionaryTab').addClass('menu-active');
+		}
+	});
+	
+}); //end of ready
+
+
+</script>
+<!-- [1. PC ver.] -->	
+<div class="menu-cover d-none d-lg-block"><div class="row no-gutters menu">
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="home">
+		<a th:href="@{/pictionary}" 
+			class="pictionaryTab menu-item home" data-reg="/pictionary$">
+			<i class="fa fa-home fa-fw"></i>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="study">
+		<a th:href="@{/pictionary/word/list/today}" 
+			data-reg="/word/list|word/search|word/view" 
+			class="loginRequired pictionaryTab menu-item study">
+			<i class="fa fa-book fa-fw"></i>
+			<span>단어 학습</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/pictionary/word/list/new}" 
+				class="loginRequired linkMove sub-menu col">
+				<div><i class="fa fa-hourglass-half"></i>최신 등록 단어</div>
+			</div>
+			<div th:href="@{/pictionary/word/list/today}" 
+				class="loginRequired linkMove sub-menu col">
+				<div><i class="fa fa-cube"></i>오늘의 픽셔너리</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b wide col-auto text-center align-self-center" data-tab="tracer">
+		<a th:href="@{/pictionary/word/mylist}"
+			class="loginRequired linkMove pictionaryTab menu-item tracer">
+			<i class="fa fa-university fa-fw"></i>
+			<span>트레이닝</span>
+		</a>
+		<div class="second-menu row no-gutters"><div class="col"></div>
+			<div th:href="@{/pictionary/word/mylist}" data-reg="/pictionary/word/mylist" 
+				class="loginRequired linkMove sub-menu col-auto">
+				<div><i class="fa fa-pen-fancy"></i>나의 컨텐츠</div>
+			</div>
+			<div th:href="@{/pictionary/tracer/list}" data-reg="/pictionary/tracer/list"
+				class="loginRequired linkMove sub-menu col-auto">
+				<div><i class="fa fa-shoe-prints"></i>트레이서</div>
+			</div>
+			<div th:href="@{/pictionary/tracer/quiz}" data-reg="/pictionary/tracer/quiz"
+				class="loginRequired linkMove sub-menu col-auto">
+				<div><i class="fa fa-gamepad"></i>트레이서 퀴즈</div>
+			</div>
+		<div class="col"></div></div>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="add-word">
+		<a th:href="@{/pictionary/word/add}" 
+			class="loginRequired pictionaryTab menu-item add-word">
+			<i class="fa fa-pen fa-fw"></i>
+			<span>단어 등록</span>
+		</a>
+		<div class="second-menu small row no-gutters">
+			<div th:href="@{/pictionary/word/add}" data-reg="/pictionary/word/add" 
+				class="loginRequired linkMove sub-menu col">
+				<div><i class="fa fa-pen"></i>새 단어 등록</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="playKick">
+		<a th:href="@{/pictionary/kick/detective}"
+			class="loginRequired play-kick linkMove pictionaryTab menu-item playKick">
+			<i class="fa fa-gamepad fa-fw"></i>
+			<span>플레이<span class="kick"></span></span>
+		</a>
+		<div class="second-menu small row no-gutters">
+			<div th:href="@{/pictionary/kick/detective}" data-reg="/pictionary/kick/detective" 
+				class="loginRequired linkMove sub-menu col">
+				<div><i class="fa fa-search"></i>탐정 줄리</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="guide">
+		<a th:href="@{/pictionary/guide}" data-reg="/pictionary/guide"
+			class="pictionaryTab menu-item guide">
+			<i class="fa fa-image fa-fw"></i>
+			<span>픽셔너리 소개</span>
+		</a>
+	</div>
+	<div class="col text-right d-none d-lg-inline menu-flages align-self-center">
+		<img src="/images/common/flags/FR.png">
+		<img src="/images/common/flags/AU.png">
+		<img src="/images/common/flags/US.png">
+		<img src="/images/common/flags/CA.png">
+		<img src="/images/common/flags/DE.png">
+	</div>
+</div></div>
+
+<!-- [2. Mobile & Tablet ver.] -->
+<div class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/pictionary}" data-reg="/pictionary$"
+			class="pictionaryTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center" 
+		data-tab="study">
+		<div class="pictionaryTab menu-item study" 
+			data-reg="/word/list|word/search|/word/view|/word/add">
+			<i class="fa fa-book fa-fw"></i><br>
+			<span>단어 학습<i class="fa fa-caret-down"></i></span>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/pictionary/word/list/new}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-hourglass-half"></i>최신 등록 단어</div>
+			</div>
+			<div th:href="@{/pictionary/word/list/today}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-cube"></i>오늘의 단어</div>
+			</div>
+			<div th:href="@{/pictionary/word/add}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-image fa-fw"></i>단어 등록</div>
+			</div>
+		</div>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center"  
+		data-tab="tracer">
+		<div class="pictionaryTab menu-item tracer">
+			<i class="fa fa-university fa-fw"></i><br>
+			<span>트레이닝<i class="fa fa-caret-down"></i></span>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/pictionary/word/mylist}" data-reg="/pictionary/word/mylist" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-pen-fancy"></i>나의 컨텐츠</div>
+			</div>
+			<div th:href="@{/pictionary/tracer/list}" data-reg="/pictionary/tracer/list"
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-shoe-prints"></i>트레이서</div>
+			</div>
+			<div th:href="@{/pictionary/tracer/quiz}" data-reg="/pictionary/tracer/quiz"
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-gamepad"></i>트레이서 퀴즈</div>
+			</div>
+		</div>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="playKick">
+		<a th:href="@{/pictionary/kick/detective}" data-reg="/pictionary/kick/detective" 
+			class="pictionaryTab loginRequired menu-item play-kick playKick">
+			<i class="fa fa-gamepad fa-fw"></i><br>
+			<span>플레이<span class="kick"></span></span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="guide">
+		<a th:href="@{/pictionary/guide}" data-reg="/pictionary/guide"
+			class="pictionaryTab menu-item guide">
+			<i class="fa fa-image fa-fw"></i><br>
+			<span>소개</span>
+		</a>
+	</div>
+</div></div>
+</div>		
+
+
+	
+<div th:fragment="alphabetMenu" class="menu-cover alphabet-menu">
+<script>
+$(document).ready(function() {
+	// [알파벳 메뉴 펼치고 닫기 (Mobile ver.)]------------------------------------------
+	// 모바일에선 알파벳 메뉴 영역이 작으므로 편리성을 위해 펼칠 수 있도록 한다 
+	$("#openAlphabetMenu").click(function(){
+		$(".menu-cover .alphabets").addClass("open");
+		$(this).hide();
+		$("#closeAlphabetMenu").show();
+	});
+	$("#closeAlphabetMenu").click(function(){
+		$(".menu-cover .alphabets").removeClass("open");
+		$(this).hide();
+		$("#openAlphabetMenu").show();
+	});
+	
+	// [검색 창 열기 Mobile ver.]----------------------------------------------------
+	$(".searchBtnMobile").click(function(){
+		$(".search-form-align").toggle();
+	});
+	
+	// [단어 검색 버튼 활성화]---------------------------------------------------------
+	$(document).on("change keyup keydown", ".searchFormAbled", function(){
+		if($(this).val().length > 0) {
+			$(this).siblings("button").prop("disabled", false);
+		} else {
+			$(this).siblings("button").prop("disabled", true);
+		}
+	});
+	
+	// [단어 검색 실행]--------------------------------------------------------------
+	$("#searchWord_form").submit(function(e) {
+		e.preventDefault();
+		searchPictionaries($(this).find("input[type='search']").val().trim().toLowerCase());
+	})
+	
+	// [검색어를 입력란에 유지한다]---------------------------------------------
+	const searchKeyword = location.pathname.split(/\/word\/search\/.+\//)[1];
+	$("#search_input").val(decodeURI(searchKeyword != undefined ? searchKeyword : ''));
+	
+	// [현재 선택된 알파벳이 있다면 선택효과 적용]---------------------------------------------
+	const selectedAlphabet = location.pathname.split('/word/list/')[1];
+	if(selectedAlphabet != undefined && selectedAlphabet.length > 0){
+		var leftOffset = $('.alphabetNav[href="' + location.pathname + '"]')
+							.addClass('menu-active').offset().left;
+		$('.alphabets').scrollLeft(leftOffset - $(".alphabets").scrollLeft() 
+									- (($('.searchBtnMobile:visible').length > 0)?
+										$('.searchBtnMobile:visible').width() + 13 : 0));
+	}else if(location.pathname.match('/word/view') != null){
+		// wordTitle이라는 view_pictionary.html 전역변수 사용.
+		var leftOffset = $('.alphabetNav[href="/pictionary/word/list/' + wordTitle.substring(0, 1).toUpperCase() + '"]')
+							.addClass('menu-active').offset().left;
+		$('.alphabets').scrollLeft(leftOffset - $(".alphabets").scrollLeft() 
+									- (($('.searchBtnMobile:visible').length > 0)?
+										$('.searchBtnMobile:visible').width() + 13 : 0));
+	}
+	
+}); //end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**
+ * 키워드로 픽셔너리 검색. 검색키워드를 sessionStorage에 저장.
+ */
+function searchPictionaries(keyword) {
+	if(keyword !=null && keyword.length > 0){
+		// 검색어가 숫자를 포함한 기본기호와 한글일 경우
+		if(keyword.match(/[^(\u0020-\u0040|\u005B-\u0060|\u007B-\u007F|\uAC00-\uD7AF)]/gi)==null){
+			self.location = "/pictionary/word/search/kor/" + keyword;
+		// 검색어가 숫자를 포함한 기본기호와 영어일 경우
+		}else if(keyword.match(/[^(\u0020-\u007F)]/)==null){
+			self.location = "/pictionary/word/search/eng/" + keyword;
+		}else{
+			alert("영어나 한글 중 한 언어로만 검색해 주세요.");
+		}
+	}else{
+		alert("검색 할 단어를 입력해 주세요.");
+		return false;
+	}
+};
+</script>
+
+<div class="alphabets py-1" th:with="alphabets = 'A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z'">
+	<a th:href="@{/pictionary/word/list/new}" 
+		class="alphabetNav narrow-text loginRequired menu-item">
+		<label>New</label>
+	</a>
+	<a th:href="@{/pictionary/word/list/today}" 
+		class="alphabetNav narrow-text loginRequired menu-item">
+		<label>Today</label>
+	</a>
+	<a th:each="alphabet, iter : ${#strings.arraySplit(alphabets,',')}" 
+		th:href="@{/pictionary/word/list/}+${alphabet}"
+		class="alphabetNav loginRequired menu-item"><label>[[${alphabet}]]</label></a>
+</div>
+<div class="row no-gutters">
+	<div class="menu-guide col-lg-auto col d-lg-none px-1 align-self-center">
+		<button class="searchBtnMobile search-btn btn btn-sm" type="button">
+			<i class="fa fa-search fa-fw"></i>
+		</button>
+	</div>
+	<div class="open-caret-cover col-auto">
+		<button id="openAlphabetMenu" class="btn btn-sm" type="button">
+			<i class="fa fa-angle-down"></i>
+		</button>
+		<button id="closeAlphabetMenu" class="btn btn-sm" type="button" style="display: none;">
+			<i class="fa fa-angle-up"></i>
+		</button>
+	</div>
+	<div class="menu-guide col-auto d-none d-lg-inline px-1 align-self-center">
+		<i class="fa fa-square fa-fw"></i>
+		알파벳 메뉴를 선택하거나 키워드를 검색해 주세요
+		<i class="far fa-smile-wink fa-fw"></i>
+	</div>
+	<!--/* -------------------------- 단어 검색 폼 ---------------------------- */-->
+	<div class="search-form-align col-lg col-12 align-self-center">
+		<form id="searchWord_form" th:action="@{/pictionary/word/search}" method="get">
+			<div class="searchform-cover">
+				<input id="search_input" placeholder="키워드 검색" name="title" 
+					class="searchFormAbled search-form-pc form-control" type="search">
+				<button class="search-btn-pc btn" disabled="disabled" type="submit">
+					search <i class="fa fa-search"></i>
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+</div>
+</html>

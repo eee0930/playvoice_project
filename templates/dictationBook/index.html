@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout}">
+<head>
+<title>영어 받아쓰기 딕테이션북 (DictationBook) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '영어 받아쓰기 딕테이션북 (DictationBook) - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 딕테이션북에서는 일상 생활에서 자주 접할 수 있는 영어 문장들을 받아쓰기로 연습할 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = '딕테이션북, Dictation Book, 딕테이션, 받아쓰기, 쉐도잉, 멀티 보이스, 영어 내기 '"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/dictationBook'} },
+	breadName = ${ {'딕테이션북'} }"></th:block>]
+</script>	
+	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	
+}); //end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page move event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 해당 테마의 딕테이션 테스트 페이지로 이동
+ */
+function moveToTest(themeId) {
+	location.href = "/dictationBook/theme/view/" + themeId;
+}
+
+
+</script>	
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>	
+</head>
+<body>
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/dictationBook/incl/dictationbook_menu::menu}" class="col-lg-10"></div>
+</div>
+
+
+<div id="indexContentSection"><div class="row">
+<div class="col-lg-1"></div>
+<div id="introDiv" class="col-lg-10">
+
+<div class="index-animal d-md-none">
+	<div class="title-cover">
+		<div class="title">Welcome to <span class="pv-tm">Dictation Book</span></div>
+	</div>
+	<div class="row no-gutters pt-2">
+		<div class="body col-lg-9 col">
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				삶의 생존은 어쩌면 <b>따라하는 능력</b>으로부터 시작되는 것일지도 모른다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from"><span class="kor">
+				<span class="d-none d-sm-inline-block">- </span>
+				아들에게 바다서기를 가르치는 <b>닌자 레오나르도</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</span></div>
+		</div>
+	</div>
+	<div class="animal-image">
+		<img src="/images/app/dictationbook/turtle.jpg"
+			class="rounded-circle" alt="딕테이션북 (DictationBook)">
+	</div>	
+</div>
+
+
+<div class="d-none d-md-block">	
+<div id="introductionDiv" class="introduction-section index animal-saying row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png" class="level-img"
+			style="background: url('/images/common/characters/dictationbook.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;"
+			alt="딕테이션북 (DictationBook)">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			<div>Welcome to <span class="pv-tm">Dictation Book</span></div>
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				삶의 생존은 어쩌면 <b>따라하는 능력</b>으로부터 시작되는 것일지도 모른다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from">
+				<span class="d-none d-sm-inline-block">- </span>
+				아들에게 바다서기를 가르치는 <b>닌자 레오나르도</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</div>
+		</div>
+	</div>
+</div><!-- end of introductionDiv -->
+</div>
+
+<div class="index-container">
+	
+	<!-- -----------------------[Dictation Notice]-------------------------- -->
+	<div class="notice-board-section index-content-section">
+		<div th:replace="~{/incl/list_notices::board}"></div>
+	</div>
+		
+	<!-- -----------------------[theme list]-------------------------------- -->
+	<div class="theme-list-section index-content-section">
+		<h3>
+			Popular Dictation <span class="index-text-color">Themes</span>
+			<i class="fa fa-water fa-fw" style="color: #336CE6;"></i><br>
+			<small>Come and test with popular themes</small>
+		</h3>
+		<div class="popular-theme-list-section">
+		<th:block th:each="theme,iter:${themeList}">
+			<!-- 딕테이션북 index sponsor PC ver. -->
+			<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+			<div th:if="${iter.first}" class="theme-list sponsor">
+				<div class="theme-cover">
+					<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<ins class="adsbygoogle"
+						style="display:block"
+						data-ad-format="fluid"
+						data-ad-layout-key="-h1+0+40-aq+4x"
+						data-ad-client="ca-pub-7152306695077047"
+						data-ad-slot="7594453794"></ins>
+					<script>
+						(adsbygoogle = window.adsbygoogle || []).push({});
+					</script>
+				</div>
+			</div>
+			</th:block>
+			
+			<div class="theme-list">
+				<div onclick="moveToTest(this.getAttribute('data'))" 
+					th:data="${theme.id56}" class="loginRequired theme-cover row no-gutters">
+					<div class="img-cover col-auto">
+						<img src="/images/app/dictationbook/theme_paper4.png" class="theme-img" 
+							th:style="'background: url(\'/images/app/dictationbook/theme_' + ${iter.index} + '.jpg\') no-repeat;
+							background-size: cover; background-position: left center;'">
+					</div>
+					<div class="theme-info col align-self-center">
+						<div class="title">
+							<i class="fas fa-quote-left fa-fw"></i>
+							[[${theme.title}]]
+							<i class="fas fa-quote-right fa-fw"></i>
+						</div>
+						<div class="q-num">
+							<span class="name">Number of Questions</span>
+							<span class="num">[[${theme.numOfQuestions}]]</span>
+							<span class="star">
+								<i class="fa fa-star"></i>
+								<i class="fa fa-star"></i>
+								<i class="fa fa-star"></i>
+								<i class="fa fa-star"></i>
+								<i class="fa fa-star"></i>
+							</span>
+							<span class="go-test">
+								take a practice
+								<i class="fa fa-arrow-right"></i>
+							</span>
+						</div>
+					</div>
+					<div class="img-cover2 col-auto">
+						<img src="/images/app/dictationbook/theme_paper4.png" class="theme-img2" 
+							th:style="'background: url(\'/images/app/dictationbook/theme_' + ${iter.index} + '.jpg\') no-repeat;
+							background-size: cover; background-position: right center;'">
+					</div>
+				</div>
+			</div>
+			
+			<!-- 딕테이션북 index sponsor PC ver. -->
+			<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+			<div th:if="${iter.index == 3}" class="theme-list sponsor">
+				<div class="theme-cover">
+					<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+					<ins class="adsbygoogle"
+					     style="display:block"
+					     data-ad-format="fluid"
+					     data-ad-layout-key="-h1+0+40-aq+4x"
+					     data-ad-client="ca-pub-7152306695077047"
+					     data-ad-slot="5192609599"></ins>
+					<script>
+					     (adsbygoogle = window.adsbygoogle || []).push({});
+					</script>
+				</div>
+			</div>
+			</th:block>
+		</th:block>
+		</div>
+	</div>
+	
+	
+	
+	<!-- ----------------------[member ranking1]---------------------------- -->
+	<div class="member-ranking-section index-content-section">
+		<h3>
+			DictationBook <span class="period">Total</span><br class="d-sm-none">  
+			<span class="index-text-color"><span class="kor">고득점 랭커</span> Top 10</span>
+			<i class="fas fa-medal fa-fw" style="color: #ee6253;"></i><br>
+			<small>DictationBook Score Top Ranker</small>
+		</h3>
+		
+		<div class="ranking-bg">
+			<div class="ranking-date text-md-right text-center">
+				<i class="far fa-clock fa-fw"></i> Updated 
+				<span class="date">[[${rankingUpdate}]]</span>
+			</div>
+			<div id="rankingSwipe" class="ranking-list">
+				<ul class="rank-slide">
+					<li th:each="topRanker,iter : ${scoreTopRankerList}" 
+						th:with="personacon = ${topRanker.personacon}">
+						<div class="ranker-cover"><div class="rank-style">
+							<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+								class="rank-num-cover">01</div>
+							<div class="alias">
+								<div>[[${personacon.alias}]]</div>
+							</div>	
+							<div class="openProfile personacon"
+								th:data-mid="${personacon.id56}">
+								<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+									th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+									background-position: center; background-size: cover;'">
+								<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+									class="profile-default">
+							</div>
+							<div class="buttons">
+								<div th:if="${personacon.memberType} == 'M'">Play</div>
+								<div th:if="${personacon.memberType} == 'S'">Silver</div>
+								<div th:if="${personacon.memberType} == 'G'">Gold</div>
+								<div th:if="${personacon.memberType} == 'P'">Platinum</div>
+								<div class="openProfile" th:data-mid="${personacon.id56}">
+									<i class="far fa-address-card fa-fw"></i>
+								</div>
+							</div>
+						</div></div>
+					</li>
+				</ul>
+			</div>
+			<div class="direction-button">
+				<span class="prev ranking-slide">
+					<i class="fa fa-angle-left fa-4x fa-fw"></i>
+				</span>
+				<span class="next ranking-slide">
+					<i class="fa fa-angle-right fa-4x fa-fw"></i>
+				</span>
+			</div>
+			
+			<div class="rank-page-list pb-2 text-right"></div>	
+		</div>
+	</div><!-- end of member ranking section -->	
+	
+	
+	
+	<!-- ----------------------[member ranking2]---------------------------- -->
+	<div class="member-ranking-section study index-content-section">
+		<h3>
+			DictationBook <span class="period">Total</span><br class="d-sm-none"> 
+			<span class="index-text-color"><span class="kor">최다 학습 랭커</span> Top 10</span>
+			<i class="fa fa-brain fa-fw" style="color: pink;"></i><br>
+			<small>DictationBook Challenge Master Top Ranker</small>
+		</h3>
+		<div class="ranking-bg">
+			<div class="ranking-date text-md-right text-center">
+				<i class="far fa-clock fa-fw"></i> Updated 
+				<span class="date">[[${rankingUpdate}]]</span>
+			</div>
+			<div id="rankingSwipe" class="ranking-list">
+				<ul class="rank-slide">
+					<li th:each="topRanker,iter : ${timesTopRankerList}" 
+						th:with="personacon = ${topRanker.personacon}">
+						<div class="ranker-cover"><div class="rank-style">
+							<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+								class="rank-num-cover">01</div>
+							<div class="alias">
+								<div>[[${personacon.alias}]]</div>
+								<div class="info"></div>
+							</div>	
+							<div class="openProfile personacon"
+								th:data-mid="${personacon.id56}">
+								<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+									th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+									background-position: center; background-size: cover;'">
+								<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+									class="profile-default">
+							</div>
+							<div class="buttons">
+								<div th:if="${personacon.memberType} == 'M'">Play</div>
+								<div th:if="${personacon.memberType} == 'S'">Silver</div>
+								<div th:if="${personacon.memberType} == 'G'">Gold</div>
+								<div th:if="${personacon.memberType} == 'P'">Platinum</div>
+								<div class="openProfile" th:data-mid="${personacon.id56}">
+									<i class="far fa-address-card fa-fw"></i>
+								</div>
+							</div>
+						</div></div>
+					</li>
+				</ul>
+			</div>
+			<div class="direction-button">
+				<span class="prev ranking-slide">
+					<i class="fa fa-angle-left fa-4x fa-fw"></i>
+				</span>
+				<span class="next ranking-slide">
+					<i class="fa fa-angle-right fa-4x fa-fw"></i>
+				</span>
+			</div>
+			
+			<div class="rank-page-list pb-2 text-right"></div>
+		</div>	
+	</div><!-- end of member ranking section -->
+	
+	
+</div>
+
+</div>
+</div></div><!-- end of indexContentSection -->
+
+</section>
+</body>
+</html>

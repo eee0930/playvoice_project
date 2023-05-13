@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/business_layout2}">
+<head>
+<title>Playvoice | The BaseCamp for Learning English</title>
+
+<link rel="stylesheet" th:href="@{/css/app/business.css}">
+
+<script th:src="@{/js/app/particles.min.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	Particles.init({
+		selector: '#businessHeaderBackgounrd',
+		color: '#64aab6',
+		maxParticles: 110,
+		connectParticles: true,
+		responsive: [
+			{
+				breakpoint: 600,
+				options: {
+					maxParticles: 80
+				}
+			}, {
+				breakpoint: 100,
+				options: {
+					maxParticles: 50
+				}
+			}
+		]
+	});
+})
+
+
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+
+
+
+</script>	
+<style>
+.background {
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	background: transparent;
+}
+</style>
+</head>
+<body>
+<section layout:fragment="content">
+
+<!-- ----------------------[1. 플레이보이스 간단 소개]------------------------------ -->
+<div id="playvoiceBusinessIntroSection" class="playvoice-business-intro-section">
+<div class="business-carel-section">
+	<canvas id="businessHeaderBackgounrd" class="background"></canvas>
+	<div class="business-carel-cover row no-gutters">
+		<div class="col-xl-1"></div>
+		<div class="col-xl-10">
+			<div class="playvoice-business-intro-cover">
+				<div class="jumbo-title">
+					The BaseCamp<br>
+					for Learning English
+				</div>
+				<div class="playvoice-title">
+					With 5 million users, <br>
+					Playvoice is the choice of thousands of everyone who is learning English!
+				</div>
+				<div class="playvoice-title kor">
+					플레이보이스, 전 세계인의 커뮤니티와 AI기술이 만나 언어의 장벽을 허물다
+				</div>
+				<div class="about-us-button">
+				
+				</div>
+			</div>
+			<div class="image-poistion1">
+				<div></div>
+			</div>
+			<div class="image-poistion2">
+				<div></div>
+			</div>
+			
+		</div>
+	</div>
+	
+</div>
+</div><!-- end of playvoiceBusinessIntroSection -->
+
+
+<div>
+
+
+</div>
+
+
+
+
+</section>
+</body>

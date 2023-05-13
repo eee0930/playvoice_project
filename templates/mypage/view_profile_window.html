@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+
+<title>[[${memberInfo.alias}]]님의 여행북 - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:src="@{/js/app/myteam.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [현재 창을 닫는다]-------------------------------------------------------------
+	$('.closeWindow').on('click', function() {
+		var rq = /*[[${#request.getHeader('X-Requested-With')}]]*/ null;
+		// Android 인앱의 경우 위 값이 앱 패키지명. 앱에선 새창 닫기가 안되므로 뒤로가기를 실행.
+		if(rq != null && rq.indexOf('playvoice') > -1) {
+			history.back();
+		} else {
+			window.close();
+		}
+	});
+	
+	// [프로필 메뉴 active]---------------------------------------------------------
+	$(".profileMenu").click(function(){
+		var dataMenuName = $(this).attr("data-menuName");
+		var menuName = $(this).html();
+		$(".profileMenu").removeClass("active");
+		$(this).addClass("active");
+		$(".content-title-section h5").html(menuName);
+		
+		$(".contentSection").hide();
+		$("#" + dataMenuName + "ContentDiv").fadeIn(200);
+	});
+	
+	// [프로필 픽쳐스 active]--------------------------------------------------------
+	$("#pictureContentDiv .picture-menu").click(function(){
+		var $pictureSection = $("#pictureContentDiv .profilePictureSection");
+		var $pictureGuide = $("#pictureContentDiv .pictureGuideSection");
+		var $pictureArea = $("#pictureContentDiv .showProfilePicture .profile-picture");
+		var pictureType = $(this).attr("data-pictureType");
+		
+		$(".picture-menu").removeClass("active");
+		$pictureGuide.hide();
+		$pictureArea.removeClass("picture-P picture-H picture-I picture-M picture-G").hide();
+		
+		$(this).addClass("active");
+		$pictureSection.show();
+		$pictureArea.addClass("picture-" + pictureType).show(400);
+		
+		// 프로필 픽쳐 주제별 사진으로 이미 로딩된 사진 정보가 있는지 확인.
+		var pictureData = $('.showProfilePicture').data('pictures-' + pictureType);
+		if(pictureData == null){
+			// 로딩된 사진이 없다면 조회하여 표시하고, 주제별 사진 정보로 div에 저장.----
+			getPictures(pictureType, /*[[${memberInfo.profileId}]]*/ 0);
+			//----------------------------------------------------
+		}else{
+			// div에 저장된 주제별 사진을 표시 --------
+			displayGetPictures(pictureData);
+			//------------------------------
+		}
+		
+	});
+	
+	// [프로필 픽쳐스 이미지 클릭시 이미지 확대]----------------------------------------------
+	$(".showProfilePicture .profile-picture").click(function(){
+		var selectedImage = $(this).attr("style");
+		$("#showSelectedPicture, #showSelectedPictureXs").attr("style", selectedImage);
+	});
+	
+	
+	// [my trunk 추가]-----------------------------------------------------------
+	$("#addTrunkBtn").click(function(){
+		var profileMid56 = $("#profileMid").val();
+		var profileAlias = $("#profileAlias").val();
+		//-----------------------------------
+		addMyTrunk(profileMid56, profileAlias);
+		//-----------------------------------
+		
+		$(this).hide();
+		$(".myTrunkSign").show();
+	});
+	
+	// [코멘트 불러오기]-------------------------------------------------------------
+	$(document).on("click", ".openCommentBtn", function(){
+		var $commentListSection = $("#profileCommentSection");
+		var profileAlias = $("#profileAlias").val();
+		//[패턴 댓글 폼 placeholder 변경]-------------------------------------------------
+		$("#visitContentDiv .comment-textarea").attr("placeholder", profileAlias + "님에게 하고싶은 말을 남겨보세요.");
+		//
+		if($(this).is('.replyLoaded')){
+			$commentListSection.show(100, function(){
+				if($commentListSection.is(":visible")){
+					window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+				}
+			});
+		}else{
+			var url = "/reply/profile/list/" 
+						+ $(".appContentId").val()+"?replyType=c";
+			var selector = $('.commentPage');
+			//------------------------------
+			reloadAll(url, selector, false);
+			//------------------------------
+			$commentListSection.show(100, function(){
+				window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+			});
+			$(this).addClass('replyLoaded');
+		}
+	});
+});
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+
+/**
+ * 불러온 카테고리별 사진 화면 표시
+ */
+function displayGetPictures(pictures) {
+	// 이전 사진들 비움
+	$(".showProfilePicture .profile-picture").removeAttr("style");
+	var introType;
+	pictures.forEach(function(picture, i, array) {
+		if(picture.picPath != null){
+			introType = picture.introType;
+			$(".showProfilePicture .profile-picture:eq("+picture.picIndex+")")
+			 	.css("background", "url(/resource/profile/pictures/" + picture.picPath + ") no-repeat")
+				.css("background-size", "cover")
+				.css("background-position", "center")
+				.addClass("pictureLoaded");
+		}
+	});
+	$('.showProfilePicture').data('pictures-' + introType, pictures);
+}
+
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display&display=swap');
+.modal-backdrop {position: static;}
+</style>
+
+</head>
+
+
+<div layout:fragment="content" class="member-profile-section">
+<!--/* -----------------------------[modal]------------------------------  */-->
+<div id="successEdit_modal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div class="modal-body text-center py-3">
+				<span id="modalMsg">수정에 성공하였습니다 </span><i class="far fa-grin-alt fa-lg fa-fw"></i>
+				<div class="mt-3">
+					<button class="btn btn-mypage" data-dismiss="modal" type="button">확 인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div class="row no-gutters" th:with="memberType=${memberInfo.memberType}, 
+	tribe=${memberInfo.tribe}, alias=${memberInfo.alias}, 
+	memberId=${memberInfo.memberId}, memberId56 = ${memberInfo.id56},
+	memberIconPath = ${memberInfo.iconPath},
+	introduction = ${memberInfo.introduction},
+	loginPersonaconPid = ${session.userContainer.personacon.pid},
+	loginPersonaconPid56 = ${session.userContainer.personacon.id56},
+	isGold = ${#strings.contains('PG', (memberType))},
+	isMe = ${#strings.equalsIgnoreCase(memberId, loginPersonaconPid)},
+	membershipName = ${ {'G':'Gold Membership','P':'Platinum Membership'}[#strings.toString(memberType)] }">
+<!-- ----------------------------[1. 프로필 메뉴]------------------------------- -->
+<div id="profileWindowMenuSection" th:class="'profile-window-menu-section col-lg-3 
+	member-' + ${memberType}">
+<div class="profile-window-menu-cover"><div class="menu-cover-back">
+	
+	<!-- [조회수/ 닫기 버튼 Tablet, Mobile ver.] -->
+	<div class="profile-copy-section row no-gutters">
+		<!-- 조회수 -->
+		<div class="hits-section-xs d-lg-none col align-self-center">
+			<div class="cover-detail">
+				<i class="fa fa-paw"></i>
+				<span class="num" th:text="${memberInfo.hits}"></span>
+			</div>
+		</div>
+		<div class="profile-copy-div col-lg-12 col-auto align-self-center">
+			Playvoice<br class="col-sm-none col-md-block col-lg-none">
+			English Rebirth Project
+		</div>
+		<!-- 닫기 버튼 -->
+		<div class="close-button-section d-lg-none col align-self-center">
+			<button class="closeWindow" type="button">
+				<i class="fa fa-times"></i>
+			</button>
+		</div>
+	</div>
+	
+	<!-- 화원 정보 / 조회수 (Tablet, Mobile ver.) -->
+	<div class="d-block d-lg-none">
+	<div class="profile-info-cover row no-gutters">
+		<div class="member-info-section col align-self-center"><div class="member-info-cover">
+			<!-- 퍼스나콘 -->
+			<div class="profile-my-information">
+				<div class="personacon-section" align="center">
+					<div class="profile-image-cover">
+						<img th:if="${memberIconPath}" class="profile-image" 
+							src="/images/app/member/profile_paper.png"
+							th:style="'background: url(\'/resource/profile/' +${memberIconPath} +'\') no-repeat;
+							background-position: center; background-size: cover;'">
+						<img th:unless="${memberIconPath}" class="profile-image profile-default" 
+							src="/images/app/member/profile_paper.png">
+						<img class="profile-ring" 
+							src="/images/app/member/profile_paper.png">
+					</div>
+				</div>
+			</div>
+			<!-- 별명 -->
+			<div class="profile-title col-12">
+				<span class="alias" th:text="${alias}"></span>
+			</div>
+		</div></div>
+	</div>
+	</div>
+	
+	<!-- 프로필 메뉴 -->
+	<ul class="profile-menu-ul">
+		<li class="profileMenu active" data-menuName="profile">
+			<i class="fa fa-fw fa-user-astronaut"></i>
+			<br class="d-md-none"><span>Profile Info</span>
+		</li>
+		<li class="profileMenu" data-menuName="picture">
+			<i class="far fa-fw fa-images"></i>
+			<br class="d-md-none"><span>Pictures</span>
+		</li>
+		<li class="profileMenu" data-menuName="passport">
+			<i class="fa fa-fw fa-passport"></i>
+			<br class="d-md-none"><span>Passport</span>
+		</li>
+		<li class="profileMenu openCommentBtn" data-menuName="visit">
+			<i class="fa fa-fw fa-comment-dots"></i>
+			<br class="d-md-none"><span>Just Talk</span>
+		</li>
+	</ul>
+	
+	<!-- 기부 뱃지 (PC ver.) -->
+	<div class="donation-badge-section d-none d-lg-block">
+		<th:block th:if="${isGold}">
+			<img src="/images/app/mypage/donation_tag.png">
+			<div class="donation-info">
+				<div class="title" th:text="${membershipName}">Gold Membership</div>
+				<div class="detail">Member for<br>Playvoice Sponsored Agencies</div>
+			</div>
+		</th:block>
+		<th:block th:unless="${isGold}">
+			<img src="/images/app/mypage/donation_blank.png">
+			<div class="donation-info none">
+				<div class="title">후원 정보가 없습니다</div>
+			</div>
+		</th:block>
+	</div>
+</div></div>
+</div><!-- end of profileWindowMenuSection -->
+
+
+
+<!-- ----------------------------[2. 프로필 바디]------------------------------- -->
+<div id="profileWindowContentSection" th:class="'profile-window-content-section 
+	col-lg-9 member-' + ${memberType}" th:with="tribeCode = ${#strings.substring(tribe,0,1)}">
+
+<div id="contentHeaderDiv" class="content-header row no-gutters">
+	<div class="content-title-section col align-self-center">
+		<h5><i class="fa fa-fw fa-user-astronaut"></i> profile info</h5>
+	</div>
+	<input id="profileMid" type="hidden" th:value="${memberId56}"/> 
+	<input id="profileAlias" type="hidden" th:value="${alias}"/> 
+	<!-- 친구 추가 버튼 -->
+	<div th:if="${!isMe}" 
+		class="add-friend-section col-auto align-self-center">
+		<button id="addTrunkBtn" class="btn add-friend-btn" type="button">
+			<i class="fa fa-user-plus"></i> 친구 추가
+		</button>
+		<button class="myTrunkSign btn add-friend-btn trunk" type="button" disabled style="display: none;">
+			<i class="fa fa-grin-squint"></i> My Trunk
+		</button>
+	</div>
+</div><!-- end of contentHeaderDiv -->
+
+
+<div id="contentBodyDiv" th:class="'content-body tribe-' + ${tribeCode}">
+	<!-- --------------------------[2.1 멤버 프로필]---------------------------- -->
+	<div id="profileContentDiv" class="contentSection content-cover">
+		<div class="square size1"></div>
+		<div class="square size2"></div>
+		<div class="square size3"></div>
+		<div class="profile-content-card-section profile row no-gutters">
+			<div class="profile-content-card col-lg-7 col-sm-6">
+				<!-- 화원 정보 / 조회수 (PC ver.) -->
+				<div class="d-none d-lg-block"><div class="profile-info-cover row no-gutters">
+					<div class="member-info-section col align-self-center"><div class="member-info-cover">
+						<!-- 퍼스나콘 -->
+						<div class="profile-my-information">
+							<div class="personacon-section" align="center">
+								<div class="profile-image-cover">
+									<img th:if="${memberIconPath}" class="profile-image" 
+										src="/images/app/member/profile_paper.png"
+										th:style="'background: url(\'/resource/profile/' +${memberIconPath} +'\') no-repeat;
+										background-position: center; background-size: cover;'">
+									<img th:unless="${memberIconPath}" 
+										class="profile-image profile-default" 
+										src="/images/app/member/profile_paper.png">
+									<img class="profile-ring" 
+										src="/images/app/member/profile_paper.png">
+								</div>
+							</div>
+						</div>
+						<!-- 별명 -->
+						<div class="profile-title col-12">
+							<span class="alias" th:text="${alias}"></span>
+						</div>
+					</div></div>
+					<!-- 조회수 -->
+					<div class="primary col-auto">
+						<div class="cover-title">Hits</div>
+						<div class="cover-detail">
+							<div><i class="fa fa-paw"></i></div>
+							<div class="num" th:text="${memberInfo.hits}"></div>
+						</div>
+					</div>
+				</div></div>
+				<!-- 회원 정보 -->
+				<div class="profile-info-cover-bottom">
+					<div class="cover-title">
+						Profile Info.
+						<a th:if="${isMe}" 
+							th:href="@{/mypage/profile/edit}" target="_sub">
+							<i class="fa fa-edit text-secondary" title="프로필 수정"></i>
+						</a>
+					</div>
+					<div class="cover-detail row no-gutters">
+						<div class="member-info-cover col-3 align-self-center">
+							<div class="info-icon">
+								<i class="fa fa-venus-mars fa-fw" title="성별"></i>
+							</div>
+						</div>
+						<div class="member-info-detail col-3 align-self-center">
+							<div class="info-name">sex</div>
+							<div th:if="${#strings.equals(memberInfo.sex, 'X')}" 
+								class="info-detail kor">미정</div>
+							<div th:unless="${#strings.equals(memberInfo.sex, 'X')}" 
+								class="info-detail" th:text="${memberInfo.sex}">X</div>
+						</div>
+						<div class="member-info-cover col-3 align-self-center">
+							<div class="info-icon">
+								<i class="fa fa-birthday-cake fa-fw" title="나이"></i>
+							</div>
+						</div>
+						<div class="member-info-detail col-3 align-self-center">
+							<div class="info-name">age</div>
+							<div th:if="${memberInfo.age_public}" class="info-detail">
+								[[${#dates.year(#dates.createNow()) - #dates.year(memberInfo.birthYear)}]]
+							</div>
+							<div th:unless="${memberInfo.age_public}" class="info-detail">
+								<i class="fa fa-lock" title="비공개"></i>
+							</div>
+						</div>
+						<div class="member-info-cover col-3 align-self-center">
+							<div class="info-icon">
+								<i class="fa fa-map-marker-alt fa-fw" title="지역"></i>
+							</div>
+						</div>
+						<div class="member-info-detail col-3 align-self-center">
+							<div class="info-name">city</div>
+							<div th:if="${memberInfo.region_public}" class="info-detail">
+								[[${memberInfo.region_public?memberInfo.region:'대한민국'}]]
+							</div>
+							<div th:unless="${memberInfo.region_public}" class="info-detail">
+								<i class="fa fa-lock" title="비공개"></i>
+							</div>
+						</div>
+						<div class="member-info-cover col-3 align-self-center">
+							<div class="info-icon">
+								<i class="fa fa-landmark fa-fw fa-fw" title="부족"></i>
+							</div>
+						</div>
+						<div class="member-info-detail col-3 align-self-center">
+							<div class="info-name">tribe</div>
+							<div class="info-detail">
+								<span th:text="${tribe}"></span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 기부 뱃지 (Tablet ver.) -->
+				<div class="donation-badge-section d-none d-sm-block d-lg-none">
+					<th:block th:if="${isGold}">
+						<img src="/images/app/mypage/donation_tag.png">
+						<div class="donation-info">
+							<div class="title" th:text="${membershipName}">Gold Membership</div>
+							<div class="detail">Member for<br>Playvoice Sponsored Agencies</div>
+						</div>
+					</th:block>
+					<th:block th:unless="${isGold}">
+						<img src="/images/app/mypage/donation_blank.png">
+						<div class="donation-info none">
+							<div class="title">후원 정보가 없습니다</div>
+						</div>
+					</th:block>
+				</div>
+				<!-- 가입 일 -->
+				<div class="member-info-section">
+					<div class="profile-reg-date">
+						<span class="title">Episode Ⅰ - A Cosmopolitan Tourist</span>
+						<br>Since <span class="date">[[${#dates.format(memberInfo.regDate, 'yyyy-MM-dd')}]]</span>
+					</div>
+				</div>
+			</div>
+			<!-- Signature Text -->
+			<div class="signature-text-section col-lg-5 col-sm-6"><div class="signature-text-cover">
+				<div class="signature-title">Signature Text</div>
+				<div th:if="${introduction != null AND introduction != ''}" 
+					class="signature-text-div">
+					<div class="signature-text" th:utext="${introduction}"></div>
+					<div class="alias"><span>from.</span> [[${alias}]]</div>
+					<div th:class="'tribe-seal-section tribe-' + ${tribeCode}"></div>
+				</div>
+				<div th:unless="${introduction != null AND introduction != ''}" 
+					class="signature-text-div none">
+					<div th:if="${isMe}" 
+						class="signature-text">
+						<a th:href="@{/mypage/profile/edit}" target="_sub">
+						※ <b>[[${alias}]]님의 시그니처 텍스트(Signature Text)가 비어있습니다.</b><br><br>
+						시그니처 텍스트는 <b>[[${alias}]]</b> 
+						님이 좋아하는 말, 명대사, 모토 등 어떤 문장이라도 적을 수 있습니다.<br>
+						시그니처 텍스트를 통해 자신을 표현해 보고 내용을 다른 회원들과 함께 공유해 보세요.<br>
+						시그니처 텍스트는 보이스 파일과 함께 메인 화면과 바벨 카페에 표시됩니다.<br>
+						등록하려면 클릭해 주세요.</a>
+					</div>
+					<div th:unless="${isMe}" 
+						class="signature-text">
+						※ <b>[[${alias}]]님의 시그니처 텍스트(Signature Text)가 비어있습니다.</b>
+					</div>
+				</div>
+			</div></div>
+		</div>
+		<!-- 기부 뱃지 (Mobile ver.) -->
+		<div class="donation-badge-section d-sm-none">
+			<th:block th:if="${isGold}">
+				<img src="/images/app/mypage/donation_tag.png">
+				<div class="donation-info">
+					<div class="title" th:text="${membershipName}">Gold Membership</div>
+					<div class="detail">Member for<br>Playvoice Sponsored Agencies</div>
+				</div>
+			</th:block>
+			<th:block th:unless="${isGold}">
+				<img src="/images/app/mypage/donation_blank.png">
+				<div class="donation-info none">
+					<div class="title">후원 정보가 없습니다</div>
+				</div>
+			</th:block>
+		</div>
+	</div>
+	
+	<!-- -------------------------[2.2 프로필 픽쳐스]---------------------------- -->
+	<div id="pictureContentDiv" class="contentSection content-cover" style="display: none;">
+		<div class="profile-content-card-section pictures"
+			th:with="categoryTitles=${#strings.arraySplit('좋아하는 인물,갖고싶은 아이템,나의 취미,좋아하는 여행지,나의 목표',',')},
+					categories = ${#strings.arraySplit('P,H,I,M,G',',')}">
+			<!-- [프로필 픽쳐 메뉴 Tablet & Mobile ver.] -->
+			<div class="picture-menu-section-xs d-lg-none">
+				<div class="menu-title">
+					<i class="fa fa-ellipsis-v"></i>
+					Identity Pictures 
+					<a th:if="${isMe}" 
+						th:href="@{/mypage/profile/view/{midStr} (midStr=${loginPersonaconPid56})}" 
+						target="_sub">
+						<i class="fa fa-edit text-secondary" title="이미지 수정"></i>
+					</a>
+					<i class="fa fa-images float-right"></i>
+				</div>
+				<!-- [프로필 픽쳐 메뉴 Tablet ver.] -->
+				<div class="d-none d-sm-block"><div class="menu-cover-section row no-gutters">
+					<div th:each="category,iter:${categories}"
+						class="menu-cover col">
+						<div class="picture-menu" th:data-pictureType="${category}"
+							th:text="${categoryTitles[iter.index]}">내가 좋아하는 사람들</div>
+					</div>
+				</div></div>
+				<!-- [프로필 픽쳐 메뉴 Mobile ver.] -->
+				<div class="d-sm-none"><div class="picture-menu-slide">
+					<ul class="menu-cover-section mobile">
+						<li th:each="category,iter:${categories}"
+							class="menu-cover">
+							<div class="picture-menu" th:data-pictureType="${category}"
+								th:text="${categoryTitles[iter.index]}">내가 좋아하는 사람들</div>
+						</li>
+					</ul>
+				</div></div>
+			</div>
+			
+			<!-- [이미지 show 영역] -->
+			<div class="pictureGuideSection profile-picture-section">
+				<div class="default-guide-section">
+					사진 메뉴를 클릭하여 [[${alias}]]님의 아이덴티티를 확인해 보세요
+					<i class="far fa-grin-alt"></i>
+				</div>
+			</div>
+			<div class="profilePictureSection profile-picture-section" style="display: none;">
+				<div class="profile-picture-div row no-gutters">
+					<div class="show-selected-picture-div col-sm-6 d-none d-sm-inline-block">
+						<div id="showSelectedPicture" class="selected-picture"></div>
+					</div>
+					<div class="showProfilePicture show-picture-div col-sm-6 row no-gutters">
+						<div class="col-7">
+							<div class="profile-picture" style="display: none;"></div>
+						</div>
+						<div class="col-5">
+							<div class="profile-picture" style="display: none;"></div>
+						</div>
+						<div class="col-5">
+							<div class="profile-picture" style="display: none;"></div>
+						</div>
+						<div class="col-7">
+							<div class="profile-picture" style="display: none;"></div>
+						</div>
+					</div>
+					<div class="show-selected-picture-div mobile col-12 d-sm-none">
+						<div id="showSelectedPictureXs" class="selected-picture-xs"></div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- [프로필 픽쳐 메뉴 PC ver.] -->
+			<div class="picture-menu-section d-none d-lg-block">
+				<div class="menu-title">
+					<i class="fa fa-ellipsis-v"></i>
+					Identity Pictures
+					<a th:if="${isMe}" 
+						th:href="@{/mypage/profile/view/{midStr} (midStr=${loginPersonaconPid56})}" 
+						target="_sub">
+						<i class="fa fa-edit text-secondary" title="이미지 수정"></i>
+					</a>
+					<i class="fa fa-images float-right"></i>
+				</div>
+				<div class="menu-cover-section row no-gutters">
+					<div th:each="category,iter:${categories}"
+						class="menu-cover col">
+						<div class="picture-menu" th:data-pictureType="${category}"
+							th:text="${categoryTitles[iter.index]}">내가 좋아하는 사람들</div>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	
+	<!-- --------------------------[2.3 학습 여권]------------------------------ -->
+	<div id="passportContentDiv" class="contentSection content-cover" style="display: none;">
+		<div class="square size1"></div>
+		<div class="square size2"></div>
+		<div class="square size3"></div>
+		<div th:with="mid = ${memberId}, tribe = ${tribe}, 
+			regDate = ${memberInfo.regDate}, alias = ${alias}, 
+			memberType=${memberInfo.memberType}, iconPath = ${memberIconPath},
+			sex = ${memberInfo.sex}"
+			th:insert="~{/mypage/incl/passport_incl::passport}"></div>
+	</div>
+	
+	<!-- --------------------------[2.4 방명록]------------------------------- -->
+	<div id="visitContentDiv" class="contentSection content-cover" style="display: none;">
+		<div class="profile-content-card-section comment">
+			<!-- 댓글 -->
+			<div id="profileCommentSection" class="profile-content-card" 
+				th:with="appContentWriter=${alias},
+					appDomain='profile', appContentId=${memberId}" style="display: none;">
+				<div th:insert="~{/common/comment::comment}" class="profile-comment-back"></div>
+			</div>
+		</div>
+	</div>
+	
+
+</div><!-- end of contentBodyDiv -->
+
+</div><!-- end of profileWindowContentSection -->
+
+</div>
+<!--/* 프로필 새창 띄우기가 동작하기 위해 footer 사용.*/-->
+<footer th:insert="~{/incl/footer::footer}" class="container" hidden="hidden"></footer>
+</div>
+</html>

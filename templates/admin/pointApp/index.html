@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+<title>Index of PointApp - playvoice admin</title>
+<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+<script th:src="@{/js/app/junglebook.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+<script th:src="@{/js/public/chart.min.js}"></script>	
+<script th:src="@{/js/app/pointApp.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	var $canvas = $("#pointAppChartDiv canvas");	// 앱별 그래프를 그리는 위치
+	var styleList = {					// 앱별 그래프 스타일 (각 앱 이름은 pointAppAnnualMap의 키 값과 일치해야 한다.)
+			BabelStack: {
+				color: '#00D467',
+				dash: [5,2],
+				label: 'Babel'
+			},
+			DictationBook: {
+				color: '#6B00D2',
+				dash: [],
+				label: 'Dictation'
+			},
+			DigestBook: {
+				color: '#F1D40E',
+				dash: [],
+				label: 'Digest'
+			},
+			GrammarBook: {
+				color: '#6DF10E',
+				dash: [],
+				label: 'GrammarBook'
+			},
+			Pictionary: {
+				color: '#EB380F',
+				dash: [],
+				label: 'Pictionary'
+			},
+			PlayvoiceBook: {
+				color: '#0096D4',
+				dash: [],
+				label: 'Playvoice'
+			},
+			PlayBoard: {
+				color: '#E98C1C',
+				dash: [5,2],
+				label: 'Board'
+			},
+			Profile: {
+				color: '#005477',
+				dash: [5,2],
+				label: 'Profile'
+			},
+			SmallTalk: {
+				color: '#D943F1',
+				dash: [5,2],
+				label: 'SmallTalk'
+			}
+	}
+	
+	// 앱별 그래프의 가로축 정보는 11개월 전부터 현재까지 월 정보
+	var xAxis = [], now = new Date();
+	for(var i = new Date(new Date().setMonth(now.getMonth() - 11)); 
+		i <= now; i = new Date(i.setMonth(i.getMonth() + 1))){
+		xAxis.push(i.getMonth() + 1);
+	}
+	
+	// 실제 앱별 그래프에 좌표를 찍을 소스 데이터
+	var pointAppListMonthly = /*[[${pointAppAnnualMap}]]*/null;
+	var dataMap = [];
+	for(var key of Object.keys(pointAppListMonthly)){
+		var data = [];
+		for(var x of xAxis){
+			// x축(month)에 해당하는 y값(eventSize)이 null이면 0으로 표시
+			var found = pointAppListMonthly[key].find(function(pointAppDto) {
+				return pointAppDto.month == x;
+			});
+			var count = found != null? found.eventSize : 0;
+			data.push(count);
+		}
+		dataMap.push({
+			label: styleList[key].label,
+			color: styleList[key].color,
+			dash: styleList[key].dash,
+			data: data
+		})
+	}
+	// 알파벳 순으로 그래프 정렬
+	dataMap.sort(function(a,b){
+		var aName = a.label.toUpperCase(), bName = b.label.toUpperCase();
+		if(aName < bName){
+			return -1;
+		}else if(aName > bName){
+			return 1;
+		}else{
+			return 0;
+		}
+	});
+	
+	//canvas 위에 꺾은선 그래프를 표시---------------------------------------------------
+	drawLineGraph($canvas, xAxis.map(function(elt) {return elt.toString() + "월";}), dataMap);
+	//--------------------------------------------------------------------------
+	
+	// [등록 컨텐츠 수 박스 클릭 시, 해당 날짜의 상세보기 목록 펼치기 ]-----------------------------------
+	$(".regContentCountBox").click(function(){
+		var listDiv = $(this).closest(".rowDiv").find(".listDiv");
+		
+		if(! $(listDiv).is(":visible")){
+			$(listDiv).show();
+		}
+		
+		var searchType = $(this).attr("data-searchType");
+		var selector = $(this).closest(".rowDiv").find(".listDiv");	//목록이 뿌려질 위치 정보 
+		var startDate = $(this).find(".startDate").text().trim();
+		var endDate = $(this).find(".endDate").text().trim();
+		var title = $(this).find(".title").text().trim();
+		
+		statsOutputActivitiesCountList(searchType, startDate, endDate, selector, title);
+	});
+	
+	// [상세 목록 닫기 ]------------------------
+	$(".closeListDiv").click(function(){
+		$(this).closest(".listDiv").hide();
+	});
+});//end of ready
+
+function drawLineGraph(canvas, xAxis, dataMap) {
+	var ctx = $(canvas)[0].getContext('2d');
+	var datasets = [];
+	dataMap.forEach(function(dataEntry, i, array) {
+		// 그래프 꼭짓점 크기
+		var radiusArr = new Array(dataEntry.data.length);
+		radiusArr.fill(2);
+		radiusArr[dataEntry.data.length - 1] = 3;
+		
+		datasets.push({ 
+				label: dataEntry.label, 
+				data: dataEntry.data, // Y축 값
+				borderWidth: 3,
+	            borderColor: dataEntry.color,
+	            borderDash: dataEntry.dash,
+	            fill: false,
+	            lineTension: 0,
+	            radius: radiusArr
+			})
+	});
+	new Chart(ctx, {
+		type: 'line',
+		data: {
+			labels: xAxis,
+			datasets:datasets
+		},
+		options: {
+			scales:{
+				xAxes:[{
+					ticks:{
+						fontStyle: 'bold'
+					}
+				}]
+			},
+			maintainAspectRatio: false
+		}
+	});
+}
+
+
+/** 
+ * 통계폼을 통한 통계 전송시 ajax 를 통해 결과 목록을 json으로 전달받는다.
+*/
+function statsOutputActivitiesCountList(searchType, startDate, endDate, selector, title){
+	
+	$.ajax({
+		type: "POST", 
+		url : '/admin/pointApp/stats',
+		data : {
+			searchType : searchType,
+			fromDate : startDate,
+			toDate : endDate
+		},
+		success : function(result){
+			//resetDefault();
+			displayOutputActivitiesCountList(selector, result, title); 
+			//if open, 에러 패널 닫기
+			$('#errorDiv').css("display",'none');
+		},
+		error : function (e) {
+			$('#errorDiv').css("display",'inline');
+			$('#errorDiv > pre').text(e.responseText);
+
+            console.log("ERROR : ", e);
+        }
+	});
+}
+
+/**
+ * 각 앱별 컨텐츠 등록 갯수 목록을 출력하는 함수.
+ *  
+ * @param selector
+ * @param result
+ * @returns
+ */
+function displayOutputActivitiesCountList(selector, result, title){
+	$(selector).find(".title h5").text(title);
+	var output = '';
+	
+	$.each(result, function(index, appStats){
+		var appName = getAppName(appStats.appCode);
+		index++; 
+		output += '<tr>';
+		output += '<td>'+index+'</td>';
+		output += '<td>'+appStats.appCode+'</td>';
+		output += '<td>'+appName+'</td>';
+		output += '<td>'+appStats.count+'</td>';
+		output += '</tr>'; 
+		 
+	});
+	$(selector).find("tbody").empty();  
+	$(selector).find("tbody").append(output);
+	output ='';  
+}
+ 
+ 
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div id="statsResultSection">
+
+<h3>포인트 앱 통계</h3>
+
+<!-------------------------/* 1. 포인트 앱 이벤트 그래프 */----------------------------->
+<div id="pointAppChartDiv" class="admin-stats-section admin-section-divide">
+	<canvas height="300"></canvas>
+</div><!-- end of pointAppChartDiv -->
+
+<!-------------------------/* 2. 포인트 앱 이벤트 테이블 */----------------------------->
+<div id="statsPointAppTableDiv" class="row no-gutters admin-section-divide">
+	<div class="col-6 py-2 pr-2">
+		<div class="dashboard-box p-3 jsAction">
+			<div class="row no-gutters py-1">
+				<div class="title col-auto">
+					<i class="fa fa-chart-area fa-lg fa-fw" style="color: #686ed8;"></i>
+					<b>전체 기간</b> 포인트 앱 별 이벤트 개수
+				</div>
+				<div class="period col text-secondary text-right align-self-end">
+					<i class="far fa-calendar-alt"></i> 
+					<span>전체 기간</span>
+				</div>
+			</div>
+			<table id="statsPointAppTable"
+				class="resultWrapper table table-striped table-bordered table-hover table-sm text-center admin-sentencebook-board" >
+				<thead><tr class="thead">
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='appCode'>앱 코드</a>
+					<th>
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='count'>앱 이름</a>
+					<th>
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='percent'>이벤트 개수</a>
+				</tr></thead>
+				<tbody>
+					<tr th:each="pointAppDto, iter : ${pointAppList}">
+						<td th:text="${iter.count}"></td>
+						<td th:text="${pointAppDto.appCode}"></td>
+						<td th:text="${pointAppDto.appName}"></td>
+						<td th:text="${#numbers.formatInteger(pointAppDto.eventSize, 1, 'COMMA')}"></td>
+					</tr>
+				</tbody>
+			</table>
+			
+		</div>
+	</div>
+	
+	
+	<div class="col-6 py-2 pl-2">
+		<div class="dashboard-box p-3 jsAction">
+			<div class="row no-gutters py-1">
+				<div class="title col-auto">
+					<i class="fa fa-chart-line fa-lg fa-fw" style="color: #6bd098;"></i>
+					<b>최근 1개월</b> 포인트 앱 별 이벤트 개수
+				</div>
+				<div class="period col text-secondary text-right align-self-end">
+					<i class="far fa-calendar-alt"></i> 
+					<span>최근 1개월</span>
+				</div>
+			</div>
+			<table id="statsPointAppTableMonthly"
+				class="resultWrapper table table-striped table-bordered table-hover table-sm text-center admin-sentencebook-board" >
+				<thead><tr class="thead">
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='appCode'>앱 코드</a>
+					<th>
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='count'>앱 이름</a>
+					<th>
+						<a href="javascript:void(0)" class="thlink" 
+							data-value='percent'>이벤트 개수</a>
+				</tr></thead>
+				<tbody>
+					<tr th:each="pointAppDto, iter : ${pointAppListMonthly}">
+						<td th:text="${iter.count}"></td>
+						<td th:text="${pointAppDto.appCode}"></td>
+						<td th:text="${pointAppDto.appName}"></td>
+						<td th:text="${#numbers.formatInteger(pointAppDto.eventSize, 1, 'COMMA')}"></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	
+	</div>
+</div><!-- end of statsPointAppTableDiv -->
+
+
+
+
+<!---------------------/* 3. 멤버 타입별 평균 포인트 획득/소비 테이블 */---------------------->
+<div id="statsPointAmountTableDiv" class="stats-group-row-section">
+	<h5>멤버 타입별 평균 포인트 획득/소비량</h5>
+	<div class="dashboard-box p-3 my-3">
+		<div class="row no-gutters py-1">
+			<div class="title col-auto">
+				<i class="fa fa-chart-area fa-lg fa-fw" style="color: #686ed8;"></i>
+				평균 <b>플레이 포인트 획득</b>량
+			</div>
+			<div class="period col text-secondary text-right align-self-end">
+				<i class="far fa-calendar-alt"></i> 
+				<span>[[${#dates.format(avgPlayPointGains[0].startDate, 'yyyy-MM-dd')}]]</span>
+			</div>
+			<hr class="my-2 w-100">
+		</div>
+		<div class="content-section row no-gutters py-1">
+			<div th:each="avgPlayPointGain, iter : ${avgPlayPointGains}" 
+				class="count-section col-3">
+				<div th:if="${avgPlayPointGain.memberType} == 'M'">
+					<i class="fa fa-user" style="color: #ef8157;"></i> Play
+				</div>
+				<div th:if="${avgPlayPointGain.memberType} == 'S'">
+					<i class="fa fa-medal" style="color: silver;"></i> Silver
+				</div>
+				<div th:if="${avgPlayPointGain.memberType} == 'G'">
+					<i class="fa fa-medal" style="color: gold;"></i> Gold
+				</div>
+				<div th:if="${avgPlayPointGain.memberType} == 'P'">
+					<i class="fa fa-trophy" style="color: #51cbce;"></i> Platinum
+				</div>
+				<div class="num">[[${avgPlayPointGain.avgValue}]]</div>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-box p-3 my-3">
+		<div class="row no-gutters py-1">
+			<div class="title col-auto">
+				<i class="fa fa-chart-area fa-lg fa-fw" style="color: #686ed8;"></i>
+				평균 <b>플레이 포인트 소비</b>량
+			</div>
+			<div class="period col text-secondary text-right align-self-end">
+				<i class="far fa-calendar-alt"></i> 
+				<span>[[${#dates.format(avgPlayPointConsumes[0].startDate, 'yyyy-MM-dd')}]]</span>
+			</div>
+			<hr class="my-2 w-100">
+		</div>
+		<div class="content-section row no-gutters py-1">
+			<div th:each="avgPlayPointConsume, iter : ${avgPlayPointConsumes}" 
+				class="count-section col-3">
+				<div th:if="${avgPlayPointConsume.memberType} == 'M'">
+					<i class="fa fa-user" style="color: #ef8157;"></i> Play
+				</div>
+				<div th:if="${avgPlayPointConsume.memberType} == 'S'">
+					<i class="fa fa-medal" style="color: silver;"></i> Silver
+				</div>
+				<div th:if="${avgPlayPointConsume.memberType} == 'G'">
+					<i class="fa fa-medal" style="color: gold;"></i> Gold
+				</div>
+				<div th:if="${avgPlayPointConsume.memberType} == 'P'">
+					<i class="fa fa-trophy" style="color: #51cbce;"></i> Platinum
+				</div>
+				<div class="num">[[${avgPlayPointConsume.avgValue}]]</div>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-box p-3 my-3">
+		<div class="row no-gutters py-1">
+			<div class="title col-auto">
+				<i class="fa fa-chart-area fa-lg fa-fw" style="color: #686ed8;"></i>
+				평균 <b>랭킹 포인트 획득</b>량
+			</div>
+			<div class="period col text-secondary text-right align-self-end">
+				<i class="far fa-calendar-alt"></i> 
+				<span>[[${#dates.format(avgRankingPointGains[0].startDate, 'yyyy-MM-dd')}]]</span>
+			</div>
+			<hr class="my-2 w-100">
+		</div>
+		<div class="content-section row no-gutters py-1">
+			<div th:each="avgRankingPointGain, iter : ${avgRankingPointGains}" 
+				class="count-section col-3">
+				<div th:if="${avgRankingPointGain.memberType} == 'M'">
+					<i class="fa fa-user" style="color: #ef8157;"></i> Play
+				</div>
+				<div th:if="${avgRankingPointGain.memberType} == 'S'">
+					<i class="fa fa-medal" style="color: silver;"></i> Silver
+				</div>
+				<div th:if="${avgRankingPointGain.memberType} == 'G'">
+					<i class="fa fa-medal" style="color: gold;"></i> Gold
+				</div>
+				<div th:if="${avgRankingPointGain.memberType} == 'P'">
+					<i class="fa fa-trophy" style="color: #51cbce;"></i> Platinum
+				</div>
+				<div class="num">[[${avgRankingPointGain.avgValue}]]</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of statsPointAmountTableDiv -->
+	
+	
+	
+<!----------------------------/* 4. 등록된 콘텐츠 수 */------------------------------>
+<div id="newJoinMemberDiv" class="stats-group-row-section">
+	<h5>날짜별 등록 컨텐츠 수</h5>
+	<div class="newMemberDiv rowDiv">
+		<div class="defultNewMemberDiv stats-dashboard-cover row no-gutters">
+			<div class="col-4 p-2">
+				<div id="monthlyNewRegCountBox" class="regContentCountBox dashboard-box jsAction"
+					data-searchType="regContentList">
+					<div class="title">
+						월간 등록 컨텐츠 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-cubes fa-2x" style="color: #3a9456;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">[[${monthlyOutputActivities.count}]]</span> 개
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">[[${#dates.format(monthlyOutputActivities.startDate, 'yyyy-MM-dd')}]]</span> ~ 
+						<span class="endDate">[[${#dates.format(monthlyOutputActivities.endDate, 'yyyy-MM-dd')}]] </span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="weeklyNewRegCountBox" class="regContentCountBox dashboard-box jsAction"
+					data-searchType="regContentList">
+					<div class="title">
+						주간 등록 컨텐츠 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-cube fa-2x" style="color: #51c34a;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">[[${weeklyOutputActivities.count}]]</span> 개
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">[[${#dates.format(weeklyOutputActivities.startDate, 'yyyy-MM-dd')}]]</span> ~ 
+						<span class="endDate">[[${#dates.format(weeklyOutputActivities.endDate, 'yyyy-MM-dd')}]] </span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="dailyNewRegCountBox" class="regContentCountBox dashboard-box jsAction" 
+					data-searchType="regContentList">
+					<div class="title">
+						일간 등록 컨텐츠 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-plus-square fa-2x" style="color: #70dc39;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right jsAction">
+							<span data-value="count" class="num">[[${dailyOutputActivities.count}]]</span> 개
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right">
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">[[${#dates.format(dailyOutputActivities.startDate, 'yyyy-MM-dd')}]] </span>
+						~ <span class="endDate">[[${#dates.format(dailyOutputActivities.endDate, 'yyyy-MM-dd')}]]</span> 
+					</div>
+				</div>
+			</div>
+			<div class="searchResultDiv col-4 p-2" style="display: none">
+				<div id="newRegCountBox" class="dashboard-box p-3 row no-gutters jsAction"
+					data-searchType="regContentList">
+					<div class="title col-12">
+						 등록 컨텐츠 수
+						<hr class="my-2">
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span class="count num" data-value="count"></span> 개
+					</div>
+					<div class="period col-12 pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate"></span> ~ 
+						<span class="endDate"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="listDiv table-result-section" style="display: none">
+			<div class="title">
+				<h5>등록 컨텐츠 수 목록</h5>
+				<i class="closeListDiv close-button fa fa-times" title="닫기"></i>
+			</div>
+			<table class="resultWrapper table table-striped table-bordered table-hover 
+				table-sm text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th >번호</th>
+					<th data-value='appCode'>앱 코드</th>
+					<th data-value='appName'>앱 이름</th>
+					<th data-value='count'>등록 갯수</th>
+				</tr></thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div><!-- end of newJoinMemberDiv -->
+</div><!-- end of statisticsResultSection -->
+
+
+
+</section><!-- end of section -->
+

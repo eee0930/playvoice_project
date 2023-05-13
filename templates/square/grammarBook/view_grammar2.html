@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="list_articles">
+
+<div class="row no-gutters">
+<!-- 아티클 새 창 띄우기 버튼 -->
+<div class="window-section col-auto d-none d-md-inline">
+	<a th:href="@{/square/view/digest/window}" target="_sub">
+		<i class="reposition-icon far fa-square fa-lg"></i>
+		<i class="far fa-square fa-lg"></i>
+		<span class="window-guide">새창으로 크게 보기</span>
+	</a>
+</div><div class="col"></div>
+<!-- 링크 공유 -->
+<div class="col-auto copy-url-section">
+	<div class="copy-url-cover text-right">
+		<div>
+			<input type="text" value="www.playvoice.org/square/digest/view" class="hide-input"/>
+			Share This Link :<br class="d-md-none">
+			<span class="clip-target">
+				<span>www.playvoice.org/square/digest/view/DFSE353jdsksjsjlksf535</span>
+				<i class="fa fa-external-link-alt fa-fw"></i>
+			</span>
+		</div>
+		<div class="clip-guide">링크 클릭하여 복사</div>
+		<div class="successClip-guide" style="display: none;">복사가 완료되었습니다</div>
+		
+	</div>
+</div>
+</div>
+<!-- -----------------------------[아티클 영역]--------------------------------- -->
+<div  class="content-cover">
+	<!-- [Article Header] -->
+	<div class="member-info row no-gutters">
+		<!-- 작성자 정보 -->
+		<div class="personacon-section col-auto">
+			<div class="personacon-position" align="center">
+				<div class="member-personacon membership-P">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-profile profile-default">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-frame frame-P">
+				</div>
+				<div class="alias d-none d-md-block">lazyhysong</div>
+			</div>
+		</div>
+		<div class="alias col px-2 align-self-center d-md-none">
+			lazyhysong
+		</div><div class="w-100 d-md-none"></div>
+		
+		<!-- sub title / 등록일 -->
+		<div class="displayGrammarArticle col row no-gutters">
+			<div class="title-article col-md col-12 pl-md-3 align-self-center">
+				<i class="fas fa-quote-left fa-fw"></i>
+				보는 것이라는 뜻의 단어 활용이 헷갈리는 당신들을 위해
+				<i class="fas fa-quote-right fa-fw"></i>
+			</div>
+			<div class="recommend-count col-auto align-self-center">
+				<i class="fa fa-heart fa-fw fa-lg"></i>12
+			</div>
+			<div class="date col-md-auto col align-self-center">
+				2019-06-19
+			</div>
+		</div>
+		
+		<!-- 수정,삭제,신고 버튼 -->
+		<div class="etc btn-group col-auto align-self-center pl-2">
+			<a class="dropdown-toggle" data-toggle="dropdown">
+				<i class="fa fa-ellipsis-v fa-lg"></i>
+			</a>
+			<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+			    <li class="dropdown-item text-center"><a>수정</a></li>
+			    <li class="dropdown-item text-center"><a>삭제</a></li>
+			    <li class="openReportModal dropdown-item text-center">신고</li>
+			</ul>
+		</div>
+	</div>
+	
+	<!-- [Article Body] -->
+	<div class="viewArticle_div" style="display: none;">
+		<!-- 아티클 내용 -->
+		<div class="content article-default-font-style hint-active"><pre>
+			look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+			<span style="font-size: 18px;"><b>watch</b></span>는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+			근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+			see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+		</pre></div>
+		
+		<!-- 추천 / 댓글 버튼 -->
+		<div class="recommend-section row no-gutters">
+			<div class="col"></div>
+			<div class="col-auto ml-auto align-self-center">
+				<button class="btn btn-sm btn-playsquare2 active" type="button">
+					<i class="fa fa-heart fa-fw fa-lg"></i> 추천
+				</button>
+			</div>
+			<div class="col text-right align-self-center">
+				<a class="openCommentList">
+					<i class="fa fa-comment-dots fa-fw fa-lg"></i>댓글 (23)
+				</a>
+			</div>
+		</div>
+		
+		<!-- 광고 -->
+		<div class="digest-ad-section">
+			<hr>
+			<img src="/images/common/grammarly.jpg">
+			<hr>
+		</div>
+		
+		<!-- 댓글 -->
+		<div class="comment-list-section" style="display: none;">
+			<div th:replace="~{/common/comment2::comment}"></div>
+			<div class="comment-title">
+				Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+			</div>
+		</div>
+		
+		<!-- 아티클 내용 접기 버튼 -->
+		<div class="button-section2">
+			<button class="hideArticle hide-button" type="button" title="아티클 접기">
+				<i class="fa fa-angle-double-up fa-lg"></i>
+			</button>
+		</div>
+	</div>
+</div>
+
+
+
+<div  class="content-cover">
+	<!-- 작성자 정보 -->
+	<div class="member-info row no-gutters">
+		<div class="personacon-section col-auto">
+			<div class="personacon-position" align="center">
+				<div class="member-personacon membership-P">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-profile profile-default">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-frame frame-P">
+				</div>
+				<div class="alias d-none d-md-block">lazyhysong</div>
+			</div>
+		</div>
+		<div class="alias col px-2 align-self-center d-md-none">
+			lazyhysong
+		</div>
+		<div class="w-100 d-md-none"></div>
+		<div class="displayGrammarArticle col row no-gutters">
+			<div class="title-article col-md col-12 pl-md-3 align-self-center">
+				<i class="fas fa-quote-left fa-fw"></i>
+				보는 것이라는 뜻의 단어 활용이 헷갈리는 당신들을 위해
+				<i class="fas fa-quote-right fa-fw"></i>
+			</div>
+			<div class="recommend-count col-auto align-self-center">
+				<i class="fa fa-heart fa-fw fa-lg"></i>12
+			</div>
+			<div class="date col-md-auto col align-self-center">
+				2019-06-19
+			</div>
+		</div>
+		<div class="etc btn-group col-auto align-self-center pl-2">
+			<a class="dropdown-toggle" data-toggle="dropdown">
+				<i class="fa fa-ellipsis-v fa-lg"></i>
+			</a>
+			<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+			    <li class="dropdown-item text-center"><a>수정</a></li>
+			    <li class="dropdown-item text-center"><a>삭제</a></li>
+			    <li class="openReportModal dropdown-item text-center">신고</li>
+			</ul>
+		</div>
+	</div>
+	<div class="viewArticle_div" style="display: none;">
+		<!-- 작성 내용 -->
+		<div class="content article-default-font-style hint-active"><pre>
+			look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+			<span class="action-role">watch</span>는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+			근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+			see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+		</pre></div>
+		<!-- 버튼 -->
+		<div class="recommend-section row no-gutters">
+			<div class="col"></div>
+			<div class="col-auto ml-auto align-self-center">
+				<button class="btn btn-sm btn-playsquare2" type="button">
+					<i class="fa fa-heart fa-fw fa-lg"></i> 추천
+				</button>
+			</div>
+			<div class="col text-right align-self-center">
+				<a class="openCommentList">
+					<i class="fa fa-comment-dots fa-fw fa-lg"></i>
+					댓글 (23)
+				</a>
+			</div>
+		</div>
+		<!-- ad. -->
+		<div class="digest-ad-section">
+			<hr>
+			<img src="/images/common/grammarly.jpg">
+			<hr>
+		</div>
+		<!-- 댓글 -->
+		<div class="comment-list-section" style="display: none;">
+			<div th:replace="~{/common/comment2::comment}"></div>
+			<div class="comment-title">
+				Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+			</div>
+		</div>
+		<!-- 접기 버튼 -->
+		<div class="button-section2">
+			<button class="hideArticle hide-button" type="button" title="아티클 접기">
+				<i class="fa fa-angle-double-up fa-lg"></i>
+			</button>
+		</div>
+	</div>
+</div>
+
+</div>

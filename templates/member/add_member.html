@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+<title>플레이보이스 가입 - 플레이보이스 | Playvoice</title>
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+<script th:src="@{/js/app/member.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [날짜별로 배경 이미지 세팅]-------------------------------------------------------
+	var today = new Date();
+	var calcDateNum = today.getDate()%4;
+	var backgroundStyle = 'background-image:url(\'/images/app/member/registration_back'
+			+ calcDateNum + '.jpg\');';
+	$(".join-background-cover").attr("style", backgroundStyle);
+	$('#email').removeClass("is-invalid").addClass("is-valid");
+	
+	// [가입 화면 진입시 아이디 입력란에 포커싱]----------------------------------------------
+	if($("#loginId").val().length < 1) {
+		$("#loginId").focus(); 
+	}
+	
+	// [아이디 입력값 검사 (서버 접속을 해야하므로 입력폼에서 마우스를 뗀 후 검사한다)]--------------------
+	$("#loginId").change(function() {
+		var idFilter = /([^a-zA-Z0-9-_])/; 
+		var idValue = $(this).val();
+		
+		$(this).removeClass("is-valid");
+		
+		if(idValue.length < 4) {
+			$('#loginIdConfirm').html('<font color=red>아이디를 4자이상 입력해주세요.</font>');
+			$(this).addClass("is-invalid");
+		} else {
+			if(idValue.length > 20) {
+				$('#loginIdConfirm').html('<font color=red>아이디는 20자까지 입력가능합니다.</font>');
+				$(this).addClass("is-invalid");
+				
+			} else if(idFilter.test(idValue)) {
+				$('#loginIdConfirm').html('<font color=red>아이디는 영문 대소문자와 숫자만 입력가능합니다.</font>');
+				$(this).addClass("is-invalid");
+			} else {
+				//----------------------
+				isDuplicatedId(idValue);
+				//----------------------
+			}
+		}
+	});
+	
+	// [이메일 입력값 검사 (서버 접속을 해야하므로 입력폼에서 마우스를 뗀 후 검사한다)]--------------------
+	$("#email").change(function() {
+		var emailFilter = /([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+		var emailValue = $(this).val();
+		
+		if(emailValue.length > 0) {
+			if(emailFilter.test(emailValue) == false) {
+				$('#emailConfirm').html('<font color=red>이메일을 정확히 입력해주세요.</font>');
+				$(this).addClass("is-invalid");
+			} else {
+				//---------------------------
+				isDuplicatedEmail(emailValue);   
+				//---------------------------
+			}
+		} else {
+			$('#emailConfirm').html('<font color=red>이메일을 입력해주세요.</font>');
+			$(this).addClass("is-invalid");
+		}
+	});
+	
+	// [비밀번호 입력값 검사]----------------------------------------------------------
+	$("#passwd").on("input",function(){
+		// 비밀번호 재확인 입력상자에 입력된 값이 있을 땐 비밀번호 재확인 동작을 수행한다.
+		if($("#repasswd").val().length >0) {
+			$("#repasswd").trigger("input");
+		} else {
+			$("#repasswd").removeClass("is-valid is-invalid");
+		}
+		
+		$(this).removeClass("is-valid");
+		if($(this).val().length >= 8){
+			if($(this).val().length > 20){
+				$("#passwdConfirm").html("<font color=red>비밀번호는 20자까지 입력가능합니다.</font>");
+				$(this).addClass("is-invalid");
+			} else if(isValidPassword($(this).val()) == false){
+				$("#passwdConfirm").html("<font color=red>영문 대소문자/숫자/특수문자 중 2가지 이상 혼합하여 작성해주세요.<br>(*,&,+,- 제외)</font>");
+				$(this).addClass("is-invalid");
+			} else {
+				$(this).removeClass("is-invalid").addClass("is-valid");
+				$("#passwdConfirm").html("");
+			}
+		} else {
+			$("#passwdConfirm").html("영문 대소문자/숫자/특수문자 2가지 이상 혼합 <font color=red>(8~20자)<br>(*,&,+,- 제외)</font>");
+			$(this).addClass("is-invalid");
+		}
+	});
+	
+	// [비밀번호 재확인]-------------------------------------------------------------
+	$("#repasswd").on("input", function(){
+		if($(this).val() == $("#passwd").val()) {
+			$(this).removeClass("is-invalid").addClass("is-valid");
+			$("#passwdConfirm2").html("");
+		} else {
+			$(this).removeClass("is-valid").addClass("is-invalid");
+			$("#passwdConfirm2").html("<font color=red>입력하신 비밀번호와 일치하지 않습니다.</font>");
+		}
+	});
+	
+	// [출생년도 검사]--------------------------------------------------------------
+	$("#birthYear").on('change',function(){
+		$(this).addClass("is-valid");
+	});
+	
+	// [약관 동의]-----------------------------------------------------------------
+	$('#agreementOK,#ageOK').change(function(){
+		$('#addMemberBtn').prop('disabled',$('#agreementOK').is(':not(:checked)')
+										|| $('#ageOK').is(':not(:checked)'));
+	})
+	
+	// [멤버 등록 실행]--------------------------------------------------------------
+	$("#addMemberBtn").click(function(){
+		if($("#addMemberForm").find(".is-valid").length < 5) {
+			$("#addMemberForm input:not(.is-valid),select:not(.is-valid)").addClass("is-invalid");
+		} else {
+			$(this).prop('disabled', true);
+			submitAddMemberForm();
+		}
+	});
+	
+}); /* end of ready */
+
+function displayCheckId(result) {
+	var idInput = $("#loginId");
+	var resultTextDiv = $('#loginIdConfirm');
+	
+	if(result) {
+		resultTextDiv.html('<font color=red>이미 사용중인 아이디입니다.</font>');
+		idInput.removeClass("is-valid").addClass("is-invalid");
+    } else {
+    	resultTextDiv.html('<font color=green>사용가능한 아이디입니다.</font>');
+    	idInput.removeClass("is-invalid").addClass("is-valid");
+    }
+};
+
+/**
+ * 이메일 중복 검사 결과 표시
+ *
+ */
+function displayCheckEmail(result) {
+	var emailInput = $("#email");
+	var resultTextDiv = $("#emailConfirm");
+	
+	if(result) {
+		resultTextDiv.html('<font color=red>이미 사용중인 이메일입니다.</font>');
+		emailInput.removeClass("is-valid").addClass("is-invalid");
+    } else {
+    	resultTextDiv.html('<font color=green>사용가능한 이메일입니다.</font>');
+    	emailInput.removeClass("is-invalid").addClass("is-valid");
+    	
+    	submitAddMemberForm();
+    }
+}
+
+/**
+ * 회원 등록 정보 전송
+ * displayCheckEmail()에서 중복이 아닌 이메일인 경우, 메소드 호출
+ */
+function submitAddMemberForm(){
+	$('#email').prop("disabled", false);
+	$("#addMemberForm").submit();
+}
+
+function loginIdCheck(){
+	var idFilter = /([^a-zA-Z0-9-_])/; 
+	var idValue = $("#loginId").val();
+	
+	$("#loginId").removeClass("is-valid");
+	
+	if(idValue.length < 4) {
+		$('#loginIdConfirm').html('<font color=red>아이디를 4자이상 입력해주세요.</font>');
+		$("#loginId").addClass("is-invalid");
+	} else {
+		if(idValue.length > 20) {
+			$('#loginIdConfirm').html('<font color=red>아이디는 20자까지 입력가능합니다.</font>');
+			$("#loginId").addClass("is-invalid");
+			
+		} else if(idFilter.test(idValue)) {
+			$('#loginIdConfirm').html('<font color=red>아이디는 영문 대소문자와 숫자만 입력가능합니다.</font>');
+			$("#loginId").addClass("is-invalid");
+		} else {
+			//----------------------
+			isDuplicatedId(idValue);
+			//----------------------
+		}
+	}
+}
+
+function emailCheck(){
+	  // [이메일 입력값 검사 (서버 접속을 해야하므로 입력폼에서 마우스를 뗀 후 검사한다)]--------------------
+	  var emailFilter = /([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+	  var emailValue = $('#email').val();
+	  
+	  if(emailValue.length > 0) {
+	     if(emailFilter.test(emailValue) == false) {
+	        $('#emailConfirm').html('<font color=red>이메일을 정확히 입력해주세요.</font>');
+	        $('#email').addClass("is-invalid");
+	     } else {
+	        //---------------------------
+	        isDuplicatedEmail(emailValue);   
+	        //---------------------------
+	     }
+	  } else {
+	     $('#emailConfirm').html('<font color=red>이메일을 입력해주세요.</font>');
+	     $('#email').addClass("is-invalid");
+	  }
+}
+
+function passwdCheck(){
+	// 비밀번호 재확인 입력상자에 입력된 값이 있을 땐 비밀번호 재확인 동작을 수행한다.
+	if($("#repasswd").val().length >0) {
+		$("#repasswd").trigger("input");
+	} else {
+		$("#repasswd").removeClass("is-valid is-invalid");
+	}
+	
+	$("#passwd").removeClass("is-valid");
+	if($("#passwd").val().length >= 8){
+		if($("#passwd").val().length > 20){
+			$("#passwdConfirm").html("<font color=red>비밀번호는 20자까지 입력가능합니다.</font>");
+			$("#passwd").addClass("is-invalid");
+		} else if(isValidPassword($("#passwd").val()) == false){
+			$("#passwdConfirm").html("<font color=red>영문 대소문자/숫자/특수문자 중 2가지 이상 혼합하여 작성해주세요.<br>(*,&,+,- 제외)</font>");
+			$("#passwd").addClass("is-invalid");
+		} else {
+			$("#passwd").removeClass("is-invalid").addClass("is-valid");
+			$("#passwdConfirm").html("");
+		}
+	} else {
+		$("#passwdConfirm").html("영문 대소문자/숫자/특수문자 2가지 이상 혼합 <font color=red>(8~20자)<br>(*,&,+,- 제외)</font>");
+		$("#passwd").addClass("is-invalid");
+	}
+}
+
+function repasswdCheck(){
+	if($("#repasswd").val() == $("#passwd").val()) {
+		$("#repasswd").removeClass("is-invalid").addClass("is-valid");
+		$("#passwdConfirm2").html("");
+	} else {
+		$("#repasswd").removeClass("is-valid").addClass("is-invalid");
+		$("#passwdConfirm2").html("<font color=red>입력하신 비밀번호와 일치하지 않습니다.</font>");
+	}
+}
+
+</script>
+
+</head>
+
+<section layout:fragment="content" class="playvoice-join-section register">
+<div class="playvoice-join-body-section container"><div class="join-background-cover">
+<div id="joinFormContainer" class="formContainer row no-gutters">
+
+	<!-- ------------------------[add member 메세지]-------------------------- -->
+	<div class="join-message-section col-md-5">
+		<!-- logo -->
+		<div class="join-logo-section">
+			<div align="center" th:insert="~{/incl/playvoice_logo::mini_logo}"></div>
+		</div>
+		<!-- 메세지 -->
+		<h5 class="join-mini-title"><a th:href="@{/}">WELCOME TO PLAYVOICE</a></h5>
+		<div class="join-message-cover">
+			<div class="message1">
+				<a th:href="@{/}">The First BaseCamp for<br>
+				Climbing English</a>
+			</div>
+			<div class="message2">
+				<a th:href="@{/}">Get Your Own Playvoice Account Today !</a>
+			</div>
+		</div>
+		<div class="image-div d-none d-md-block">
+			<!-- 플보 여행 케이스 -->
+			<div class="travel-case-section">
+				<div class="handle"></div>
+				<div class="wheel-section">
+					<div class="wheel"></div><div class="wheel"></div>
+				</div>
+				<div class="travel-case">
+					<div class="mark-playvoice"></div>
+				</div>
+			</div>
+			<!-- TY -->
+			<div class="TY-shape-section">
+				<div class="mane-section">
+					<div class="mane"></div>
+				</div>
+				<div class="bird-body">
+					<div class="face-section">
+						<div class="eye"></div><div class="eye"></div>
+						<div class="mouse"></div>
+					</div>
+					<div class="arm hello"></div>
+				</div>
+			</div>
+			<!-- 미어캣 -->
+			<div class="meerkat-shape-section">
+				<div class="body">
+					<div class="leg-section">
+						<div class="leg"></div><div class="leg second"></div>
+					</div>
+					<div class="tail-section">
+						<div class="tail"><div class="tail">
+							<div class="tail"><div class="tail">
+								<div class="tail last"></div>
+							</div></div>
+						</div></div>
+					</div>
+				</div>
+				<div class="arm-section">
+					<div class="arm"></div><div class="arm second"></div>
+				</div>
+				<div class="ear-section">
+					<div class="ear"></div><div class="ear second"></div>
+				</div>
+				<div class="head">
+					<div class="eye"></div><div class="eye second"></div>
+					<div class="mouse"></div>
+					<div class="nose"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- ------------------------[add member form]-------------------------- -->
+	<div class="join-form-section register col-md-7">
+		<h3>
+			Playvoice Simple Registration Form
+			<button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> Ok
+			</button><br>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="times-section text-right">
+			<a th:href="@{/main}" title="플레이보이스 메인으로">
+				<i class="fa fa-times fa-fw"></i>
+			</a>
+		</div>
+		
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+	
+		<form id="addMemberForm" action="/member/add" th:object="${member}" 
+			method="post" autocomplete="off"><div class="join-form-cover">
+		<!-- 아이디 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1">
+				<i class="far fa-id-badge fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<input type="text" th:field="*{loginId}" class="form-control" 
+					placeholder="아이디 (4~20자)" autocomplete="off"/>
+				<div id="loginIdConfirm" class="guide"></div>
+			</div>
+			<div class="inform-guide col-1 align-self-center">
+				<div class="text-center">
+					<i class="far fa-question-circle fa-fw"></i>
+				</div>
+				<div class="text-warning-msg">
+					영문 대소문자/숫자
+				</div>
+			</div>
+		</div>
+		
+		<!-- 비밀번호 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1" 
+				style="border-bottom-color: #e45063;">
+				<i class="fa fa-unlock-alt fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<input type="text" style="display: none;"></input>
+				<input type="password" th:field="*{passwd}" class="form-control" 
+					autocomplete="new-password" placeholder="비밀번호 (8~20자)"/>
+				<div id="passwdConfirm" class="guide"></div>
+			</div>
+			<div class="inform-guide col-1 align-self-center">
+				<div class="text-center">
+					<i class="far fa-question-circle fa-fw"></i>
+				</div>
+				<div class="text-warning-msg msg-passwd">
+					영문/숫자/특수문자 2가지 이상 혼합<br>8~20자
+					<font color="pink">( *, &amp; , + , - 제외)</font>
+				</div>
+			</div>
+		</div>
+		<div class="form-group row no-gutters">
+			<div class="col-form-label col-md-1 col-2"></div>
+			<div class="col-10 pl-1">
+				<input type="password" id="repasswd" class="form-control" 
+					placeholder="비밀번호 재확인"/>
+				<div id="passwdConfirm2" class="guide"></div>
+			</div>
+		</div>
+		<!-- 이메일 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1">
+				<i class="far fa-envelope fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<input type="email" th:field="*{email}" class="form-control" 
+					placeholder="e-mail" disabled="disabled"/>
+				<input type="hidden" name="memberType" value="M"/>
+				<div id="emailConfirm" class="guide"></div>
+			</div>
+		</div>
+		<!-- 출생연도 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1" 
+				style="border-bottom-color: #e45063;">
+				<i class="fa fa-birthday-cake fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<select id="birthYear" name="birthYear" class="form-control" 
+					th:with="thisYear=${#dates.year(#dates.createToday())}">
+					<option disabled selected>--출생연도를 선택해 주세요--</option>
+					<option th:each="year:${#numbers.sequence(thisYear-14, thisYear-80)}" 
+						th:value="${year}">[[${year}]]</option>
+				</select>
+				<div id="birthConfirm" class="guide"></div>
+			</div>
+		</div></div>
+		
+		<div class="row no-gutters mb-2">
+			<div class="col-md-1"></div>
+			<div class="col-md-10 pl-1">
+				<div class="why">
+					<div>왜 출생연도를 입력해야 하나요 <i class="fa fa-question-circle"></i></div>
+					<div class="why-tooltip">
+						출생연도를 입력하면 본인에게 맞는 플레이보이스 환경을 이용할 수 있습니다.<br> 
+						입력사항은 프로필 관리에서 공개범위를 변경할 수 있습니다.<br>
+						자세한 내용은 <a th:href="@{/terms/privacy}" 
+						class="privacy" target="_blank">개인정보 처리방침</a>에서 확인해 주세요.
+					</div>
+				</div>
+				<div class="guide my-1">
+					<label>
+						<input id="agreementOK" type="checkbox" 
+							class="option-input checkbox"/>
+						이용약관 및 개인정보처리방침에 동의합니다.<br class="d-xl-none">
+						<span class="terms-cover">
+							[<a th:href="@{/terms/policy}" target="_blank" 
+								class="group-join">이용약관</a> /
+							<a th:href="@{/terms/privacy}" target="_blank" 
+								class="group-join">개인정보처리방침</a>]
+						</span>
+					</label><br>
+					<label>
+						<input id="ageOK" type="checkbox" class="option-input checkbox"/>
+						만 14세 이상입니다.
+					</label>
+				</div>
+			</div>
+		</div>
+		<!-- 가입 버튼 -->
+		<div  class="add-member-button-section row no-gutters mb-3">
+			<div class="col-md-1"></div>
+			<div class="col-md-10 pl-md-1">
+				<button id="addMemberBtn" type="button" disabled 
+					class="btn btn-main-submit jsAction btn-block">플레이보이스 가입하기</button>
+			</div>
+		</div>
+		</form>
+		
+		<!-- 로그인 페이지로 -->
+		<div class="auth-line text-right">
+			이미 아이디가 있나요?
+			<a th:href="@{/auth/login}" class="login-link">Sign In</a>
+		</div>
+	</div>
+	
+</div><!-- end of joinFormContainer -->
+
+</div></div>
+
+<!-- footer -->
+<div th:insert="~{/incl/footer::footer}"></div>
+
+</section>
+</html>

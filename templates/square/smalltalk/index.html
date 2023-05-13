@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>스몰톡 (Smalltalk) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '스몰톡 (Smalltalk) - 플레이보이스 | Playvoice', 
+	metaDescription = 'Smalltalk은 영어로 된 재미있는 주제들과 가십거리들을 회원들과 공유하고 가볍게 읽어볼 수 있는 공간입니다.
+	지루하고 무의미했던 입시 시험용 독해에서 벗어나 인간관계에 보탬이 되고 흥미를 일으키는 스토리를 읽어보세요. 
+	플레이보이스는 영어로 인한 불필요한 노력과 비용을 줄이고 함께 학습할 수 있는 공간을 제공합니다.', 
+	metaImage = '/images/app/playsquare/story_default_image.jpg'"></th:block>
+	
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '스몰톡'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/square/smalltalk/view/'} }"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/public/lozad_custom.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+const observer = lozad();
+$(document).ready(function(){
+	observer.observe();
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+</script>
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>
+</head>
+
+<section layout:fragment="content">
+
+<!-- -------------------------[1. 스몰톡 소개/ 메뉴]----------------------------- -->
+<div id="introductionSection" class="introduction-section talktive mt-4">
+	<h3><span class="pv-tm">Smalltalk</span></h3>
+	<div class="sub">Share interesting stories and enjoy reading them.</div>
+</div>
+<div th:replace="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+<div id="smallTalkSection" class="translation-section talkative">
+	<!-- -------------------------[2. 앱 컨셉 바]------------------------------- -->
+	<div id="smallTalkIndexIntroDiv">
+		<!-- [2.1 PC ver.] -->
+		<div class="trans-list only-PC">
+			<div class="translation-cover gold-membership row no-gutters">
+				<div class="logo col-md-auto align-self-center">
+					<i class="fa fa-crown fa-3x"></i> 
+				</div>
+				<div class="guide col-md px-md-3 align-self-center">
+					<div class="membership">Reading English Articles Every Day</div>
+					<div>
+						Smalltalk은 영어로 된 재미있는 주제들과 가십거리들을 
+						회원들과 공유하고 가볍게 읽어볼 수 있는 공간입니다.<br class="d-none d-xl-block">
+						지루하고 무의미했던 입시 시험용 독해에서 벗어나 인간관계에 보탬이 되고 
+						흥미를 일으키는 스토리를 읽어보세요.<br class="d-none d-xl-block">
+						플레이보이스는 영어로 인한 불필요한 노력과 비용을 줄이고 함께  학습할 수 있는 공간을 제공합니다.
+						<i class="far fa-grin-squint fa-lg"></i>
+					</div>
+				</div>
+				<div class="star col-md-auto col-12 align-self-center">
+					<i class="fa fa-star"></i>
+					<i class="fa fa-star"></i>
+					<i class="fa fa-star"></i>
+					<i class="fa fa-star"></i>
+					<i class="fa fa-star"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- [2.3 wise saying] -->
+		<div class="translation-bg index">
+			<div class="trans-list row no-gutters" style="box-shadow: none; background-color: transparent;">
+				<div class="col-xl-1 col-lg"></div>
+				<div class="translation-cover wise-saying talktive col-xl-10 col-lg-9">
+					<div class="wise-saying-cover text-center">
+						<i class="fa fa-quote-left"></i>
+						<div class="saying">
+							<span class="pv-tm">Smalltalk</span>은 
+							단순한 게시글 작성 앱이 아니다. <br class="d-none d-sm-block">
+							<b>독해 실력을 키우는 데 최적화 된 앱</b>이라는 
+							것을<br class="d-none d-sm-block d-md-none">
+							모두가 알게 될 것이다.
+						</div>
+						<div class="who">
+							<span class="d-none d-sm-inline-block">-</span>
+							<b>Horace Mann</b>,<br class="d-sm-none"> 
+							American educational reformer
+							<span class="d-none d-sm-inline-block">-</span>
+						</div>
+						<i class="fa fa-quote-right"></i>
+					</div>
+				</div>
+				<div class="col-xl-1 col-lg"></div>
+			</div>
+		</div>	
+	</div>
+		
+
+	<div id="indexContentsDiv" class="index-container smalltalk"
+		th:with="memberTypeNames = ${ {M:'Play',S:'Silver',G:'Gold',P:'Platinum'} }">
+		<!-- ------------------------[3. 인기 스토리]--------------------------- -->
+		<div class="index-story-list-section">
+			<h3 class="row no-gutters">
+				<span class="col-auto">
+					Smalltalk <span class="index-text-color">popular stories</span>
+					<i class="fas fa-beer fa-fw" style="color: #d81b60;"></i><br>
+					<small>Check out these most-loved stories</small>
+				</span>
+				<span class="move-story-list col align-self-end text-right">
+					<a th:href="@{/square/smalltalk/list}">
+						스토리 더 보기
+						<i class="fa fa-book"></i>
+					</a>
+				</span>
+			</h3>
+			
+			<div class="practice-list-cover row no-gutters">
+				<th:block th:each="story, iter : ${bestStories}">
+				<div th:with="imgPath = ${story.repImgPath}, storyTitle = ${story.title}"  
+					class="reading-talkative-list col-xl-2 col-md-3 col-sm-4 col-6">
+					<div class="moveViewArticleDiv reading-talkative-cover loginRequired" 
+						th:href="'/square/smalltalk/view/' + ${story.id56}"
+						onclick="location.href=$(this).attr('href')">
+						<!-- 이미지 -->
+						<div class="image-section">
+							<img th:if="${imgPath}" class="lozad" 
+								src="/images/app/playsquare/reading_paper.png"
+								th:data-background-image="${imgPath}"
+								 style="background-repeat: no-repeat; background-size: cover; background-position: center;">
+							<img th:unless="${imgPath}" src="/images/app/playsquare/reading_paper.png"
+								 class="story-img-default">
+						</div>
+						<!-- 아티클 제목 / 작성자 정보 -->
+						<div class="reading-info-cover">
+							<div class="title" th:title="${storyTitle}">
+								<span th:text="${storyTitle}">story title </span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- index 광고 -->
+				<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+					<div th:if="${iter.count%6 == 0}" class="reading-talkative-list 
+						sponsor-index col-md-6 col-12"><div class="reading-talkative-cover">
+						<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-fz+5r-15-2j+96"
+						     data-ad-client="ca-pub-7152306695077047"
+						     data-ad-slot="2770181144"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</div></div>
+				</th:block>
+				</th:block>
+			</div>
+		</div>
+		
+		
+		<!-- ------------------------[4. 스몰톡 랭킹]--------------------------- -->
+		
+		<!-- [4.1 이달의 최다 스토리 메이커] -->
+		<div class="member-ranking-section">
+			<h3>
+				SmallTalk <span class="kor">월간 최다</span><br class="d-sm-none">
+				<span class="index-text-color"><span class="kor">스토리 작성자</span> Top 10</span>
+				<i class="fa fa-fire-alt fa-fw" style="color: #FF6740;"></i><br>
+				<small>SmallTalk Monthly Top Rankers Creating Stories</small>
+			</h3>
+			<div class="ranking-bg">
+			<div class="ranking-date text-md-right text-center">
+				<i class="far fa-clock fa-fw"></i> Updated 
+				<span class="date">[[${rankingUpdate}]]</span>
+			</div>
+			<div id="rankingSwipe" class="ranking-list"><ul class="rank-slide">
+				<li th:each="ranker, iter: ${monthlyTopRankers}"
+					th:with="personacon = ${ranker.personacon},
+							iconPath = ${personacon.iconPath}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="${#numbers.formatInteger(iter.count, 2)}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div th:text="${personacon.alias}">별명</div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${iconPath}" class="lozad"
+								th:src="@{/images/app/member/profile_paper.png}" 
+								th:data-background-image="'/resource/profile/' + ${iconPath}"
+								style="background-repeat: no-repeat; background-position: center; background-size: cover;">
+							<img th:unless="${iconPath}" 
+								th:src="@{/images/app/member/profile_paper.png}" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:text="${memberTypeNames[#strings.toString(personacon.memberType)]}">Play</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div>
+				</div></li>
+			</ul></div>
+			<div class="direction-button">
+				<span class="prev ranking-slide">
+					<i class="fa fa-angle-left fa-4x fa-fw"></i>
+				</span>
+				<span id="next" class="next ranking-slide">
+					<i class="fa fa-angle-right fa-4x fa-fw"></i>
+				</span>
+			</div>
+			
+			<div class="rank-page-list pb-2 text-right"></div>	
+			</div>
+		</div>
+		
+		<!-- [4.2 이주의 최다 추천 랭커] -->
+		<div class="member-ranking-section">
+			<h3>
+				SmallTalk <span class="kor">월간 베스트</span><br class="d-sm-none">
+				<span class="index-text-color"><span class="kor">스토리 작성자</span> Top 10</span>
+				<i class="fa fa-star fa-fw" style="color: #ffaf11;"></i><br>
+				<small>SmallTalk Top Rankers Received the Most Upvotes</small>
+			</h3>
+			<div class="ranking-bg">
+			<div class="ranking-date text-md-right text-center">
+				<i class="far fa-clock fa-fw"></i> Updated 
+				<span class="date">[[${rankingUpdate}]]</span>
+			</div>
+			<div id="rankingSwipe" class="ranking-list"><ul class="rank-slide">
+				<li th:each="liker, iter: ${bestLikers}"
+					th:with="personacon = ${liker.personacon},
+							iconPath = ${personacon.iconPath}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="${#numbers.formatInteger(iter.count, 2)}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div th:text="${personacon.alias}">별명</div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${iconPath}" class="lozad"
+								th:src="@{/images/app/member/profile_paper.png}" 
+								th:data-background-image="'/resource/profile/' + ${iconPath}"
+								style="background-repeat: no-repeat; background-position: center; background-size: cover;">
+							<img th:unless="${iconPath}" 
+								th:src="@{/images/app/member/profile_paper.png}" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:text="${memberTypeNames[#strings.toString(personacon.memberType)]}">Play</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul></div>
+			<div class="direction-button">
+				<span class="prev ranking-slide">
+					<i class="fa fa-angle-left fa-4x fa-fw"></i>
+				</span>
+				<span id="next" class="next ranking-slide">
+					<i class="fa fa-angle-right fa-4x fa-fw"></i>
+				</span>
+			</div>
+			
+			<div class="rank-page-list pb-2 text-right"></div>	
+			</div>
+		</div>
+		
+		
+	</div><!-- end of indexContentsDiv -->
+
+</div><!-- end of smallTalkSection -->
+		
+
+
+</section>
+</html>

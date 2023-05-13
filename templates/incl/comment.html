@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- ************************************************************
+				************* 컨텐츠앱 댓글 **************
+*************************************************************** -->
+<div class="row" th:fragment="app_comment" th:with="contentId=${contentId}">
+	<div class="col-12">
+		<script th:inline="javascript">
+		$(function(){
+			var cid = [[${contentId}]];
+			
+			$('[data-toggle="tooltip"]').tooltip();
+			
+			/* 댓글 쓸 때 칸 늘어가게, 등록버튼 활성화 */
+			$("#comment" + cid).bind("change keyup keydown", function(){
+				if($(this).val().length > 0){
+					$("#addCommentBtn" + cid).removeAttr("disabled");
+					$(this).height(0).height($(this).prop('scrollHeight') + 1);
+				} else {
+					$("#addCommentBtn" + cid).attr("disabled", "disabled");
+					$("#comment" + cid).css("height", "32px");
+				}
+			});
+			$(document).on("change keyup keydown", "#comment2" + cid, function(e){
+				if($(this).val().length > 0){
+					$("#addCommentBtn2" + cid).removeAttr("disabled");
+					$(this).height(0).height( $(this).prop('scrollHeight') + 0);
+				} else {
+					$("#addCommentBtn2" + cid).attr("disabled", "disabled");
+					$("#comment2" + cid).css("height", "32px");
+				}
+			});
+			
+			/* 등록버튼 나오게 */
+			$("#comment" + cid).click(function(){
+				$("#comment_button_section" + cid).fadeIn(200);
+			});
+			
+			/* 댓글 취소, 등록버튼 숨기기 */
+			$("#cancelCommentBtn" + cid).click(function(){
+				$("#comment" + cid).css("height", "32px");
+				$("#comment_button_section" + cid).css("display", "none");
+				$("#addCommentBtn" + cid).attr("disabled", "disabled");
+			});
+			
+			
+			
+			/* 댓글 등록 */
+			$("#addCommentBtn" + cid).click(function(){
+				var comment = $("#comment" + cid).val();
+				
+				$.ajax({
+					type: 'POST',
+					url: ,
+					success: function() {
+						
+					},
+					error : function (xhr){
+						if(xhr.status==401){
+							location.href='/login';
+						}else{
+							alert(xhr.responseText);
+						}
+					}
+				}); //end ajax   
+			});
+			
+			
+			
+			/* 대댓글 등록 */
+			$(document).on("click", "#addCommentBtn2" + cid, function(e){
+				var re_alias = $(".re-alias" + cid).last().text();
+				var parentId = $("#parentId" + cid).val();
+				var comment = re_alias + " : " + $("#comment2" + cid).val();
+				
+				$.ajax({
+					type: 'POST',
+					url: ,
+					success: function() {
+						
+					},
+					error : function (xhr){
+						if(xhr.status==401){
+							location.href='/login';
+						}else{
+							alert(xhr.responseText);
+						}
+					}
+				}); //end ajax   
+			});
+			
+			
+		});
+		
+		/* 대댓글 불러오기 */
+		function display_child(id){
+			$("#loading_" + id + "_" + cid).fadeIn(100);
+			setTimeout(function(){
+				$("#loading_" + id + "_" + cid).css("display", "none");
+				$(".child-" + id).fadeIn(100);
+			},330);
+			//대댓글 부르기 버튼
+			$("#display_" + id + "_" + cid).css("display", "none");
+			$("#disappear_" + id + "_" + cid).css("display", "");
+		}
+		
+		/* 대댓글 숨기기 */
+		function disappear_child(id){
+			$(".child-" + id).css("display", "none");
+			//대댓글 부르기 버튼
+			$("#display_" + id + "_" + cid).css("display", "");
+			$("#disappear_" + id + "_" + cid).css("display", "none");	
+			//대댓글 폼 지우기
+			$(".re-form" + cid).html(""); 
+			$(".re-form" + cid).css("display", "none");
+		}
+		
+		
+		/* 대댓글 폼 불러오기 */
+		function re_reply(index, parentId, contentId){
+			var alias = $("#alias" + index + "_" + cid).text(); // 별명
+			$(".re-form").html(""); // 다른 대댓글 폼 지우기
+			$(".re-form").css("display", "none");
+			
+			var paste = $("#re_comment_paste" + index + "_" + cid); //붙여넣기 되는 영역
+			var input = $("#re_comment_copy" + cid).clone();
+			input.appendTo(paste); //end copy
+			
+			$("#parentId" + cid).val(parentId);
+			$(".re-comment-copy" + cid).last().attr("id", "re_comment_copy" + index + "_" + cid);
+			$(".re-comment-copy" + cid).last().css("display", "");
+			$(".recomment-area" + cid).last().attr("id", "comment2" + cid);
+			$(".recomment-btn" + cid).last().attr("id", "addCommentBtn2" + cid);
+			$(".recomment-cancel" + cid).last().attr("onclick", "cancel_recomment(" + index + ")");
+			
+			$("#re_comment_paste" + index + "_" + cid).css("display", ""); // 해당 폼 열기
+			$("#comment2" + cid).focus(); 
+			$(".re-alias" + cid).html(alias); // 답글을 받는 사람 별명 보여주기
+		}
+		
+		/* 대댓글 취소 */
+		function cancel_recomment(index) {
+			$("#re_comment_paste" + index + "_" + cid).html(""); // 다른 대댓글 폼 지우기
+			$("#re_comment_paste" + index + "_" + cid).css("display", "none");
+		}
+		</script>
+		<h3>댓글 보기</h3>
+		<form id="replyForm" method="post">
+			<input type="hidden" th:id="'parentId' + ${contentId}"/>
+			<div class="row">
+				<div th:if="${session.personcon != null}" class="comment-form col-12">
+					<div class="row">
+						<div class="col-sm-1 d-none d-sm-block" style="padding: 10px;">
+							<img src="resources/images/member_navy.png" style="width: 100%; max-width: 45px;">
+						</div>
+						<div class="col-sm-11 col-12" style="padding: 5px;">
+							<!-- 폼 컴포넌트 영역 -->
+							<div id="articleDiv">
+								<textarea th:id="'comment' + ${contentId}" placeholder="댓글을 입력해 주세요." 
+									rows="1" class="comment-textarea"></textarea>
+							</div>
+							<!-- 폼 전송 영역 -->
+							<div id="submitDiv" class="row no-gutters">
+								<div class="d-sm-none col-6 text-left" style="padding:2px;">
+									<img src="resources/images/member_navy.png" width="30px">
+									<span>화연이</span>
+								</div>
+								<div th:id="'comment_button_section' + ${contentId}" class="col-sm-12 col-6 text-right" 
+									style="padding:2px; display: none;">
+									<input th:id="'cancelCommentBtn' + ${contentId}" type="reset" 
+										value="취 소" class="btn btn-light"/>
+									<input th:id="'addCommentBtn' + ${contentId}" type="button" 
+										value="등 록" class="btn btn-main" disabled="disabled"/>
+								</div>
+							</div>
+						</div>	
+					</div>
+				</div>
+				<div th:unless="${session.personcon != null}" class="comment-form col-12">
+					<div class="row">
+						<!--/* 폼 컴포넌트 영역 */-->
+						<div id="articleDiv" class="col-12" style="padding: 5px;">
+							<textarea rows="1" placeholder="로그인 후 댓글을 이용하실 수 있습니다." readonly="readonly"></textarea>
+						</div>
+					</div>
+				</div>
+				<!-- 복사될 답글 폼 -->
+				<div th:id="'re_comment_copy' + ${contentId}" th:class="'re-comment-copy' + ${contentId} + ' row'" 
+					style="display: none;">
+					<div class="col-sm-1 col-2" style="padding: 15px 5px;">
+						<img src="resources/images/member_navy.png" style="width: 90%; max-width: 35px;">
+					</div>
+					<div class="comment-form col-sm-11 col-10">
+						<div class="row no-gutters">
+							<!-- 폼 컴포넌트 영역 -->
+							<div class="col-12">
+								to. <span th:class="'re-alias' + ${contentId}">워오홍</span>
+							</div>
+							<div class="col-12">
+								<textarea rows="1" th:class="'recomment-area' + ${contentId}"></textarea>
+							</div>
+							<!-- 폼 전송 영역 -->
+							<div class="col-12 text-right" style="padding:2px 0;">
+								<input type="reset" value="취 소" 
+									th:class="'recomment-cancel' + ${contentId} + ' btn btn-light btn-sm'"/>
+								<input type="button" value="등 록" disabled="disabled" 
+									th:class="'recomment-btn' + ${contentId} + ' btn btn-main btn-sm'"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				
+				<div class="comment-area col-12">
+					<!-- 댓글1 -->
+					<div th:unless="${reply.parentId}" class="parent-comment row">
+						<div class="col-sm-1 col-2" style="padding: 5px;">
+							<a>
+								<img src="resources/images/member_navy.png" style="width: 90%; max-width: 45px;">
+							</a>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+						</div>
+						<div class="col-sm-11 col-10" style="padding:0;">
+							<div class="nickname d-none d-sm-block"> 
+								<a><span th:id="'alias' + ${iterStat.index} + '_' + ${contentId}">오홍이</span></a>
+								<span class="date">2018-10-11 (목) 11:53</span>
+							</div>
+							<div class="comment-body">
+							My size before exercise of Tiffany 93-78-99 ( cm ).  2 months later with exercises Tiffany 88-70-91.
+							</div>
+							<div class="nickname d-sm-none"> 
+								<a><span th:id="'alias' +${iterStat.index} + '_' + ${contentId}">오홍이</span></a>
+								<span class="date"><b>ㆍ</b> 2018-10-11 (목) 11:53</span>
+							</div>
+							<div class="comment-button">
+								<button data-toggle="tooltip" title="좋아요" data-placement="bottom" 
+									type="button" class="btn btn-none like-comment-btn">
+									<i lang="fa" class="fa fa-thumbs-up"></i>
+									<span style="color: #444;">12</span>
+								</button> 
+								<button data-toggle="tooltip" title="싫어요" data-placement="bottom" 
+									type="button" class="btn btn-none like-comment-btn">
+									<i lang="fa" class="fa fa-thumbs-down fa-flip-horizontal"></i>
+									<span style="color: #444;">3</span>
+								</button> 
+								<button th:onclick="re_reply(\'' + ${iterStat.index} + '\',\'' + ${reply.id} + '\',\'' + ${content.id} + '\')'"  
+									type="button" class="btn btn-none like-comment-btn">
+									<i lang="fa" class="fa fa-comment-dots"></i>
+									<span style="color: #444;">reply</span>
+								</button>
+								<div th:if="${session.personcon != null}" class="button-etc float-right btn-group">
+									<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+										<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+									</button>
+									<ul class="dropdown-menu dropdown-menu-right" role="menu">
+									    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+									    <li class="dropdown-item text-center"><a href="#">삭제</a></li>
+									</ul>
+								</div>
+							</div> 
+							<div th:id="'re_comment_paste' + ${iterStat.index} + '_' + ${contentId}" 
+								class="re-form child-comment col-12" style="display: none;">
+							</div><!-- /.re-form -->
+						</div>
+					</div><!-- /.parent-comment row -->
+					
+					<div th:unless="${reply.parentId}" class="row">
+						<div class="col-sm-1 col-2"></div>
+						<div class="display-child-btn col-sm-11 col-10">
+							<div>
+								<button type="button" th:id="'display_' + ${reply.id} + '_' + ${contentId}" 
+									th:onclick="'display_child(\'' + ${reply.id} + '\')'" class="btn-none">
+									답글 <b>2</b>개 보기 <i lang="fa" class="fa fa-angle-down"></i>
+								</button>
+								<button type="button" th:id="'disappear_' + ${reply.id} + '_' + ${contentId}" 
+									th:onclick="'disappear_child(\'' + ${reply.id} + '\')'" class="btn-none"
+									style="display: none;">
+									답글 숨기기 <i lang="fa" class="fa fa-angle-up"></i>
+								</button>
+							</div>
+							<div th:id="'loading_' + ${reply.id} + '_' + ${contentId}" 
+								style="padding: 10px; display: none;">
+								<i lang="fa" class="fa fa-spinner fa-spin fa-2x"></i>
+							</div>
+						</div>
+					</div>
+					
+					<!-- 대댓글 -->
+					<div th:if="${reply.parentId}" th:class="'child-' + ${reply.parentId} + ' child-comment row'" 
+						style="display: none;">
+						<div class="col-sm-1 col-2"></div>
+						<div class="re-comment col-sm-11 col-10">
+							<div class="row">
+								<div class="col-sm-1 col-2" style="padding: 5px;">
+									<a>
+										<img src="resources/images/member_navy.png" style="width: 90%; max-width: 35px;">
+									</a>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+								</div>
+								<div class="col-sm-11 col-10" style="padding:0;">
+									<div class="nickname d-none d-sm-block"> 
+										<a><span th:id="'alias' + ${iterStat.index} + '_' + ${contentId}">LonelyNight</span></a>
+										<span class="date">2018-10-11 (목) 11:53</span>
+									</div>
+									<div class="comment-body">저는 밤이 되면 외로워집니다.</div>
+									<div class="nickname d-sm-none"> 
+										<a><span th:id="'alias' + ${iterStat.index} + '_' + ${contentId}">LonelyNight</span></a>
+										<span class="date"><b>ㆍ</b> 2018-10-11 (목) 11:53</span>
+									</div>
+									<div class="comment-button">
+										<button data-toggle="tooltip" title="좋아요" data-placement="bottom" 
+											type="button" class="btn btn-none like-comment-btn">
+											<i lang="fa" class="fa fa-thumbs-up"></i>
+											<span style="color: #444;">12</span>
+										</button> 
+										<button data-toggle="tooltip" title="싫어요" data-placement="bottom" 
+											type="button" class="btn btn-none like-comment-btn">
+											<i lang="fa" class="fa fa-thumbs-down fa-flip-horizontal"></i>
+											<span style="color: #444;">3</span>
+										</button> 
+										<button th:onclick="re_reply(\'' + ${iterStat.index} + '\',\'' + ${reply.parentId} + '\',\'' + ${content.id} + '\')'"  
+											type="button" class="btn btn-none like-comment-btn">
+											<i lang="fa" class="fa fa-comment-dots"></i>
+											<span style="color: #444;">reply</span>
+										</button>
+										<div th:if="${session.personcon != null}" class="button-etc float-right btn-group">
+											<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+												<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+											</button>
+											<ul class="dropdown-menu dropdown-menu-right" role="menu">
+											    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+											    <li class="dropdown-item text-center"><a href="#">삭제</a></li>
+											</ul>
+										</div>
+									</div> 
+								</div>
+								<div th:id="'re_comment_paste' + ${iterStat.index} + '_' + ${contentId}" 
+									class="re-form child-comment col-12" style="display: none;">
+								</div><!-- /.re-form -->
+							</div>
+						</div><!-- /.re-comment -->
+					</div><!-- /.child-comment row -->
+					
+				</div><!-- /.comment-area col-12 -->
+			</div><!-- /.row -->
+		</form>
+	</div>
+</div>	
+
+		
+
+

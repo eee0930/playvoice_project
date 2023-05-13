@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="menu2">
+
+<div id="menuContainer">
+<!--/***********************************************************************/-->
+<!--/* 				   	  		  menu PC ver. 	 						   */--> 
+<!--/***********************************************************************/-->
+<div class="d-none d-lg-block mt-4">
+	<div id="mypagePersonaconDiv" class="menu-personacon-info-section text-center pt-2">
+		<div class="menu-personacon">
+			<img src="/images/app/member/profile_paper.png" class="pentagon"
+				style="background: url('/images/app/member/profile_ex7.jpg') no-repeat;
+				background-position: center; background-size: cover;">
+		</div>
+		<div class="menu-alias row no-gutters">
+			<div class="col"></div>
+			<div class="aliasLeft col-auto">lazyhysong</div>
+			<div class="col text-left pl-2">
+				<a th:href="@{/mypage/profile/edit}" title="프로필 수정">
+					<i class="fa fa-edit fa-fw"></i>
+				</a>
+			</div>
+		</div>
+		<div class="menu-member-type">
+			<label class="member-type gold">
+				<span><i class="fa fa-crown fa-fw mr-1"></i> Gold</span>
+			</label>
+		</div>
+		<hr class="hr-text">
+	</div>
+	
+	<div id="myPageMenuSection" class="mypage-menu-section">
+		<ul class="mypage-menu">
+			<li>
+				<a th:href="@{/mypage}">
+					<i class="fa fa-home fa-fw mr-2"></i>
+					<span>마이 페이지</span>
+				</a>
+			</li>
+			
+			<li class="title home-menu" data-group="pointInfo">
+				<div class="main-title">Account Info</div>
+			</li>
+			<li>
+				<a th:href="@{/mypage/study/today}">
+					<i class="fa fa-chalkboard-teacher fa-fw mr-2"></i>
+					<span>오늘의 학습 입출금</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/study/mypoint}">
+					<i class="fa fa-comment-dollar fa-fw mr-2"></i>
+					<span>플레이 어카운트</span>
+				</a>
+			</li>
+			
+			<li class="title" data-group="passportInfo">
+				<div class="main-title">Journey Info</div>
+			</li>
+			<li>
+				<a th:href="@{/mypage/journey/study}">
+					<i class="fa fa-plane fa-fw mr-2"></i>
+					<span>학습 여정 정보</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/journey/log}">
+					<i class="fas fa-pen-nib fa-fw mr-2"></i>
+					<span>여정 로그 정보</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/passport}">
+					<i class="fa fa-passport fa-fw mr-2"></i>
+					<span>학습 여권 정보</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/journey/welcome}">
+					<i class="fa fa-compass fa-fw mr-2"></i>
+					<span>입국 도시 정보</span>
+				</a>
+			</li>
+			
+			<li class="title" data-group="profile">
+				<div class="main-title">Profile Settings</div>
+			</li>
+			<li>
+				<a th:href="@{/mypage/profile/view}">
+					<i class="fa fa-universal-access fa-fw mr-2"></i>
+					<span>프로필 정보</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/profile/edit}">
+					<i class="fa fa-edit fa-fw mr-2"></i> 
+					<span>프로필 수정</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/mypage/member/edit}">
+					<i class="fa fa-cog fa-fw mr-2"></i>
+					<span>회원 정보 수정</span>
+				</a>
+			</li>
+			<li>
+				<a onclick="displayMemberProfile()">
+					<i class="fa fa-fw fa-user-astronaut mr-2"></i>
+					<span>나의 프로필 팝업</span>
+				</a>
+			</li>
+			
+			
+			<li class="title home-menu" data-group="purchase">
+				<div class="main-title">
+					<a th:href="@{/mypage/coupon/confirm}">Purchase Info</a>
+				</div>
+			</li>
+			<li>
+				<a th:href="@{/mypage/payment/list}">
+					<i class="far fa-credit-card fa-fw mr-2"></i>
+					<span>구매 내역</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/membership}">
+					<i class="fas fa-crown fa-fw mr-2"></i>
+					<span>골드 멤버십</span>
+				</a>
+			</li>
+			
+			<li class="title hidden-menu-title" data-group="contact">
+				<div class="main-title">Contact Us</div>
+				<div class="menu-info">문의 게시판</div>
+			</li>
+			<li>
+				<a th:href="@{/qna/app/list}">
+					<i class="fa fa-mobile-alt fa-fw mr-2"></i>
+					<span>앱 서비스 문의</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/qna/order/list}">
+					<i class="fas fa-credit-card fa-fw mr-2"></i>
+					<span>주문, 결제 문의</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/qna/delivery/list}">
+					<i class="fa fa-truck fa-fw mr-2"></i>
+					<span>배송 문의</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/qna/refund/list}">
+					<i class="fas fa-receipt fa-fw mr-2"></i>
+					<span>취소, 환불 문의</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/qna/report/list}">
+					<i class="fa fa-flag-checkered fa-fw mr-2"></i>
+					<span>신고 문의</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/qna/business/list}">
+					<i class="fa fa-ad fa-fw mr-2"></i>
+					<span>제휴 광고 문의</span>
+				</a>
+			</li>
+		</ul>
+	</div><!-- end of myPageMenuSection -->
+		
+</div>
+
+<script th:inline="javascript">
+	// [좌측메뉴에서 href값이 현재 uri와 같으면 활성화]---------------------------------------
+	$("#menuContainer .mypage-menu li a[href='" + location.pathname + "']").closest("li").addClass("active");
+	
+</script>
+
+</div><!-- end of menuContainer -->
+
+</div>

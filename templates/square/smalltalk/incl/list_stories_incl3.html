@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="list">
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [스토리 리스트의 카테고리에서 괄호 제거 (카드 영역 공간 확보를 위해)]---------------------------
+	categoryNameArrange();
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [검색버튼 활성화]----------------------------------------------------------
+	$(document).on("change keyup keydown", ".requireSentenceForm", function(){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			add_btn.removeAttr("disabled");
+		} else {
+			add_btn.attr("disabled", "disabled");
+		}
+	});
+	
+}); //end of ready
+
+
+/**
+ * category 한글명칭에 괄호 생략하기
+ */
+function categoryNameArrange() {
+	$(".reading-talkative-list, .select-trans-list li").each(function(i, obj) {
+		var category = $(obj).find(".category");
+		var categories = category.text().split("(");
+		category.text(categories[0].trim());
+	});
+}
+
+</script>
+
+
+
+<div id="smallTalkSection" class="translation-section talkative"><div class="translation-bg">
+	<!-- --------------------------[스몰톡 등록/ 검색 버튼]------------------------ -->
+	<div class="translation-guide row no-gutters">
+		<!-- 스몰토크 등록 버튼 -->
+		<div class="col-auto d-none d-md-inline-block align-self-center">
+			<button id="addSmallTalk_btn" type="button" 
+				class="btn btn-outline-playsquare2"
+				th:href="@{/square/smalltalk/add}"
+				onclick="location.href=$(this).attr('href')">
+				SmallTalk 등록 <i class="fa fa-pen fa-fw"></i>
+			</button>
+		</div>
+		<!-- [바벨 리스트 sort 버튼 (Mobile ver.)] -->
+		<div class="select-trans-list dropdown d-md-none col align-self-center">
+			<button class="btn btn-secondary dropdown-toggle w-100 text-center" 
+				data-toggle="dropdown" type="button">
+				<span class="category">가족과 육아 (어린이, 육아, 부모님)</span>
+				<i class="fa fa-caret-down fa-fw float-right"></i>
+			</button>
+			<div class="dropdown-menu w-100">
+				<a class="dropdown-item">전체 보기</a>
+				<a class="dropdown-item" th:each="category, iter : ${categoryList}"
+					th:href="@{/square/smalltalk/list}">
+					[[${category}]]</a>
+			</div>
+		</div>
+		<div class="add-babel-guide col-md px-2 align-self-center py-1 only-PC">
+			관심 있는 주제의 영어 글만 준비해 오세요.<br class="d-none d-md-block">
+			여러분의 컨텐츠 작성을 도울 로봇들이 대기하고 있습니다.
+		</div>
+		<div class="search-button-section col-auto align-self-center">
+			<a class="squareSearchBtn" title="검색">
+				<i class="fa fa-search"></i>
+			</a>
+		</div>
+	</div>
+	
+	<!-- ----------------------------[주제 검색]------------------------------- -->
+	<div id="searchSentence_div" class="search-sentence-section trans-list add" style="display: none;">
+		<div class="translation-cover"><div class="sentence">
+			<h3>검색 <i class="fa fa-search fa-fw"></i></h3>
+			<form>
+			<div class="squareSentenceForm-div row no-gutters">
+				<div class="col-md-2 py-2 align-self-center">
+					<select class="form-control">
+						<option>제목</option>
+						<option>작성자</option>
+					</select>
+				</div>
+				<div class="col-md-10 pl-md-3 py-2 align-self-center">
+					<input type="search" class="squareSentenceForm requireSentenceForm form-control" 
+						placeholder="검색어를 입력해 주세요."/>
+				</div>
+			</div>	
+			<div class="squareSentenceDiv mt-2 text-right">
+				<button id="cancelSearch_btn" type="reset" class="btn btn-outline-playsquare btn-sm" 
+					style="width: 80px; margin-right: 10px;">취 소</button>
+				<button type="button" class="squareAddBtn btn btn-playsquare btn-sm" 
+					disabled="disabled" style="width: 80px;">
+					<i class="fa fa-search fa-fw"></i> 검 색
+				</button>
+			</div>
+			</form>
+		</div></div>
+	</div>
+
+	<!-- -------------------[스몰톡 카테고리/ 리스트 sort 버튼]---------------------- -->
+	<div class="d-none d-md-block">
+		<div class="select-trans-list list-pc row no-gutters">
+			<div class="col-4 dropdown align-self-center">
+				<button class="btn btn-secondary dropdown-toggle text-center w-100" data-toggle="dropdown" type="button">
+					<i class="fa fa-list fa-fw float-left"></i>
+					<span class="category">가족과 육아 (어린이, 육아, 부모님, 가정, 결혼)</span>
+					<i class="fa fa-caret-down fa-fw float-right"></i>
+				</button>
+				<ul class="dropdown-menu w-100">
+					<li class="dropdown-item">
+						<i class="fa fa-list fa-fw"></i> 전체 보기 </li>
+					<li class="dropdown-item" th:each="category, iter : ${categoryList}"
+						th:href="@{/square/smalltalk/list}"
+						onclick="location.href=$(this).attr('href')">
+						<i class="fa fa-list fa-fw"></i>  
+						<span class="category">[[${category}]]</span></li>
+				</ul>
+			</div>
+			<div class="col text-right align-self-center">
+				<a class="storyListMenu" data-reg="/square/smalltalk/plate"
+					th:href="@{/square/smalltalk/plate}">
+					<i th:if="${#strings.contains('PG', (memberType))}" 
+						class="forGold fa fa-crown fa-fw mr-1"></i>
+					<i th:unless="${#strings.contains('PG', (memberType))}" 
+						class="fa fa-archive fa-fw"></i>
+					<span>스토리 보관함</span>
+				</a>
+				<a class="storyListMenu" data-reg="/square/smalltalk/mylist"
+					th:href="@{/square/smalltalk/mylist}">
+					<i class="fa fa-street-view fa-fw mr-1"></i>
+					<span>내가 쓴 글 보기</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</div></div><!-- end of smallTalkSection -->
+
+
+<!-- -------------------------[3. 스몰톡 스로리 리스트]---------------------------- -->
+<div id="smallTalkListSection" class="translation-section talkative">		
+	
+	<!-- ------------------------[story list]------------------------------- -->
+	<div class="reading-talkative-section row no-gutters">
+		
+		<div th:each="story, iter : ${storyList}" 
+			class="reading-talkative-list col-xl-3 col-md-4 col-6">
+			<div class="reading-talkative-cover" th:href="@{/square/smalltalk/view}"
+				onclick="location.href=$(this).attr('href')">
+				<!-- 이미지 -->
+				<div class="image-section">
+					<img src="/images/app/playsquare/reading_paper.png"
+						th:style="'background: url(\'/images/app/dictationBook/theme_' 
+						+ ${iter.index} +'.jpg\') no-repeat;
+						background-size: cover; background-position: center;'">
+				</div>
+				<!-- 아티클 제목 / 작성자 정보 -->
+				<div class="reading-info-cover">
+					<div class="title">
+						<label class="badge badge-danger">N</label>
+						<span th:text="${story}"></span>
+					</div>
+					<div class="alias-section">
+						<span class="posted">Posted by</span>
+						<span class="alias">lazyhysong 화욤이</span>
+					</div>
+					<div class="personacon-section">
+						<img src="/images/app/member/profile_paper.png"
+							th:style="'background: url(\'/images/app/profile/' 
+							+ ${iter.count} + '.jpg\') no-repeat;
+							background-size: cover; background-position: center;'">
+					</div>
+				</div>
+				<!-- 카테고리 / 작성일 -->
+				<div class="reading-info-cover2 row no-gutters">
+					<div class="category col align-self-center" 
+						th:text="${categoryList[iter.index]}"></div>
+					<div class="date col-auto align-self-center">2019-06-15</div>
+				</div>
+			</div>
+		</div>
+		
+		<div th:each="story, iter : ${storyList}" th:href="@{/square/smalltalk/view}" 
+			class="reading-talkative-list col-xl-3 col-md-4 col-6"
+			onclick="location.href=$(this).attr('href')">
+			<div class="reading-talkative-cover">
+				<!-- 이미지 -->
+				<div class="image-section">
+					<img src="/images/app/playsquare/reading_paper.png"
+						th:style="'background: url(\'/images/app/dictationBook/theme_' 
+						+ ${iter.index} +'.jpg\') no-repeat;
+						background-size: cover; background-position: center;'">
+				</div>
+				<!-- 아티클 제목 / 작성자 정보 -->
+				<div class="reading-info-cover">
+					<div class="title">
+						<label class="badge badge-danger">N</label>
+						<span th:text="${story}"></span>
+					</div>
+					<div class="alias-section">
+						<span class="posted">Posted by</span> 
+						<span class="alias">lazyhysong 화욤이</span>
+					</div>
+					<div class="personacon-section">
+						<img src="/images/app/member/profile_paper.png"
+							th:style="'background: url(\'/images/app/profile/' 
+							+ ${iter.count} + '.jpg\') no-repeat;
+							background-size: cover; background-position: center;'">
+					</div>
+				</div>
+				<!-- 카테고리 / 작성일 -->
+				<div class="reading-info-cover2 row no-gutters">
+					<div class="category col align-self-center" 
+						th:text="${categoryList[iter.index]}"></div>
+					<div class="date col-auto align-self-center">2019-06-15</div>
+				</div>
+			</div>
+		</div>
+		
+		<div th:href="@{/square/smalltalk/view}" 
+			class="reading-talkative-list col-xl-3 col-md-4 col-6"
+			onclick="location.href=$(this).attr('href')">
+			<div class="reading-talkative-cover">
+				<!-- 이미지 -->
+				<div class="image-section">
+					<img src="/images/app/playsquare/reading_paper.png" 
+						class="story-img-default">
+				</div>
+				<!-- 아티클 제목 / 작성자 정보 -->
+				<div class="reading-info-cover">
+					<div class="title">
+						<label class="badge badge-danger">N</label>
+						<span>소개팅에서 신사답게 보일 수 있는 방법 10가지</span>
+					</div>
+					<div class="alias-section">
+						<span class="posted">Posted by</span> 
+						<span class="alias">lazyhysong 화욤이</span>
+					</div>
+					<div class="personacon-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/profile/9.jpg') no-repeat;
+							background-size: cover; background-position: center;">
+					</div>
+				</div>
+				<!-- 카테고리 / 작성일 -->
+				<div class="reading-info-cover2 row no-gutters">
+					<div class="category col align-self-center">관계 (사회 생활, 데이트, 동성 연애)</div>
+					<div class="date col-auto align-self-center">2019-06-15</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- pagination -->
+	<div class="trans-list-page row no-gutters my-3">
+		<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+			<a class="btn btn-playsquare2">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item active">
+					<a class="page-link">1</a>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+			<a class="btn btn-playsquare2">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+	
+</div><!-- end of smallTalkListSection -->
+
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div th:fragment="list2">
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [스토리 리스트의 카테고리에서 괄호 제거 (카드 영역 공간 확보를 위해)]---------------------------
+	categoryNameArrange();
+	
+	// [아티클 등록폼으로 이동]--------------------------------------------------------
+	$("#addSmallTalk_btn").click(function(){
+		location.href="/square/smalltalk/add";
+	});
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [검색버튼 활성화]----------------------------------------------------------
+	$(document).on("change keyup keydown", ".requireSentenceForm", function(){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			add_btn.removeAttr("disabled");
+		} else {
+			add_btn.attr("disabled", "disabled");
+		}
+	});
+	
+	// [view smalltalk (아티클) 이동하기]-------------------------------------------
+	$(".moveViewArticleDiv").click(function(){
+		location.href="/square/smalltalk/view";
+	});
+	
+	
+	
+}); //end of ready
+
+
+/**
+ * category 한글명칭에 괄호 생략하기
+ */
+function categoryNameArrange() {
+	$(".reading-talkative-list, .select-trans-list li").each(function(i, obj) {
+		var category = $(obj).find(".category");
+		var categories = category.text().split("(");
+		category.text(categories[0].trim());
+	});
+}
+
+</script>
+
+
+<!-- -------------------------[3. 스몰톡 스로리 리스트]---------------------------- -->
+<div id="smallTalkListSection" class="translation-section talkative">		
+	
+	<!-- 내가 담은 스토리가 없을 경우 -->
+	<div class="reading-talkative-section no-contents">
+		<div class="d-md-none text-center">
+			<img src="/images/common/icon/icon_paper.png" class="empty_plate">
+		</div>
+		<div class="box-cover-mobile box-main">
+			스토리 보관함이 비어있습니다.<br>
+			플보 크루들이 정성스럽게 작성한 스토리 중 마음에 드는 글이 있다면 보관해 보세요.<br>
+			<label class="add-plate-button">
+				<i class="fa fa-bookmark"></i>
+			</label>
+			담기 버튼은 스토리 상세보기의 오른쪽 
+			<span class="d-none d-md-inline-block">상단에</span>
+			<span class="d-md-none">하단에</span>
+			있습니다
+		</div>
+		<div class="d-none d-md-block">
+			<img src="/images/common/icon/icon_paper.png" class="empty_plate">
+		</div>
+	</div>
+	
+</div><!-- end of smallTalkListSection -->
+
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div th:fragment="list3">
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [아티클 등록폼으로 이동]--------------------------------------------------------
+	$("#addSmallTalk_btn").click(function(){
+		location.href="/square/smalltalk/add";
+	});
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [검색버튼 활성화]----------------------------------------------------------
+	$(document).on("change keyup keydown", ".requireSentenceForm", function(){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			add_btn.removeAttr("disabled");
+		} else {
+			add_btn.attr("disabled", "disabled");
+		}
+	});
+	
+	// [view smalltalk (아티클) 이동하기]-------------------------------------------
+	$(".moveViewArticleDiv").click(function(){
+		location.href="/square/smalltalk/view";
+	});
+	
+	
+	
+}); //end of ready
+
+
+</script>
+
+
+
+<!-- -------------------------[3. 스몰톡 스로리 리스트]---------------------------- -->
+<div id="smallTalkListSection" class="translation-section talkative">		
+	
+	<!-- 내가 쓴 스토리 -->
+	<div class="reading-talkative-section no-contents">
+		<div class="d-md-none text-center">
+			<img src="/images/common/icon/icon_paper.png" class="robots"><br>
+			로봇들이 계속 농땡이 부리게 두지 말아 주세요 <i class="far fa-sad-cry fa-lg"></i>
+		</div>
+		<div class="box-cover-mobile box-main">
+			번역? 독해 힌트? 겁먹지 마세요! <i class="far fa-grin-alt fa-lg"></i><br>
+			로봇들이 <span class="alias">'lazyhysong'</span>님의 
+			글쓰기를 돕기 위해 대기 중입니다!<br>
+			흥미 있는 이야기, 관심 있는 주제에 대한 영어 글을 발견했다면 등록해 보세요.
+		</div>
+		<div class="d-none d-md-block">
+			<img src="/images/common/icon/icon_paper.png" class="robots"><br>
+			로봇들이 계속 농땡이 부리게 두지 말아 주세요 <i class="far fa-sad-cry fa-lg"></i>
+		</div>
+	</div>
+	
+</div><!-- end of smallTalkListSection -->
+
+
+</div>

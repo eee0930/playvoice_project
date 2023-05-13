@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoicebook_layout}">
+
+<head>
+	<title>My Level : PlayvocieBook</title>
+
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+	   
+<style>
+	#myLevelDiv ul {
+		list-style-type: none;
+		/* width: 500px; */
+	}
+	
+	#myLevelDiv li {
+		padding: 10px;
+		overflow: auto;
+		/*  border: 1px solid #696969; */
+		margin: 0 0 10px 0;
+	}
+	
+	#myLevelDiv li:hover {
+		background: #eee;
+		cursor: pointer;
+	}
+	
+	#myLevelDiv li .levelDiv{
+		border: 1px solid #696969;
+	}
+	
+	#myLevelDiv li .levelDiv img {
+		float: left;
+		margin: 0 15px 0 0;
+	}
+	
+	#myLevelDiv li .levelDiv h3 {
+		font: bold 20px/1.5 Helvetica, Verdana, sans-serif;
+		color: #696969;
+	}
+	
+	#myLevelDiv li .levelDiv p {
+		font: 200 12px/1.5 Georgia, Times New Roman, serif;
+	}
+	
+	#myLevelDiv li .stageDiv {
+		/* margin-top: 50px; */
+	}
+</style>
+<script th:inline="javascript">
+$(document).ready(function() {
+	$('li .levelDiv').click(function(e) {
+		e.preventDefault();
+
+		var selected = $(this);
+		var isLoaded = selected.attr("load");
+		
+		//alert("isLoaded="+selected.attr("lid"));
+
+		if (isLoaded == 'false') {
+			getStageList(selected.attr("lid"), selected);
+		} else {
+			//selected.children('div').toggle();
+			$(selected).next().toggle();
+		}
+	});
+});
+
+function getStageList(levelId, selector) {
+	$.ajax({
+		url : '/playvoiceBook/stagelist/' + levelId,
+		type : 'get',
+		contentType : "application/json",
+		success : function(stageList) {
+			//displayStageList(stageList, '#myLevelDiv li[lid="'+levelId+'"]');
+			//$('#myLevelDiv li[lid="'+levelId+'"] div').css("display", "block");
+
+			displayStageList(stageList, selector);
+		},
+		error : function(e) {
+			alert("처리중 에러가 발생하였습니다.\n" + JSON.stringify(e));
+			console.log("ERROR : ", e);
+		}
+	});
+}
+
+function displayStageList(stageList, selector) {
+	/* stageList.forEach(function(stage, index) {
+		var stageDiv = document.createElement("div");
+		stageDiv.setAttribute("style", "border: 1px solid #222; margin: 10px; padding:10px;")
+		stageDiv.innerHTML = "<span>"+stage.rep+"_"+index+"</span>";
+		$(selector.children('div')).append(stageDiv);
+	}); */
+
+	stageList.forEach(function(stage, index) {
+		var stageCover = document.createElement("div");
+		stageCover.setAttribute("class", "col-lg-3 col-sm-4 col-6 p-sm-2");
+		var stageDiv = document.createElement("div");
+		stageDiv.setAttribute("class", "bg-white jsAction border p-2");
+		stageDiv.setAttribute("style", "min-height:150px;")
+		stageDiv.innerHTML = "<span>" + stage.rep + "_" + index	+ "</span>";
+		stageCover.appendChild(stageDiv);
+		//$(selector.children('div')).append(stageCover);
+		$(selector).next().append(stageCover);
+	});
+
+	//$(selector).children('div').show();
+	$(selector).next().show();
+	$(selector).attr("load", "true");
+}
+</script>
+</head>
+
+<section layout:fragment="content">
+<div id="myLevelSection">
+	<h3>List of Level</h3>
+
+	<div id="myLevelDiv">
+		<ul>
+		<th:block th:each="level, iter: ${myLevels}">
+		<li>
+			<div class="row levelDiv"  th:lid="${level.lid}" th:load="false">
+				<img th:src="@{'/images/app/playvoiceBook/2019_0111_'+${iter.count}+'.jpg'}" width="120px" height="120px" />
+				<h3>Level [[${startlevelSeq + iter.index}]]</h3><br>
+				<p th:utext="${#strings.replace(level.description, newLineChar, '<br />')}"></p>
+			</div>
+			<div class="row stageDiv" style="display: none;"></div>
+		</li>
+		</th:block>
+		</ul>
+	</div>
+
+</div><!-- end of myLevelSection -->
+</section><!-- end of content -->

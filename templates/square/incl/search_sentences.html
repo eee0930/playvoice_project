@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="search">
+	<!-- -------------------------[search sentence]------------------------- -->
+	<div id="searchSentence_div" class="search-sentence-section trans-list add" style="display: none;"
+		th:with="searchTarget=${#strings.contains(#request.requestURI, '/babel/')?'예문':
+				#strings.contains(#request.requestURI, '/digest/')?'주제':'기타'}">
+		<div class="translation-cover" th:if="${session.userContainer}"><div class="sentence">
+			<h3>[[${searchTarget}]] 검색 <i class="fa fa-search fa-fw"></i></h3>
+			<form  id="searchForm">
+			<div class="squareSentenceForm-div row no-gutters">
+				<div class="col-md-2 py-2 align-self-center">
+					<select id="searchType" class="form-control">
+						<option th:each="option,iter:${searchOptions}" th:value="${option.value}" th:text="${option.name}"></option>
+					</select>
+				</div>
+				<div class="col-md-10 pl-md-3 py-2 align-self-center">
+					<input id="searchKeyword" type="text" class="requireSentenceForm form-control" 
+						placeholder="검색어를 입력해주세요." autocomplete="off">
+					<!-- 제시어 기능 -->
+					<ul class="suggest-list-cover" style="display: none;"></ul>
+				</div>
+			</div>	
+			<div class="squareSentenceDiv mt-2 text-right">
+				<button id="cancelSearch_btn" type="reset" class="btn btn-outline-playsquare btn-sm" 
+					style="width: 80px; margin-right: 10px;">취 소</button>
+				<button id="searchSentenceBtn" type="submit" class="squareAddBtn loginRequired btn btn-playsquare btn-sm" 
+					disabled style="width: 80px;" th:href="${#request.requestURI}">
+					<i class="fa fa-search fa-fw"></i> 검 색
+				</button>
+			</div>
+			<input id="searchStackType" type="hidden" th:value="${stackType}">
+			</form>
+		</div></div>
+		<div th:unless="${session.userContainer}" class="translation-cover">
+			<div class="form-control jsAction" title="클릭하면 로그인 화면으로 이동합니다."
+				onclick="location.href='/auth/login?destPage=' + self.location">로그인 후 이용 가능합니다.</div>
+		</div>
+	</div>
+	
+	<!-- --------------------------[검색 결과 list]----------------------------- -->
+	<div class="result-search-section" style="display: none;">
+		<h3 class="row no-gutters">
+			<span class="col-md"></span>
+			<span class="col-md-auto align-self-center">
+				<i class="fa fa-search"></i> 검색 결과<br>
+				<small>Check out the search results and We hope these help you.</small>
+			</span>
+			<span class="search-result-close col-md text-md-right py-2 align-self-center">
+				<button id="closeResultSearchSentence_btn" type="button"
+					class="btn btn-outline-playsquare2 btn-xs">
+					<span>닫기 </span><i class="fa fa-times"></i>
+				</button>
+			</span>
+		</h3>
+		<th:block th:if="${#strings.contains(#request.requestURI, '/babel/')}">
+			<!-- [1. Playvoice Crew Sentence] -->
+			<div id="crewSentence" class="crew-sentence">
+				<h5><i class="fa fa-ellipsis-v"></i> Playvoice App Library</h5>
+	
+				<!-- ----------- searched Sentences Copy Place------------------->
+				
+				<div class="trans-list-page search text-center my-3">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item">
+							<a class="page-link">1</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			
+			
+			<!-- [2. Playvoice Sentence] -->
+			<div id="internalSentence" class="internal-sentence">
+				<h5><i class="fa fa-ellipsis-v"></i> Playvoice Book Library</h5>
+				<!-- ----------- searched Sentences Copy Place------------------->
+							
+				<div class="trans-list-page search text-center my-3">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item">
+							<a class="page-link">1</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</th:block>
+		<!-- [3. Normal] -->
+		<th:block th:unless="${#strings.contains(#request.requestURI, '/babel/')}">
+			<!-- ----------- searched Results Copy Place------------------->
+						
+			<div class="trans-list-page search text-center my-3">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item">
+						<a class="page-link">1</a>
+					</li>
+				</ul>
+			</div>
+		</th:block>
+	</div>
+	<!--/*------------------- /검색된 예문 for copy----------------------------*/-->
+</div>
+</html>

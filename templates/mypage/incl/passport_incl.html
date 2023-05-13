@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="passport">
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+var memberId = /*[[${mid}]]*/ 0;
+	
+	// [스탬프 날짜 month의 타입을 바꿔서 다시 세팅]------------------------------------------
+	var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+						"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	$(".stamp-page .date").each(function(index,element){
+		var stampDate = $(element).html();
+		var dateElements = stampDate.split(".");
+		
+		var month = parseInt(dateElements[1]);
+		stampDate = dateElements[0] + "." + monthNames[month - 1] + "." + dateElements[2];
+		$(element).html(stampDate);
+	});
+	
+	// [여권 표지 보이기 (pagination 클릭 이벤트)]----------------------------------------
+	$("#displayPassprtCover").click(function(){
+		displayPassportCover($(this));
+	});
+	
+	// [여권 회원 정보 페이지 보이기 (pagination 클릭 이벤트)]--------------------------------
+	$("#displayPassportMemberPage").click(function(){
+		displayPassportMemberPage($(this));
+	});
+	
+	// [여권 스탬프 페이지 보이기 (pagination 클릭 이벤트)]----------------------------------
+	$(document).on("click",".displayStampPage", function(){
+		//----------------------------------------------
+		getStampPage(memberId, $(this).attr("data-passportPage") - 1);
+		//----------------------------------------------
+	});
+	
+	// [여권 페이지 슬라이드로 넘기기]----------------------------------------------------
+	$("#passportSwipeArea").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var $activePage = $(".passport-pagination .passport-page.active");
+			var passportPage = $("#passportRealPage").val(); 
+			if(direction == "left") {
+				if($activePage.is(".passport-pagination .passport-page:last")) {
+					return;
+				} else {
+					if(passportPage < 1) {
+						// 멤버 정보 페이지로 이동할 경우----------------------------------
+						displayPassportMemberPage($("#displayPassportMemberPage"));
+						//------------------------------------------------------
+					} else {	
+						// 스탬프 페이지로 이동할 경우
+						//----------------------------------
+						getStampPage(memberId, passportPage);
+						//----------------------------------
+					}
+				} 
+			} else if(direction == "right") {
+				if($activePage.is(".passport-pagination .passport-page:first")) {
+					return;
+				} else if(passportPage == 1) {
+					// 여권 표지 페이지로 이동할 경우--------------------------
+					displayPassportCover($("#displayPassprtCover"));
+					//----------------------------------------------
+				} else if(passportPage == 2) {
+					// 멤버 정보 페이지로 이동할 경우------------------------------------
+					displayPassportMemberPage($("#displayPassportMemberPage"));
+					//--------------------------------------------------------
+				} else {
+					// 스탬프 페이지로 이동할 경우
+					//---------------------------------------
+					getStampPage(memberId, passportPage - 2);
+					//---------------------------------------	
+				}
+			}
+		},
+		allowPageScroll:"auto"
+	});
+});	
+
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+/**
+ * 여권 표지를 보여줌
+ */
+function displayPassportCover(obj) {
+	$("#closePassportDiv").show();
+	$("#openPassportDiv").hide();
+	
+	$(".passport-page").removeClass("active");
+	$(obj).addClass("active");
+	$("#passportRealPage").val("0");
+}
+
+/**
+ * 여권의 회원 정보 페이지를 보여줌
+ */
+function displayPassportMemberPage(obj) {
+	$("#closePassportDiv").hide();
+	$("#openPassportDiv").show();
+	$("#openPassportDiv .memberInfoPage").show();
+	$("#openPassportDiv .stampListPage").hide();
+	$(".stamp-book-backpage").addClass("hide-back");
+	
+	$(".passport-page").removeClass("active");
+	$(obj).addClass("active");
+	$("#passportRealPage").val("1");
+}
+
+/**
+ * 여권의 스탬프 페이지를 보여줌
+ */
+function displayPassportStampPage(pageMaker) {
+	var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+		"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+	var stampList = pageMaker.result.content;
+	var pageList = pageMaker.pageList;
+	var nextPage = pageMaker.nextPage;
+	var prevPage = pageMaker.prevPage;
+	var currPageNum = pageMaker.currentPageNum;
+	
+	$(".stampListPage .stamp-page").empty();
+	var $stampPage = $(".stampListPage .stamp-page");
+	
+	// 스탬프를 하나씩 페이지에 표시
+	for(var i = 0; i < stampList.length; i++){
+		var currStamp = stampList[i];
+		var $stamp = $("#divsForCopy .stamp-position").clone();
+		$stamp.addClass(currStamp.stamp.stampValue);
+		$stamp.find(".stamp").css("background-image", "url(/resource/stamp/images/"+currStamp.stamp.imagePath+")");
+		if(currStamp.stamp.stampValue != null && currStamp.stamp.stampValue.length > 1){
+			var dateArr = new Date(Date.parse(currStamp.issueDate)).format("yyyy.MM.dd").split(".");
+			var dateString = dateArr[0].concat(".")
+									   .concat(monthNames[parseInt(dateArr[1])-1])
+									   .concat(".")
+									   .concat(dateArr[2])
+			$stamp.find(".date").css("top", currStamp.stamp.yAxis + "%")
+								.css("transform", "rotate("+currStamp.stamp.slope+"deg)")
+								.text(dateString);
+		}
+		$stamp.find(".info").text(currStamp.stamp.description);
+		$stamp.find(".info-date").text(new Date(Date.parse(currStamp.issueDate)).format("yyyy-MM-dd"));
+		if(i < 6){
+			$stampPage.eq(0).append($stamp);
+		}else{
+			$stampPage.eq(1).append($stamp);
+		}
+	}
+	
+	// 페이지 번호 매기기(양 옆)
+	$("#passportLeft span").text(currPageNum * 2 - 1);
+	$("#passportRight span").text(currPageNum * 2);
+	
+	// 페이지 번호 매기기(아래)
+	$(".displayStampPage").remove();
+	var $pageList = $(".passport-page-list");
+	
+	if(prevPage != null){
+		$pageList.append($('<li class="displayStampPage passport-page" data-passportPage="'
+						+ (prevPage.pageNumber + 2) 
+						+ '"><i class="fa fa-angle-left"></i></li>'));
+	}
+	for(var i = 0; i < pageList.length; i++){
+		var pageable = pageList[i];
+		var $nav = $("<li class='displayStampPage passport-page'><a><i class='fa fa-circle'></i></a>&nbsp;</li>");
+		$nav.addClass("page-" + (pageable.pageNumber + 1))
+			.attr("data-passportPage", (pageable.pageNumber + 2));
+		if(pageable.pageNumber + 1 == currPageNum){
+			$nav.addClass("active");
+		}
+		$pageList.append($nav);
+	}
+	if(nextPage != null){
+		$pageList.append($('<li class="displayStampPage passport-page" data-passportPage="'
+				+ (nextPage.pageNumber + 2) + '"><i class="fa fa-angle-right"></i></li>'));
+	}
+	
+	$("#closePassportDiv").hide();
+	$("#openPassportDiv").show();
+	$("#openPassportDiv .memberInfoPage").hide();
+	$("#openPassportDiv .stampListPage").show();
+	$(".stamp-book-backpage").removeClass("hide-back");
+	$("#displayPassprtCover,#displayPassportMemberPage").removeClass("active");
+	$("#passportRealPage").val(currPageNum + 1);
+}
+
+</script>
+
+
+
+<div id="myPassportSection" class="my-passport-section row no-gutters"
+	th:with="tribeCode = ${#strings.substring(tribe,0,1)}">
+<div class="col-xl-1"></div>
+<div id="passportSwipeArea" th:class="'passport-area col-xl-10 group-' 
+	+ ${tribeCode} + ' member-' + ${memberType}">
+	<input id="passportRealPage" type="hidden" 
+		th:value="${#lists.size(pageMaker?.result?.content) > 0}? ${pageMaker?.currentPageNum + 1}:'0'"/>
+	<!-- [1.1 여권 표지] -->
+	<div id="closePassportDiv" class="row no-gutters" 
+		th:style="${#lists.size(pageMaker?.result?.content) > 0}?'display: none;':''">
+		<div class="col-3"></div>
+		<div class="stamp-book-cover-half col-6">
+			<div class="passport-cover-img"></div>
+		</div>
+	</div><!-- end of closePassportDiv -->
+	
+	<div id="openPassportDiv" th:style="${#lists.size(pageMaker?.result?.content) > 0}?'':'display: none;'">
+		<div class="stamp-book-cover"></div>
+		<div class="stamp-book-backpage"></div>
+		
+		<!-- [1.2 회원 정보] -->
+		<div class="memberInfoPage stamp-book-bg member-info row no-gutters"
+			th:style="${#lists.size(pageMaker?.result?.content) > 0}?'display: none;':''">
+			
+			<!-- 플보 리퍼블릭 -->
+			<div class="playvoice-constitution-section col-6">
+				<div class="playvoice-constitution-cover d-none d-md-block">
+					<div class="playvoice-constitution">
+						<i class="fa fa-circle fa-fw left"></i>
+						THE CONSTITUTION OF<br>PLAYVOICE
+						<i class="fa fa-circle fa-fw right"></i>
+					</div>
+					<div class="constitution-body-section">
+						<div class="constitution-cover">
+							<div class="law-title">제1 조 (Article 1 of the Constitution)</div>
+							<div class="law-detail">
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제1항</span>
+									<span class="clause-detail col">
+										영어 학습의 <b>주권은 입(mouth)</b>에 있다.
+									</span>
+								</div>
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제2항</span>
+									<span class="clause-detail col">
+										눈에 보이는 모든 영어 컨텐츠는 <b>직접 입으로 반복</b>해서 말해야 한다.
+									</span>
+								</div>
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제3항</span>
+									<span class="clause-detail col">
+										눈으로만 보고 귀로만 듣는 영어 학습은 <b>말짱 헛방</b>임을 스스로 세뇌 시켜라.
+									</span>
+								</div>
+								<div class="article-clause plus">
+									아이들이 끊임없이 웅얼거리고 재잘거리는 이유와 당신의 과묵한 결과를 비교해 보라.
+								</div>
+							</div>
+						</div>
+						<div class="constitution-cover">
+							<div class="law-title">제2 조  (Article 1 of the Constitution)</div>
+							<div class="law-detail">
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제1항</span>
+									<span class="clause-detail col">
+										영어는 학습이 아니라 <b>운동</b>이다.
+									</span>
+								</div>
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제2항</span>
+									<span class="clause-detail col">
+										모든 운동의 효과는 지속적인 <b>반복</b>의 결과이다.
+									</span>
+								</div>
+								<div class="article-clause row no-gutters">
+									<span class="clause-title col-auto align-self-start">제3항</span>
+									<span class="clause-detail col">
+										영어 학습의 가장 좋은 비법은 <b>꾸준함</b>이다. 
+									</span>
+								</div>
+								<div class="article-clause plus">
+									꾸준함만으로 충분하다. 더 좋은 학습 방법을 찾다가, 다른 것으로 갈아타다가 시간 낭비하지 마라.
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="playvoice-constitution-cover d-md-none">
+					<div class="playvoice-constitution"></div>
+					<div class="passport-ministry kor">
+						본 여권을 소지한 플레이보이스 멤버가 아무 지장 없이 학습할 수 있도록 하여 주시고 
+						필요한 모든 지원과 즐거움을 주실 것을 관계자 여러분께 요청합니다.
+					</div>
+					<div class="passport-ministry eng">
+						The Ministry of Foreign Affairs of 
+						the Republic of Playvoice requests all 
+						whom it may concern to permit the bearer, 
+						a national of the Republic of Playvoice, 
+						to study freely without delay or hindrance 
+						and to give every possible assistance and enjoyment in case of need.
+					</div>
+				</div>
+			</div>
+			
+			<!-- 회원 정보 -->
+			<div class="passport-member-info-section col-6">
+				<div class="member-info-title">
+					<span class="nation-name-kor">플레이보이스</span>
+					<span>republic of playvoice</span>
+				</div>
+				<div class="row no-gutters">
+					<div class="passport-member-image-div col-auto text-center px-1">
+						<span class="passport-text-kor">여권 </span>
+						<span class="passport-text">passport</span><br>
+						<img th:if="${iconPath}" class="passport-profile-image" 
+							src="/images/app/mypage/passport/passport_image_paper.png"
+							th:style="'background: url(\'/resource/profile/' +${iconPath} +'\') no-repeat;
+							background-size: cover; background-position: center;'">
+						<img th:unless="${iconPath}" class="passport-profile-image profile-default" 
+							src="/images/app/mypage/passport/passport_image_paper.png">
+						<img class="passort-img-stamp" 
+							src="/images/app/mypage/passport/passport_image_stamp.png">
+					</div>
+					<div class="passport-member-info-div col" style="position: relative;">
+						<div class="passport-info">
+							<div class="passport-info-title">종류/ Type</div>
+							<div th:if="${memberType} == 'M'" 
+								class="passport-info-detail">play</div>
+							<div th:if="${memberType} == 'S'" 
+								class="passport-info-detail">silver</div>
+							<div th:if="${memberType} == 'G'" 
+								class="passport-info-detail">Gold</div>
+							<div th:if="${memberType} == 'P'" 
+								class="passport-info-detail">platinum</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">발행부족/ Issuing Tribe</div>
+							<div class="passport-info-detail">
+								<span th:text="${tribe}"></span> 
+							</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">여권번호/ Passport No.</div>
+							<div class="passport-info-detail">
+								[[${tribeCode}]][[${mid}]]
+							</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">별명/ Alias</div>
+							<div class="passport-info-detail alias">
+								[[${alias}]]
+							</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">성별/ Sex</div>
+							<div class="passport-info-detail">[[${sex}]]</div>
+						</div>
+						<img class="passort-img-stamp2" 
+							src="/images/app/mypage/passport/passport_image_stamp2.png">
+					</div>
+					<div class="passport-issue-info col-12 pt-sm-2 px-1">
+						<div class="passport-info">
+							<div class="passport-info-title">국적/ Nationality</div>
+							<div class="passport-info-detail nation">REPUBLIC OF PLAYVOICE</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">발급일/ Date of issue</div>
+							<div class="passport-info-detail date">
+								[[${#dates.format(regDate, 'yyyy.MM.dd')}]]
+							</div>
+						</div>
+						<div class="passport-info">
+							<div class="passport-info-title">발행관청/ Authority</div>
+							<div class="passport-info-detail ministry">
+								MINISTRY OF FOREIGN AFFAIRS AND TRADE
+							</div>
+						</div>
+					</div>
+				</div>
+				
+				<div class="passport-code px-1">
+					<div>
+						P[[${tribeCode}]][[${tribe}]]&lt;&lt;playvoice<!-- 
+						-->&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;&lt;
+					</div>
+					<div>
+						[[${tribeCode}]][[${mid}]][[${tribe}]]<!-- 
+						-->[[${#dates.format(regDate, 'ddMMyyyy')}]]<!-- 
+						-->00000000000000000000000000000000000	
+					</div>
+				</div>
+			
+			</div>
+		</div>
+		
+		<!-- [1.3 여권 스탬프 리스트] -->
+		<div th:if="${pageMaker != null AND #lists.size(pageMaker?.result?.content) > 0}" 
+			class="stampListPage stamp-book-bg row no-gutters">
+			<div class="stamp-page col-6 align-self-start">
+				<th:block th:each="stampIssue, iter:${pageMaker.result.content}">
+				<div th:if="${iter.index < 6}"
+					th:class="'stamp-position group-' + ${stampIssue.stamp?.stampValue}">
+					<div class="stamp"
+						th:style="'background: url(\'/resource/stamp/images/' + ${stampIssue.stamp?.imagePath} + '\') no-repeat;
+						background-size: contain; background-position: center;'">
+						<div class="date" th:style="${#strings.length(stampIssue.stamp?.stampValue?:'') == 1}?
+							'':'top:' + ${stampIssue.stamp?.yAxis} + '%; transform: rotate('+ ${stampIssue.stamp?.slope} +'deg);'">
+							[[${#dates.format(stampIssue.issueDate, 'yyyy.MM.dd')}]]
+						</div>	
+						<div class="stamp-info">
+							<div th:text="${stampIssue.stamp?.description}" class="info"></div>
+							<div class="info-date">
+								[[${#dates.format(stampIssue.issueDate, 'yyyy-MM-dd')}]]
+							</div>
+						</div>
+					</div>
+				</div>
+				</th:block>
+			</div>
+			<div class="stamp-page col-6 align-self-start">
+				<th:block th:each="stampIssue, iter:${pageMaker.result.content}">
+				<div th:if="${(iter.index > 5)}"
+					th:class="'stamp-position group-' + ${stampIssue.stamp?.stampValue}">
+					<div class="stamp"
+						th:style="'background: url(\'/resource/stamp/images/' + ${stampIssue.stamp?.imagePath} + '\') no-repeat;
+						background-size: contain; background-position: center;'">
+						<div class="date" th:style="${#strings.length(stampIssue.stamp?.stampValue?:'') == 1}?
+							'':'top:' + ${stampIssue.stamp?.yAxis} + '%; transform: rotate('+ ${stampIssue.stamp?.slope} +'deg);'">
+							[[${#dates.format(stampIssue.issueDate, 'yyyy.MM.dd')}]]
+						</div>	
+						<div class="stamp-info">
+							<div th:text="${stampIssue.stamp?.description}" class="info"></div>
+							<div class="info-date">
+								[[${#dates.format(stampIssue.issueDate, 'yyyy-MM-dd')}]]
+							</div>
+						</div>
+					</div>
+				</div>
+				</th:block>
+			</div><div class="w-100"></div>
+			<th:block th:with="nowPage = ${pageMaker?.currentPageNum}">
+				<div id="passportLeft" class="passport-margin col-6 align-self-bottom">
+					<span class="float-left">[[${(nowPage * 2) - 1}]]</span>Visas
+				</div>
+				<div id="passportRight" class="passport-margin col-6 align-self-bottom">
+					<span class="float-right">[[${nowPage * 2}]]</span>Visas
+				</div>
+			</th:block>
+		</div>
+	</div><!-- end of openPassportDiv -->
+	
+	<!-- [1.4 여권 페이지네이션] -->			
+	<div class="passport-pagination d-none d-md-block">
+		<!-- 스탬프가 있을 경우 -->
+		<ul th:if="${pageMaker != null AND pageMaker.totalPageNum > 0}" class="passport-page-list">
+			<li id="displayPassprtCover" class="passport-page" 
+				title="여권 표지"><i class="fa fa-passport"></i></li>
+			<li id="displayPassportMemberPage" class="passport-page" 
+				data-passportPage="1" title="개인 정보"><i class="fa fa-circle"></i></li>
+			<li th:if="${pageMaker.prevPage}" class="displayStampPage passport-page"
+				th:data-passportPage="${pageMaker.prevPage.pageNumber + 2}">
+				<i class="fa fa-angle-left"></i></li>	
+			<li th:each="pageable: ${pageMaker.pageList}" 
+				th:class="'displayStampPage passport-page page-' + ${pageable.pageNumber + 1}" 
+				th:data-passportPage="${pageable.pageNumber + 2}" 
+				th:classappend="${pageable.pageNumber + 1 == pageMaker.currentPageNum}? 'active':''">
+				<a><i class="fa fa-circle"></i></a></li>
+			<li th:if="${pageMaker.nextPage}" class="displayStampPage passport-page"
+				th:data-passportPage="${pageMaker.nextPage.pageNumber + 2}">
+				<i class="fa fa-angle-right"></i></li>
+		</ul>
+		<!-- 스탬프가 없을경우 (커버와 멤버정보 페이지) -->
+		<ul th:if="${pageMaker EQ null OR pageMaker.totalPageNum EQ 0}" class="passport-page-list">
+			<li id="displayPassprtCover" 
+				class="passport-page active" title="여권 표지">
+				<i class="fa fa-passport"></i>
+			</li>
+			<li id="displayPassportMemberPage" 
+				class="passport-page" data-passportPage="1">
+				<i class="fa fa-circle"></i>
+			</li>
+		</ul>
+	</div>
+</div></div>
+
+
+<!-- ------------------- 스탬프 동적 표시용 div ----------------------------------- -->
+<div id="divsForCopy" style="display: none;">
+	<div class="stamp-position">
+		<div class="stamp" style="background-repeat: no-repeat;
+			background-size: contain; background-position: center;">
+			<div class="date"></div>	
+			<div class="stamp-info">
+				<div class="info"></div>
+				<div class="info-date"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+</div>
+</html>

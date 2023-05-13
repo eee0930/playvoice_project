@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout}">
+
+<head>
+<title>[[${theme.title}]] (DictationBook) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = ${theme.title} + ' (DictationBook) - 플레이보이스 | Playvoice', 
+	metaDescription = ${#stringUtil.removeTag(theme.description)}, 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = '딕테이션북, Dictation Book, 딕테이션, 받아쓰기, 쉐도잉, 멀티 보이스, 영어 내기 '"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/dictationBook', '/dictationBook/theme/list', 
+	#httpServletRequest.requestURI} },
+	breadName = ${ {'딕테이션북', '딕테이션북 테마 목록', theme.title} }"></th:block>]
+</script>
+
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<script th:src="@{/js/app/dictationbook.js}"></script>
+	   
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [날짜별로 테마 이미지 세팅]-------------------------------------------------------
+	var today = new Date();
+	var calcDateNum = today.getDate()%10;
+	var backgroundStyle = 'background: url(\'/images/app/dictationbook/theme_'
+			+ calcDateNum + '.jpg\') no-repeat; background-size: cover;';
+	$("#dictationThemeDiv .theme-img, #dictationThemeDiv .theme-img2").attr("style", backgroundStyle);
+	$("#dictationThemeDiv .theme-img").css("background-position", "left center");
+	$("#dictationThemeDiv .theme-img2").css("background-position", "right center");
+	
+
+	// [테마 설명 보기 (Mobile ver.)]------------------------------------------------
+	$(".toggleThemeComment").click(function(){
+		if($(window).width() < 768){
+			$(this).find(".comment-content, .comment-footer").toggle(100);
+	    }
+	})
+});
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page move event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 해당 테마의 딕테이션 테스트 페이지로 이동
+ */
+function moveToTest(themeId56) {
+	var destPage = "/dictationBook/test/800/" + themeId56;
+	
+	if($('#loginStatus').text() == 'true'){
+		location.href= destPage;
+	}else{
+		if(confirm("로그인 페이지로 이동합니다.")){
+			location.href="/auth/login?destPage="+destPage;
+		}
+	}
+}
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/dictationBook/incl/dictationbook_menu::menu}" class="col-lg-10"></div>
+</div>
+
+
+<div id="viewDictationBookSection" class="view-dictation-section"><div class="row no-gutters my-4">
+<div class="col-lg-1"></div>
+<div class="col-lg-10 px-lg-3">
+	<h3 class="dictation-info-title">
+		<span class="index-text-color">Details</span> of<br class="d-sm-none">
+		the dictation Theme
+		<i class="fa fa-cube fa-lg"></i><br>
+		<small>Check the information on this theme before you do the test</small>
+	</h3>
+	<!-- --------------------------[딕테이션북 테마 정보]-------------------------- -->
+	<div id="dictationThemeDiv" class="dictation-theme">
+		<!-- 테마 주제 -->
+		<div class="theme-cover row no-gutters">
+			<div class="img-cover col-md-auto">
+				<img src="/images/app/dictationbook/theme_paper3.png" 
+					class="theme-img d-md-none">
+				<img src="/images/app/dictationbook/theme_paper4.png" 
+					class="theme-img d-none d-md-block">
+				<div class="q-num d-md-none">
+					<span class="name">Number of Questions</span>
+					<span class="q-name d-md-none">Q.</span>
+					<span class="num">[[${theme.numOfQuestions}]]</span>
+				</div>
+			</div>
+			<div class="theme-info col-md align-self-center">
+				<div class="title">
+					<i class="fas fa-quote-left fa-fw"></i>
+					[[${theme.title}]]
+					<i class="fas fa-quote-right fa-fw"></i>
+				</div>
+				<div class="q-num d-none d-md-block">
+					<span class="name">Number of Questions</span>
+					<span class="num">[[${theme.numOfQuestions}]]</span>
+				</div>
+			</div>
+			<div class="img-cover2 col-md-auto">
+				<img src="/images/app/dictationbook/theme_paper4.png" class="theme-img2">
+			</div>
+		</div>
+		
+		<!-- start button mobile ver. -->
+		<div th:if="${theme.themeType} != ${T(com.varxyz.playvoice.common.Constants).THEME_TYPE_TEST}" 
+			class="button-section d-md-none">
+			<button onclick="moveToTest(this.getAttribute('data'))"
+				th:data="${theme.id56}" type="button" 
+				class="button-cover2 goto-test-btn jsAction">
+				<i class="fa fa-pencil-alt fa-fw"></i>
+				시작하기 !
+			</button>
+		</div>
+		
+		<!-- 테마 상세설명 -->
+		<div th:if="${theme.description != null}" class="toggleThemeComment theme-comment text-center">
+			<div class="comment-title row no-gutters">
+				<div class="line-back col"></div>
+				<div class="col-auto">
+					<span class="d-none d-md-block">
+						<i class="fa fa-info-circle fa-fw"></i> Description of Theme
+					</span>
+					<span class="d-md-none">
+						<i class="fa fa-info-circle fa-fw"></i>
+						Theme Story Guide
+						<i class="fa fa-caret-down"></i>
+					</span>
+				</div>
+				<div class="line-back2 col"></div>
+			</div>
+			<div th:utext="${#strings.replace(theme.description, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"
+				class="comment-content"></div>
+			<div class="comment-footer row no-gutters">
+				<div class="line-back col"></div>
+				<div class="col-md-auto col-auto">
+					<img class="sign-img" src="/images/app/dictationbook/description_sign.svg">
+				</div>
+				<div class="line-back2 col"></div>
+			</div>
+		</div>
+		
+		
+		<!-- start button PC ver. -->
+		<div class="d-none d-md-block">
+			<div th:if="${theme.themeType} != ${T(com.varxyz.playvoice.common.Constants).THEME_TYPE_TEST}" 
+				class="button-section">
+				<button onclick="moveToTest(this.getAttribute('data'))"
+					th:data="${theme.id56}" type="button" 
+					class="button-cover2 goto-test-btn jsAction">
+					<i class="fa fa-pencil-alt fa-fw"></i>
+					시작하기 !
+				</button>
+			</div>	
+		</div>	
+	</div><!-- end of dictationThemeDiv -->
+		
+		
+	<h3 class="dictation-info-title">
+		<span class="index-text-color">Statistic</span> of<br class="d-sm-none"> 
+		the dictation Theme
+		<i class="fa fa-cube fa-lg"></i><br>
+		<small>Check the statistics and compare them with your own</small>
+	</h3>	
+	<div id="dictationThemeStatDiv" class="statistic-info-section row no-gutters">
+	<!-- ---------------------------[score list]---------------------------- -->	
+	<div id="scoreListDiv" class="score-list-section col-md-6">
+		<div class="score-list-cover">
+			<h3 class="title">
+				듣기 횟수 별 점수 <i class="fa fa-chart-bar fa-fw mr-2"></i><br>
+				<small>듣기 횟수 별로 플보 패밀리의 평균 점수를 확인해 보세요.</small>
+			</h3>	
+			<div class="score-list-div">
+				<div class="score-title d-md-none">
+					듣기 횟수 별 점수 <i class="fa fa-chart-bar fa-fw mr-2"></i>
+				</div>
+				<div th:each="score, iter : ${scoreList}" 
+					th:class="'score-list score-style' + ${iter.count} + ' row no-gutters'">
+					<div class="num col-lg-2 col-3 pb-1 align-self-center">
+						<i class="fa fa-square fa-fw"></i>
+						<span>[[${score.repeat}]]</span>회
+					</div>
+					<div th:with="avgResultScore = ${#numbers.formatDecimal(score.avgResult,1,1)}" 
+						class="col-lg-10 col-lg-8 col-9 pl-1 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" 
+								th:style="'width:' + ${avgResultScore} + '%;'">
+								<div class="score-gragh"></div>
+							</div>
+							<div class="score-num">[[${avgResultScore}]]</div>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div><!-- end of scoreListDiv -->
+		
+	<!-- ---------------------------[ranking list]-------------------------- -->
+	<div id="topRankerDiv" class="top-ranker-section col-md-6 pl-lg-5">
+		
+		<div class="top-ranker-cover">
+			<h3>
+				High Score Ranker Top 10
+				<i class="fa fa-trophy fa-fw mr-2" style="color: gold;"></i><br>
+				<small>those who scored the highest on the test</small>
+			</h3>
+			<div class="test-ranking-list p-md-1 p-0">
+				<div th:each="topRanker, iter : ${topRankerList}" 
+					th:with="personacon = ${topRanker.personacon}" 
+					class="test-ranker-cover px-1 py-1">
+					<div class="rank-style px-lg-2 p-1 row no-gutters"
+						th:classappend="(${iter.count} == 1) ? 'top1' : ''">
+						<div class="rank-num-cover col-auto px-1 text-center align-self-center">
+							[[${iter.count}]]<br>
+							<i class="fa-fw" style="color: gold;" 
+							th:classappend="(${iter.count} == 1) ? 'fa fa-trophy' : 'far fa-star'"></i>
+						</div>
+						<div class="personacon col-auto px-1 align-self-center">
+							<div th:replace="~{/incl/user_personacon::user_sm}"></div>
+						</div>	
+						<div class="alias col px-1 align-self-center"
+							th:text="${personacon.alias}"></div>
+						<div class="testscore col-4 align-self-center">
+							<div>ADSR Point <br class="d-none d-md-block d-xl-none">
+							<span>[[${#numbers.formatDecimal(topRanker.adsr,1,1)}]]</span></div>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		
+	</div><!-- end of topRankerDiv -->
+	</div><!-- end of dictationThemeStatDiv -->
+			
+	
+	
+</div>
+</div></div><!-- end of viewDictationBookSection -->
+
+
+</section><!-- end of content -->
+</html>

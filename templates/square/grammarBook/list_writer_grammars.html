@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout}">
+<head>
+<title>GrammarBook - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote-bs4.css}">
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/public/jquery.base64.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+var replyAppCode = [[${replyAppCode}]];
+
+$(document).ready(function(){
+	// [아티클 등록폼으로 이동]------------------------------------------------------
+	$("#addGrammar_btn").click(function(){
+		if($('#loginStatus').text() == 'true'){
+			location.href="/square/grammarBook/add";
+		}else{
+			location.href="\/auth\/login"+"?destPage=/square/grammarBook/add";
+		}
+	});
+	
+	
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	var suggestionTimer;
+	// [검색어 입력시 제시어 요청 및 검색버튼 활성화]----------------------------------------------------------
+	$(document).on("input", "#searchKeyword", function(){
+		clearTimeout(suggestionTimer);
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		var input = $(this);
+		if($(this).val().length > 0){
+			suggestionTimer = setTimeout(function() {
+				//------------------------------------------------
+				getGrammarTitleSuggestionList($("#searchType").val().charAt(0), input.val(), input);
+				//------------------------------------------------
+			}, 500);
+			
+			add_btn.prop("disabled", false);
+			
+		} else {
+			add_btn.prop("disabled", true);
+		}
+	});
+	// [제시어 클릭하면 검색어로 입력 후 검색 폼 열기]------------------------------------------
+	$(document).on("click", ".suggest-list-cover li", function(){
+		$("#searchKeyword").val($(this).text());
+		$("#searchSentence_div .squareAddBtn").prop("disabled",false);
+		$("#searchSentence_div .suggest-list-cover").empty();
+	});
+	
+	// [텍스트 입력폼 클릭시 제시어 목록 다시 보이기 & 닫기]-------------------------------------------
+	$("#searchKeyword").on("click", function(){
+		if($(this).siblings(".suggest-list-cover").children("li").length > 0){
+			$(this).siblings(".suggest-list-cover").toggle();
+		}
+	});
+	
+	// [텍스트 입력폼 외 클릭시 제시어 목록 닫기]---------------------------------------------
+	$(document).on("click", function(e){
+		var target = $(e.target);
+		e.stopPropagation();
+		if(!$(target).is("#searchKeyword")){
+			$(".suggest-list-cover").hide();
+		}
+	});
+	
+	// [주제 검색 실행]--------------------------------------------------------------
+	$("#searchForm").submit(function(e){
+		e.preventDefault();
+		//--------------------
+		searchGrammar($("#searchSentence_div #searchType").val(), 
+					 $("#searchSentence_div .requireSentenceForm").val(), 1);
+		//--------------------
+		
+	});
+	
+	// [검색 결과 리스트 숨기기]--------------------------------------------------------
+	$("#closeResultSearchSentence_btn").click(function(){
+		$(this).closest(".result-search-section").hide();
+		$("#defaultGrammarList, #defaultGrammarPagination").show();
+	});
+
+	
+	// [그래머 리스트 펼치기]-------------------------------------------------------
+	$(document).on("click", "#translationSection .toggleGrammarCover", function(){
+		var cover = $(this).closest(".digest-cover");
+		var articleListCover = $(this).closest(".trans-list").find(".member-digest-cover");
+		// 다른 그래머들 모두 감춤
+		$(".member-digest-cover:visible").each(function(index,digestCover){
+			if(!articleListCover.is(digestCover)){
+				$(digestCover).hide(100);
+			}
+		});
+		var digestId = cover.find(".digestId").val();
+		if(articleListCover.find(".member-content-list").children().length > 0){
+			if(articleListCover.is(":not(:visible)")){
+				history.replaceState(null,null, '/square/grammarBook/page/' + digestId);
+			}
+			articleListCover.toggle(100);
+		}else{
+			//------------------------------------------------------------------
+			getGrammarArticleList(cover.find(".digestId").val(), articleListCover.find(".member-content-list"));
+			//------------------------------------------------------------------
+			history.replaceState(null,null, '/square/grammarBook/page/' + digestId);
+			articleListCover.show(100);
+		}
+	});
+	
+	// [그래머 share link 클립보드로 복사]-------------------------------------------
+	$(document).on("click", ".clip-target", function(){
+		var clipParent = $(this).closest(".copy-url-section");
+		var inputClip = clipParent.find(".hide-input");
+		inputClip.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			clipParent.find(".successClip-guide").show();
+			setTimeout(function() {
+				clipParent.find(".successClip-guide").hide();
+			}, 2000);
+			
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+	});
+	
+	// [그래머 주제 수정 폼]--------------------------------------------------------
+	$(document).on("click", ".editTitle", function(){
+		var grammar = $(this).closest(".digest-content-section");
+		grammar.find(".content").hide(100);
+		grammar.find(".titleInput").closest(".titleEditArea")
+								  .show(100);
+		grammar.find(".titleInput").focus();
+	});
+	
+	// [그래머 주제 수정 취소]-------------------------------------------------------
+	$(document).on("click", ".cancelTitleBtn", function(){
+		var orgTitle = $(this).closest(".digest-cover").find(".title-sent span").text();
+		$(this).closest(".digest-cover").find(".titleInput").val(orgTitle);
+		$(this).closest(".titleEditArea").hide(100);
+		$(this).closest(".digest-cover").find(".content").show(100);
+	});
+	
+	// [그래머 주제 수정 실행]-------------------------------------------------------
+	$(document).on("click", ".editTitleBtn", function(){
+		var titleSpan = $(this).closest(".digest-cover").find(".title-sent span");
+		var title = $(this).closest(".digest-cover").find(".titleInput").val();
+		if(title.trim().length == 0){
+			alert("주제는 비울 수 없습니다.");
+			return;
+		}
+		var digestId = $(this).closest(".digest-cover").find(".digestId").val();
+		var obj = {
+				digestId : digestId,
+				title : title
+		};
+		//------------------------------
+		editGrammarTitle(obj, titleSpan);
+		//------------------------------
+	})
+	
+	// [특정 주제의 그래머 추가 폼으로 이동]----------------------------------------------
+	$(document).on("click", ".trans-list .moveMemberContent-form", function(){
+		if($("#addArticleForm:visible").length == 0 || confirm("기존 작성중이던 내용은 사라집니다.\n계속하시겠습니까?")){
+			$("#addArticleForm:visible button[type='reset']").click();
+			$(this).closest(".member-digest-cover").find(".member-trans-form,.member-trans-guide").hide();
+			
+			var editor = $(this).closest(".member-digest-cover").find(".member-trans-editor");
+			var list = $(this).closest(".member-digest-cover").find(".member-content-list");
+			if(editor.children().length > 0){
+				editor.show();
+			}else{
+				$(".member-trans-editor").empty();
+				var grammarId = $(this).closest(".trans-list").find(".grammarId").val();
+				var title = $(this).closest(".trans-list").find(".title-sent span").text();
+				var next = [[@{/square/grammarBook/add}]];
+				
+				editor.load(next + " #addArticleForm", function(){
+					//---------------------------------------
+					insertSummernoteEditor($("#summernote"));
+					//---------------------------------------
+					// grammarId 설정
+					createHidden(editor.find("form")[0], "grammarId", grammarId);
+					// title 설정
+					editor.find(".added-title span").text(title);
+					editor.find(".added-title").show();
+					editor.find("#title").val(title)
+										 .prop("readonly", true)
+										 .parent().hide();
+					
+					// Register 버튼 재정의
+					editor.find("#save").attr("type","button").on("click", function(){
+						//------------------------------------------------------
+						var content = filterSummernoteContent($("#summernote"));
+						//------------------------------------------------------
+						var len = content.length;
+						if( len == 0 || len > 65000) {
+							alert("Content length must be between 0 and 65,000."
+							+" Total Length : "
+							+ content.length +" characters");
+							return;
+						}else{
+							editor.find("textarea[name='content']").val(content);
+							//--------------------------------------
+							appendGrammar(editor.find("form"), list);
+							//--------------------------------------
+						}
+						
+					})
+					
+					// Cancel 버튼 재정의
+					editor.find("button[type='reset']").text("Cancel").on("click", function(){
+						editor.closest(".member-digest-cover").find(".member-trans-form,.member-trans-guide").show();
+						editor.hide();
+					})
+				});
+			}
+			editor.show();
+			reserveUpdateSession(1);
+		}
+	});
+	
+	// [아티클 펼치기]--------------------------------------------------------------
+	$(document).on("click", ".trans-list .displayGrammarArticle", function(){
+		$(this).closest(".member-info").siblings(".viewArticle_div").toggle(100);
+	});
+	
+	$(document).on("click", ".trans-list .hideArticle", function(){
+		$(this).closest(".viewArticle_div").hide(100);
+	});
+	
+	// [아티클 수정폼 표시]-----------------------------------------------------------
+	$(document).on("click", ".editArticle", function(){
+		if($("#addArticleForm:visible").length == 0 || confirm("기존 작성중이던 내용은 사라집니다.\n계속하시겠습니까?")){
+			$("#addArticleForm:visible button[type='reset']").click();
+			var article = $(this).closest(".content-cover");
+			var editor = $("<div class='member-trans-editor py-4'></div>");
+			var writers = $(this).closest(".trans-list").find(".digest-content-section .personal-cover");
+			var grammarId = $(this).closest(".trans-list").find(".grammarId").val();
+			var articleId = article.find(".articleId").val();
+			var title = $(this).closest(".trans-list").find(".title-sent span").text();
+			var subtitle = article.find(".subtitle").val();
+			var content = article.find(".content").html();
+			
+			editor.load("/square/grammarBook/article/edit #addArticleForm", function(){
+				editor.find("textarea[name='content']").val(content);
+				//-------------------------------------
+				insertSummernoteEditor($("#summernote"));
+				//-------------------------------------
+				
+				// grammarId 설정
+				createHidden(editor.find("form")[0], "grammarId", grammarId);
+				// articleId 설정
+				createHidden(editor.find("form")[0], "articleId", articleId);
+				// title 설정
+				editor.find("#title").val(title)
+									 .prop("readonly", true)
+									 .parent().hide();
+				editor.find(".added-title span").text(title);
+				editor.find(".added-title").show();
+				// subtitle 설정
+				editor.find("#subtitle").val(subtitle);
+				
+				// Register 버튼 재정의
+				editor.find("#save").attr("type","button").on("click", function(){
+					//------------------------------------------------------
+					var content = filterSummernoteContent($("#summernote"));
+					//------------------------------------------------------
+					var len = content.length;
+					if( len == 0 || len > 65000) {
+						alert("Content length must be between 0 and 65,000."
+						+" Total Length : "
+						+ content.length +" characters");
+						return;
+					}else{
+						editor.find("textarea[name='content']").val(content);
+						//--------------------------------------
+						editGrammarArticle(editor.find("form"), article);
+						//--------------------------------------
+					}
+					
+				})
+				
+				// Cancel 버튼 재정의
+				editor.find("button[type='reset']").text("Cancel").on("click", function(){
+					editor.remove();
+					article.children().show();
+				})
+			});
+			article.children().hide();
+			article.append(editor);
+			editor.show();
+			reserveUpdateSession(1);
+		}
+		
+	});
+	
+	// [아티클 추천 실행]--------------------------------------------------------------
+	$(document).on('click', '.likeArticleBtn', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if($("#loginStatus").text() != 'true'){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = [[@{/auth/login}]]+"?destPage=" + location.href;
+			}
+			return;
+		}
+		
+		if($(this).is(":not(.active)")){
+			var contentId = $(this).closest(".content-cover").find(".articleId").val();
+			var mid = [[${session?.userContainer?.personacon?.id56}]];
+			var likeCount = $(this).closest(".content-cover").find('.articleLikeCount').text().trim();
+			
+			var obj = {
+				contentId : Number(contentId),
+				memberId64 : mid,
+				likeCount : Number(likeCount)
+			}
+			//-----------------------------
+			handleGrammarArticleLike(obj, $(this));
+			//-----------------------------
+		}else{
+			alert("이미 처리 되었습니다.");
+			return;
+		}
+	});
+	
+	
+	
+	
+	// [댓글 리스트 펼치기]-----------------------------------------------------------
+	$(document).on("click", ".trans-list .openCommentList", function(){
+		var commentListSection = $(this).closest(".recommend-section").siblings(".comment-list-section");
+		
+		if($(this).is('.replyLoaded')){
+			   commentListSection.toggle(100, function(){
+				   if(commentListSection.is(":visible")){
+					   window.scrollTo(0, commentListSection.offset().top - $("#headerNavbar").height());
+				   }
+			   });
+		}else{
+			commentListSection.toggle();
+			
+			var articleId = $(this).closest(".recommend-section").closest(".content-cover").children(".articleId").val();
+			var url = "/reply/grammarBook/list/"+ articleId;
+			
+			reloadAll(url, commentListSection.find(".commentPage"));
+			//댓글 폼 placeholder 변경
+			$(".comment-textarea").attr("placeholder", "그래머에 대한 의견이나 궁금한 점을 남겨봅시다.");
+			
+			commentListSection.show(100, function(){
+				window.scrollTo(0, commentListSection.offset().top - $("#headerNavbar").height());
+			});
+			$(this).addClass('replyLoaded');
+		}
+		
+	});
+	
+	//[댓글 리스트 접기]-------------------------------------------------------------
+	$(document).on("click", ".trans-list .comment-title", function(){
+		$(this).closest(".comment-list-section").hide();
+	});
+	
+	// [댓글 버튼 활성화]------------------------------------------------------------
+	$(document).on("click", ".trans-list .comment-textarea", function(){
+		$(this).closest(".comment-form").find(".comment_button_section").show();
+	});
+	$(document).on("click", ".trans-list .cancelCommentBtn", function(){
+		$(this).closest(".comment_button_section").hide();
+	});
+	 
+	// [댓글 등록 버튼 클릭]-----------------------------------------------------------
+	$(document).on("click", ".addCommentBtn", function(e){
+		e.preventDefault();
+		var comment = $(this).closest(".comment-form").find(".comment-textarea").val(); 
+		var personaconId =  $('#yourId').val();
+		var personaconAlias = [[${session?.userContainer?.personacon?.alias}]];
+		
+		var articleId = $(this).closest(".comment-list-section").closest(".content-cover").children(".articleId").val();
+		
+		var alias = $(this).closest(".content-cover").find(".member-info .alias").get(0);
+		var recipient = $(alias).text().trim();
+		
+		var replyResource = {
+			appContentId : articleId,
+			comment : comment, 
+			personaconId : personaconId,  
+			personaconAlias : personaconAlias,
+			replyType : 'c', 
+			recipient : recipient
+		};
+		
+		//comment.html안에 있는 .commentPage아래에 list_replies가 끼워지도록 함
+		var selector = $(this).closest(".comment-list-section").find(".commentPage");
+		//--------------------------
+		if(! isEmpty(comment)){
+			addComment(selector, replyResource, 'digest');
+		}
+		//--------------------------
+	});
+	
+	// [대댓글 등록 버튼 클릭]---------------------------------------------------------
+	$(document).on("click", ".addCommentBtn2", function(e){
+		e.preventDefault();
+		var comment = $(this).closest(".comment-form").find(".recomment-textarea").val(); 
+		var personaconId =  $('#yourId').val();
+		var personaconAlias = [[${session?.userContainer?.personacon?.alias}]];
+		
+		var articleId = $(this).closest(".comment-list-section").closest(".content-cover").children(".articleId").val();
+		var parentId = $(this).closest(".comment-cover").find(".parentId").val(); // 부모댓글id
+		var recipient = $(this).closest(".comment-cover").find(".alias").text(); // 별명
+
+		var replyResource = {
+			appContentId : articleId,
+			parentId : parentId,
+			recipient : recipient,
+			comment : comment, 
+			personaconId : personaconId,  
+			personaconAlias : personaconAlias,
+			replyType:'c', 
+		};
+		//selector를 찾아 넣어주도록함.
+
+		var selector = '#children'+parentId;
+		//--------------------------
+		if(! isEmpty(comment)){//댓글 입력내용이 있는지 확인후 댓글 추가
+			addComment(selector, replyResource, 'digest');
+		}
+		//--------------------------
+	});
+	
+	//[댓글 더보기 버튼 클릭]----------------------------------------------------------
+	$(document).on("click", ".more_replies_btn", function(e){
+		var appContentId = $(this).closest(".comment-list-section").closest(".content-cover").children(".articleId").val();		//펼친 digestArticle의 Id
+		var pageNum = parseInt($(this).val());		//다음 페이지 번호 
+		// 다음 페이지 댓글 목록 로드
+		var nextCommentListDiv = create("div");
+		$(this).closest(".comment-list-section").find(".commentPage").last().append(nextCommentListDiv);
+		var selector = nextCommentListDiv;
+		
+		loadNextReplies(selector, appContentId, 'c', pageNum, 'digest');
+		$(this).parent().hide();	//현재 페이지(ex. 1페이지의 list_replies.html)안의 댓글 더보기 버튼 없애기
+		//각 페이지의 list_replies마다 각각의 더보기 버튼이 보이도록함.
+	});
+	
+	
+	//[댓글 좋아요 처리]--------------------------------------------------------------
+	$(document).on("click",'.comment-button .like-comment', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+  	   if($("#loginStatus").text() != 'true'){
+	      if(confirm("로그인 페이지로 이동합니다.")){
+	         self.location = [[@{/auth/login}]]+"?destPage=" + location.href;
+	      }
+	      return;
+	   }
+		
+		if($(this).is(":not(.active)")){
+			var rid = $(this).attr("data-rid");//${reply.rid}
+			var mid = $('#yourId').val();
+			var obj = {
+				contentId : rid,
+				memberId64 : mid,
+				appCode : replyAppCode//list_digest의 스크립트 최상단에 전역변수([[${replyAppCode}]])로 선언
+			}
+			//--------------------------------
+			handleCommentLike(obj, $(this), 'digest');
+			//--------------------------------
+		}else{
+			alert("이미 처리 되었습니다.");
+			return;
+		}
+	});
+	
+	//[댓글 싫어요 처리]-------------------------------------------------------------
+	$(document).on("click",'.comment-button .dislike-comment', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+ 	   if($("#loginStatus").text() != 'true'){
+	      if(confirm("로그인 페이지로 이동합니다.")){
+	         self.location = [[@{/auth/login}]]+"?destPage=" + location.href;
+	      }
+	      return;
+	   }
+ 	   
+		if($(this).is(":not(.active)")){
+			var rid = $(this).attr("data-rid");//${reply.rid}
+			var mid = $('#yourId').val();//인코딩된 값
+			
+			var obj = {
+				contentId : rid,
+				memberIdStr : mid,
+				appCode : replyAppCode,
+				recommend : false
+			}
+			//--------------------------------
+			handleCommentDislike(obj, $(this), 'digest');
+			//--------------------------------
+		}else{
+			alert("이미 처리 되었습니다.");
+			return;
+		}
+	});
+	
+	//[댓글 삭제]------------------------------------------------------------------
+	$(document).on("click", '.delete-reply', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		
+		var rid = $(this).attr('value');
+		
+		//--------------------------------
+		handleCommentDelete(rid, 'digest');
+		//--------------------------------
+	});
+}); //end of ready
+
+/**
+ * 대댓글 불러오기
+ */
+function displayChild(parentId){
+	var digestArticleId = $("#comment_"+parentId).closest(".comment-list-section").closest('.content-cover').children(".articleId").val();
+	var url = "/reply/grammarBook/list/" + digestArticleId + "/" + parentId;
+	reloadChildrenReply(parentId, url);
+}
+
+/**
+ * 주제 제시어 목록 표시
+ */
+function displayGetSuggestionList(titleList, element) {
+	var suggestUl = $(element).siblings(".suggest-list-cover");
+	var exist = false;
+	suggestUl.empty();
+	titleList.forEach(function(title, index) {
+		var li = "<li class='dropdown-item'><a>"
+				 + title + "</a></li>";
+		suggestUl.append(li);
+	});
+	suggestUl.show();
+} 
+
+/**
+ * 그래머 아티클 추가 후 주제 표시 수정 및 아티클 표시
+ */
+function successAppendGrammar(resultTarget, articlePage) {
+	// 작성자 중복 검사
+	var writers = []
+	resultTarget.find(":not(.comment-list-section) .alias").each(function(i, element) {
+		writers.push($(element).text());
+	})
+	// 아티클 리스트 마지막에 신규 아티클 추가
+	resultTarget.append($(articlePage).find(".content-cover"));
+	resultTarget.find(".content-cover:last").attr("tabindex","-1").focus();
+	
+	// 중복된 아티클 작성자가 없을 경우 그래머 주제에 아티클 작성자 부분 갱신
+	if(writers.indexOf(unescape([[${session?.userContainer?.personacon?.alias}]])) == -1){
+		writerNumber = resultTarget.closest(".trans-list")
+								   .find(".digest-content-section .personal-cover:has(img)")
+								   .length;
+		if(writerNumber <3){
+			var img = '<div class="personal-cover toggleGrammarCover col-auto align-self-center">' 
+				+ '<img src="/images/app/member/profile_paper.png" '
+				+ 'style="background: url(';
+			if([[${session?.userContainer?.personacon?.iconPath != null}]]){
+				img += '\'/resource/profile/' + [[${session?.userContainer?.personacon?.iconPath}]] + '\')';
+			}else{
+				img += '\'/images/app/member/profile_default.png\')';
+			}
+			img += ' no-repeat; background-position: center; background-size: cover;"></div>';
+			resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-cover:has(img):last")
+						.after(img);
+		}else if(writerNumber == 3){
+			var ext = resultTarget.closest(".trans-list")
+   								  .find(".digest-content-section .personal-other");
+   			if(ext.length > 0){
+   				ext.text("+ " + (Number(ext.text().replace("+","").trim()) + 1));
+   			}else{
+   				ext = '<div class="personal-cover toggleGrammarCover col-auto align-self-center">'
+					+ '<div class="personal-other">+ 1</div></div>';
+				resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-cover:has(img):last")
+						.after(ext);
+   			}
+		}else{
+			resultTarget.closest(".trans-list")
+			   			.find(".digest-content-section .personal-other")
+						.text("+ " + (writerNumber + 1));
+		}
+		
+	}
+	
+	// 그래머 주제에 아티클수 부분 갱신
+	resultTarget.closest(".trans-list")
+	   			.find(".digest-content-section .content-writers:eq(1)")
+				.text(resultTarget.find(".content-cover").length + " article(s) in this theme");
+}
+
+/**
+ * 그래머 주제 수정 성공하면 주제 수정폼을 숨김
+ */
+function successEditGrammarTitle(title, titleSpan) {
+	titleSpan.text(title);
+	titleSpan.closest(".digest-content-section").find(".titleEditArea").hide(100);
+	titleSpan.closest(".content").show(100);
+}
+
+function resetForm(obj){
+	$(obj).closest("form").find(".squareSentenceForm").css("height", "36px");
+	$(obj).closest("form").find(".squareAddBtn").attr("disabled", "disabled");
+}
+
+/**
+ * 메세지를 모달로 띄운다.
+ */
+function popupModal(msg){
+	$("#modalMsg").text(msg);
+	$("#popModalDiv").modal({
+		show: true
+	});
+}
+
+/**
+ * 댓글 수 갱신하기
+ */
+function updateReplyCount(selector, quantity) {
+   var replyCount = $(selector).closest(".viewArticle_div").find(".openCommentList span");
+   replyCount.text(parseInt(replyCount.text()) + quantity);
+} 
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div id="popModalDiv" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<span id='modalMsg'>수정에 성공하였습니다</span>
+			</div>
+			<div class="modal-footer align-self-center">
+				<button type="button" class="btn" data-dismiss="modal">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="introductionSection" class="introduction-section digest mt-lg-5 mt-4">
+	<h3>Exchange English Grammar</h3>
+	<div class="sub">We all build libraries of small pieces of knowledge about English.</div>
+</div>
+
+
+<div id="translationSection" class="translation-section digest">
+	
+	<!-- ------------------------[gold membership]-------------------------- -->
+	<div class="trans-list"><div class="translation-cover gold-membership row no-gutters">
+		<div class="logo col-md-auto align-self-center">
+			<i lang="fa" class="fa fa-crown fa-3x"></i> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership">
+				Join in <span class="pv-tm">Playvoice</span> Membership
+			</div>
+			<div>
+				플레이보이스는 일상에서 자신의 삶에 도움이 되는 실리적 영어 학습 캠페인을 전개하고 있습니다.<br class="d-none d-sm-block">
+				사람들에게 필요한 것은 새로운 콘텐츠가 아니라 영어를 사용할 환경을 제공하는 것이라고 봅니다.<br>
+				지금 플레이보이스 계정을 만들어보세요 
+				<i lang="fa" class="fa fa-comment-dollar fa-lg"></i>
+				재미있고 흥미로운 일들을 만나실 수 있습니다  
+				<i lang="fa" class="far fa-grin-squint fa-lg"></i>
+			</div>
+		</div>
+		<div class="star col-md-auto col-12 align-self-center">
+			<i lang="fa" class="fa fa-star"></i>
+			<i lang="fa" class="fa fa-star"></i>
+			<i lang="fa" class="fa fa-star"></i>
+			<i lang="fa" class="fa fa-star"></i>
+			<i lang="fa" class="fa fa-star"></i>
+		</div>
+	</div></div>
+	
+	<div class="translation-bg">
+		<!-- -----------------------[wise saying]--------------------------- -->
+		<div class="trans-list" style="box-shadow: none; background-color: transparent;"><div class="translation-cover wise-saying">
+			<div class="wise-saying-cover text-center">
+				<i class="fa fa-quote-left"></i>
+				<div class="saying">
+					학습은 암기를 얼마나 열심히 했는지, 혹은 얼마나 많이 아는 지가 아니다.<br class="d-none d-sm-block"> 
+					중요한 것은 <b>아는 것과 모르는 것을 구분할 줄 아는 능력</b>이다.
+				</div>
+				<div class="who">
+					- <b>Anatole France</b>, 
+					 French poet, journalist -
+				</div>
+				<i class="fa fa-quote-right"></i>
+			</div>
+		</div></div>
+		
+		<!-- -------------------[그래머 등록 버튼/ 검색 버튼]--------------------- -->
+		<div class="translation-guide row no-gutters">
+			<div class="add-digest-button-div col-md-auto align-self-center">
+				<button id="addGrammar_btn" type="button" class="btn btn-outline-playsquare2 loginRequired">
+					그래머 등록 <i lang="fa" class="fa fa-pen"></i>
+				</button>
+				<div class="add-guide">
+					작성하려는 그래머와 같은 주제가 있는지 오른쪽의 검색 버튼을 눌러 먼저 <b>검색</b>해 보세요
+					<i class="far fa-grin-alt"></i>
+				</div>
+				<a class="squareSearchBtn search-btn-xs float-right d-md-none">
+					<i class="fa fa-search" style="color: #7065bf!important;"></i>
+				</a>
+			</div>
+			<div class="add-guide-xs add-babel-guide mt-2 col-12 d-md-none">
+				작성하려는 그래머와 <b>같은 주제</b>가 있는지 오른쪽의 검색 버튼을 눌러 먼저 <b>검색</b>해 보세요
+				<i class="far fa-grin-alt"></i>
+			</div>
+			<div class="add-babel-guide col-md pl-md-3 align-self-center py-1">
+				영어 표현, 영어 문법, 영어와 우리말의 문화적 차이, 여러분들이 공부한 것들에 대한 정리 등<br class="d-none d-md-block">
+				입시 시험에서는 잘 다루지는 않지만 중요한 내용들에 대해 함께 공유해 보세요.
+			</div>
+			<div class="search-button-section col-auto d-none d-md-inline align-self-center">
+				<a class="squareSearchBtn" title="주제 검색"><i class="fa fa-search" style="color: #7065bf!important;"></i></a>
+			</div>
+		</div>
+		
+		<!-- -------------------------[search digest]------------------------ -->
+		<div id="searchResult" th:insert="~{/square/incl/search_sentences::search}"></div>
+		<script th:inline="javascript">
+			$("#searchType").val("title");
+		</script>
+	
+		<!-- ---------------------[그래머 리스트 sort 버튼]--------------------- -->
+		<div id="defaultGrammarList">
+			<div class="d-none d-md-block">
+				<div class="select-trans-list list-pc text-right">
+					<a th:href="@{/square/grammarBook/list}" th:classappend="${(#strings.containsIgnoreCase(#request.requestURI,'/list'))?'active':''}">
+						<i class="fa fa-list fa-fw mr-1"></i> <span>전체보기</span></a>
+					<a th:if="${session?.userContainer}" th:classappend="${(#strings.containsIgnoreCase(#request.requestURI,'/mylist'))?'active':''}" 
+					   th:href="@{/square/grammarBook/mylist/} + ${#session.userContainer.personacon.id56}">
+					   	<i class="fa fa-brain fa-fw mr-1"></i> <span>내가 쓴 글 보기</span></a>
+				</div>
+			</div>
+			<div class="d-md-none">
+				<div class="select-trans-list dropdown">
+					<button class="btn btn-secondary dropdown-toggle text-center w-100" data-toggle="dropdown" type="button">
+						<i class="fa fa-list fa-fw float-left"></i>
+						<span>전체 보기</span>
+						<i class="fa fa-caret-down fa-fw float-right"></i>
+					</button>
+					<div class="dropdown-menu">
+						<a th:href="@{/square/grammarBook/list}" class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 전체보기</a>
+						<a th:if="${session?.userContainer}" class="dropdown-item" 
+						   th:href="@{/square/grammarBook/mylist/} + ${#session.userContainer.personacon.id56}">
+						   	<i class="fa fa-brain fa-fw"></i> 내가 쓴 글 보기</a>
+					</div>
+				</div>
+			</div>
+
+					
+			<div th:each="digestPageMap, iter1:${digestPageList}" class="py-1">
+				<div class="recently-digest-title">
+					<span class="alias">[[${digestPageMap.key}]]</span>
+					님이 작성한 최근 그래머 
+					<i class="fa fa-caret-down fa-fw"></i> 
+				</div>
+				
+				<!-- ---------------------[그래머 리스트]--------------------- -->
+				<div th:each="digest:${digestPageMap.value.content}" class="trans-list">
+				<div class="digest-cover row no-gutters">
+					<input type="hidden" class="grammarId" th:value="${grammar.gid}">
+					<div class="category-icon col-auto align-self-center text-center">
+						<i class="far fa-lemon fa-3x"></i>
+					</div>
+					<div class="digest-content-section col row no-gutters">
+						<!-- 주제 정보 -->
+						<div class="content toggleGrammarCover col-12 pr-md-3">
+							<div class="title-sent">
+								<span>[[${grammar.title}]]</span>
+								<i class="fas fa-quote-right ml-2"></i>
+							</div>
+						</div>
+					<div class="titleEditArea col-12 pr-md-3 row no-gutters" style="display: none;">
+						<div class="col-md col-12">
+							<input type="text" class="titleInput form-control" th:value="${grammar.title}">
+							</div>
+							<div class="col-md-auto col-12 pl-md-2 py-1 text-right">
+								<button class="cancelTitleBtn btn btn-sm btn-playsquare2" type="reset">취 소</button>
+								<button class="editTitleBtn btn btn-sm btn-playsquare" type="button">수 정</button>
+							</div>
+						</div>
+						<!-- written by 조회수 -->
+						<div class="content-writers toggleGrammarCover col-md-6 pb-2">written by</div>
+						<div class="digest-info toggleGrammarCover col-md-6 col-12 pr-md-3 text-right">
+							<span class="view" title="조회 수">
+								<i lang="fa" class="fa fa-paw fa-fw"></i>
+								<span>[[${grammar.hits}]]</span>
+							</span>
+							<span th:text="${#dates.format(grammar.regDate, 'yyyy-MM-dd')}" class="date ml-3"></span>
+						</div>
+						<div class="w-100"></div>
+						<!-- 콘텐츠 작성자 -->
+						<div th:each="personacon, iter3:${grammar.personaconList}" 
+							class="personal-cover toggleGrammarCover col-auto align-self-center"
+							th:classappend="${(iter3.count > 3)? 'displaynone':''}">
+							<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/member/profile_default.png') no-repeat;
+								background-position: center; background-size: cover;">
+						</div>
+						
+						<div th:if="${#lists.size(grammar.personaconList) > 3}" class="personal-cover toggleGrammarCover col-auto align-self-center">
+							<div class="personal-other">+ [[${#lists.size(grammar.personaconList) - 3}]]</div>
+						</div>
+						<!-- 아티클 개수 메세지 -->
+						<div class="content-writers col-md col-10 px-md-4 toggleGrammarCover pt-md-2 pt-2">
+							[[${grammar.articleCount}]] article(s) in this theme
+						</div><div class="toggleGrammarCover col d-md-none"></div>
+						<!-- 수정, 신고 버튼 -->
+						<div th:if="${session.userContainer}" class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+							<div class="etc btn-group">
+								<a class="dropdown-toggle" data-toggle="dropdown">
+									<i class="fa fa-ellipsis-h fa-lg"></i>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+								    <li th:if="${#lists.size(grammar.personaconList) == 1 &&
+								    	#strings.equals(grammar.personaconList[0].pid,session.userContainer.personacon.pid)}" 
+								    	class="editTitle dropdown-item text-center"><a>수정</a></li>
+								    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					
+				</div>
+				<!-------------------------- article 역역 ------------------------------->
+				<div th:if="${iter1.index == 0 && grammar.articleList !=null && #lists.size(grammar.articleList) > 0}" 
+					 class="member-digest-cover">
+					
+					<!-- article 리스트 -->
+					<div class="member-content-list" 
+						th:with="articleList=${grammar.articleList},shareLink=${#request.requestURI}">
+						<th:block th:replace="~{/square/grammarBook/view_digest}"></th:block>
+					</div>
+					<div th:if="${session.userContainer}" class="member-trans-form">
+						<div class="moveMemberContent-form text-center jsAction">
+							<span class="alias">[[${session.userContainer.personacon.alias}]]</span> 님도<br class="d-sm-none">
+							주제에 관한 내용을 작성해 보세요
+							<span class="click">click !</span>
+							<i class="far fa-smile-wink"></i> 
+						</div>
+					</div>
+					<div th:unless="${session.userContainer}" class="member-trans-form">
+						<div class="loginContents-form text-center jsAction">
+							<a th:href="${#request.requestURI}" class="loginRequired">
+								로그인 후 주제에 관한 내용을 직접 작성하시겠어요?<br class="d-sm-none">
+								<span class="click">click !</span>
+								<i class="far fa-smile-wink"></i> 
+							</a>
+						</div>
+					</div>
+					<div class="member-trans-guide">
+						플보 멤버들이 남긴 설명이 도움이 되었거나 공감이 된다면 추천을 눌러주세요<br>
+						공유할 내용이 있다면 직접 설명을 적어 플보 멤버들에게 콘텐츠를 제공해 보세요 <i class="far fa-grin-alt"></i>
+					</div>
+					<!-- article 추가 폼 -->
+					<div class="member-trans-editor py-4" style="display: none;"></div>
+					
+				</div>
+				<div th:unless="${grammar.articleList}"  class="member-digest-cover" style="display: none;">
+					
+					<!-- article 리스트 -->
+					<div class="member-content-list">
+					</div>
+					<div th:if="${session.userContainer}" class="member-trans-form">
+						<div class="moveMemberContent-form text-center jsAction">
+							<span class="alias">[[${session.userContainer.personacon.alias}]]</span> 님도<br class="d-sm-none">
+							주제에 관한 내용을 작성해 보세요
+							<span class="click">click !</span>
+							<i class="far fa-smile-wink"></i> 
+						</div>
+					</div>
+					<div th:unless="${session.userContainer}" class="member-trans-form">
+						<div class="loginContents-form text-center jsAction">
+							<a th:href="${#request.requestURI}" class="loginRequired">
+								로그인 후 주제에 관한 내용을 
+								직접 작성하시겠어요?<br class="d-sm-none">
+								<span class="click">click !</span>
+								<i class="far fa-smile-wink"></i> 
+							</a>
+						</div>
+					</div>
+					<div class="member-trans-guide">
+						플보 멤버들이 남긴 설명이 도움이 되었거나 공감이 된다면 추천을 눌러주세요<br>
+						공유할 내용이 있다면 직접 설명을 적어 플보 멤버들에게 콘텐츠를 제공해 보세요 <i class="far fa-grin-alt"></i>
+					</div>
+					<!-- article 추가 폼 -->
+					<div class="member-trans-editor py-4" style="display: none;"></div>
+					
+				</div>
+				</div>
+			</div>
+			
+			
+		</div>
+	</div>
+	
+
+	
+	
+	
+</div><!-- end of translationSection -->
+<!-- ------------------------- div area for copy --------------------------- -->
+<div id="divsForCopy" style="display: none;">
+
+	<!-- -------------------- grammar List for Copy ------------------------- -->
+	<div class="trans-list">
+		<div class="digest-cover row no-gutters">
+			<!-- grammar.gid -->
+			<input type="hidden" class="grammarId">
+			<div class="category-icon col-auto align-self-center text-center">
+				<i class="far fa-lemon fa-3x"></i>
+			</div>
+			<div class="digest-content-section col row no-gutters">
+				<!-- 주제 정보 -->
+				<div class="content toggleGrammarCover col-12 pr-md-3">
+					<div class="title-sent">
+						<span><!-- grammar.title --></span>
+						<i class="fas fa-quote-right ml-2"></i>
+					</div>
+				</div>
+				<div class="titleEditArea col-12 pr-md-3 row no-gutters" style="display: none;">
+					<div class="col-md col-12">
+						<input type="text" class="titleInput form-control">
+					</div>
+					<div class="col-md-auto col-12 pl-md-2 py-1 text-right">
+						<button class="cancelTitleBtn btn btn-sm btn-playsquare2" type="reset">취 소</button>
+						<button class="editTitleBtn btn btn-sm btn-playsquare" type="button">수 정</button>
+					</div>
+				</div>
+				<!-- written by 조회수 -->
+				<div class="content-writers toggleGrammarCover col-md-6 pb-2">written by</div>
+				<div class="digest-info toggleGrammarCover col-md-6 col-12 pr-md-3 text-right">
+					<span class="view" title="조회 수">
+						<i lang="fa" class="fa fa-paw fa-fw"></i>
+						<span><!-- grammar.hits --></span>
+					</span>
+					<span class="date ml-3"></span>
+				</div>
+				<div class="w-100"></div>
+				<!-- 콘텐츠 작성자 contentWritersProf 전으로 추가 -->
+				<div class="contentWritersProf" style="display: none;"></div>
+				<!-- if="${grammar.articleCount > 3}" -->
+				<div class="personal-cover toggleGrammarCover col-auto align-self-center">
+					<div class="personal-other">+ <!-- grammar.articleCount - 3 --></div>
+				</div>
+				<!-- 아티클 개수 메세지 -->
+				<div class="content-writers col-md col-10 px-md-4 toggleGrammarCover pt-md-2 pt-2">
+					<span></span> article(s) in this theme
+				</div><div class="toggleGrammarCover col d-md-none"></div>
+				<!-- 수정, 신고 버튼 -->
+				<div th:if="${session.userContainer}" class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+					<div class="etc btn-group">
+						<a class="dropdown-toggle" data-toggle="dropdown">
+							<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+						</a>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							<!-- if="${#lists.size(grammar.personaconList) == 1 &&
+						    	#strings.equals(grammar.personaconList[0].pid,session.userContainer.personacon.pid)}" -->
+						    <li th:if="${session.userContainer}" data-th-viewer="${session?.userContainer?.personacon?.id56}" class="editTitle dropdown-item text-center"><a>수정</a></li>
+						    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			
+		</div>
+		<!-------------------------- article 역역 ------------------------------->
+		<div class="member-digest-cover" style="display: none;">
+			<!-- article 리스트 -->
+			<div class="member-content-list">
+			</div>
+			<div th:if="${session.userContainer}" class="member-trans-form">
+				<div class="moveMemberContent-form text-center jsAction">
+					<span class="alias">[[${session.userContainer.personacon.alias}]]</span> 님도<br class="d-sm-none">
+					주제에 관한 내용을 작성해 보세요
+					<span class="click">click !</span>
+					<i class="far fa-smile-wink"></i> 
+				</div>
+			</div>
+			<div th:unless="${session.userContainer}" class="member-trans-form">
+				<div class="loginContents-form text-center jsAction">
+					<a th:href="${#request.requestURI}" class="loginRequired">
+						로그인 후 주제에 관한 내용을 직접 작성하시겠어요?<br class="d-sm-none">
+						<span class="click">click !</span>
+						<i class="far fa-smile-wink"></i> 
+					</a>
+				</div>
+			</div>
+			<div class="member-trans-guide">
+				플보 멤버들이 남긴 설명이 도움이 되었거나 공감이 된다면 추천을 눌러주세요<br>
+				공유할 내용이 있다면 직접 설명을 적어 플보 멤버들에게 콘텐츠를 제공해 보세요 <i class="far fa-grin-alt"></i>
+			</div>
+			<!-- article 추가 폼 -->
+			<div class="member-trans-editor py-4" style="display: none;"></div>
+			
+		</div></div>
+	<!-- ---------------------- /grammarBook List for Copy -------------------------- -->
+	
+	<!-- ---------------- grammar.personaconList for Copy ----------------------- -->
+					<!-- th:classappend="${(iter3.count > 3)? 'displaynone':''}" -->
+	<div class="personal-cover toggleGrammarCover col-auto align-self-center">
+		<!-- 퍼스나콘 img 표시 -->
+		<img src="/images/app/member/profile_paper.png" 
+		style="background: url('/images/app/member/profile_default.png') no-repeat;
+		background-position: center; background-size: cover;">
+	</div>
+	<!-- ---------------- /grammarBook.personaconList for Copy ---------------------- -->
+
+</div>	
+<div class="text-right" style="color:red;">
+   source :: square/list_writer_digests.html  
+</div> 
+
+</section>

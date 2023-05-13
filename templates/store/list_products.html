@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playstore_layout}">
+<head>
+<title>products : PlayStore</title>
+<link rel="stylesheet" th:href="@{/css/app/playstore.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [header menu active]-----------------------------------------------------
+	$(".store-menu-section .playStoreProductsMenu").addClass("active");
+	
+}); //end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="background-products"><div class="container" style="height: 600px;">
+	
+	playstore products list
+	
+	
+</div></div>
+</section>
+
+</html>

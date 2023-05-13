@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+<title>The Basecamp for Learning English - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" href="/css/app/member.css">
+<script th:inline="javascript">
+$(document).ready(function(){
+	var todayDate = new Date();
+	var year = todayDate.getFullYear();
+	var month = todayDate.getMonth() + 1;
+	var date = "";
+	if(todayDate.getDate() < 10) {
+		date = "0" + todayDate.getDate();
+	} else {
+		date = todayDate.getDate();
+	}
+	$(".regDate").html(year + "-" + month + "-" + date);
+	
+}); //end of ready
+</script>
+
+</head>
+
+
+<section layout:fragment="content">
+<div class="welcome-transition-container">
+
+<!-- --------------------------[1. 이미지 인트로]------------------------------- -->
+<div id="welcomeHeaderMentSection" class="welcome-images-section">
+	<div class="welcome-title-section"><div class="container">
+		<h3>Welcome to Playvoice</h3>
+		<div class="sub3">
+			플레이보이스 <b>멤버십 카드와 계좌, 여권</b>이 발급되었습니다<br>
+			로그인한 후 '마이 페이지'를 확인해 주세요 <i class="far fa-grin-alt fa-lg"></i>
+		</div>
+		<!-- 암스트롱 -->
+		<div class="amstrong-section">
+			<div class="dog">
+				<div class="dog-paws">
+					<div class="dog-bl-leg leg">
+						<div class="dog-bl-top top"></div>
+					</div>
+					<div class="dog-fl-leg leg">
+						<div class="dog-fl-top top"></div>
+					</div>
+					<div class="dog-fr-leg leg">
+						<div class="dog-fr-top top"></div>
+					</div>
+				</div>
+				<div class="dog-body">
+					<div class="dog-tail"></div>
+				</div>
+				<div class="dog-ear-cover-l"></div>
+				<div class="dog-head">
+					<div class="dog-snout">
+						<div class="dog-nose"></div>
+						<div class="dog-eyes">
+							<div class="dog-eye-l"></div>
+							<div class="dog-eye-r"></div>
+						</div>
+					</div>
+				</div>
+				<div class="dog-ear-cover-r"></div>
+			</div>
+		</div>
+		<!-- 여행 가방 -->
+		<div class="travel-case-section">
+			<div class="handle"></div>
+			<div class="wheel-section">
+				<div class="wheel"></div><div class="wheel"></div>
+			</div>
+			<div class="travel-case">
+				<div class="case-verti"></div>
+				<div class="mark-playvoice"></div>
+			</div>
+		</div>
+		<!-- TY -->
+		<div class="TY-shape-section">
+			<div class="mane-section">
+				<div class="mane"></div>
+			</div>
+			<div class="bird-body">
+				<div class="face-section">
+					<div class="eye"></div><div class="eye"></div>
+					<div class="mouse"></div>
+				</div>
+				<div class="arm left-fly"></div>
+				<div class="arm right-fly"></div>
+			</div>
+		</div>
+	</div></div>
+</div><!-- end of welcomeHeaderMentSection -->
+
+<!-- -------------------------[2. welcome header]--------------------------- -->
+<div id="welcomeCharacterSection" class="section-trans-container"><div class="welcome-ment-section">
+	<div class="welcome-ment"><div class="container">
+		<div class="sub">Playvoice English Rebirth Project</div>
+		<div class="sub2">Episode Ⅰ - A cosmopolitan tourist</div>
+	</div></div>
+</div></div><!-- end of welcomeCharacterSection -->
+
+<!-- -------------------------[3. 여권/ 팀/ 부족 설명]--------------------------- -->
+<div id="playvoiceIntroductionSection" class="scrollmagic-pin-spacer"><div class="container">
+	<div class="scrollmagic-pin-spacer-div">
+		<!-- 여권, 카드 -->
+		<div class="travel-item-section row no-gutters">
+			<div class="my-passport-section col-6">
+				<div id="passportSwipeArea" class="passport-area group-P member-M">
+					<!-- [1.1 여권 표지] -->
+					<div id="closePassportDiv" class="row no-gutters">
+						<div class="col"></div>
+						<div class="stamp-book-cover-half col-auto">
+							<div class="passport-cover-img"></div>
+						</div>
+					</div><!-- end of closePassportDiv -->
+				</div>
+			</div>
+			<div class="col-6">
+				<div class="playaccount-card-cover member-M">
+					<div class="card-top-margin"></div>
+					<div class="card-info-section row no-gutters">
+						<div class="card-chip col-auto"></div>
+					</div>
+					<div class="card-info row no-gutters">
+						<div class="card-since col-auto">
+							<div class="title">cardmember<br>since</div>
+							<div class="regDate"></div>
+						</div>
+						<div class="card-number col align-self-end">
+							<span>00000000</span><span>00000000</span>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+		<div class="travel-item-guide">
+			여권에 사용될 <b>별명</b>과 <b>퍼스나콘</b>을 멋지게 만들어 보세요.<br><br>
+			<b>비슷한 날짜에 가입한 멤버</b>를 확인해 볼 수 있습니다. <br>
+			함께 여정을 떠나면서 나의 랭킹을 비교하며 확인해 보세요.<br><br>
+			<b>5개의 부족</b> 중 한가지 부족에 소속이 됩니다. 지금 바로 확인해 보세요.
+		</div>
+		<div class="login-button-section">
+			<button class="btn playboive-login-btn" type="button"
+				onclick="location.href=$(this).attr('href')"
+				th:href="@{/auth/login}">로그인 하기</button>
+		</div>
+	</div>
+	<!-- 로그인 버튼 -->
+	<button class="btn playboive-login-btn" type="button"
+		onclick="location.href=$(this).attr('href')"
+		th:href="@{/auth/login}">sign in</button>
+</div></div><!-- end of playvoiceIntroductionSection -->
+
+</div>
+</section><!-- end of content -->

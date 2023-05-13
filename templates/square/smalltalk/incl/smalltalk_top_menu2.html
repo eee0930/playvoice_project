@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="menu">
+<div id="smalltalkTopMenuSection" class="smalltalk-menu row"><div class="col-12 p-0">
+	<div class="menu-cover py-2"><div class="row no-gutters menu">
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button th:href="@{/square/smalltalk}" class="menu-item"
+				data-reg="/square/smalltalk$" type="button"
+				onclick="location.href=$(this).attr('href')">
+				<i class="fa fa-beer fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스몰톡 HOME</span>
+				<span class="d-md-none">HOME</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button th:href="@{/square/smalltalk/list}" 
+				class="menu-item" data-reg="/square/smalltalk/list|/square/smalltalk/view" 
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i class="fa fa-book fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스토리 목록</span>
+				<span class="d-md-none">독해 학습</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button th:href="@{/square/smalltalk/add}" class="menu-item" 
+				data-reg="/smalltalk/add|/smalltalk/translate|/smalltalk/hint|/smalltalk/category"
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i class="fa fa-pen fa-fw"></i><br class="d-md-none">
+				<span class="d-none d-md-inline-block">스몰톡 등록</span>
+				<span class="d-md-none">스몰톡 등록</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button th:href="@{/square/smalltalk/plate}" 
+				class="menu-item" data-reg="/square/smalltalk/plate"
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i th:if="${#strings.contains('PG', (memberType))}" 
+					class="forGold fa fa-crown fa-fw"></i>
+				<i class="fa fa-archive fa-fw"></i>
+				<br class="d-md-none">
+				<span class="d-none d-md-inline-block">스토리 보관함</span>
+				<span class="d-md-none">보관함</span>
+			</button>
+		</div>
+		<div class="menu-b col-md-auto col text-center align-self-center">
+			<button th:href="@{/square/smalltalk/mylist}" 
+				class="menu-item" data-reg="/square/smalltalk/mylist"
+				onclick="location.href=$(this).attr('href')" type="button">
+				<i class="fa fa-street-view fa-fw"></i>
+				<br class="d-md-none">
+				<span class="d-none d-md-inline-block">내가 쓴 글 보기</span>
+				<span class="d-md-none">나의 컨텐츠</span>
+			</button>
+		</div>
+	</div></div>
+</div></div>
+<script>
+//선택된 메뉴들 active 효과------------------------------------------------------
+$("#smalltalkTopMenuSection .menu-item").each(function(i, anchor){
+	// 현재 url과 맞는 정규식값을 'data-reg' 값으로 갖는 메뉴를 활성화 
+	// PC버전 메뉴의 각 <a>태그에 data-reg 값이 있어야 한다.
+	const matched = location.pathname.match($(anchor).attr("data-reg"));
+	if(matched != null && matched[0].length > 0){
+		$(anchor).addClass('menu-active');
+	}else{
+		$(anchor).removeClass('menu-active');
+	}
+});
+</script>
+</div>

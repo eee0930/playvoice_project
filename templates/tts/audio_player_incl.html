@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="player">
+<!-- -----------------------------[1 플레이어]--------------------------------- -->
+<div id="myAlbumPlayerDiv" class="my-album-content-div audio-player"
+	th:with="cloudVoice = ${album.cloudVoiceList[0]},
+			sentence = ${cloudVoice?.sentence}" style="display: none;">
+	<!-- 현재 재생되고 있는 문장 -->
+	<div class="tts-player-cover">
+		<!-- 영어 문장 -->
+		<div class="eng-text">[[${sentence.text}]]</div>
+		<!-- 번역 문장 -->
+		<div class="trans-text">[[${sentence.trans}]]</div>
+	</div>
+</div><!-- end of myAlbumPlayerDiv -->
+
+</th:block>
+
+</html>

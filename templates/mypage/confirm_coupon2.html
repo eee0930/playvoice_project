@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+<head>
+<title>My Coupon - 플레이보이스 | Playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [menu active]------------------------------------------------------------
+	$("#menuSection .myInfo").addClass("menu-active");
+
+	// [모바일 로고 섹션에 앱 이름 변경]---------------------------------------------------
+	$("#playvoiceMobileTextLogo").show();
+	$("#playvoiceMobileAppName").hide();
+	
+	
+	/*[# th:if="${ok == false}"]*/
+	// [(쿠폰 발행이 안되었을 경우) 메인 페이지로 가기]----------------------------------------
+	$(".backToIndexPage").click(function(){
+		location.href="/main";
+	});
+	$('html').addClass('modalOpen');
+	/*[/]*/
+	
+});//end of ready
+
+
+
+ 
+</script>
+
+</head>
+
+<section layout:fragment="content">
+<!-- top 메뉴 (Mobile ver.) -->	
+<div id="menuSection" class="d-md-none" 
+	th:insert="~{/membership/incl/membership_menu2::menu}"></div>
+<div class="profile-top-cover mt-4">
+	<h3>
+		My Coupon
+		<i class="fa fa-ticket-alt"></i>
+	</h3>
+	<div class="sub-title"><span class="kor">
+		<i class="fa fa-quote-left relative-font"></i>
+		lazyhysong 님을 위한 플레이보이스의 선물
+		<i class="fa fa-quote-right relative-font"></i>
+	</span></div>
+</div>
+
+<th:block th:if="${ok == true}">
+<!-- profile top contents -->
+<div class="d-none d-md-block">
+	<div class="profile-top-content row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-gift fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Issued Coupon</span>
+			<span class="body kor">[[${couponName}]]</span>
+		</div>
+	</div>	
+</div>
+<div class="d-md-none">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-ticket-alt"></i></label>
+		</div>
+		<div class="detail col">
+			<div class="guide-cover">Issued Coupon</div>
+			<div>
+				<span class="num small">[[${couponName}]]</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- ---------------------------[1. 쿠폰 발급 성공]------------------------------ -->
+<div id="confirmCouponIssueSection">
+	<!-- [1.1 쿠폰 발급 이미지] -->
+	<div id="couponImageDiv" class="coupon-character-section">
+		<div class="coupon-character cha1"></div>
+		<div th:href="@{/membership#goldTrial}" class="coupon-div jsAction"
+			onclick="location.href=$(this).attr('href')">
+			<div class="coupon-inner"></div>
+			<div class="current">
+				<div>playvoice</div>
+				<div class="coupon-name">gold trial coupon</div>
+			</div>
+		</div>
+		<div class="coupon-character cha2"></div>
+	</div><!-- end of couponImageDiv -->
+	
+	<!-- [1.2 발급된 쿠폰 설명] -->
+	<div id="couponDetailDiv" class="trial-coupon-detail-section">
+		<div class="profile-top-cover none-sub-title">
+			<h3>Gold Trial Coupon <i class="fa fa-crown"></i></h3>
+		</div>
+		<div class="picture-guide">
+			발급된 쿠폰은 <a th:href="@{/membership#goldTrial}">Membership</a> 
+			구매 페이지의 쿠폰 목록에서 확인할 수 있습니다.
+		</div>
+		<div class="mypage-content-box-section detail">
+			<div class="detail-title">쿠폰 혜택</div>
+			<ul>
+				<li>2주 동안 <b>골드 멤버십 서비스</b>를 제한 없이 사용할 수 있습니다.</li>
+				<li>무료 체험 기간 동안 골드 서비스 가입 시 <b>추가적인 할인 혜택</b>을 받을 수 있습니다.</li>
+				<li>무료 체험 기간이 끝난 후에도 <b>자동 결제가 없습니다</b>.</li>
+			</ul>
+			<div class="detail-title">유의 사항</div>
+			<ul>
+				<li>쿠폰의 유효기간은 <b>30일</b>이니 발급일로부터 30일 이내로 사용하기 바랍니다.</li>
+			</ul>
+			<div class="button-section">
+				<a th:href="@{/payment/membership/GF-MEMBERSHIP}" class="loginRequired">
+					골드 멤버십 체험하기 <i class="fa fa-arrow-right"></i>
+				</a>
+			</div>
+		</div>
+	</div><!-- end of couponDetailDiv -->
+</div><!-- end of confirmCouponIssueSection -->
+
+</th:block>
+
+<!-- ---------------------------[2. 쿠폰 발급 실패]------------------------------ -->
+<th:block th:unless="${ok == true}">
+<!-- 무료 체험을 이용할 수 없는 경우 -->
+<div class="none-active-guide-section">
+	<div class="none-active-back"></div>
+	<div class="none-active-guide-cover">
+		<div class="guide-header">
+			<i class="fa fa-exclamation-triangle"></i>
+		</div>
+		<div class="none-active-guide">
+			<div>
+				[[${couponName}]]을 이미 사용하였거나 쿠폰 기간이 만료되었습니다.
+			</div>
+			<div class="button-section">
+				<button class="backToPage btn back-btn" type="button">
+					<i class="fa fa-arrow-left"></i>
+					playvoice 메인으로
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+</th:block>
+
+</section>

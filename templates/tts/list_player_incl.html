@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="player">
+<!-- -----------------------------[3 플레이어]--------------------------------- -->
+<div id="myAlbumListPlayerDiv" class="my-album-content-div">
+	<!-- 플레이 리스트 -->
+	<div th:each="cloudVoice, iter : ${album.cloudVoiceList}" class="list-player-cover"
+		th:with="sentence = ${cloudVoice.sentence}">
+		<div class="list-player-back"></div>
+		<input type="hidden" class="vid" th:value="${cloudVoice.vid}">
+		<input type="hidden" class="path" th:value="${cloudVoice.path}">
+		<input type="hidden" class="actor" th:value="${cloudVoice.voiceActor.name}">
+		<div class="list-player-sentence">
+			<div class="num" th:text="${iter.count}"></div>
+			<!-- 영어 문장 -->
+			<div class="eng-text">[[${sentence.text}]]</div>
+			<!-- 번역 문장 -->
+			<div class="trans-text">[[${sentence.trans}]]</div>
+		</div>
+	</div>
+</div><!-- end of myAlbumPlayerDiv -->
+
+</th:block>
+
+</html>

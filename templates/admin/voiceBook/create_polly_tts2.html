@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout2}">
+
+<head>
+<title>Create Polly TTS - playvoice admin</title>
+<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+<script th:src="@{/js/app/sentencebook.js}"></script>
+<!-- <script th:src="@{/js/app/common.js}"></script> -->
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	// [예문 또는  보이스 그룹 선택시 보이스 등록 버튼 활성화]-------------------------------------
+	$("#choiceVoiceActorDiv .option-input, #sentenceListDiv .option-input").change(function(){
+		var checkedLength = $(".option-input").val().length;
+		if(checkedLength < 1) {
+			$("#addVoiceBtn").prop("disabled", true);
+		} else {
+			$("#addVoiceBtn").prop("disabled", false);
+		}
+	});
+	
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	
+	//if(query.indexOf('=') == -1){
+		var tagetLink = $('#sentenceListDiv th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	//}
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 데이터(eng) 클릭시 상세보기]------------------------------------------------
+	$('.resultWrapper').on('click', '.sentenceDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.sentenceDetailPart').css('display','block');
+		//센텐스 정보 추출
+		pickUpSentenceInfo($(this));
+		//보이스 정보 조회
+		displayVoiceList($('#sid').val());
+		//이전에 수정을 했었ㄷ다면
+		$('.successBtn').css('display', 'none');
+		//상세보기/수정 폼으로 이동
+		window.scroll(0, getOffsetTop(document.getElementById("editSentenceForm")));
+	});
+	
+	// [테이블 데이터 상세보기 영역 닫기]--------------------------------------------------
+	$("#closeEditingForm").click(function(){
+		$('.sentenceDetailPart').hide();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시]-----------------------------------------------------
+	$("#sentenceListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		var sort = $(this).attr('data-value');
+		
+		$('#sortName').val(sort);
+		
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		displaySearchMark($(this));
+		searchSentence(searchType, page, 'list');
+	});
+	
+	//[예문 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchSentenceDiv').toggle();
+	});
+	
+	//['전체 체크' 체크시 해당 테이블 속의 체크박스를 모두 토글]-------------------------------------
+	$(document).on('click','.all-checkbox',function(){
+		var columnIndex = $(this).closest('th').index();
+		var rows = $(this).closest('table').find('tbody tr');
+		rows.each(function(i, element) {
+			$(element).find('td:eq(' + columnIndex + ') :checkbox')
+			.prop('checked',function(){
+				return !$(this).prop('checked');
+			});
+		});
+	});
+	
+	//[그룹 선택시 보이스액터 체크]---------------------------------------------------
+	$("input[name='group']").change(function() {
+		var groupName = $("input[name='group']:checked").val();
+		
+		if(groupName == 'A'){
+			$('.groupADiv').find($(":checkbox[name='voiceActor']")).prop('checked', true);
+			$('.groupBDiv').find($(":checkbox[name='voiceActor']")).prop('checked', false);
+		}
+		else if(groupName == 'B'){
+			$('.groupADiv').find($(":checkbox[name='voiceActor']")).prop('checked', false);
+			$('.groupBDiv').find($(":checkbox[name='voiceActor']")).prop('checked', true);
+		}
+    });
+	
+	//[보이스 등록하기 버튼 클릭시 ] --------------------------------------------------
+	$(document).on('click','#addVoiceBtn',function(e){
+		e.preventDefault();
+		// 선택한 센텐스 정보 찾기 
+		var sentenceList = [];
+		var sentenceChkList = $(":checkbox[name='sentence']:checked");
+		sentenceChkList.each(function(i, sentenceChk){
+			var sentenceId = $(sentenceChk).attr("data-sid");
+			var eng = $(sentenceChk).closest(".sentenceTr").find(".eng").text();
+			
+			var sentence = {
+					sid : sentenceId,
+					eng : eng
+			};
+			sentenceList.push(sentence);
+		});
+		
+		// 선택한 보이스 액터 정보 찾기 
+		var voiceActorList = [];
+		var voiceActorChkList = $(":checkbox[name='voiceActor']:checked");
+		voiceActorChkList.each(function(i, voiceActorChk){
+			var voiceActorInfoList = voiceActorChk.closest(".voiceActorInfo");	
+			var voiceActorId = $(voiceActorInfoList).find('.voiceActorId').val();
+			var name = $(voiceActorInfoList).find('.name').val();
+			var voiceType = $(voiceActorInfoList).find('.voiceType').val();
+			var voiceSex = $(voiceActorInfoList).find('.voiceSex').val();
+			var accent = $(voiceActorInfoList).find('.accent').val();
+			var description = $(voiceActorInfoList).find('.description').val();
+			
+			var voiceActor = {
+					voiceActorId : voiceActorId,
+					name : name,
+					voiceType : voiceType,
+					voiceSex : voiceSex,
+					accent : accent,
+					description : description
+			};
+			voiceActorList.push(voiceActor);
+		});
+
+		// 유효성 검사 
+		var validation = false;
+		if(sentenceChkList.length > 0 && voiceActorChkList.length > 0){
+			validation = true;
+		}
+		
+		if(validation){
+			var voiceCommand = {
+					sentenceList : sentenceList,
+					voiceActorList : voiceActorList
+			};
+			
+			var form = $('#addVoicesForm');
+			appendData(form[0], voiceCommand);
+			form.submit();
+		}else{
+			alert('센텐스 혹은 보이스액터를 선택하세요');
+		}
+	});
+})//end of reday
+
+
+/**
+ * 목록 헤더 컬럼 정렬 기능 처리
+ */
+function displaySearchMark(target){
+	//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+	$('#sentenceListDiv .sortMark, #searchResultTable_list .sortMark').css('display', 'none');
+	
+	//var target = $(this);
+	var dynamicTargets = document.querySelectorAll('#searchResult_list .thlink');
+	//$('#searchResult_list .thlink')
+	
+	//<th><a href="javascript:void(0)" class="thlink" data-value='eng'>영어</a><span class="sortMark">▼</span></th>
+	
+	var sortName = target.attr('data-value');
+	var sortMark = target.next();
+	
+	for(var i = 0; i < dynamicTargets.length; i++){
+		//alert(dynamicTargets[i]);
+		if(dynamicTargets[i].getAttribute("data-value") == sortName){
+			//alert(sortName);
+			sortMark = dynamicTargets[i].nextSibling;
+		}
+		//alert(dynamicTargets[i].attr('data-value'));
+	}
+	
+	
+	//현재 선택한 sortName이 이전과 같다면
+	if(sortName == $('#searchFormHidden_list #sortName').val()){
+		//현재 설정된 정렬방향을 가져온다.
+		var direction = $('#searchFormHidden_list #asc').val();
+		
+		//정렬방향을 반대로 변경한다.
+		if(direction == 'false'){
+			$('#searchFormHidden_list #asc').val('true');
+			//sortMark.text('▲');
+			sortMark.innerHTML='▲';
+		}else{
+			$('#searchFormHidden_list #asc').val('false');
+			//sortMark.text('▼');
+			sortMark.innerHTML='▼';
+			
+		}
+	}else{
+		//새로운 sortName으로 교체
+		$('#searchFormHidden_list #sortName').val(sortName);
+		
+		//기본값을 desc로 설정한다.
+		$('#searchFormHidden_list #asc').val('false');
+	}
+	//----------------------------------------
+	$(sortMark).css('display', 'inline');
+	//----------------------------------------
+}
+
+</script>
+</head>
+
+<section layout:fragment="content">
+	
+<h3>보이스 미등록 Sentence 목록</h3> 
+
+<!--/* -------------------------[1. 예문 목록 Table]-------------------------  */-->
+<div id="sentenceListDiv">
+<div class="text-left">
+	<i class="fas fa-search-plus searchIcon" 
+		style="font-size:15px; color: #5bc0de;"></i>
+</div>
+
+<table class="resultWrapper table table-sm table-bordered table-hover text-center">
+	<thead>
+	<tr class="thead">
+		<th style="width: 50px;">
+			<a href="javascript:void(0)" class="allCheckbox"></a>
+			<input type="checkbox" class="all-checkbox option-input checkbox" name="allChk"/>
+		</th>
+		<th style="width: 70px;">
+			<a href="javascript:void(0)" class="thlink">번호</a></th>
+		<th style="width: 70px;">
+			<a href="javascript:void(0)" class="thlink" data-value='sid'>SID</a>
+			<span class="sortMark">▼</span></th>
+		<th>
+			<a href="javascript:void(0)" class="thlink" data-value='eng'>영어</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 80px;">보이스등록</th>
+		<th style="width: 80px;">카테고리</th>
+		<th style="width: 100px;">
+			<a href="javascript:void(0)" class="thlink" data-value='source'>출처</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 90px;">
+			<a href="javascript:void(0)" class="thlink" data-value='firstWriter'>작성자</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 90px;">
+			<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+			<span class="sortMark" data-orderBy="default">▼</span></th>
+	</tr></thead>
+	<!--/* 1.결과 목록 */-->
+	<tr class="sentenceTr">
+		<td style="width: 50px;">
+			<input type="checkbox" data-sid="123456" name="sentence"
+				class="option-input checkbox"/>
+		</td>					
+		<td>2</td>
+		<td>123456</td>
+		<td class="text-left">
+			<a href="javascript:void(0)" class="sentenceDetail eng">
+				Did you see that man just passed by?
+			</a>
+			<input type='hidden' value="방금 지나간 애 봤어?"/></td>
+		<td class="text-left" style="display: none">방금 지나간 애 봤어?</td>
+		<td>false</td>
+		<td>false</td>
+		<td class="t-reference">playvoice.org</td>
+		<td>admin5014</td>
+		<td>2020-09-27</td>
+	</tr>
+	<tr class="sentenceTr">
+		<td style="width: 50px;">
+			<input type="checkbox" data-sid="223496" name="sentence"
+				class="option-input checkbox"/>
+		</td>					
+		<td>2</td>
+		<td>223496</td>
+		<td class="text-left">
+			<a href="javascript:void(0)" class="sentenceDetail eng">
+				You have a face that only your mother loves.
+			</a>
+			<input type='hidden' value="너 진짜 못생겼어."/></td>
+		<td class="text-left" style="display: none">너 진짜 못생겼어.</td>
+		<td>false</td>
+		<td>false</td>
+		<td class="t-reference">playvoice.org</td>
+		<td>admin5014</td>
+		<td>2020-09-27</td>
+	</tr>
+</table>
+<!--/* 1.paging */-->
+<nav class="my-3">
+	<ul class="pagination pagination-sm justify-content-center">
+		
+		<li class="page-item active">
+			<a class="page-link">1</a>
+		</li>
+		<li class="page-item">
+			<a class="page-link">2</a>
+		</li>
+		<li class="page-item">
+			<a class="page-link">NEXT</a>
+		</li>
+	</ul>
+</nav>
+</div><!-- end of sentenceListDiv -->
+
+
+
+<!--/* --------------------[2. 예문 목록 Table By Ajax]----------------------- */-->
+<div id="searchResult_list">
+<div class="text-left">
+	<i class="fas fa-search-plus searchIcon" 
+		style="font-size:15px; color: #5bc0de;"></i>
+</div>
+<table id="searchResultTable_list" class="resultWrapper table table-sm table-bordered table-hover text-center">
+	<thead>
+	<tr class="thead">
+		<th style="width: 70px;">번호</th>
+		<th style="width: 70px;">
+			<a href="javascript:void(0)" class="thlink" data-value='sid'>SID</a>
+			<span class="sortMark">▼</span></th>
+		<th>
+			<a href="javascript:void(0)" class="thlink" data-value='eng'>영어</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 80px;">보이스등록</th>
+		<th style="width: 80px;">카테고리</th>
+		<th style="width: 100px;">
+			<a href="javascript:void(0)" class="thlink" data-value='source'>출처</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 90px;">
+			<a href="javascript:void(0)" class="thlink" data-value='firstWriter'>작성자</a>
+			<span class="sortMark">▼</span></th>
+		<th style="width: 90px;">
+			<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+			<span class="sortMark" data-orderBy="default">▼</span></th>
+	</tr></thead>
+	<tbody><!--/* 결과 목록 */--></tbody>
+</table>
+<!--/* paging */-->
+<div id="searchResultPageNavi">
+	<ul class="pagination pagination-sm justify-content-center">
+		
+	</ul>
+</div>
+</div> <!-- end of searchResult -->
+
+<!-- paging hidden values-->
+
+<!-- error -->
+<div id="errorDiv" style="display: none;">
+	<pre></pre>
+</div>
+
+
+
+<div id="choiceVoiceActorDiv" class="choice-voice-actor-section">
+	<form id="addVoicesForm" method="post">
+		<div class="text-center">
+			<button id="addVoiceBtn" class="btn btn-main-submit btn-lg" 
+				disabled="disabled" type="button">보이스 생성</button>
+		</div>
+	</form>
+	
+	<div class="count-voice-added-cover">
+		<i class="fa fa-tape"></i>
+		<span class="todayDate">2020-10-24</span> 현재 등록 보이스 갯수 : 
+		<span class="num">1125</span>
+	</div> 
+			
+	<h3>VoiceActor 선택</h3>
+	<div class="row">
+		<div class="col">
+			<div class="voice-refer-name">Polly</div>
+			<div class="row no-gutters">
+				<div class="groupADiv col">
+					<label>
+						<input type="radio" name="group" value="A" 
+							class="option-input radio"/>
+						<span class="group-name">A 그룹</span>
+					</label>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">Alen</span>, UK, W</label>
+					</div>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">John</span>, US, M</label>
+					</div>
+				</div>
+				<div class="groupADiv col">
+					<label>
+						<input type="radio" name="group" value="A" 
+							class="option-input radio"/>
+						<span class="group-name">B 그룹</span>
+					</label>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">Alen</span>, UK, W</label>
+					</div>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">John</span>, US, M</label>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col">
+			<div class="voice-refer-name">Google</div>
+			<div class="row no-gutters">
+				<div class="groupADiv col">
+					<label>
+						<input type="radio" name="group" value="A" 
+							class="option-input radio"/>
+						<span class="group-name">A 그룹</span>
+					</label>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">Alen</span>, UK, W</label>
+					</div>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">John</span>, US, M</label>
+					</div>
+				</div>
+				<div class="groupADiv col">
+					<label>
+						<input type="radio" name="group" value="A" 
+							class="option-input radio"/>
+						<span class="group-name">B 그룹</span>
+					</label>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">Alen</span>, UK, W</label>
+					</div>
+					<div class="voiceActorInfo">
+						<label><input type="checkbox" name="voiceActor" 
+							class="option-input checkbox"/>
+							<span class="name">John</span>, US, M</label>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+</div>
+
+
+<!-- ----------------[4. 예문 상세 보기/보이스 목록/ 보이스 수정 및 삭제]------------------- -->	
+<div class="sentenceDetailPart mt-4">
+	<div id="editSentenceFormContainer" class="formContainer admin-view-detail-section">
+		<h3>
+			View Detail &amp; Editing Sentence Form 
+			<button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+			<i id="closeEditingForm" class="close-button fa fa-times" title="닫기"></i>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<!--/*------------------- [Sentence 상세 정보 폼]-----------------------*/-->
+		<form id="editSentenceForm" method="post" 
+			class="form-horizontal">
+			<div class="form-group row">
+				<label for="sid" class="col-2 control-label headerLabel text-right">SID</label>
+				<div class="col-10">
+					<input type="text" id="sid" name="sid" 
+						class="form-control playvoice-form" readonly="readonly"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="eng" class="col-2 control-label headerLabel text-right">영어</label>
+				<div class="col-10">
+					<input type="text" id="eng" name="eng" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="kor" class="col-2 control-label headerLabel text-right">한국어</label>
+				<div class="col-10">
+					<input type="text" id="kor" name="kor" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="voiceExist" class="col-2 control-label headerLabel text-right">보이스</label>
+				<div class="col-10">
+					<input type="text" id="voiceExist" name="voiceExist" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="cateExist" class="col-2 control-label headerLabel text-right">카테고리</label>
+				<div class="col-10">
+					<input type="text" id="cateExist" name="cateExist" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="source"  class="col-2 control-label headerLabel text-right">출처</label>
+				<div class="col-10 ">
+					<input type="text" id="source" name="source" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="firstWriter" class="col-2 control-label headerLabel text-right">작성자</label>
+				<div class="col-10 ">
+					<input type="text" id="firstWriter" name="firstWriter" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="form-group row">
+				<label for="regDate" class="col-2 control-label headerLabel text-right">등록일</label>
+				<div class="col-10 ">
+					<p id="regDate" class="form-control-static"></p>
+				</div>
+			</div>
+			<div id="editSubmitDiv">
+				<div class="form-group row">
+					<div class="ml-auto col-10">
+						<input id="editSentenceBtn" type="button" value="Edit" 
+							class="btn btn-main-submit btn-lg"/>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		<!--/*---------------------------- [등록된 Voice 목록 정보]-------------------------------*/-->
+		<div style="margin: 20px 0px 0px 0px;">
+			<div id="existingVoiceList" style="display: block">
+				<table id="voiceListTable" class="table table-sm table-bordered table-hover text-center">
+					<thead>
+					<tr class="thead">
+						<th>VID</th>
+						<th>대표</th>
+						<th>구분</th>
+						<th>속도</th>
+						<th>성별</th>
+						<th>액센트</th>
+						<th>출처</th>
+						<th>파일</th>
+						<th>등록일</th>
+						<th>편집</th>
+					</tr></thead>
+					<tbody id="voiceList"><!--/* 기존 등록된 보이스 목록 */--></tbody>
+				</table>
+			</div>
+		</div>
+		
+		<!--/*---------------------------- [Voice 정보 수정 폼]-------------------------------*/-->
+		<form id="editVoiceForm" method="post" class="form-horizontal">
+			<div id="sentenceDiv0" class="my-2">
+				<div class="form-group row">
+					<label for="demo" class="col-2 control-label headerLabel text-right">VID</label>
+					<div class="col-10">
+						<label class="checkbox-inline">
+							<input id="vid" type="text" name="vid" 
+								class="form-control playvoice-form"/>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="demo" class="col-2 control-label headerLabel text-right">대표 보이스</label>
+					<div class="col-10 choice-radio-section">
+						<label class="checkbox-inline">
+							<input type="checkbox" name="demo" class="option-input checkbox"/>
+							<span>대표</span>
+							<input type="hidden" value="on" name="_demo"/>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="source" class="col-2 control-label headerLabel text-right">구분</label>
+					<div class="col-10 choice-radio-section">
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="TTS1"
+								 class="option-input radio"/><span>무료TTS</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="TTS2" 
+								 class="option-input radio"/><span>유료TTS</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="MV" 
+								 class="option-input radio"/><span>Movie/Drama</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="YOU" 
+								 class="option-input radio"/><span>YouTube</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="TED" 
+								 class="option-input radio"/><span>TED</span>
+						</label><br>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="LV" 
+								 class="option-input radio"/><span>라이센스 보이스</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="MV" 
+								 class="option-input radio"/><span>회원 보이스</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="DV" 
+								 class="option-input radio"/><span>기증자 보이스</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceType" value="ETC" 
+								 class="option-input radio"/><span>기타</span>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="source" class="col-2 control-label headerLabel text-right">속도</label>
+					<div class="col-10 choice-radio-section">
+						<label class="radio-inline">
+							<input type="radio" name="voiceRate" value="A"
+								 class="option-input radio"/><span>학습용</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceRate" value="B" 
+								 class="option-input radio"/><span>일반대화</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceRate" value="C" 
+								 class="option-input radio"/><span>빠른대화</span>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="source" class="col-2 pt-1 control-label headerLabel text-right">액센트</label>
+					<div class="col-10 choice-radio-section">
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="US" 
+								checked="checked" class="option-input radio"/><span>미국</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="CA" 
+								 class="option-input radio"/><span>캐나다</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="UK"
+								 class="option-input radio"/><span>영국</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="AU"
+								 class="option-input radio"/><span>호주</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="IN"
+								 class="option-input radio"/><span>인디아</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="KR"
+								 class="option-input radio"/><span>한국</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="EU"
+								 class="option-input radio"><span>유럽</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="accent" value="ASA"
+								 class="option-input radio"/><span>아시아</span>
+						</label>
+						<label class="radio-inline etc-text">
+							<input type="radio" name="accent" value="ETC"
+								 class="accent-etc option-input radio"/><span>기타</span>
+							<input type="text" placeholder="국가코드 입력"
+								class="accent-text form-control playvoice-form"/>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="source" class="col-2 control-label headerLabel text-right">성별</label>
+					<div class="col-10 choice-radio-section">
+						<label class="radio-inline">
+							<input type="radio" name="voiceSex" value="M"
+								 class="option-input radio"/><span>남자</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceSex" value="W"
+								 class="option-input radio"/><span>여자</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceSex" value="B"
+								 class="option-input radio"/><span>남자 아이</span>
+						</label>
+						<label class="radio-inline">
+							<input type="radio" name="voiceSex" value="G"
+								 class="option-input radio"/><span>여자 아이</span>
+						</label>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="firstWriter" class="col-2 control-label headerLabel text-right">출처/제공자</label>
+					<div class="col-10 ">
+						<input type="text" name="source" class="form-control playvoice-form"
+							placeholder="출처 URL, 회원 Id, 보이스 제공자 이름, 영화 제목, 기타 등"/>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label for="firstWriter" class="col-2 control-label headerLabel text-right">비고</label>
+					<div class="col-10 ">
+						<textarea name="description"
+							placeholder="비고" class="form-control playvoice-form"></textarea>
+					</div>
+				</div>
+			</div>
+			<div id="submitDiv">
+				<div class="form-group row">
+					<div class="ml-auto col-10">
+						<input id="editVoiceBtn" type="button" value="Edit" 
+							class="btn btn-main-submit btn-lg"/>
+					</div>
+				</div>
+			</div>
+		</form>
+	</div><!-- eidtSentenceFormContainer -->
+</div><!--/* end of 예문 상세보기 */-->
+</section><!-- end of section -->
+

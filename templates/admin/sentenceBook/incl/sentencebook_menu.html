@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="adminMenu">
+	<div id="menuContainer">
+		<div id="homeMenu" class="menuDiv" style="margin-bottom: 10px;">
+			<a th:href="@{/admin}">
+				<span class="menuTitle"><i class="fa fa-home fa-fw" aria-hidden="true"></i> Home</span>
+			</a>
+		</div>
+		<div id="sentenceBookMenu" class="menuDiv">
+			<span class="menuTitle"><i class="fa fa-book fa-fw" aria-hidden="true"></i> Sentence Book</span>
+			<ul>
+				<li><a th:href="@{/admin/sentenceBook/add}">예문등록</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=all}">최신 등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=voice}">보이스 미등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=cate}">카테고리 미등록 예문 조회</a></li>
+				
+			</ul>
+		</div>
+		<div id="voiceBookMenu" class="menuDiv">
+			<span class="menuTitle"><i class="fas fa-microphone-alt fa-fw"></i> Voice Book</span>
+			<ul>
+				<li><a th:href="@{/admin/voiceBook/add}">보이스 등록 </a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=newVoice}">최신 보이스 등록 예문 조회</a></li>
+			</ul>
+		</div>
+		<!-- <div id="playVoiceBookMenu" class="menuDiv">
+			<span class="menuTitle"><i class="fas fa-play-circle fa-fw"></i> Placevoice Book</span>
+			<ul>
+				<li><a th:href="@{/admin/playvoiceBook/add}">플레이보이스 등록</a></li>
+				<li>playvoice 목록</li>
+				<li>menu 2</li>
+				<li>menu 3</li>
+				<li>menu 4</li>
+			</ul>
+		</div> -->
+		
+	</div>
+</div><!-- end of adminMenu -->

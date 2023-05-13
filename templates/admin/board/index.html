@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Index Of Admin Board</title>
+   
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	<link rel="stylesheet" th:href="@{/css/app/playboard_header_color.css}"> 
+	<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+	   
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+
+<script th:inline="javascript">
+	
+	$(document).ready(function() {
+		//[게시글 목록]----------------------------------------------------------
+		$('.articleLink').click(function(e){
+			e.preventDefault();
+			var aid = $(this).attr("data-aid");
+			var boardAlias = $(this).attr("data-boardAlias");
+			
+			var link = [[@{/admin/board/}]];
+			link += boardAlias+'/list/'+aid;
+			location.href=link;
+			
+		});
+	});
+	
+	//board/free/list
+</script>
+</head>
+
+<section layout:fragment="content">
+	
+	
+	<th:block class="main-body"
+		th:with="loopSize = ${#lists.size(boards)}%2 == 0
+						? ${#lists.size(boards)}/2
+						: (${#lists.size(boards)-1}/2)+1, index=0">
+						
+		<div class="row no-gutters" th:each="row:${#numbers.sequence(0,loopSize-1)}">
+				
+				<!--/* 왼쪽 게시판 */-->
+				<div th:with="index = ${row*2}" class="board-content col-lg-6 px-1">
+					<h3 th:text="${boards[index].korName}">게시판 1</h3>
+					<a th:href="@{/admin/board/{alias}/list(alias=${boards[index].alias})}" style="margin-left: 5px;">
+						<span class="badge badge-info">더보기</span>
+					</a>
+					<div id="freeBoard">
+						<div>
+							<table class="board-table table table-hover table-sm text-center" id="searchResultTable" 
+									th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+								<tbody>
+									<tr th:each="article, status : ${boards[index].board}">
+										<td class="t-title text-left">
+											<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+												th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+												[[${article.title}]] <!--/* [[${article.aid}]] */-->
+											</a> 
+										</td>
+										<td class="t-info">
+											<span class="badge badge-danger new-label" th:if="${article.newArticle}">N</span>
+											<span class="badge badge-warning pic-label" th:if="${article.pics}">P</span>
+											<span class="badge badge-info video-label" th:if="${article.video}">V</span>
+										</td>
+										<td class="t-date text-center" 
+											th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+												?#dates.format(article.regDate, 'HH:mm')
+												:#dates.format(article.regDate, 'MM-dd')}">
+											날짜
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</div>
+					</div><!--/* /#noticeBoard */-->
+				</div><!--/* end of left */-->
+				
+				
+				<th:block th:with="index = ${(row*2) +1}" >
+					<!--/* 오른쪽 게시판 */-->
+					<div th:if="${index < #lists.size(boards)}"	class="board-content col-lg-6 px-1" >
+						 
+						<h3 th:text="${boards[index].korName}">게시판 2</h3>
+						<a th:href="@{/admin/board/{alias}/list(alias=${boards[index].alias})}" style="margin-left: 5px;">
+							<span class="badge badge-info">더보기</span>
+						</a>
+						<div id="freeBoard">
+							<div>
+								<table class="board-table table table-hover table-sm text-center" id="searchResultTable" 
+										th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+									<tbody>
+										<tr th:each="article, status : ${boards[index].board}">
+											<td class="t-title text-left">
+												<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+													th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+													[[${article.title}]] <!--/* [[${article.aid}]] */-->
+												</a> 
+											</td>
+											<td class="t-info">
+												<span class="badge badge-danger new-label" th:if="${article.newArticle}">N</span>
+												<span class="badge badge-xs badge-warning pic-label" th:if="${article.pics}">P</span>
+												<span class="badge badge-info video-label" th:if="${article.video}">V</span>
+											</td>
+											<td class="t-date text-center" 
+												th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+													?#dates.format(article.regDate, 'HH:mm')
+													:#dates.format(article.regDate, 'MM-dd')}">
+												날짜
+											</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+						</div><!--/* #noticeBoard */-->
+					</div><!--/* end of left */-->
+				</th:block>
+				
+			</div>
+	</th:blcok>
+	
+</section><!-- end of content -->

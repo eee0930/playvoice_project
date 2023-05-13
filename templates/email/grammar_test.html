@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+
+<style>
+body {
+	font-size: 16px;
+	font-family: 'Open Sans', 'Roboto', 'NanumGothic', Sans-Serif;
+	word-wrap: break-word;
+	white-space: normal;
+	margin: 0;
+	color: #000;
+	overflow: visible;
+	line-height: 1.9;
+}
+.action-role,
+.object-role,
+.subject-role,
+.empMod-f,
+.empMod-b,
+.empAdv {position: relative;}
+
+.action-role:after,
+.object-role:after,
+.subject-role:after {
+	color: #1E88E5;
+	position: absolute;
+	top: 1.55em;
+	font-size: 8.8px;
+	width: 50px;
+	left: 0;
+	right: 0;
+	font-weight: 600;
+	font-style: italic;
+	font-family: 'Nunito Sans', 'NanumGothic', Sans-Serif;
+}
+/* action */
+.action-role {
+	box-shadow: none;
+	color: #C51162;
+	font-weight: 600;
+}
+.action-role:after {content: 'Act';}
+/* object */
+.object-role {
+	color: rgb(148, 255, 7);
+	box-shadow: inset 0 -18px 0 0 rgba(148, 255, 7, 0.5);
+}
+.object-role:after {content: 'Obj';}
+/* subject */
+.subject-role {
+	color: #1E88E5;
+	box-shadow: inset 0 -18px 0 0 #ffc1079c;
+}
+.subject-role:after {content: 'Sub';}
+/* 수식어 */
+.empMod-f,
+.empMod-b {
+	box-shadow: inset 0 -2px 0 rgba(255, 122, 0, 0.5);
+}
+.empMod-f:after,
+.empMod-b:after {
+	content: '\0029';
+	color: rgba(255, 122, 0, 0.6);
+	font-weight: 600;
+}
+.empMod-f:before,
+.empMod-b:before {
+	content: '\0028';
+	color: rgba(255, 122, 0, 0.6);
+	font-weight: 600;
+}
+/* 수식어(앞) */
+.empMod-f::before {
+	background: url('/images/common/icon/front_mod.png') no-repeat;
+	background-size: contain;
+	background-position: right top;
+	width: 20px;
+	height: 10px;
+	text-align: right;
+	position: absolute;
+	top: -5px;
+	left: -18px;
+}
+.empMod-f::before {top: 0px;}
+/* 수식어(뒤) */
+.empMod-b::after {
+	background: url('/images/common/icon/back_mod.png') no-repeat;
+	background-size: contain;
+	background-position: left top;
+	width: 20px;
+	height: 10px;
+	text-align: left;
+	position: absolute;
+	bottom: 15px;
+}
+.empMod-b::after {bottom: 12px;}
+
+.subject-role .empMod-f,
+.action-role .empMod-f,
+.object-role .empMod-f,
+.empMod-f .empMod-f,
+.empMod-b .empMod-f,
+.empAdv .empMod-f,
+.subject-role .empMod-b,
+.action-role .empMod-b,
+.object-role .empMod-b,
+.empMod-f .empMod-b,
+.empMod-b .empMod-b,
+.empAdv .empMod-b {box-shadow: none;}
+.subject-role .empMod-f:before,
+.action-role .empMod-f:before,
+.object-role .empMod-f:before,
+.empAdv .empMod-f:before,
+.empMod-f .empMod-f:before,
+.empMod-b .empMod-f:before,
+.subject-role .empMod-b:after,
+.action-role .empMod-b:after,
+.object-role .empMod-b:after,
+.empAdv .empMod-b:after,
+.empMod-f .empMod-b:after,
+.empMod-b .empMod-b:after {
+	color: #ff9a14;
+}
+.action-role .empMod-f:before,
+.action-role .empMod-b:after,
+.action-role .empMod-f:before,
+.action-role .empMod-b:after {content: none;}
+
+/* 비수식어 */
+.empAdv {
+	box-shadow: inset 0 -1.2px 0 rgba(0, 0, 0, 0.25);
+	color: rgba(0, 0, 0, 0.35) !important;
+}
+.empAdv:after {
+	content: '\005D';
+	color: rgba(43, 56, 97, 0.5);
+	font-weight: 600;
+}
+.empAdv:before {
+	content: '\005B';
+	color: rgba(43, 56, 97, 0.5);
+	font-weight: 600;
+}
+.empMod-f .empAdv,
+.empMod-b .empAdv,
+.empAdv .empAdv,
+.subject-role .empAdv,
+.action-role .empAdv,
+.object-role .empAdv {box-shadow: none;}
+.empMod-f .empAdv:before,
+.empMod-b .empAdv:before,
+.empAdv .empAdv:before,
+.subject-role .empAdv:before,
+.action-role .empAdv:before,
+.object-role .empAdv:before,
+.empMod-f .empAdv:after,
+.empMod-b .empAdv:after,
+.empAdv .empAdv:after,
+.subject-role .empAdv:after,
+.action-role .empAdv:after,
+.object-role .empAdv:after {
+	color: rgba(43, 56, 97, 0.75);
+}
+.action-role .empAdv:before,
+.action-role .empAdv:after,
+.object-role .empAdv:before,
+.object-role .empAdv:after,
+.subject-role .empAdv:before,
+.subject-role .empAdv:after {content: none;}
+</style>
+
+</head>
+
+<body>
+
+
+<div>
+	
+
+
+
+	
+</div>
+
+	
+</body>
+</html>

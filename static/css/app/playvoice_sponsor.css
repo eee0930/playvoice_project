@@ -1,0 +1,554 @@
+/* ---------------------------------[login]---------------------------------- */
+.login-ad-section {
+	margin-top: 1rem;
+	padding: 1rem;
+	text-align: center;
+	border-radius: 10px;
+	background-color: #f1f3f8;
+}
+.login-ad-cover {
+	text-align: center;
+	width: 100%;
+	max-width: 728px;
+	margin: 0 auto;
+}
+.login-ad-cover img {width: 100%;}
+.login-ad-mobile {display: none !important;}
+@media (max-width: 767.5px) {
+	.login-ad-pc {display: none !important;}
+	.login-ad-mobile {display: block !important;}
+}
+
+@media (max-width: 575.5px) {
+	.login-ad-section {
+		border-radius: 0;
+		background-color: transparent;
+		padding: 0;
+	}
+}
+
+/* -------------------------------[pictionary]------------------------------- */
+/* [1. 트레이서 퀴즈] */
+.pictionary-tracer-quiz-ad-section {
+	text-align: center;
+	margin: 1.5rem auto 0;
+	max-width: 750px;
+}
+@media (min-height: 120vw) {
+	.pictionary-tracer-quiz-ad-section {
+		position: absolute;
+		bottom: 10%;
+		left: 0;
+		right: 0;
+	}
+}
+@media (max-width: 1199.5px) {
+	.pictionary-tracer-quiz-ad-section {
+		position: static;
+		max-width: 600px;
+		width: 100%;
+		margin: 1.5rem auto;
+	}
+	@media (min-height: 120vw) {
+		.pictionary-tracer-quiz-ad-section {
+			position: absolute;
+			bottom: 10%;
+			left: calc(50% - 300px);
+			max-width: 600px;
+			width: 100%;
+			margin: 0;
+		}
+	}
+}
+@media (max-width: 767.5px) {
+	.pictionary-tracer-quiz-ad-section {max-width: 500px;}
+}
+@media (max-width: 575.5px) {
+	.pictionary-tracer-quiz-ad-section {
+		max-width: 100vw;
+		position: absolute;
+		bottom: 0;
+		margin: 0;
+		left: 0;
+   		right: 0;
+	}
+}
+@media (max-width: 376px) {
+	.pictionary-tracer-quiz-ad-section {
+		position: static;
+		max-width: 100vw;
+		margin: 1.5rem auto 0;
+	}
+	@media (min-height: calc(101vw / 9 * 16)) {
+		.pictionary-tracer-quiz-ad-section {
+			position: absolute;
+			bottom: 0;
+			margin: 0;
+			left: 0;
+    		right: 0;
+		}
+	}
+}
+
+/* ------------------------------[playvoiceBook]----------------------------- */
+/* [1. 레벨 리스트] */
+.playvoicebook-list-sponsor-section {
+	text-align: center;
+	padding: 0.5rem;
+	border-radius: 0.5rem;
+	margin-top: 3rem;
+	background-color: #FAFAFA;
+	box-shadow: 0 5px 10px 1px #94a3a7;
+}
+@media (max-width: 767.5px) {
+	.playvoicebook-list-sponsor-section {
+		padding: 0.5rem;
+		border-radius: 0.5rem;
+		margin-top: 3rem;
+		background-color: #f5f6fa;
+		box-shadow: none;
+	}
+}
+@media (max-width: 575.5px) {
+	.playvoicebook-list-sponsor-section {margin-top: 1.5rem;}
+}
+@media (max-width: 350px) {
+	.playvoicebook-list-sponsor-section {
+		padding: 0;
+		border-radius: 0;
+		background-color: transparent;
+	}
+}
+
+/* [2. 플레이보이스북 플레이] */
+.player-adverse-section {text-align: center;}
+@media (max-width: 991px) {
+	.player-adverse-section .player-adverse-cover {display: none;}
+}
+
+/* [3. 플레이보이스북 플레이어 하단] */
+.playvoicebook-player-ad-section {margin: 2rem auto;}
+.playvoicebook-player-ad-cover {text-align: center;}
+@media (max-width: 350px) {
+	.playvoicebook-player-ad-section {
+		margin: 2rem -15px;
+		width: 100vw;
+	}
+}
+
+/* [4. 플레이보이스북 서머리] */
+.playvoicebook-summary-ad-section {
+	text-align: center;
+	padding: 0.5rem;
+	background-color: #f9f9ff;
+	margin-bottom: 0.5rem;
+}
+@media (max-width: 767.5px) {
+	.playvoicebook-summary-ad-section {
+		padding: 0;
+		background-color: transparent;
+		margin-bottom: 0.5rem;
+	}
+}
+
+/* ------------------------------[dictationBook]----------------------------- */
+/* [1. index] */
+.index-content-section .theme-list.sponsor {text-align: center;}
+.theme-list-section .theme-list.sponsor .theme-cover:before,
+.theme-list-section .theme-list.sponsor .theme-cover:after {content: none;}
+.theme-list-section .theme-list.sponsor .theme-cover {padding: 10px;}
+@media (max-width: 991.5px) {
+	.list-themes-section .theme-list.sponsor {
+		display: none;
+	}
+}
+
+@media(max-width: 575.5px) {
+	.list-themes-section .theme-list.sponsor {
+		display: inline-block;
+	}
+}
+
+/* [2. list themes] */
+.list-themes-section .theme-list.sponsor {text-align: center;}
+@media (max-width: 991.5px) {
+	.dictationbook-list-ad {display: none;}
+}
+@media(max-width: 767.5px) {
+	.dictationbook-list-ad {
+		padding: 5px;
+		background-color: #880E4F;
+	}
+}
+@media(max-width: 575.5px) {
+	.dictationbook-list-ad {display: inline-block;}
+}
+
+
+/* [3. mypage] */
+.dictation-myinfo-section .theme-list.sponsor .theme-cover {
+	padding: 5px;
+	background-color: #880E4F;
+	text-align: center;
+	min-width: 600px;
+	min-height: 80px;
+}
+.dictationbook-mypage-test-ad-mobile {display: none;}
+@media(max-width: 767.5px) {
+	.dictaionbook-mypage-ad-section {
+		padding: 0.7rem;
+		background-color: #f5f6fa;
+		border-radius: 0.8rem;
+		min-width: 320px;
+		min-height: 50px;
+	}
+	.dictationbook-mypage-test-ad {display: none;}
+	.dictationbook-mypage-test-ad-mobile {display: block;}
+}
+@media(max-width: 376px) {
+	.dictaionbook-mypage-ad-section {
+		padding: 0;
+		background-color: transparent;
+		border-radius: 0;
+	}
+}
+@media(max-width: 350px) {
+	.dictaionbook-mypage-ad-section {
+		width: 100vw;
+		margin: 0 -15px;
+	}
+}
+
+/* [4. play] */
+.dictationbook-play-ad-section {
+	text-align: center;
+	position: absolute;
+	bottom: 0;
+	left: calc(50% - 365px);
+	width: 730px;
+	max-width: 730px;
+}
+@media(max-width: 767.5px) {
+	.dictationbook-play-ad-section {
+		text-align: center;
+		position: absolute;
+		bottom: 0;
+		left: -15px;
+		right: -15px;
+		width: 100vw;
+		max-width: 100vw;
+	}
+}
+
+/* ---------------------------------[playKick]------------------------------- */
+/* [0. end] */
+.play-kick-end-ad-section {
+	min-height: 50px;
+	min-width: 600px;
+	width: 100%;
+	max-width: 760px;
+	text-align: center;
+	margin: 0 auto;
+}
+@media (max-width: 767.5px) {
+	.play-kick-end-ad-section {
+		width: 100vw;
+		min-width: 100px;
+		max-width: 100vw;
+		margin: 0 -15px;
+	}
+}
+
+/* [1. 죠니덱 플레이] */
+.johnny-deck-ad-section {
+	border-radius: 0.5rem;
+	padding: 0.5rem;
+	background-color: #fff;
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	max-width: 500px;
+	bottom: 1rem;
+	left: calc(50% - 250px);
+}
+.johnny-deck-right-ad-section {
+	position: absolute;
+	width: 100%;
+	max-width: calc(250px + 1.5rem);
+	min-height: 100px;
+	height: auto;
+	top: calc(50% - 150px);
+	right: calc(50% - 600px);
+	background-color: #fff;
+	border-radius: 1rem;
+	display: grid;
+	padding: 0.7rem;
+	text-align: center;
+}
+.johnny-deck-ad-bottom-section {
+	max-width: 500px;
+	margin: 0 auto;
+	width: 100%;
+	text-align: center;
+}
+.johnny-deck-ad-section img,
+.johnny-deck-ad-bottom-section img {width: 100%;}
+@media (min-height: calc(100vw * 1.2)) {
+	.johnny-deck-ad-section {bottom: 10%;}
+}
+@media (max-width: 575.5px) {
+	.johnny-deck-ad-section {
+		max-width: 100vw;
+		bottom: 0;
+		padding: 0;
+		left: 0;
+		border-radius: 0;
+	}
+	.johnny-deck-ad-bottom-section {
+		max-width: 100vw;
+		width: 100vw;
+		margin: 0 -15px;
+	}
+}
+
+/* [2. 에그샷 플레이] */
+.egg-shot-ad-section {
+	padding: 0.5rem;
+	background-color: #fff;
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	max-width: 500px;
+	bottom: 1rem;
+	left: calc(50% - 250px);
+	border-radius: 0.5rem;
+}
+.egg-shot-ad-bottom-section {
+	max-width: 500px;
+	margin: 0 auto;
+	width: 100%;
+	text-align: center;
+}
+@media (min-height: calc(100vw * 1.2)) {
+	.egg-shot-ad-section {margin-top: 5rem;}
+}
+@media (max-width: 575.5px) {
+	.egg-shot-ad-section {
+		max-width: 100vw;
+		border-radius: 0;
+		padding: 0;
+		left: 0;
+		bottom: 0;
+	}
+	.egg-shot-ad-bottom-section {
+		max-width: 100vw;
+		width: 100vw;
+		margin: 0 -15px;
+	}
+}
+@media (max-width: 376px) {
+	.egg-shot-ad-section {position: static;}
+	@media (min-height: calc(101vw / 9 * 16)) {
+		.egg-shot-ad-section {
+			position: absolute;
+			left: 0;
+			bottom: 0;
+		}
+	}
+}
+
+/* [3. 탐정 줄리] */
+.detective-julie-ad-section {text-align: center;}
+.playvoice-play-kick-section .detective-julie-ad-section {margin-top: 1rem;}
+@media (max-width: 1199.5px) {
+	.playvoice-play-kick-section .detective-julie-ad-section {
+		margin: 0 auto 1rem;
+		max-width: 960px;
+	}
+}
+@media (max-width: 991.5px) {
+	.playvoice-play-kick-section .detective-julie-ad-section {max-width: 720px;}
+}
+@media (max-width: 575.5px) {
+	.playvoice-play-kick-section .detective-julie-ad-section {
+		position: absolute;
+		left: 0;
+		right: 0;
+		top: 0;
+		width: 100vw;
+		margin-top: 0;
+	}
+}
+
+/* -------------------------------[playSquare]------------------------------- */
+/* [1. 바벨 리스트] */
+.translation-section .trans-list.sponsor .translation-cover {text-align: center;}
+
+/* [2. 바벨 answer] */
+.babel-answer-ad-section {
+	background-color: #F0F8FF;
+	text-align: center;
+	padding: 1rem 1rem 0;
+}
+.babel-answer-ad {max-width: calc(798px - 2rem);}
+.babel-answer-bottom-ad-section {
+	margin: 0 0 0.5rem;
+	text-align: center;
+	padding: 1rem;
+	border-radius: 0.5rem;
+	background-color: #fff;
+	box-shadow: 0 4px 15px 0 rgba(0,0,0,.1), 0 1px 2px 0 rgba(0,0,0,.1);
+}
+@media (max-width: 1199.5px) {
+	.babel-answer-ad {max-width: calc(666px - 2rem);}
+}
+@media (max-width: 991.5px) {
+	.babel-answer-ad {max-width: calc(658px - 2rem);}
+}
+@media (max-width: 767.5px) {
+	.translation-section .trans-list.sponsor .translation-cover {
+		box-shadow: none;
+		padding: 0 !important;
+	}
+	.babel-answer-ad-section {
+		background-color: transparent;
+		padding: 0;
+	}
+	.babel-answer-ad {max-width: calc(526px - 2rem);}
+	.babel-answer-bottom-ad-section {
+		margin: 0 calc(-1rem - 15px) 1.5rem;
+		padding: 0;
+		width: 100%;
+		max-width: 500px;
+	}
+}
+@media (max-width: 575.5px) {
+	.babel-answer-ad {max-width: calc(100vw - 1rem - 30px);}
+	.babel-answer-bottom-ad-section {
+		max-width: calc(100vw - 4rem);
+		width: calc(100vw - 4rem);
+		margin: 0 auto 1.5rem;
+	}
+}
+
+/* [3. 북스토어 리스트] */
+.trans-list .digest-cover.promotion {
+	text-align: center;
+	padding: 0.8rem !important;
+}
+
+/* [4. 북스토어 아티클] */
+.append-view-article-section .digest-ad-section {
+	margin: 0 0 0.5rem;
+	text-align: center;
+}
+.member-digest-cover .digest-ad-section {
+	text-align: center;
+	margin: 0 2px;
+	padding: 1.5rem 0;
+	background-color: #fff;
+}
+.member-digest-cover .digest-ad-section hr {
+	margin-top: 10px;
+    margin-bottom: 10px;
+    border: 0;
+    border-top: 1px solid #eee;
+}
+.member-content-list .content-cover .digest-ad-section img {width: 100%;}
+@media (max-width: 767.5px) {
+	.trans-list .digest-cover.promotion {
+		padding: 0 !important;
+		box-shadow: none;
+	}
+	.append-view-article-section .digest-ad-section {margin: 0 -15px 1rem;}
+	.member-digest-cover .digest-ad-section {margin: 0;}
+}
+
+/* [5. smalltalk list] */
+.reading-talkative-list.sponsor-index .reading-talkative-cover {padding: 1rem;}
+.reading-talkative-list.sponsor .reading-talkative-cover {
+	text-align: center;
+	padding: 0;
+}
+@media (max-width: 991.5px) {
+	.reading-talkative-list.sponsor-index .reading-talkative-cover {padding: 0;}
+}
+@media (max-width: 767.5px) {
+	.reading-talkative-list.sponsor {padding: 1rem 0.5rem !important;}
+	.reading-talkative-list.sponsor .reading-talkative-cover:before {box-shadow: none;}
+}
+
+/* --------------------------------[playBoard]------------------------------- */	
+/* [1. index] */
+.playboard-index-ad-section {margin: 2rem 0 1rem;}
+.playboard-index-ad-cover {
+	border: 1px solid #e9ecef;
+	padding: 1rem;
+	text-align: center;
+}
+@media (max-width: 767.5px) {
+	.playboard-index-ad-cover {padding: 0;}
+}
+
+/* [2. view article] */
+.playboard-view-ad-section,
+.playboard-content-ad-section .playvoice-ad-coverage,
+.playboard-comment-ad-section .playvoice-ad-coverage {
+	padding: 1rem;
+	text-align: center;
+	border-radius: 10px;
+	-webkit-border-radius: 10px;
+	background-color: #f3f5fc;
+}
+.playboard-view-ad-section {margin-bottom: 1rem;}
+.playboard-comment-ad-section .playvoice-ad-coverage {margin-top: 1rem;}
+
+@media (max-width: 991.5px) {
+	.playboard-view-ad-section,
+	.playboard-content-ad-section .playvoice-ad-coverage,
+	.playboard-comment-ad-section .playvoice-ad-coverage {
+		padding: 0;
+		background-color: transparent;
+		border-radius: 0;
+		-webkit-border-radius: 0;
+	}
+	.playboard-view-ad-section {
+		margin-bottom: 0;
+		margin-top: 1rem;
+	}
+}
+
+/* --------------------------------[광고 임시 중단]------------------------------- */
+/* [1. 애드센스] */
+.login-ad-section,
+.playvoicebook-list-sponsor-section,
+.play-kick-end-ad-section,
+.theme-list-section .theme-list.sponsor,
+.list-themes-section .theme-list.sponsor,
+.dictation-myinfo-section .theme-list.sponsor,
+.translation-section .trans-list.sponsor,
+.babel-answer-ad-section,
+.babel-answer-bottom-ad-section,
+.trans-list .digest-cover.promotion,
+.reading-talkative-list.sponsor-index,
+.reading-talkative-list.sponsor,
+.playboard-index-ad-section,
+.playboard-view-ad-section,
+.playboard-content-ad-section,
+.playboard-comment-ad-section {display: none !important;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

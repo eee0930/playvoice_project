@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head th:fragment="commonHead">
+  	<!-- meta -->
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	
+	<!-- Bootstrap -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap.min.css}">
+	<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap-theme.min.css}">
+	<link rel="stylesheet" th:href="@{/css/custom.css}">
+	
+	<!-- H5BP -->
+	<!-- <link rel="stylesheet" th:href="@{/css/normalize.css}">
+	<link rel="stylesheet" th:href="@{/css/main.css}"> -->
+	
+	<style>
+		@import url(http://fonts.googleapis.com/earlyaccess/nanumgothic.css);
+		
+		header {
+			/* height: 150px; */
+			/* background-color: rgba(125, 211, 242, 0.5); 
+			border-radius: 15px;*/
+			padding: 10px;
+			margin: 10px 0;
+			text-align: center;
+			/* border-bottom: 1px solid #8A0886; */
+		} 
+		
+		
+		footer {
+			font-family: 'Nanum Gothic', sans-serif;
+			text-align: center;
+		}
+		
+		/* ul.nav {
+			background-color: #ffffff;/* background-color: rgba(201, 201, 201, .5); */
+			/* padding: 10px;
+			margin-top: 25px; */
+			/* border-radius: 10px; */
+		/* }  */
+	</style>
+	
+	<!-- <th:block th:insert="~{/incl/header::headDefs}"></th:block> -->
+	<th:block layout:fragment="css"></th:block>
+	
+	
+	<script th:src="@{/js/public/modernizr-3.6.0.min.js}"></script>
+	<script th:src="@{/js/public/jquery-3.3.1.min.js}"></script>
+	<script th:src="@{/js/plugins.js}"></script>
+	<script th:src="@{/js/main.js}"></script>
+	<script th:src="@{/js/public/popper.min.js}"></script>
+	<script th:src="@{/js/public/bootstrap.min.js}"></script>
+	
+	<th:block layout:fragment="script">
+		<!-- custom javaScript  -->
+	</th:block>
+	
+	<title>Playvoice.org</title>
+	
+</head>

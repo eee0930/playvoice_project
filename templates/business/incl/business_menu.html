@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!--/*=====================================================================*/-->
+<!--/*  						main Index menu							   */-->
+<!--/*=====================================================================*/-->
+<th:block th:fragment="menu">
+<div class="business-menu-trigger-section active">
+	<div class="business-menu-cover row no-gutters">
+		<div class="col-xl-1"></div>
+		<div class="business-menu col-auto">
+			<a th:href="@{/}">플레이보이스</a>
+		</div>
+		<div class="business-menu col-auto">
+			<a href="#playvoiceIntroSection">비즈니스</a>
+		</div>
+		<div class="business-menu col-auto">
+			<a href="#playvoiceHistorySection">홍보채널</a>
+		</div>
+		<div class="business-menu col-auto">
+			<a href="#playvoiceHistorySection">사회공헌</a>
+		</div>
+		<div class="business-menu col-auto">
+			<a href="#contactUsSection">고객지원</a>
+		</div>
+		<div class="col"></div>
+	</div>
+	<div class="second-menu-section row no-gutters">
+		<div class="col-xl-1"></div>
+		<div class="second-menu-items col-auto"><ul>
+			<li class="menu-item"><a th:href="@{/}">비전</a></li>
+			<li class="menu-item"><a th:href="@{/}">문화</a></li>
+			<li class="menu-item"><a th:href="@{/}">CI</a></li>
+		</ul></div>
+		<div class="col-xl-1"></div>
+	</div>
+</div>
+</th:block>
+
+</html>

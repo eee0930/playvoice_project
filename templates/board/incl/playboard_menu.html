@@ -1,0 +1,201 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="playboardMenu">
+<div id="boardSideMenu" class="board-menu-width col-lg-auto col-12">
+<!--/***********************************************************************/-->
+<!--/* 				   	  		  menu PC ver. 	 						   */--> 
+<!--/***********************************************************************/-->
+<div class="d-none d-lg-inline">
+<div id="playBoardMenuSection" class="playboard-menu-section pt-5">
+	<ul class="playboard-menu" style="padding: 0;">
+		<li class="home-menu style1">
+			<a th:href="@{/board}" class="home" data-reg="/board$">
+				<i class="fa fa-home fa-fw"></i>
+				<span>플레이 보드</span>
+			</a></li>
+		<li class="style1">
+			<a th:href="@{/board/free/add}" data-reg="/board/.+/add" 
+				class="add loginRequired">
+				<i class="fas fa-pen-fancy fa-fw"></i>
+				<span>게시글 작성하기</span>
+			</a></li>
+		<!-- 플레이 멤버십 게시판 -->
+		<li class="title play">
+			<div class="main-title">Play Board</div>
+			<div class="icon-title"><i class="fa fa-futbol fa-fw"></i></div>
+		</li>	
+		<li class="style2">
+			<a th:href="@{/board/free/list}" class="free"
+				data-reg="/board/free/list|/board/free/view">
+				<i class="sideMenuHover fas fa-hamburger fa-fw"></i>
+				<span>일상의 관찰</span>
+			</a>
+		</li>
+		<li class="style2">
+			<a th:href="@{/board/humor/list}" data-reg="/board/humor" class="humor">
+				<i class="sideMenuHover far fa-grin-squint-tears fa-fw"></i>
+				<span>웃음과 유머</span>
+			</a>
+		</li>
+		<li class="style2">
+			<a th:href="@{/board/culture/list}" data-reg="/board/culture" class="culture">
+				<i class="sideMenuHover fas fa-globe-americas fa-fw"></i>
+				<span>컬쳐 로드</span>
+			</a>
+		</li>
+		<li class="style2">
+			<a th:href="@{/board/people/list}" data-reg="/board/people" class="people">
+				<i class="sideMenuHover far fa-grin-stars fa-fw"></i>
+				<span>피플 인사이드</span>
+			</a>
+		</li>
+		<li class="style2">
+			<a th:href="@{/board/creative/list}" data-reg="/board/creative" class="creative">
+				<i class="sideMenuHover fas fa-parachute-box fa-fw"></i>
+				<span>상상력 사전</span>
+			</a>
+		</li>
+		
+		<!-- 공지 게시판 -->
+		<li class="title admin">
+			<div class="main-title">Camp Board</div>
+			<div class="icon-title"><i class="fa fa-bell fa-fw"></i></div>
+		</li>
+		<li class="style4">
+			<a th:href="@{/board/notice/list}" data-reg="/board/notice" class="notice">
+				<i class="sideMenuHover fas fa-user-ninja fa-fw"></i> <span>공지 게시판</span>
+			</a>
+		</li>
+		<li class="style4">
+			<a th:href="@{/board/event/list}" data-reg="/board/event" class="event">
+				<i class="sideMenuHover far fa-snowflake fa-fw"></i> <span>이벤트 게시판</span>
+			</a>
+		</li>
+	
+	</ul>
+</div><!-- end of playBoardMenuSection -->
+<!-- 광고 section -->
+<div id="playboardLeftMenuAdSection" class="playboard-left-menu-ad-section"
+	th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+	<div class="playboard-left-menu-ad-cover">
+		<ins class="kakao_ad_area" style="display:none;" 
+			data-ad-unit    = "DAN-uSlny5XzgU3t83Kn" 
+			data-ad-width   = "160" 
+			data-ad-height  = "600"></ins> 
+		<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+	</div>
+</div><!-- end of playboardLeftMenuAdSection -->
+
+</div></div>
+
+
+<!--/***********************************************************************/-->
+<!--/* 				   	  menu Tablet & Mobile ver. 	 				   */--> 
+<!--/***********************************************************************/-->
+<div id="playBoardTopMenuSection" class="mobile-menu-lots-section d-lg-none"
+	th:if="${#strings.equals(board?.engName, 'Notice')} OR
+	${#strings.equals(board?.engName, 'Event')}">
+	<div class="menu-lots-section row no-gutters">
+		<div class="menu-dependent-section col" data-reg="/board/notice">
+			<a th:href="@{/board/notice/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-user-ninja"></i><br>
+					<span>공지사항</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/event">
+			<a th:href="@{/board/event/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-snowflake"></i><br>
+					<span>이벤트</span>
+				</label>
+			</a>
+		</div>
+	</div>
+</div>
+
+<div id="playBoardTopMenuSection" class="mobile-menu-lots-section d-lg-none" 
+	th:unless="${#strings.equals(board?.engName, 'Notice')} OR
+	${#strings.equals(board?.engName, 'Event')}">
+	<div class="menu-lots-section row no-gutters">
+		<div class="menu-dependent-section col" data-reg="/board$">
+			<a th:href="@{/board}">
+				<label class="menu-dependent">
+					<i class="fa fa-home"></i>
+					<span>HOME</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/free">
+			<a th:href="@{/board/free/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-hamburger"></i>
+					<span>자유</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/humor">
+			<a th:href="@{/board/humor/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-grin-squint-tears"></i>
+					<span>유머</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/culture">
+			<a th:href="@{/board/culture/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-globe-americas"></i>
+					<span>문화</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/people">
+			<a th:href="@{/board/people/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-grin-stars"></i>
+					<span>인물</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col" data-reg="/board/creative">
+			<a th:href="@{/board/creative/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-parachute-box"></i>
+					<span>관점</span>
+				</label>
+			</a>
+		</div>
+	</div>
+</div>
+
+<script th:inline="javascript">
+// [선택된 메뉴들 active 효과] -------------------------------------------------------
+$('#boardSideMenu a').each(function(i, anchor) {
+	// 현재 url과 맞는 정규식값을 'data-reg' 값으로 갖는 메뉴를 활성화 
+	//	 * PC버전 메뉴의 각 <a>태그에 data-reg 값이 있어야 한다.
+	const matched = location.pathname.match($(anchor).attr("data-reg"));
+	if(matched != null && matched[0].length > 0){
+		var selectedMenu = anchor.className.replace("dropdown-item ", "");
+		$(".playboard-menu ." + selectedMenu).addClass("active");
+	}
+});
+// [(모바일) 선택된 메뉴 텍스트 표시] ---------------------------------------------------
+$("#playBoardTopMenuSection .menu-dependent-section").each(function(i, anchor){
+	const matched = location.pathname.match($(anchor).attr("data-reg"));
+	if(matched != null && matched[0].length > 0){
+		$(anchor).addClass('active');
+	}else{
+		$(anchor).removeClass('active');
+	}
+});
+</script>
+
+</div><!-- end of playboardMenu -->
+
+</html>
+
+

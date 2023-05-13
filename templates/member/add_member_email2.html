@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>Join - 플레이보이스 (playvoice)</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, metaTitle = '가입하기 - 플레이보이스 (playvoice)', 
+	metaDescription = null, 
+	metaImage = null, metaRegDate = null"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [날짜별로 배경 이미지 세팅]-------------------------------------------------------
+	var today = new Date();
+	var calcDateNum = today.getDate()%4;
+	var backgroundStyle = 'background-image:url(\'/images/app/member/registration_back'
+			+ calcDateNum + '.jpg\');';
+	$(".join-background-cover").attr("style", backgroundStyle);
+	// [이메일 입력값 검사 (서버 접속을 해야하므로 입력폼에서 마우스를 뗀 후 검사한다)]--------------------
+	$("#email").change(function() {
+		var emailFilter = /([\w-\.]+)@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.)|(([\w-]+\.)+))([a-zA-Z]{2,4}|[0-9]{1,3})(\]?)$/;
+		var emailValue = $(this).val();
+		
+		if(emailValue.length > 0) {
+			if(emailFilter.test(emailValue) == false) {
+				$('#emailConfirm').html('<font color=red>이메일을 정확히 입력해 주세요.</font>');
+				$(this).addClass("is-invalid");
+			}
+		} else {
+			$('#emailConfirm').html('<font color=red>이메일을 입력해 주세요.</font>');
+			$(this).addClass("is-invalid");
+		}
+	});
+	// [이메일 인증 및 전송]-----------------------------------------------------------
+	$("#confirmEmailBtn").click(function(){
+		location.href="/member/email/confirm";
+	});
+
+}); //end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content" class="playvoice-join-section find-member confirm-member">
+<div class="playvoice-join-body-section container"><div class="join-background-cover row no-gutters">
+<div class="col"></div>
+<div id="joinFormContainer" class="formContainer col-md-8">
+	<div class="join-message-section fade-background">
+		<!-- logo -->
+		<div class="join-logo-section">
+			<div align="center" th:insert="~{/incl/playvoice_logo::mini_logo}"></div>
+			<div class="login-info-title">
+				<h3>Confirm Your Email</h3>
+			</div>
+		</div>
+		<!-- ----------------------[1. 비밀번호 변경]--------------------------- -->
+		<div class="find-login-info-div">
+			<div class="find-login-info-guide">
+				<b>이메일 주소</b>를 입력해 주세요.
+			</div>
+			<form>
+			<div class="join-message-cover">
+				<div class="form-section">
+					<div class="com-form-group form-group row no-gutters mb-0">
+						<label for="email" class="col-form-label col-auto px-2
+							align-self-center">
+							<i class="far fa-envelope fa-fw fa-lg"></i>
+						</label>
+						<div class="col">
+							<input id="email" type="email" class="form-control"
+								placeholder="ex) playvoice@playvoice.org"/>
+							<input type="hidden" name="memberType" value="P"/>
+						</div>
+					</div>
+					<div id="emailConfirm" class="guide"></div>
+				</div>
+				<div class="button-section">
+					<button id="confirmEmailBtn" type="button"
+						class="btn login-info-button btn-main-submit">
+						다음
+					</button>
+				</div>
+			</div>
+			</form>
+		</div>
+	</div>
+</div><!-- end of joinFormContainer -->
+<div class="col"></div>
+</div></div>
+
+<!-- footer -->
+<div th:insert="~{/incl/footer2::footer}"></div>
+</section>
+
+</html>
+			

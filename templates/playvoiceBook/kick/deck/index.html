@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playkick_layout}">
+
+<head>
+<title>죠니 덱 (Johnny Deck) - 플레이보이스 | Playvoice</title>
+     
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '죠니 덱 (Johnny Deck) - 플레이보이스 | Playvoice', 
+	metaDescription = '외국어 학습의 본질은 I am a student 처럼
+	바로 말할 수 있는 표현들을 많이 갖는 거야. 플레이보이스북에서 학습한 내용들이지만
+	말하는 훈련을 하지 않는 영어 학습자들에겐 어려운 테스트가 될 거예요.', 
+	metaImage = '/images/common/characters/playvoicebook.jpg'"></th:block>
+	
+<!-- schema org (bread) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/playvoiceBook', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이보이스북', '죠니 덱'} }"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<script th:src="@{/js/app/text.js}"></script>
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+
+	// [모바일 로고 섹션에 앱 이름 변경]---------------------------------------------------
+	$("#playvoiceMobileTextLogo").hide();
+	$("#playvoiceMobileAppName").text("PlayvoiceBook").show();
+	// [이용 방법 영역으로 스크롤 이동]----------------------------------------------------
+	$("#howToUseBtn").click(function(){
+		var howToUseSection = $("#kickPrecautionSection").offset().top - $("#headerNavbar").height() - 20;
+		$('html, body').animate({scrollTop : howToUseSection}, 300);
+	});
+	
+	// [멤버 리뷰 영역에 리뷰 리스트 하나씩 나오게 하기]-----------------------------------------
+	$(window).on('scroll',function() {
+		var memberReactionSection = $("#memberReactionSection");
+		if(checkVisible($(memberReactionSection))) {
+			memberReactionSection.addClass("active");
+		}
+	});
+	
+	// [클리어 스테이지 리스트에 페이지 세팅]------------------------------------------------
+	var rankerSize = $(".ranker-cover").length; // 랭커 수
+	var currenRankPageIndex = 1;
+	var rankPageLength;
+	var windowWidth = $(window).width();
+	if(windowWidth < 1200) {
+		rankPageLength = Math.ceil(rankerSize/3); 
+	} else {
+		rankPageLength = Math.ceil(rankerSize/4);
+	}
+	for(var i = 1; i <= rankPageLength; i++) {
+		var page = '<span class="rank-page">' + i + '</span>';
+		$(".rank-page-list").append(page);
+		if(i == 1) {
+			$(".rank-page").addClass("active");
+		}
+	}
+	// [클리어 스테이지 리스트 페이지 넘기기]------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+	});
+	
+	// [학습한 스테이지 목록 마우스로 슬라이드하기]--------------------------------------------
+	var confirmGold = /*[[${gold}]]*/false;
+	if(confirmGold == true) {
+		// 스테이지 타입 선택 안함으로 radio값 초기화
+		$("input[name='stageId']").prop("checked", false);
+		$("#choiceStageDiv").hide();
+		
+		const slider = document.querySelector(".slideStageSection");
+		let isDown = false;
+		let startX;
+		let scrollLeft;
+		
+		slider.addEventListener('mousedown', (e) => {
+			isDown = true;
+			startX = e.pageX - slider.offsetLeft;
+			scrollLeft = slider.scrollLeft;
+		});
+		slider.addEventListener('mouseleave', () => {
+			isDown = false;
+		});
+		slider.addEventListener('mouseup', () => {
+			isDown = false;
+		});
+		slider.addEventListener('mousemove', (e) => {
+			if(!isDown) return;
+			e.preventDefault();
+			const x = e.pageX - slider.offsetLeft;
+			const walk = (x - startX) * 3; //scroll-fast
+			slider.scrollLeft = scrollLeft - walk;
+		});
+	}
+	
+	// [클리어 스테이지 이미지와 name에 디자인 삽입]------------------------------------------
+	$("#rankingSwipe .stage-name").each(function(i, element) {
+		var stageNames = $(element).val().split(" ");
+		var levelNum = $(element).closest("li").find(".levelNum");
+		var stageNum = $(element).closest("li").find(".stageNum");
+		var levelImg = $(element).closest("li").find(".rep-image img");
+		levelImg.attr("src", "/images/app/playvoicebook/stage/" + stageNames[1] + ".jpg");
+		levelNum.text(stageNames[1]);
+		stageNum.text(stageNames[3]);
+	});
+	
+	// [스테이지 대표문장 강조표시]------------------------------------------------------
+	$('.repSentence').each(function(i, sentence) {
+		if($(sentence).attr('data-text') != undefined){
+			$(sentence).html(emphasizeText($(sentence).attr('data-text'),
+			$(sentence).attr('data-emloc'),'<b></b>'));
+		}
+	});
+	
+
+	// [테스트 타입 div 클릭으로 선택]---------------------------------------------------
+	$(".selectTypeDiv").click(function(){
+		var input = $(this).find(".choiceTypeBtn input[name=type]");
+		input.prop("checked", true);
+		var type = input.val();
+		testTypeChecked(type);
+	});
+	
+	// [테스트 타입 선택 (스테이지 선택 시 스테이지 목록을 보여줌)]---------------------------------
+	$("input[name=type]").change(function(){
+		var type = $(this).val();
+		testTypeChecked(type);
+	});
+	
+	// [스테이지 선택시 시작버튼 활성화 및 대표문장, 킵한 문장수 표시]-------------------------------
+	$("input[name=stageId]").change(function(){
+		// 시작버튼 활성화,비활성화
+		stageChecked();
+		$(".btn-choice-stage").removeClass("active");
+		$(this).closest(".btn-choice-stage").addClass("active");
+	});
+
+	// [셔플 타입 랜덤 선택으로 초기화]----------------------------------------------------
+	$(".choiceTypeBtn input[value='r']").prop("checked", true);
+	
+	// [스테이지의 킵한 문장수 표시]-----------------------------------------------------
+	$(document).on('click','.showKeepNum', function(){
+		var $spin = $('<i class="fa fa-spinner fa-spin fa-fw"></i>');
+		var $defaultIcon = $('<i class="fa fa-archive"></i>');
+		$(this).html($spin);
+		var $btn = $(this);
+		$.ajax({
+			url: '/playvoiceBook/kick/deck/keep',
+			type: 'get',
+			data: {"memberId": $('#memberId').val(),
+				"stageId": $(this).closest(".choice-stage-div").find('[name="stageId"]').val()}
+			,
+			success: function(number){
+				$btn.html(number);
+			},
+			error: function(xhr){
+				$btn.html($defaultIcon);
+			}
+		})
+	});
+	
+	// [테스트 시작]---------------------------------------------------------------
+	$("#startBtn").click(function(){
+		if($('input[name="type"]:checked').val() == 'r'){
+			$('input[name="stageId"]').remove();
+		}
+		$('#submitPlay').submit();
+	});
+	
+});
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 클리어 스테이지 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+/**
+ * 테스트 타입 active
+ */
+function testTypeChecked(type){
+	if(type == 's') {
+		$("#choiceStageDiv").slideDown(100);
+		stageChecked();
+	} else {
+		$("#choiceStageDiv").slideUp(100);
+		$("#startBtn").addClass("active");
+		$("#startBtn").prop("disabled", false);
+	}
+	$(".choiceTypeBtn").removeClass("active");
+	$("input[value=" + type + "]").closest(".choiceTypeBtn").addClass("active");
+}
+
+/**
+ * 시작 버튼 active
+ */
+function stageChecked() {
+	var stage = $("input[name=stageId]");
+	if(stage.is(":checked")) {
+		$("#startBtn").addClass("active");
+		$("#startBtn").prop("disabled", false);
+	} else {
+		$("#startBtn").removeClass("active");
+		$("#startBtn").prop("disabled", true);
+	}
+}
+
+/**
+ * 스크롤 시 화면 영역에 div가 보이는지 감지
+ */
+function checkVisible(elm, eval) {
+    eval = eval || "object visible";
+    var viewportHeight = $(window).height(), // Viewport Height
+        scrolltop = $(window).scrollTop(), // Scroll Top
+        y = $(elm).offset().top,
+        elementHeight = $(elm).height();   
+    
+    if (eval == "object visible") {
+    	return ((y < (viewportHeight + scrolltop)) && (y > (scrolltop - elementHeight)));
+    }
+    if (eval == "above") {
+    	return ((y < (viewportHeight + scrolltop)));
+    }
+}
+</script>
+<style type="text/css">
+@font-face {
+	font-family: 'Cafe24Simplehae'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Simplehae.woff') format('woff'); 
+	font-weight: normal; font-style: normal; 
+}
+</style>
+
+</head>
+
+<section layout:fragment="content" class="playkick-index johnny-deck">
+<div class="container">
+<div class="index-circle circle1"></div>
+<div class="index-circle circle2"></div>
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}"></div>
+
+<!-- ---------------------------[1. 플레이킥 소개]------------------------------ -->
+<div id="playKickCharacterSection" class="play-kick-index-section">
+	<!-- [1.1 타이틀/ 플레이킥 소개] -->
+	<div class="title-section">
+		<h1>
+			Johnny's Deck
+			<label class="title-dot"></label>
+		</h1>
+		<div class="word-meaning">
+			<span class="word">* Deck :</span>
+			<span class="meaning">게임용 카드의 한 세트</span>
+		</div>
+		<div class="introduction-section">
+			표현할 수 있는 문장 수가 진짜 영어실력!
+		</div>
+	</div>
+	
+	<!-- [1.2 캐릭터, 플레이킥 소개] -->
+	<div class="playkick-character-ment-section row no-gutters">
+		<div class="playkick-character-section2 col-lg-auto align-self-center">
+			<div class="character-cover">
+				<img class="johnny" src="/images/app/member/profile_paper.png">
+			</div>
+		</div>
+		<div class="playkick-ment-section col-lg align-self-center">
+			<div class="title-ment-cover">
+				<i class="fa fa-quote-left"></i>
+				외국어 학습의 본질은 <span class="emp-text">I am a student</span> 처럼<br>
+				<span class="emp-text">바로 말할 수 있는 표현들</span>을 많이 갖는 거야.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="ment-cover">
+				Johnny 가 만든 우리 말 카드 목록을 읽고 영어로 말해 보세요.<br>
+				<b>플레이보이스북</b>에서 학습한 내용들이지만<br>  
+				말하는 훈련을 하지 않는 영어 학습자들에겐 어려운 테스트가 될 거예요. <br><br>
+				셔플을 선택하여 자신의 실력을 테스트해 보세요.
+			</div>
+			<div class="button-cover">
+				<button id="howToUseBtn" class="btn btn-how" type="button">
+					이용 방법 <i class="fa fa-caret-down"></i>
+				</button>
+			</div>
+		</div>
+	</div><!-- end of playKickCharacterSection -->
+	
+</div><!-- end of playKickCharacterSection -->
+
+
+
+<!-- -----------------------------[2. 셔플 선택]------------------------------- -->
+<div id="choiceTypeSection" class="choice-type-section">
+<form id="submitPlay" th:action="@{/playvoiceBook/kick/deck/play}" method="post">
+	<input id="memberId" name="memberId" type="hidden" 
+		th:value="${session.userContainer?.personacon?.pid}"/>
+	<!-- [1.1 셔플 타입 선택] -->
+	<div id="choiceTypeDiv" class="choice-type-div row no-gutters">
+		<!-- 랜덤 셔플 -->
+		<div class="selectTypeDiv choice-type-list-section col-6">
+			<div class="choice-type-list row no-gutters">
+				<div class="col-12">
+					<div class="choice-title-section">
+						<i class="fa fa-graduation-cap fa-fw"></i>
+						실력을 확인하려면
+					</div>
+				</div>
+				<div class="type-image-section col-auto">
+					<img src="/images/app/playvoicebook/random_cards.png">
+				</div>
+				<div class="type-exp-section col">
+					<div class="eng-name">Random Shuffle</div>
+					<div class="type-explain">학습한 플보북의 문장들이 랜덤으로 출제됩니다.</div>
+					<label class="choiceTypeBtn btn btn-choice-type active">
+						선택하기 <input type="radio" name="type" checked="checked" value="r"
+							class="option-input radio"/>
+					</label>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 스테이지 셔플 (gold) -->
+		<div th:if="${gold} == true" class="selectTypeDiv choice-type-list-section col-6">
+			<div class="choice-type-list row no-gutters">
+				<div class="col-12">
+					<div class="choice-title-section">
+						<i class="fa fa-meteor fa-fw"></i>
+						스테이지 문장을 정복하려면
+					</div>
+				</div>
+				<div class="type-image-section stage col-auto">
+					<img src="/images/app/playvoicebook/stage_cards.png">
+				</div>
+				<div class="type-exp-section col">
+					<div class="eng-name">
+						Stage Shuffle
+						<i class="forGold fa fa-crown"></i>
+					</div>
+					<div class="type-explain">학습한 플보북의 문장들이 스테이지별로 출제됩니다.</div>
+					<label class="choiceTypeBtn btn btn-choice-type">
+						선택하기 <input type="radio" name="type" value="s" 
+							class="option-input radio"/>
+					</label>
+				</div>
+			</div>
+		</div>
+		<!-- 스테이지 셔플 (no gold) -->
+		<div th:unless="${gold} == true" class="noGold choice-type-list-section col-6">
+			<div class="choice-type-list row no-gutters">
+				<div class="col-12">
+					<div class="choice-title-section">
+						<i class="fa fa-meteor fa-fw"></i>
+						스테이지 문장을 정복하려면
+					</div>
+				</div>
+				<div class="type-image-section stage col-auto">
+					<img src="/images/app/playvoicebook/stage_cards.png">
+				</div>
+				<div class="type-exp-section col">
+					<div class="eng-name">
+						Stage Shuffle
+						<i class="forGold fa fa-crown"></i>
+					</div>
+					<div class="type-explain">학습한 플보북의 문장들이 스테이지별로 출제됩니다.</div>
+					<label class="btn btn-choice-type">
+						선택하기 <span class="option-input radio"></span>
+						<span class="forgold-text">스테이지 셔플은 골드 멤버십 서비스입니다</span>
+					</label>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of choiceTypeDiv -->
+	
+	<!-- [1.2 스테이지 목록 선택] -->
+	<div id="choiceStageDiv" th:if="${gold} == true"
+		class="choice-stage-list-section" style="display: none;">
+		<div class="index-guide-section">
+			<i class="fa fa-caret-right"></i> 
+			테스트할 스테이지를 선택해 주세요 
+			<i class="fa fa-caret-left"></i>
+		</div>
+		<div class="slideStageSection choice-stage-section">
+			<th:block th:if="${unclearStageList != null AND unclearStageList.size() > 0}" 
+				th:with="stageListSize = ${unclearStageList.size()},
+						stageSetSize = ${T(Math).ceil(stageListSize/2.0)}">
+			<div th:each="setIndex : ${#numbers.sequence(0,stageSetSize-1)}" 
+				class="choice-stage-set">
+				<th:block th:each="stageIndex : ${#numbers.sequence(setIndex*2,setIndex*2+1)}">
+					<!-- 스테이지 -->
+					<div th:if="${stageIndex < stageListSize}" 
+						th:with="stage = ${unclearStageList[stageIndex]}" class="choice-stage-div">
+						<label class="btn btn-choice-stage">
+							<input type="radio" name="stageId" th:value="${stage?.stageId}"/>
+							<span class="repSentence stage-clear-info" 
+								th:data-text="${stage?.rep}"
+								th:data-emloc="${stage?.emLoc}"></span>
+							<span class="stage-name-info row no-gutters">
+								<span class="stage-name col align-self-center">
+									[[${stage?.name}]]
+								</span>
+								<span class="keep-count col-auto align-self-center">
+									<button type="button" title="모르는 문장 갯수"
+										class="showKeepNum btn btn-keep">
+										<i class="fa fa-archive"></i>	
+									</button>
+								</span>
+							</span>
+						</label>
+					</div>
+				</th:block>
+			</div>
+			</th:block>
+			<div th:unless="${unclearStageList != null AND unclearStageList.size() > 0}"  
+				class="choice-stage-guide-text">
+				선택 가능한 스테이지가 없습니다.<br>
+				<a class="study" th:href="@{/playvoiceBook/level}">
+				<i class="fa fa-book-open"></i> 학습하기</a>에서 
+				원하는 스테이지를 학습 해주세요.
+			</div>
+		</div>
+	</div><!-- end of choiceStageDiv -->
+	
+	<!-- [1.3 시작하기] -->
+	<div class="button-section-div">
+		<button id="startBtn" class="btn play-kick-start-btn active loginRequired" 
+			type="button">start</button>
+	</div>
+</form>
+</div><!-- end of choiceTypeSection -->
+
+<!-- --------------------------[3. 클리어한 스테이지]----------------------------- -->
+<div id="clearStageSection" th:if="${session.userContainer}" 
+	class="cleared-stage-section play-kick-top-ranker-section">
+<div th:if="${unclearStageList NE null AND unclearStageList.size() GT 0}" 
+	class="member-ranking-section">
+	<h3>
+		Unfinished Stages
+		<i class="fas fa-eraser fa-fw" style="color: #f6aa37;"></i><br>
+		<small>[[${session.userContainer.personacon.alias}]]님이 완전히 끝내지 못한 PlayvoiceBook 스테이지입니다.</small>
+	</h3>
+	
+	<div class="ranking-bg">
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="clearStage : ${unclearStageList}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div class="stage-card card-front">
+							<div class="repSentence stage-rep-sentence text-truncate"
+								th:data-text="${clearStage.rep}"
+								th:data-emloc="${clearStage.emLoc}"></div>
+							<div class="level-info">
+								L<span class="levelNum"></span><br>
+								<label class="card-icon"></label>						
+							</div>
+							<div class="stage-info">
+								<label class="card-icon"></label><br>
+								S<span class="stageNum"></span>
+							</div>
+						</div>
+						<div class="stage-card card-back">
+							<div class="rep-image">
+								<img src="/images/app/member/profile_paper.png">
+							</div>
+						</div>
+						<input class="stage-name" type="hidden" 
+							th:value="${clearStage.name}"/>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+</div><!-- end of clearStageSection -->
+
+
+<!-- -------------------------[4. 플레이킥 회원 반응 모음]-------------------------- -->
+<div id="memberReactionSection" class="playkick-member-reaction-section">
+	<div class="background-section"></div>
+	<div class="index-circle circle4"></div>
+	<div class="index-circle circle5"></div>
+	<div class="playkick-member-reaction-cover"
+		th:with="reviewList = ${ {'레벨 3까지가 양이 엄청 작아보여도 그거 모두 마스터하면 다른 사람들보다 말할 수 있는 문장이 엄청나게 많은거다', 
+		'말 못해도 카드를 버리고 싶은데 이상하게 양심껏 하게 됨ㅠㅠ 이거 덕분에 공부 더 열심히 하려고 노력하게 됨',
+		'말 할 수 있나 없나 확인하려고 일단 입부터 열게 된다.', 
+		'맞추고 못맞추고를 떠나서 내가 이 문장을 말할 수 있다라고 생각하면 엄청 짜릿함!',
+		'영어 공부를 이런 목적으로 생각하거나 접근한 건 처음이에요. 이걸 영어로 말할 수 있어, 없어?', 
+		'플보북에서 학습한다. 에그샷으로 충분히 연습하고 익힌다. 죠니덱으로 마스터한 문장 버린다. 영어 회화 공부 끝',
+		'내가 버린 카드 문장을 정말 아는지 다시 확인할 수 있는 퀴즈도 있어서 좋아요.', 
+		'영어 회화 잘하는 방법 : 1 플보북에서 학습 2 에그샷 계란 던지기 3 죠니덱에서 카드 버리기',
+		'빙고하려고 카드 막 버렸다가 후회 중', '나 스스로를 속였다가 랭킹 포인트 다 까먹혔다.. 카드 함부러 버리지 말길', 
+		'옛날에 공부할 때 내가 이걸 반드시 조져버리겠어! 라는 의미로 외운부분 빵꾸 뚫고 그랬는데 조니덱이 딱 그 느낌'} },
+		aliasList = ${ {'got my arm', '오레오레오즈', 'lazyhysong', 'dobbysibility', '방울꽃', 
+		'아기사자 삐요옹', '욘두부조림', '불국사갈비찜', '누리야행복하자', 'Memrise', 'bullshit'} }">
+		<h3>
+			Members Word <label></label><label></label>
+			<i class="fa fa-comment-dots fa-fw"></i>
+		</h3>
+		<div class="member-ment-section">
+			<div class="member-ment-row">
+				<div th:each="reviewIndex : ${#numbers.sequence(0,5)}"
+					th:class="'member-ment-cover position-' + ${reviewIndex + 1}">
+					<div class="review-text" th:text="${reviewList[reviewIndex]}"></div>
+					<div class="alias-section">
+						[[${#strings.substring(aliasList[reviewIndex],0,3)}]]&#8727;&#8727;&#8727;
+					</div>
+					<div class="star-rating">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div>
+			</div>
+			<div class="member-ment-row">
+				<div th:each="reviewIndex : ${#numbers.sequence(6,reviewList.size()-1)}"
+					th:class="'member-ment-cover position-' + ${reviewIndex + 1}">
+					<div class="review-text" th:text="${reviewList[reviewIndex]}"></div>
+					<div class="alias-section">
+						[[${#strings.substring(aliasList[reviewIndex],0,3)}]]&#8727;&#8727;&#8727;
+					</div>
+					<div class="star-rating">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of memberReactionSection -->
+
+
+<!-- ------------------------[4. 테스트 방법 및 유의사항]--------------------------- -->
+<div id="kickPrecautionSection" class="playkick-learning-method-section">
+	<div class="index-circle circle6"></div>
+	<h3>
+		How To Play
+		<i class="fa fa-question-circle fa-fw" title="학습 방법과 유의 사항"></i>
+	</h3>
+	
+	<!-- [4.1 플레이킥 Demo] -->
+	<div class="image-section"><div class="canvas-section">
+		<div class="convas-inner-cover">
+			<div class="card-cover card-back"></div>
+			<div class="card-cover card-front">
+				The First BaseCamp for Climbing English.
+			</div>
+		</div>
+		<div class="photo-section">
+			<div class="back-photo"></div>
+			<div class="front-photo"></div>
+		</div>
+	</div></div>
+	
+	<!-- [4.2 플레이킥 이용 방법] -->
+	<div class="playkick-learning-method-cover">
+		<div class="learning-method-cover">
+			<label class="num">1</label>
+			카드에 적힌 내용을 보고 <b>영어</b>로 말해보세요.
+		</div>
+		<div class="learning-method-cover">
+			<label class="num">2</label>
+			자신있게 말할 수 있는 카드는 <b>왼쪽(discard)</b>으로,<br>
+			어려운 것은 <b>오른쪽(keep)</b>으로 슬라이드 해 주세요.
+		</div>
+		<div class="learning-method-cover">
+			<label class="num">3</label>
+			<a th:href="@{/playvoiceBook/kick/egg}">
+			<i class="fa fa-egg"></i> Egg Shot</a>에서 
+			먼저 연습한 후 Johnny Deck을 하면 더욱 효과적입니다.
+		</div>
+		<div class="precaution-cover d-sm-none">
+			Johnny 가 만든 우리 말 카드 목록을 읽고 영어로 말해 보세요.<br>
+			<b>플레이보이스북</b>에서 학습한 내용들이지만  
+			말하는 훈련을 하지 않는 영어 학습자들에겐 어려운 테스트가 될 거예요.
+		</div>
+		<div class="precaution-cover">
+			<ul>
+				<li>discard 한 카드들은 효율적인 학습을 위해 <b>Johnny Deck</b> 에서 삭제됩니다.</li>
+				<li>죠니 덱에서 남은 카드의 수가 15개 이하가 되었을 때 플레이보이스북의 다음 스테이지가 열립니다.</li>
+			</ul>
+		</div>
+	</div>
+	
+</div><!-- end of kickPrecautionSection -->
+
+
+
+</div>
+</section>
+
+
+</html>

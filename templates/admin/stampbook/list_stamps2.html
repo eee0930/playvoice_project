@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Stamp</title>
+	
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	$(".addIcon").click(function(){
+		$("#addStampDiv").toggle();
+	});
+	
+	var addStampFormObj = $("#addStampForm");
+	$("#addStampBtn").click(function(e) {
+		
+		var title = $("#addStampFormContainer #title");
+		var stampImage = $("#addStampFormContainer #stampImage");
+		var stampValue = $("#addStampFormContainer #stampValue");
+		var stampTypeSelect = $("#addStampFormContainer #stampTypeSelect");
+	   
+		if(title.val().length < 1) {
+			alert("타이틀을 입력해 주세요.");
+			return;
+		} else if(stampImage.val().length < 1){
+			alert("이미지 파일을 선택해 주세요.");
+			return;
+		} else if(stampValue.val().length < 1) {
+			alert("검색 키워드를 입력해 주세요.");
+			return;
+		} else if(stampTypeSelect.val() == "") {
+			alert("스탬프 타입을 선택해 주세요.");
+			return;
+		} else {
+			e.preventDefault();
+			
+			addStampFormObj.submit();
+		}
+		
+	});
+	
+})//end of reday
+
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+
+	<!--/* ----------------[Add Stamp Form]--------------- */-->
+	<div id="addStampDiv" style="display: none">
+		<div class="row"><div class="col-12">
+			<div class="formContainer mt-3" id="addStampFormContainer" >
+				<form id="addStampForm" 
+					class="form-horizontal" >
+				<h3>
+					Adding New Stamp Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+					<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+					<span>Please fill the text in the field.</span>
+				</h3>
+				<div class="resMsgs" style="display:none;">
+					<h3>
+						Response Messages
+						<span>Your request was processed.</span>
+					</h3>
+				</div>
+				<div>
+					<div class="row no-gutters">
+						<div class="imageDiv col-2">
+					</div>
+					
+					<div class="col-10">
+					
+						<!--/* 타이틀 텍스트 div */-->
+						<div class="form-group row">
+							<label for="title" class="col-2 control-label headerLabel text-right">타이틀</label>
+							<div class="col-10" id="titleDiv">
+								<input type="text" id="title" name="title" placeholder="타이틀을 입력하세요."  class="form-control"/>
+							</div>
+						</div>
+						
+						<!--/* 이미지 파일 div */-->
+						<div class="form-group row">
+							<label for="stampImage" class="col-2 control-label headerLabel text-right">이미지 파일</label>
+							<div class="col-10" id="stampImageDiv">
+								<input type="file" id="stampImage" name="stampImage" class="stampImage form-control"/>
+							</div>
+						</div>
+						
+						<!--/* 스탬프 검색 키워드 div */-->
+						<div class="form-group row">
+							<label for="stampValue" class="col-2 control-label headerLabel text-right">검색 키워드</label>
+							<div class="col-10" id="stampValueDiv">
+								<input type="text" id="stampValue" name="stampValue" placeholder="검색 키워드를 입력하세요."  class="form-control"/>
+							</div>
+						</div>
+						
+						<!--/* 스탬프 타입 선택박스 */-->
+						<div class="form-group row">
+							<label for="stampType" class="col-2 control-label headerLabel text-right">스탬프 타입</label>
+							<div class="col-10">
+								<select id="stampTypeSelect" name="stampType" class="form-control">
+									<option value=""> --선택-- </option>
+									<option value="IM">입국 스탬프</option>
+									<option value="TT">타임 스탬프</option>
+									<option value="EV">이벤트 스탬프</option>
+									<option value="MC">미션 스탬프</option>
+									<option value="TS">탑 스테이지 스탬프</option>
+								</select>
+							</div>
+						</div>
+						
+						<!--/* 설명 텍스트 div */-->
+						<div class="form-group row">
+							<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+							<div class="col-10" id="descriptionDiv">
+								<textarea class="form-control" id="description" name="description" placeholder="설명을 입력하세요." rows="3"></textarea>
+							</div>
+						</div>
+			
+		
+					</div></div>	
+						
+					<div class="row" id="submitDiv"><div class="col-12">
+						<div class="form-group row">
+							<div class="ml-auto col-10">
+								<input type="button" id="addStampBtn" value="Register" class="btn btn-primary"/>
+							</div>
+						</div>
+					</div></div>
+				 </div>
+				 
+				 <div class="errorMsgs" style="display: none;">
+				 	<h3>
+						Error Messages
+						<span>Error Occured while processing the request.</span>
+					</h3>
+			 	</div>
+			 	</form>
+			</div><!-- end of formContainer -->
+			
+		</div></div>
+	</div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	<h3>스탬프 목록(Stamp List)</h3> 
+	
+	<div class="text-left"><i class="fas fa-search-plus addIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+	
+	
+</div></div><!--/* end of 스탬프 상세보기 */-->
+	
+
+<div class="text-right" style="color:red;">
+	source :: admin/stamp/list_stamps.html	
+</div>
+</section><!-- end of section -->
+

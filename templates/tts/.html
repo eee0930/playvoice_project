@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout}">
+<head>
+<title>플레이보이스 TTS - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [예문 textarea 높이 자동 setting]----------------------------------------------
+	$("#listParcingSentencesDiv .sentenceForm").each(function(i, obj){
+		var textEleHeight = $(obj).prop('scrollHeight');
+		$(obj).css("height", textEleHeight);
+	});
+	// [예문 수정 시 textarea 높이 자동 조정]---------------------------------------------
+	$(".sentenceForm").on('keyup', function() {
+		adjustHeight($(this));
+	});
+	
+	// [체크박스 전체 선택]-----------------------------------------------------------
+	$("#allCheck").click(function(){
+		if($(this).is(":checked")) {
+			$(".sentenceCheck").prop("checked", true);
+		} else {
+			$(".sentenceCheck").prop("checked", false);
+		}
+	});
+	
+	
+	// [예문 복사하기]--------------------------------------------------------------
+	$(".cloneSentence").click(function(){
+		var parentCover = $(this).closest(".sentenceCover");
+		var sentenceForm = parentCover.find(".sentenceForm");
+		sentenceForm.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			parentCover.find(".copy-sentence-section").addClass("active")
+			setTimeout(function() {
+				parentCover.find(".copy-sentence-section").removeClass("active")
+			}, 1000);
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+		sentenceForm.blur(); 
+	});
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * textarea 높이 자동 조절 (예문을 수정할 때 예문 전체를 보이게 하기 위해)
+ */
+ function adjustHeight(obj) {
+	var textEle = $(obj);
+	textEle.css("height", "40px");
+	var textEleHeight = textEle.prop('scrollHeight');
+	textEle.css("height", textEleHeight);
+};
+
+</script>
+
+</head>
+
+
+<section layout:fragment="content" class="edit-parcing-sentence-list-section">
+
+<!-- ------------------------[1. 센텐스 수정 컨트롤 영역]--------------------------- -->
+<div id="controlParcingSentencesSection" class="parcing-sentences-control-section">
+	<div id="controlParcingSentencesDiv" class="parcing-sentences-control-cover">
+		<div class="select-sentence-section col-auto">
+			<input id="allCheck" type="checkbox" class="option-input checkbox"/>
+		</div>
+	
+	</div><!-- end of controlParcingSentencesDiv -->
+</div><!-- end of controlParcingSentencesSection -->
+
+<!-- ------------------------[2. 파싱한 예문 리스트 영역]--------------------------- -->
+<div id="listParcingSentencesSection" class="parcing-sentences-section">
+	<div id="listParcingSentencesDiv" th:each="simpleSentence, iter : ${sentenceList}" 
+		class="sentenceCover parcing-sentences-cover row no-gutters">
+		<!-- [2.1 예문 선택 체크박스] -->
+		<div class="select-sentence-section col-auto">
+			<input id="check' + ${iter.index}" type="checkbox" 
+				class="sentenceCheck option-input checkbox"/>
+		</div>
+		<!-- [2.2 예문 text] -->
+		<div class="sentence-text-section col">
+			<textarea class="sentenceForm form-control 
+				playvoice-form">[[${simpleSentence.text}]]</textarea>
+		</div>
+		<!-- [2.3 예문 복사] -->
+		<div class="copy-sentence-section col-auto">
+			<i class="cloneSentence far fa-clone"></i>
+			<div class="clone-guide-msg">복사 완료</div>
+		</div>
+	</div><!-- end of listParcingSentencesDiv -->
+	
+	<div class="listParcingButtonsDiv">
+	
+	</div><!-- end of listParcingButtonsDiv -->
+</div><!-- end of listParcingSentencesSection -->
+	
+</section><!-- end of content -->
+</html>

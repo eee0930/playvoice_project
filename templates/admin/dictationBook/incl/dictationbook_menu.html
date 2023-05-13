@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="menu">
+<script type="text/javascript">
+$(document).ready(function(){
+	var path = location.pathname;
+	path = path.substring(path.lastIndexOf("/")+1);
+	
+	if(path=="dictationBook"){
+		$('#homeMenu').addClass("menu-active")
+	}else if(path=="guide"){
+		$('#guideMenu').addClass("menu-active")
+	}else if(path=="mypage"){
+		$('#dicMypageMenu').addClass("menu-active")
+	}else{
+		$('#themeListMenu').addClass("menu-active")
+	}
+});	
+</script>
+
+
+<div class="menu-cover menu-cover-mobile box-list-mobile box-main">
+<div class="row no-gutters menu">
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/dictationBook}" id="homeMenu" class="menu-item">
+			<i class="fa fa-home fa-fw"></i>
+			<br class="d-sm-none"><span>HOME</span>
+		</a>
+	</div>
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/dictationBook/theme/list}" id="themeListMenu" class="menu-item">
+			<i class="fa fa-book-open fa-fw"></i>
+			<br class="d-md-none"><span class="d-none d-md-inline-block">학습하기</span>
+			<span class="d-md-none">study</span>
+		</a>
+	</div>
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/dictationBook/mypage}" id="dicMypageMenu" class="menu-item loginRequired">
+			<i class="fa fa-pencil-alt fa-fw"></i>
+			<br class="d-md-none"><span class="d-none d-md-inline-block">나의 시험정보</span>
+			<span class="d-md-none">my test</span>
+		</a>
+	</div>
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/dictationBook/guide}" id="guideMenu" class="menu-item">
+			<i class="fa fa-assistive-listening-systems fa-fw"></i>
+			<br class="d-md-none"><span class="d-none d-md-inline-block">딕테이션 소개</span>
+			<span class="d-md-none">guide</span>
+		</a>
+	</div>
+	<div class="menu-b gold col-md-auto col text-center align-self-center">
+		<a th:href="@{/membership}" id="membershipMenu" class="menu-item">
+			<i class="fa fa-crown fa-fw"></i>
+			<br class="d-md-none"><span class="d-none d-md-inline-block">골드 멤버십</span>
+			<span class="d-md-none">membership</span>
+		</a>
+	</div>
+	<div class="col text-right d-none d-lg-inline menu-flages align-self-center">
+		<img src="/images/common/flags/ZA.png">
+		<img src="/images/common/flags/IN.png">
+		<img src="/images/common/flags/AU.png">
+		<img src="/images/common/flags/CN.png">
+	</div>
+</div></div>
+
+
+</div>

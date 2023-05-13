@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<!-- Use of admin_basic_layout -->
+
+<!-- [head 정보]============================================================ -->
+<head>
+<!-- meta -->
+<meta charset="UTF-8">
+
+<title>Placevoice.org</title>
+<!-- favicon -->
+<link rel="shortcut icon" th:href="@{/images/logo/playvoice_favicon.ico}"> 
+<link rel="icon" th:href="@{/images/logo/logo_seonbi_short.png}">
+<!-- Bootstrap -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap.min.css}">
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap-theme.min.css}">
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/fontawesome/css/all.css}">
+<link rel="stylesheet" th:href="@{/css/cr.css}">
+<link rel="stylesheet" th:href="@{/css/playvoice_icon.css}">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/custom.css}">
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+<link rel="stylesheet" th:href="@{/css/app/admin.css}">
+
+<script th:src="@{/js/public/modernizr-3.6.0.min.js}"></script>
+<script th:src="@{/js/public/jquery-3.3.1.min.js}"></script>
+<script th:src="@{/js/public/jquery.serializejson.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/public/popper.min.js}"></script>
+<script th:src="@{/js/public/bootstrap.min.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	$(document).on('click', '#headerLogout, #headerLogout_xs', function(e){
+		$('#headerLogout').parent().submit();
+	});
+	
+});
+
+
+</script>
+</head>
+<!-- [end of head 정보]===================================================== -->
+
+<body>
+
+<div>
+  
+<div class="container-fluid px-0"><div class="row no-gutters">
+	<!-- left menu -->
+	<div th:insert="~{/admin/incl/admin_menu2::menu}" 
+		class="admin-menu-list-section col-lg-3"></div>
+	
+	<!-- 메인 컨텐츠 -->
+	<div class="playvoice-layout-content-section col-lg-9">
+		<header th:insert="~{/incl/admin_header2::header}" ></header>
+		<section layout:fragment="content" class="px-3"></section>
+	</div>
+	
+</div></div>
+<!-- [footer]=========================================================== -->
+<footer th:insert="~{/incl/footer2::footer}"></footer>
+<!-- [end of footer]==================================================== -->
+</div>
+
+</body>
+</html>

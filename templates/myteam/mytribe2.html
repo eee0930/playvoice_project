@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/myteam_layout2}">
+
+<head>
+<title>My Journey - playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/myteam.css}">
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+});//end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+ 
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div class="myteam-top-cover mt-4 py-1">
+	<h3 class="row no-gutters">
+		<span class="col">
+			My Tribe
+			<i class="fa fa-landmark fa-fw fa-lg" style="color: #ee6253;"></i><br>
+			<small>Check out your team and carry out the missions together</small>
+		</span>
+		<span class="col-auto align-self-end">
+			<button class="member-edit-button" type="button">
+				부족 게시판으로 이동 <i class="fa fa-arrow-right"></i>
+			</button>
+		</span>
+	</h3>
+</div>
+
+
+
+<!-- ----------------------------[1. My Tribe]------------------------------ -->
+<div id="myTribeSection" class="my-tribe-section" th:with="tribeType = 'P'">
+	<!-- ------------------------[1.1 부족 정보]-------------------------------- -->
+	<div id="myTribeInfoDiv" th:class="'my-tribe-cover row no-gutters tribe-' + ${tribeType}">
+		<!-- 부족 로고 -->
+		<div class="tribe-image-section col-lg-3 col-md-4 align-self-center">
+			<img class="logo" src="/images/app/member/profile_paper.png">
+		</div>
+		
+		<!-- 부족 정보 -->
+		<div class="mytribe-info-section col-lg-6 col-md-6">
+			<div class="tribe-name-section">
+				<span th:if="${tribeType} == 'P'">Pride</span>
+				<span th:if="${tribeType} == 'H'">Holde</span>
+				<span th:if="${tribeType} == 'T'">Troop</span>
+				<span th:if="${tribeType} == 'G'">Gang</span>
+				<span th:if="${tribeType} == 'F'">Flock</span>
+			</div>
+			<div class="tribe-intro-section">
+				<span>Motto</span>
+				United we stand, Divided we fall.
+			</div>
+			<div class="tribe-reader-list row no-gutters">
+				<div class="col-12 mb-2">
+					<span class="reader-title">Playvoice Family</span>
+				</div>
+				<div class="reader-cover col-auto" align="center">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/common/characters/profile/france.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-G">
+					</div>
+					<div class="alias">줄리 베르티</div>
+				</div>
+				<div class="reader-cover col-auto" align="center">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/common/characters/profile/africa.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-G">
+					</div>
+					<div class="alias">라샤나</div>
+				</div>
+				<div class="reader-cover col-auto" align="center">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/common/characters/profile/kangerooman.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-G">
+					</div>
+					<div class="alias">Dr. 캥</div>
+				</div>
+			</div>
+			<div class="tribe-my-ranking">
+				<span class="rank-title">My Ranking in Pride</span>
+				1235 등
+			</div>
+		</div>
+	</div><!-- end of myTribeInfoDiv -->
+	
+	
+</div><!-- end of myTeamSection -->
+
+
+<!-- -----------------------------[2. 부족 랭킹]------------------------------- -->
+<div id="tribesRankingSection" class="index-container">
+
+<!-- ------------------------[2.1 부족 랭킹]----------------------------------- -->
+<div id="tribeRankingDiv" class="tribe-ranking-section">
+<h3>
+	Tribe <span class="index-text-color kor">Ranking</span>
+	<i class="fa fa-trophy fa-fw" style="color: #ffdb4d;"></i><br>
+	<small>Check out your tribe's Ranking Point and Play Point ranking this year</small>
+</h3>
+<div class="row no-gutters">
+	<div class="point-ranking col-md-6">
+		부족들 플레이 포인트 평균 랭킹
+	</div>
+	<div class="point-ranking col-md-6">
+		부족들 랭킹 포인트 평균 랭킹
+	</div>
+</div>
+
+</div><!-- end of tribeRankingDiv -->
+
+
+
+<!-- ------------------------[2.2 같은 부족 내 랭킹]------------------------------ -->
+<div id="mytribeRankingDiv">
+<div class="member-ranking-section container-cover-section">
+	<h3>
+		My Tribe Member <span class="index-text-color kor">플레이 포인트 랭커 Top 10</span>
+		<i class="fa fa-trophy fa-fw" style="color: #ffdb4d;"></i><br>
+		<small>My Tribe Members Play Point Ranker Top 10</small>
+	</h3>
+
+	<div class="ranking-bg">
+		<div class="ranking-date text-md-right text-center">
+			<i lang="fa" class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="num: ${#numbers.sequence(1,10)}"><div class="ranker-cover">
+					<div class="rank-style">
+						<div th:text="(${num} < 10) ? ('0' + ${num}) : ${num}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>별명[[${num}]]</div>
+							<div class="info" title="좋아요 수">
+								<i class="fa fa-heart"></i> 3345
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div title="Gold Membership">Gold</div>
+							<div><i class="far fa-address-card fa-fw"></i></div>
+						</div>
+					</div>
+				</div></li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i lang="fa" class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i lang="fa" class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+
+</div>
+
+<div class="member-ranking-section container-cover-section">
+	<h3>
+		My Tribe Member <span class="index-text-color kor">랭킹 포인트 랭커 Top 10</span>
+		<i class="fa fa-trophy fa-fw" style="color: #ffdb4d;"></i><br>
+		<small>My Tribe Members Ranking Point Ranker Top 10</small>
+	</h3>
+
+	<div class="ranking-bg">
+		<div class="ranking-date text-md-right text-center">
+			<i lang="fa" class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="num: ${#numbers.sequence(1,10)}"><div class="ranker-cover">
+					<div class="rank-style">
+						<div th:text="(${num} < 10) ? ('0' + ${num}) : ${num}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>별명[[${num}]]</div>
+							<div class="info" title="좋아요 수">
+								<i class="fa fa-heart"></i> 3345
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div title="Gold Membership">Gold</div>
+							<div><i class="far fa-address-card fa-fw"></i></div>
+						</div>
+					</div>
+				</div></li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i lang="fa" class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i lang="fa" class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+
+</div><!-- end of mytribeRankingDiv -->
+
+</div><!-- end of tribesRankingSection -->
+
+
+
+		
+	
+<div class="text-right" style="color:red;">
+	source :: myteam/mytribe.html	
+</div>
+</section>

@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display:400,800i&display=swap');
+
+/* **************************************************
+	   	 			coming_soon.html
+**************************************************** */  
+.coming-soon-page-section-cover {
+	height: 100vh;
+	background: #1b1f40;
+	background: -webkit-linear-gradient(-45deg, #000, #1b1f40, #572680);
+	background: -o-linear-gradient(-45deg, #000, #1b1f40, #572680);
+	background: -moz-linear-gradient(-45deg, #000, #1b1f40, #572680);
+	background: linear-gradient(-45deg, #000, #1b1f40, #572680);
+}
+
+.coming-soon-page-section-cover .header-section {
+	padding: 1rem 2rem;
+	height: 12vh;
+}
+.coming-soon-page-section-cover .header-section .logo-section {text-align: center;}
+.coming-soon-page-section-cover .header-section .logo-section .logo-picture {
+	background: url('/images/logo/logo_trans_white.png') no-repeat;
+	width: 50px;
+	transition: background 0.3s ease;
+}
+.coming-soon-page-section-cover .header-section .logo-section .logo-picture:hover {
+	background: url('/images/logo/logo_seonbi.png') no-repeat;
+}
+.coming-soon-page-section-cover .header-section .logo-section .back-position,
+.coming-soon-page-section-cover .header-section .logo-section .back-position:hover {
+	background-position: center; 
+	background-size: cover;
+}
+.coming-soon-page-section-cover .welcome-body-section {
+	height: 64vh;
+	padding-top: 10vh;
+}
+.coming-soon-page-section-cover .coming-soon-ment-section {margin-bottom: 10px;}
+.coming-soon-page-section-cover .coming-soon-ment-section h1 {
+	font-size: 90px;
+	color: #fff;
+	font-weight: 800;
+	font-style: italic;
+	font-family: 'Playfair Display';
+	line-height: 1.1;
+	padding-bottom: 30px;
+}
+.coming-soon-page-section-cover .coming-soon-ment-section h5 {
+	font-size: 20px;
+	color: #cccccc;
+	font-family: 'Graphik';
+    line-height: 1.2;
+    font-weight: 600;
+}
+.coming-soon-page-section-cover .coming-soon-ment-section .logo-text {height: 24px;}
+.coming-soon-page-section-cover .coming-soon-image-section {
+	width: 100%;
+	max-width: 500px;
+	margin: 0 auto;
+	height: 250px;
+	background-image: url('/images/common/characters/goto_travel_evening.jpg');
+	background-repeat: no-repeat;
+	background-size: 500px auto;
+	background-position: center;
+	border-radius: 5px;
+	/* box-shadow: inset 1px 1px 5px 1px #1b1f40, inset -1px -1px 5px 1px #000,
+				inset 5px 5px 10px 5px #1b1f40, inset -5px -5px 10px 5px #000; */
+	margin-bottom: 10px;
+}
+.coming-soon-page-section-cover .image-section-back {
+	background-color: rgba(27, 31, 64, 0.4);
+	width: 100%;
+	height: 100%;
+}
+.coming-soon-page-section-cover .coming-soon-title-section {
+	height: 20px;
+	color: #cccccc;
+	font-family: 'Graphik';
+	font-size: 15px;
+	margin-bottom: 40px;
+}
+.coming-soon-page-section-cover .coming-soon-title-section .title {
+	font-size: 1.2em;
+	margin-right: 8px;
+}
+.coming-soon-page-section-cover .coming-soon-title-section b {color: #e85e6e;}
+.coming-soon-page-section-cover .coming-soon-form-section {
+	width: 100%;
+	max-width: 545px;
+}
+.coming-soon-page-section-cover .coming-soon-form-section .coming-soon-form {
+	background-color: rgba(255, 255, 255, 0.1);
+}
+.coming-soon-page-section-cover .coming-soon-form-section .welcome-form {
+	width: 100%;
+	height: 50px;
+	font-family: 'Graphik', 'NanumSquare';
+	font-size: 15px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	border: none;
+	color: #fff;
+	padding: 0.2rem 1.5rem;
+	background-color: transparent;
+}
+.coming-soon-page-section-cover .coming-soon-form-section .welcome-form:focus {
+	box-shadow: none;
+	outline: none;
+	background-color: rgba(255, 255, 255, 0.2);
+}
+.coming-soon-page-section-cover .coming-soon-form-section .send-button {
+	font-size: 18px;
+	color: #fff;
+	background-color: transparent;
+	border: none;
+	padding: 0.2rem 1.5rem;
+	cursor: pointer;
+}
+.coming-soon-page-section-cover .coming-soon-form-section:hover .send-button {color: #e85e6e;}
+.coming-soon-page-section-cover .coming-soon-form-section .send-button:focus {
+	box-shadow: none;
+	outline: none;
+}
+
+

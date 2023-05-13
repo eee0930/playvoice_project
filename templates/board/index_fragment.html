@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<!--/*자유게시판/유머게시판*/-->
+	<div class="row">   
+		<div class="board-content col-md-6">
+			<h3>일상의 관찰(자유게시판)</h3>
+			<a th:href="@{/board/free/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="freeBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${free}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+										[[${article.title}]] <!--/* [[${article.aid}]] */-->
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#noticeBoard -->
+		</div>
+	
+		<div class="board-content col-md-6">
+			<h3>웃음과 유머(유머 게시판)</h3>
+			<a th:href="@{/board/humor/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="libraryBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable"
+						th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${humor}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}"> 
+										[[${article.title}]]
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#bestBoard -->
+		</div>
+	</div>
+	
+	<!--/*질문/자료실*/-->
+	<div class="row">   
+		<div class="board-content col-md-6">
+			<h3>Q&amp;A 게시판</h3>
+			<a th:href="@{/board/qna/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="noticeBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${qna}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+										[[${article.title}]] [[${article.aid}]]
+									</a> 
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#noticeBoard -->
+		</div>
+	
+		<div class="board-content col-md-6">
+			<h3>자료실</h3>
+			<a th:href="@{/board/library/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="libraryBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable"
+						th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${library}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}"> 
+										[[${article.title}]]
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!--/*공지사항*/-->
+	<div class="row">   
+		<div class="board-content col-md-6">
+			<h3>공지사항</h3>
+			<a th:href="@{/board/notice/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="noticeBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${notice}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+										[[${article.title}]] [[${article.aid}]]
+									</a> 
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#noticeBoard -->
+		</div>
+	
+		<div class="board-content col-md-6">
+			<h3>이벤트</h3>
+			<a th:href="@{/board/event/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="libraryBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable"
+						th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${event}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}"> 
+										[[${article.title}]]
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#bestBoard -->
+		</div>
+	</div>
+	
+	<!--/*영어게시판/인물게시판*/-->
+	<div class="row">   
+		<div class="board-content col-md-6">
+			<h3>올 어바웃 잉글리쉬</h3>
+			<a th:href="@{/board/english/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="englishBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable" 
+					th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${english}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}">
+										[[${article.title}]] <!--/* [[${article.aid}]] */-->
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#noticeBoard -->
+		</div>
+	
+		<div class="board-content col-md-6">
+			<h3>피플 인사이드</h3>
+			<a th:href="@{/board/people/list}" style="margin-left: 5px;">
+				<span class="label label-info">더보기</span>
+			</a>
+			<div id="libraryBoard">
+				<!-- table -->
+				<div>
+					<table class="board-table table table-hover text-center" id="searchResultTable"
+						th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}">
+						<tbody>
+							<tr th:each="article, status : ${people}">
+								<td class="t-title text-left">
+									<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}" 
+										th:data-boardAlias="${#boardUtil.getBoardAlias(article.category)}"> 
+										[[${article.title}]]
+									</a> 
+								</td>
+								<td class="t-info">
+									<span class="label label-danger new-label" th:if="${article.newArticle}">N</span>
+									<span class="label label-xs label-warning pic-label" th:if="${article.pics}">P</span>
+								</td>
+								<td class="t-date text-center" 
+									th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+										?#dates.format(article.regDate, 'HH:mm')
+										:#dates.format(article.regDate, 'MM-dd')}">
+									날짜
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div><!-- /#bestBoard -->
+		</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="menu" id="squareSideMenu" class="square-menu-width col-lg-auto col-12">
+
+<!--/***********************************************************************/-->
+<!--/* 				   	  		  menu PC ver. 	 						   */--> 
+<!--/***********************************************************************/-->
+<div class="d-none d-lg-inline">
+	<div id="playSquareMenuSection" class="playsquare-menu-section mt-5">
+		<ul class="playsquare-menu" style="padding: 0;">
+			<li class="home-menu style1">
+				<a th:href="@{/square}" class="home" data-reg="/square$">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png"> 
+					<span>플레이 스퀘어</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">플레이 스퀘어</li>
+					<li class="img">
+						<img src="/images/app/playsquare/square_index3.jpg">
+					</li>
+				</ul>
+				
+			<li class="title title1">
+				<div class="main-title">BABEL 카페</div>
+				<div class="icon-title"><i class="fa fa-coffee fa-fw"></i></div>
+				<div><small>in morning</small></div>
+			</li>
+			<li class="style2">
+				<a th:href="@{/square/babel/list/eng}" 
+					class="inEnglish" data-reg="/square/babel/list/eng">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png">
+					<span>잉글리시 스택</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">우리말로 해석해 주세요</li>
+					<li class="img">
+						<img src="/images/app/playsquare/square_paper.png"
+							style="background: url('/images/app/playsquare/menu/modernfamaily.jpg') no-repeat;
+							background-size: 100%; background-position: center;">
+					</li>
+					<li class="guide">
+						<b>"독해의 시작을 일상적 표현에서 출발해 보는 것이 어떨까요?"</b><br><br>
+
+						하나의 영어 문장에 대해 다양한 우리말 해석들을 살펴 보세요.
+						<br><br>하나의 영어 문장에 대해 다양한 우리말 표현을 알고 있을 때 
+						영어 표현을 보다 쉽게 사용할 수 있도록 해 줍니다.
+						<br><br> 플보 멤버들의 다양한 해석을 통해 표현의 풍부성을 함께 학습해 보세요.
+						 <i class="far fa-grin-alt"></i>
+					</li>
+				</ul>
+			</li>
+			<li class="style3 ">
+				<a th:href="@{/square/babel/list/kor}" 
+					class="inKorean" data-reg="/square/babel/list/kor">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png"> 
+					<span>코리안 스택</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">영어로 번역해 주세요</li>
+					<li class="img">
+						<img src="/images/app/playsquare/square_paper.png"
+							style="background: url('/images/app/playsquare/menu/daily_life.jpg') no-repeat;
+							background-size: 100%; background-position: center;">
+					</li>
+					<li class="guide">
+						<b>"이런 말 영어로 할 수 있어?"</b><br><br>
+						영어를 잘한다는 것을 어떻게 평가할 수 있을까요?
+						단언컨테 이 한마디에 외국어 학습의 본질이 들어가 있다고 생각합니다.
+						<br><br>일상 생활에서 사용하는 말 중에서 영어로 어떻게 표현하는지 알고 싶은 것들이 있다면 적어 보세요.
+						혹은 어떤 의미를 전달할 때 사용할 수 있는 다양한 영어 표현들을 풀보 멤버들과 함께 찾아 보세요.
+						 <i class="far fa-grin-alt"></i>
+					</li>
+				</ul>
+			</li>
+			
+			<li class="title title2">
+				<div class="main-title">PLVO 북스토어</div>
+				<div class="icon-title"><i class="fa fa-book fa-fw"></i></div>
+				<div><small>in afternoon</small></div>
+			</li>
+			<li class="style4">
+				<a th:href="@{/square/digest/list}"
+					class="digest" data-reg="/square/digest">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png"> 
+					<span>다이제스트</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">다이제스트</li>
+					<li class="img">
+						<img src="/images/app/playsquare/menu/4.jpg">
+					</li>
+					<li class="guide">
+						<b>"언어는 생각의 집이다."</b><br><br>
+						문법책에서 알려주지 않는 영어에 대한 소프트한 주제들을 가볍게 다뤄봅니다. <br><br>
+						우리말과 어떻게 다른지 형식과 내용은 물론이고 문화적 배경까지 살펴봅시다. 
+						다이제스트는 Grammar in Use, Grammar in Context를 지향합니다.
+						실질적인 회화를 위한 문법과 문맥을 통해 이해하는 문법을 통해 실생활에서
+						활용할 수 있는 주제들을 다룹니다.
+						<i class="far fa-grin-alt"></i>
+					</li>
+				</ul>
+			</li>
+			<li class="style5">
+				<a th:href="@{/square/grammarBook/list}" 
+					class="grammar" data-reg="/square/grammarBook">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png"> 
+					<span>그래머 북</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">그래머 북</li>
+					<li class="img">
+						<img src="/images/app/playsquare/menu/5.jpg">
+					</li>
+					<li class="guide">
+						<b>"아무리 작은 것도 이를 만들지 않으면 얻을 수 없다."</b><br><br>
+						GrammarBook에서 내가 이해한 문법 내용을 개성 있게 정리해 봅시다.<br><br>
+						누군가는 수없이 배워 왔고 누군가는 잊거나 잘 모르는 문법 이론이 많습니다.
+						진정한 학습은 배운 것을 나만의 스타일로 설명하고 표현하는 것입니다.
+						플보 멤버들의 설명을 보고 스스로 정리하면서 서로의 문법 선생님이 되어보세요.
+						<i class="far fa-grin-alt"></i>
+					</li>
+				</ul>
+			</li>
+			
+			<li class="title title4">
+				<div class="main-title">OCTOPUS 펍</div>
+				<div class="icon-title"><i class="fa fa-beer fa-fw"></i></div>
+				<div><small>in evening</small></div>
+			</li>
+			<li class="style6">
+				<a th:href="@{/square/smalltalk}"
+					 class="talkative" data-reg="/square/smalltalk">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png"> 
+					<span>스몰톡</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">스몰톡</li>
+					<li class="img">
+						<img src="/images/app/playsquare/menu/5.jpg">
+					</li>
+					<li class="guide">
+						<b>"잡답도 경쟁력이다"</b><br><br>
+						영어를 시험 목적으로만 공부할 것인가? <br>
+						세계는 넓고 이야깃거리는 많습니다.
+						자신의 가치를 돋보일 수 있는 전 세계 
+						다양한 소재의 이야깃거리들을 영어와 함께 배우면서 읽어 보세요. 
+						어렵게 읽은 것은 더 오래 기억됩니다.<br><br>
+						If you want to be a leader, <br>
+						you must be a readerBe a Reader.
+						<i class="far fa-grin-alt"></i>
+					</li>
+				</ul>
+			</li>
+			<!-- <li class="style7">
+				<a  
+					class="abouteng" data-reg="/square/aboutEnglish">
+					<img class="sideMenuHover" src="/images/common/icon/icon_paper.png">
+					<span>어바웃 잉글리쉬</span>
+				</a>
+				<ul class="playsquare-menu-side pt-4">
+					<li class="title">어바웃 잉글리쉬</li>
+					<li class="img">
+						<img src="/images/app/playsquare/menu/6.jpg">
+					</li>
+					<li class="guide">
+					
+					</li>
+				</ul>
+			</li> -->
+			
+		</ul>
+	</div>
+	<div id="playsquareLeftMenuAdSection" class="playsquare-left-menu-ad-section">
+		<div class="playsquare-left-menu-ad-cover">
+			<img src="/images/common/ads/playboard_left_menu.jpg" style="width: 100%;">
+		</div>
+	</div>
+	
+</div>
+
+<script>
+// 선택된 메뉴들 active 효과------------------------------------------------------
+var selectedMenu = $('#squareSideMenu a').filter(function(i) {
+						// 현재 url과 맞는 정규식값을 'data-reg' 값으로 갖는 메뉴를 활성화 
+						// PC버전 메뉴의 각 <a>태그에 data-reg 값이 있어야 한다.
+						const matched = location.pathname.match($(this).attr("data-reg"));
+						return matched != null && matched[0].length > 0;
+					})[0].className.replace("dropdown-item ", "");
+$(".playsquare-menu ." + selectedMenu).addClass("active");
+
+// 왼쪽 메뉴의 아이콘에 마우스를 올리면 활성화 및 타일 확장, 벗어나면 비활성화 및 타일 축소----------------
+$(".sideMenuHover").mouseenter(function(){
+	$(this).closest("li").addClass("active");
+	if(window.pageYOffset > $(".main-header:visible").height()){
+		// 확장 및 축소되는 타일의 위치를 표시영역의 최상단에 맞춘다.
+		$(this).closest("li").find(".playsquare-menu-side")
+							 .css("top",window.pageYOffset - $(".main-header:visible").height() - 35);
+	}else{
+		$(this).closest("li").find(".playsquare-menu-side").css("top", -67);
+	}
+}).mouseleave(function(){
+	$(this).closest("li").removeClass("active");
+});
+</script>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+

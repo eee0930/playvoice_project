@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/membership_layout2}">
+<head>
+<title>Playvoice Membership - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/membership.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [menu active]------------------------------------------------------------
+	$("#menuSection .myMembershipInfo").addClass("menu-active");
+	
+});
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div id="menuSection" th:insert="~{/membership/incl/membership_menu2::menu}"></div>
+
+<div id="resultPaymentSection" class="result-payment-section">
+
+<div class="welcome-goldmembership">
+	<div class="payment-check-icon-back"></div>
+	<h3>
+		<span class="playvoice-membership">The application for
+		Playvoice Membership<br>
+		has been completed!</span>
+	</h3>
+</div>
+
+<!-- ----------------------------[1. 결제 결과]-------------------------------- -->
+<!-- [1.1 결제 정보] -->
+<div class="result-payment-cover">
+	<div class="result-payment-table">
+		<div class="result-payment-row row no-gutters">
+			<div class="title col-auto"><i class="fa fa-tag fa-fw"></i> 결제 번호</div>
+			<div class="detail col">
+				123456
+			</div>
+		</div>
+		<div class="result-payment-row row no-gutters">
+			<div class="title col-auto"><i class="fa fa-crown fa-fw"></i> 멤버십 정보</div>
+			<div class="detail col">
+				골드 멤버십 SEMESTER VERSION 골드 멤버십 SEMESTER VERSION
+			</div>
+		</div>
+		
+		<!-- 멤버십 기간, 결제 금액 (무통장 입금이 아닐 경우) -->
+		<div class="result-payment-row row no-gutters">
+			<div class="title col-auto"><i class="fa fa-calendar-alt fa-fw"></i> 멤버십 기간</div>
+			<div class="detail col">
+				2019.11.16 - 2020.04.15
+			</div>
+		</div>
+		<div class="result-payment-row row no-gutters">
+			<div class="title col-auto"><i class="fa fa-credit-card fa-fw"></i> 결제 금액</div>
+			<div class="detail col">
+				<span class="price-info">[[${#numbers.formatInteger(114000, 1, 'COMMA')}]]</span> 원
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [1.2 무통장 입금 계좌 정보 (무통장 입금일 경우)] -->
+<div class="bank-account-info" style="display: none;">
+	<div class="bank-info-cover">
+		<div class="bank-info title"><i class="fa fa-money-check-alt"></i> 무통장 입금 정보</div>
+		<div class="bank-info row no-gutters">
+			<div class="title col-auto">은행 계좌</div>
+			<div class="detail col">
+				국민은행 (예금주 : 플레이보이스)<br>
+				<span class="num">063-02340342-234</span>
+			</div>
+		</div>
+		<div class="bank-info row no-gutters">
+			<div class="title col-auto">입금 금액</div>
+			<div class="detail col">
+				<span class="num price" 
+					th:text="${#numbers.formatInteger(114000, 1, 'COMMA')}"></span> 원
+			</div>
+		</div>
+		<div class="bank-info row no-gutters">
+			<div class="title col-auto">입금 기한</div>
+			<div class="detail col"><span class="num">2019-11-20</span></div>
+		</div>
+	</div>
+</div>
+</div><!-- end of resultPaymentSection -->
+
+<div class="division-line-icon">─</div>
+
+<!-- ----------------------------[2. 멤버십 적용]------------------------------- -->
+<div class="result-membership-buttons">
+	<!-- 무통장일 경우 -->
+	<div class="text-center" style="display: none;">
+		<a th:href="@{/}" class="btn btn-main2 pt-3">플레이보이스 메인</a>
+		<a th:href="@{/mypage/payment/list}" class="btn btn-main2 pt-3">나의 멤버십 정보</a>
+	</div>
+	<!-- 무통장이 아닐 경우 -->
+	<div class="text-center">
+		<div class="apply-membership-guide">
+			골드 이상의 멤버십은 포인트를 골드로 전환해 보세요.<br>
+			아래의 버튼을 클릭하여 멤버십을 적용해 주세요 
+			<i class="far fa-grin-alt"></i>
+		</div>
+		<form>
+			<button type="submit" class="btn btn-main2">멤버십 적용하기</button>
+		</form>
+	</div>
+</div>
+
+</section>
+
+</html>

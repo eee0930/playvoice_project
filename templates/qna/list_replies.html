@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+<title>List Replies</title>
+<style>
+	.board-content{ padding-top: 0px;}
+	.board-table .t-date{width: 100px; padding:8px 0; border-left: solid 1px #d8d8d8;}
+</style>   
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	$(document).on("mouseover", '[data-toggle="tooltip"]', function(){
+		$('[data-toggle="tooltip"]').tooltip();
+	})
+
+	var isLogin =[[${#authentication.principal} eq 'anonymousUser'
+		? null :${#authentication.principal.member.loginId}]] ;
+	
+	//[댓글 삭제]------------------------------------------------------------------
+	$('.comment-button').on("click", '.delete-reply', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		
+		var rid = $(this).attr('value');
+		//--------------------------------
+		handleCommentDelete(rid);
+		//--------------------------------
+	});
+	
+	
+}); /* end of ready */
+
+
+/**
+ * 댓글 및 대댓글에 대한 '삭제'처리
+ * 
+ */
+function handleCommentDelete(rid){
+	$.ajax({
+		type:'post',
+		url: '/reply/board/del/'+ rid,	//reply.rid
+		
+		success: function(result){
+			alert("댓글이 삭제되었습니다.");
+			$('#comment_' + rid).hide();
+			$('#displayBtn_' + rid).hide();
+			$('.child-' + rid).hide();
+		},
+		error: function(xhr){
+			alert("처리중 에러가 발생하였습니다.\n" + xhr.responseText);
+		}
+	});
+}
+
+
+/**
+ * 대댓글 불러오기
+ */
+function display_child(id, obj){
+	var loadingIcon = $(obj).closest(".display-child-btn").find(".spin-icon-section");
+	loadingIcon.fadeIn(100);
+	setTimeout(function(){
+		loadingIcon.hide();
+		$(".child-" + id).fadeIn(100);
+	},330);
+	//대댓글 부르기 버튼
+	$(obj).siblings("button").show();
+	$(obj).hide();
+}
+
+/**
+ * 대댓글 숨기기
+ */
+function disappear_child(id, obj){
+	$(".child-" + id).hide();
+	//대댓글 부르기 버튼
+	$(obj).siblings("button").show();
+	$(obj).hide();
+	//대댓글 폼 지우기
+	$(".child-" + id).find(".re-form").html("").hide();
+}
+
+
+
+/* 
+ * 대댓글 페이지 리로드
+ */
+function reload(){
+	var articleId = $('#articleId').val();
+	var next = "/reply/board/list/" + articleId;
+	$('#commentPage').load(next+' #commentList');
+}
+
+
+</script>
+</head>
+
+
+		
+<!-------------------------------------/* 댓글 영역 */---------------------------------------->
+<div id="commentList">
+<div class="comment-area" th:with="loginPersonacon = ${session?.userContainer?.personacon}">
+	<th:block th:each="reply,iterStat : ${replyList}">
+	<!-- --------------------------[1.1 부모 댓글]------------------------------ -->
+	<th:block th:unless="${reply.parentId}">
+		<div th:id="'comment_' + ${reply.rid}" 
+			class="parent-comment comment-cover row no-gutters" 
+			th:with="personacon = ${reply.personacon}">
+			<div class="col-md-auto col-2">
+				<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																			
+			</div>
+			<div class="comment-content-div col-md col-10 pl-md-2">
+				<!-- [별명/ 작성 날짜] -->
+				<div class="nickname pt-lg-0 pt-1"> 
+					<span class="alias" th:text="${personacon.alias}"></span>
+					<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}"></span>
+				</div>
+				<!-- [댓글 내용] -->
+				<div class="comment-body">
+					<span class="comment-text" th:utext="${#strings.replace(reply.comment, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"></span>
+				</div>
+				
+				<!-- [대댓글 입력 폼 들어갈 영역] -->
+				<div class="re-form" style="display: none;"></div>
+			</div>
+		</div><!--/* end of 부모댓글 영역 */-->
+		
+		<!-- 대댓글보기/숨기기  -->
+		<div th:if="${iterStat.count LT #lists.size(replyList) 
+			AND replyList[iterStat.index+1].parentId EQ reply.rid}" 
+			th:id="'displayBtn_' + ${reply.rid}" class="row no-gutters">
+			<div class="personacon-size-empty col-md-auto col-2"></div>
+			<div class="display-child-btn col-md col-10 pl-2">
+				<div>
+					<button th:onclick="'display_child('+${reply.rid}+', this)'" 
+						type="button" class="btn-none" style="display: none;">
+						답글 보기 <i class="fa fa-angle-down"></i>
+					</button>
+					<button th:onclick="'disappear_child('+${reply.rid}+', this)'" 
+						type="button" class="btn-none">
+						답글 숨기기 <i class="fa fa-angle-up"></i>
+					</button>
+				</div>
+				<div class="spin-icon-section" style="padding: 10px; display: none;">
+					<i class="fa fa-spinner fa-spin fa-2x"></i>
+				</div>
+			</div>
+		</div>
+	</th:block>
+	
+	<!-- ---------------------------[1.2 대댓글]------------------------------ -->
+	<div th:if="${reply.parentId}" th:with="personacon = ${reply.personacon}" 
+		th:id="'comment_' + ${reply.rid}"
+		class="child-comment comment-cover row child- + ${reply.parentId}"
+		th:classappend="'child-' + ${reply.parentId}">
+		<div class="personacon-size-empty col-md-auto col-2"></div>
+		<div class="re-comment col-md col-10 px-0"><div class="row no-gutters">
+			<!-- 대댓글 퍼스나콘 -->
+			<div class="col-md-auto col-2 pr-1 pt-1">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																				
+			</div>
+			<div class="child-comment-content-div col-md col-10 pl-2">
+				<!-- 별명/ 날짜 -->
+				<div class="nickname pt-1 pt-lg-1"> 
+					<span class="alias" th:text="${personacon.alias}"></span>
+					<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}"></span>
+				</div>
+				<!-- 댓글 내용 -->
+				<div class="comment-body">
+					<b>@ [[${reply.recipient}]] ◀</b>
+					<span th:text="${reply.comment}"></span>
+				</div>
+			</div>
+			<!--/* 대댓글 입력 폼 들어갈 영역 */-->
+			<div class="re-form col-12" style="display: none;"></div>
+		</div></div>
+	</div>
+	</th:block>	
+</div><!-- end of 대댓글 영역-->
+</div> <!-- end of commentList -->

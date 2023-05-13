@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/pictionary_layout}">
+<head>
+<title>마이 트레이서 (Pictionary) - 플레이보이스 | Playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:src="@{/js/app/text.js}"></script>
+<script th:src="@{/js/app/playvoice_audio.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	
+	// [단어 상세보기 화면에서 이전으로 돌아갈 주소를 브라우저에 저장]--------------------------------
+	var pictionaryDest = location.toString().replace(location.origin,"");
+	sessionStorage.setItem("pictionaryDest", pictionaryDest);
+	
+	
+	// [리뷰 리스트 상의 이미지(처음엔 이미지 가림막)를 누르면 이미지 교체(PC)]------------------------
+	// [모바일에서 클릭 시 픽션 상세 정보 보기]
+	$(".reviewWordImageDiv :not(.viewSentenceBtn)").click(function(){
+		var wordDiv = $(this).closest(".reviewWordImageDiv");
+		if(navigator.userAgent.indexOf("Mobi") > -1 &&
+				wordDiv.find(".standbyImage").length > 0){
+			//-----------------------
+			showPictionInfo(wordDiv);
+			//-----------------------
+			
+		}else{
+			//---------------------------------
+			changeReviewImages(wordDiv, "next");
+			//---------------------------------
+			$(this).closest(".pictionary-card-cover").find(".view-sentence-btn").prop("disabled", false);
+			$(this).closest(".pictionary-card-cover").find(".view-sentence-guide").remove();
+		}
+	});
+	
+	// [(모바일) 리뷰 이미지를 좌우로 쓸어 넘기면 이미지 교체]-----------------------------------
+	$(".reviewWordImageDiv").swipe({
+		swipe: function(event, direction, distance, duration, fingerCount,
+					fingerData, allowPageScroll){
+			if(navigator.userAgent.indexOf("Mobi") > -1){
+				if(direction == "left") {
+					//---------------------------------
+					changeReviewImages($(this), "next");
+					//---------------------------------
+				} else if(direction == "right") {
+					//---------------------------------
+					changeReviewImages($(this), "prev");
+					//---------------------------------
+				}
+			}
+		},
+		allowPageScroll: "auto"
+	})
+	// [(PC) 리뷰 이미지 속 'View Sentence'를 누르면 해당 픽션 상세보기]------------------------
+	$(".viewSentenceBtn").click(function(e){
+		e.stopPropagation();
+		//-----------------------------------------------------
+		showPictionInfo($(this).closest(".reviewWordDiv"));
+		//-----------------------------------------------------
+	});
+	
+}); // end of ready
+
+/**
+ * 해당 픽션의 상세 정보(포함되는 예문들)를 모달을 띄워서 표시
+ */
+function showPictionInfo(jqObj) {
+	var pid = jqObj.find(".standbyImage.active").attr("data-pid");
+	var imgPath = jqObj.find(".standbyImage.active").attr("data-path");
+	$("#pictionSentence_modal .pictionary-content-modal-section").load("/pictionary/tracer/sentences/" + pid, function(){
+		$("#pictionSentence_modal .display-piction-picture")
+			.css("backgroundImage","url(/resource/pictionary/images/"+imgPath+")")
+		// [예문이 강조정보를 갖고 있는 경우 강조를 적용]-------------------------------------------
+		var tag = '<b></b>';	//	적용할 강조효과
+
+		var numberOfSentences = $("#size_sentence").val();
+		for(var i = 0; i < numberOfSentences; i++) {
+			
+			var text = $("#re_sentence" + i).val();	//	문자열 값
+			var emLocString = $("#emp_sentence" + i).val();	//	강조위치 정보
+			// 픽션에 포함된 문장마다 문장 강조처리 적용 
+			$("#en_sentence" + i).html(emphasizeText(text, emLocString, tag));
+		}
+		$("#pictionSentence_modal").modal("show");
+	});
+}
+
+/**
+ * 해당 단어 이미지를 바꿔서 표시
+ */
+function changeReviewImages(jqObj, direction) {
+	if(jqObj.has(".standbyImage").length > 0){
+		var currImg = jqObj.find(".standbyImage.active");
+		var nextImg;
+		if(direction == "next"){
+			nextImg = currImg.next().length > 0?
+					  currImg.next():jqObj.find(".standbyImage:eq(0)");
+		}else{
+			nextImg = currImg.prev().is(".standbyImage")?
+					  currImg.prev():jqObj.find(".standbyImage:last");
+		}
+		currImg.removeClass("active");
+		nextImg.addClass("active");
+		jqObj.find(".reviewWordImage")
+			   .css("backgroundImage","url('/resource/pictionary/images/" 
+					   				  + nextImg.attr("data-path") + "')");
+	}else{
+		var wordUrl = jqObj.attr("data-url");
+		var wordId = jqObj.attr("data-rscid");
+		//-------------------------------
+		getReviewImages(jqObj, wordId);
+		//-------------------------------
+	}
+};
+
+/**
+ * 이미지 정보들을 div 내에 input hidden으로 담아둔다.
+ * (div를 클릭할 때 마다 이 input들을 돌아가며 이미지 정보를 불러와 대표이미지로 표시하기 위해)
+ */
+function successGetReviewImages(div, pictionList) {
+	if(pictionList != null && pictionList.length != 0){
+		pictionList.forEach(function(piction, i) {
+			var standbyImg = '<input type="hidden" class="standbyImage'
+							+ ((i == 0)?' active"':'"')
+							+ ' data-path ="' + piction.imagePath 
+							+ '" data-pid="' + piction.pid + '"/>';
+			div.append(standbyImg);
+		});
+		// 첫 번째로 가져온 이미지를 대표이미지로 표시
+		div.find(".reviewWordMsg").remove();
+		div.find(".reviewWordImage")
+		   .css("backgroundSize","cover")
+		   .css("backgroundRepeat", "no-repeat")
+		   .css("backgroundPosition", "center")
+		   .css("backgroundImage", "url('/resource/pictionary/images/" 
+				   					+ pictionList[0].imagePath + "')");
+	}
+	
+}
+
+</script> 
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu::menu}"></div>
+<div id="menuSection" th:insert="~{/pictionary/incl/mypictionary_menu::myPictionaryMenu}"></div>
+
+<!--/* ---------------------[piction Sentence Modal]---------------------- */-->
+<div id="pictionSentence_modal" class="piction-sentence-modal modal fade" 
+   tabindex="-1" role="dialog">
+   <div class="modal-dialog" role="document">
+      	<div class="pictionary-content-modal-section" 
+      		th:insert="~{/pictionary/incl/review_sentence_incl::piction}"></div>
+      	<i class="fa fa-times close-btn" data-dismiss="modal"></i>
+      	<div class="mobile-close-section d-lg-none" data-dismiss="modal">close</div>
+	</div>
+</div>
+
+<div class="tab-content mt-4" th:with="personacon = ${session.userContainer?.personacon}">
+<!-- ---------------------------[1. 최근 학습한 단어]---------------------------- -->
+<div id="studyPictionaryListSection" class="pictionarylist-container review reviewTabDiv my px-md-3">
+	<th:block th:if="${personacon.memberType} == 'G' OR ${personacon.memberType} == 'P'">
+	<!-- [1.1 review 목록이 없을 경우 (for gold membership)] -->
+	<div th:if="${myReviewList} == null OR ${#lists.size(myReviewList)} == 0"
+		class="view-word-list-guide recommend-add">
+		<div class="sub-title d-none d-md-block">
+			<span class="alias"><i class="fa fa-quote-left"></i>
+			[[${personacon.alias}]]
+			<i class="fa fa-quote-right"></i></span>
+			님이 최근 학습한 단어가 없습니다
+		</div>
+		<div class="sub-title d-md-none">
+			최근 학습한 단어가 없습니다 <i class="far fa-sad-cry"></i>
+		</div>
+		<div class="row no-gutters">
+			<!-- 가이드 메세지 -->
+			<div class="col-md-3 align-self-start text-center">
+				<img src="/images/common/images/43_paper.png" class="no-content" 
+					alt="플레이보이스 픽셔너리">
+			</div>
+			<div class="col-md-9">
+				<div class="detail-body">
+					어떤 단어를 안다는 것은 그 단어의 의미를 직감적으로 느낄 수 있어야 하고,<br class="d-none d-md-block">
+					적절한 상황에 단어를 자연스럽게 사용할 줄도 알아야 한다는 것을 뜻합니다.<br>
+					단어를 나의 것으로 만들기 위해선 <b>단어를 자주 복습하여 장기적으로 기억할 수 있도록 만들어야 합니다.</b><br><br>
+					상단의 알파벳 메뉴를 클릭하여 플보 멤버들이 직접 등록한 단어를 차례대로 학습해 보세요.<br>
+					외우고 싶은 단어가 있다면 그 단어를 직접 등록하거나 사진과 예문을 등록해 보세요.
+				</div>
+				<div class="button-section">
+					<a th:href="@{/pictionary/word/add}" class="go-goldmembership 
+						d-none d-md-inline-block">
+						픽셔너리 등록하러 가기 <i class="fa fa-arrow-right fa-fw"></i>
+					</a>
+					<button th:href="@{/pictionary/word/add}" type="button" 
+						class="btn-mobile btn-main2 btn-round d-md-none"
+						onclick="location.href=$(this).attr('href')">add</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- [1.2 review 목록이 있는 경우] -->
+	<div id="pictionaryListDiv" class="pictionary-list-row"
+		th:unless="${myReviewList} == null OR ${#lists.size(myReviewList)} == 0">
+		<div class="view-word-list-guide">
+			<div class="sub-title d-none d-md-block">
+				<span class="alias"><i class="fa fa-quote-left"></i>
+				[[${personacon.alias}]]
+				<i class="fa fa-quote-right"></i></span>
+				님이 최근 학습한 단어입니다.
+			</div> 
+			<div class="sub-title d-md-none">
+				최근 학습한 단어 <i class="far fa-grin-alt fa-lg"></i>
+			</div>
+			<div class="detail-body">
+				<div class="d-none d-md-block">
+					이미지를 클릭하면서 단어와 이미지의 의미를 파악해 보세요.<br>
+					이미지 아래의 
+					<button type="button" class="btn view-sentence-btn">
+						View Sentence
+					</button>
+					버튼을 클릭하면 예문을 볼 수 있습니다.
+				</div>
+				<div class="d-md-none"><ul>
+					<li>이미지 슬라이드 - 다음 사진으로</li>
+					<li>이미지 클릭 - 예문 보기</li>
+				</ul></div>
+				<div class="wise-saying-section">
+					<img src="/images/app/pictionary/recommend.jpg" alt="플레이보이스 픽셔너리">
+				</div>
+			</div>
+		</div>
+		<div class="tracer-word-section row no-gutters">
+		<div th:each="myReview : ${myReviewList}" 
+			class="pictionary-card-p col-lg-3 col-md-4 col-sm-6 col-12">
+			<div class="reviewWordDiv pictionary-card-cover">
+			<div>
+				<!-- 대표 사진 -->
+				<div class="reviewWordImageDiv pictionary-img-cover jsAction" 
+					th:data-url="${myReview.appResource.rscUri}"
+					th:data-rscid="${myReview.appResource.rscId}">
+					<div class="reviewWordImage piction-img"></div>
+					<div class="reviewWordMsg review-img-cover">
+						<b>Important !</b><br>
+						try to bring the images to mind.
+					</div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title jsAction">
+					<i class="fa fa-cube"></i>
+					<a th:href="@{${myReview.appResource.rscUri}}" target="_sub">
+						[[${myReview.appResource.rscTitle}]]
+					</a>  
+				</div>
+			</div>
+			<div class="member-info-cover text-center mx-3">
+				<span class="date">
+					<i class="fa fa-history fa-fw"></i>
+					[[${#dates.format(myReview.txDate, 'yyyy-MM-dd (E)')}]]
+				</span><br>
+				<button id="testBtn" class="viewSentenceBtn btn view-sentence-btn" 
+					disabled="disabled" type="button" title="이미지의 예문 보기">
+					View Sentence
+					<span class="view-sentence-guide">먼저 위의 이미지 영역을 클릭해 주세요</span>
+				</button>
+			</div>
+		</div></div>
+		</div>
+	</div><!-- end of pictionaryListDiv  -->
+	</th:block>
+	
+	<!-- [1.3  review 목록 서비스를 제공하지 않음 (골드 회원이 아닐 경우)] -->
+	<th:block th:unless="${personacon.memberType} == 'G' OR ${personacon.memberType} == 'P'">
+	<div class="view-word-list-guide no-gold">
+		<div class="sub-title">
+			<span class="d-none d-sm-inline-block">『픽셔너리 트레이서』</span>
+			<span class="gold-guide">
+				<i class="fa fa-crown text-warning"></i>
+				Gold Membership 서비스입니다
+			</span>
+		</div>
+		<div class="row no-gutters">
+			<!-- 가이드 메세지 -->
+			<div class="col-md-3 align-self-start text-center">
+				<img src="/images/common/icon/icon_paper.png" class="gold-ticket" 
+					alt="플레이보이스 골드멤버십">
+			</div>
+			<div class="col-md-9">
+				<div class="detail-body">
+					<div class="mb-3">
+						픽셔너리 트레이서는 회원이 학습한 단어들을 시스템이 찾아 <b>학습 기억</b>을 높여 주도록 설계되었습니다.<br>
+						복습용 단어장을 만들어 관리를 하는 경우 많은 사람들은 단어를 저장하는 것에 만족을 하고 <br class="d-none d-lg-block">
+						계획된 복습을 하지 않기 때문에 단어만 쌓여갈 뿐 큰 효과가 없습니다.
+					</div>
+					<div class="pictionary-tracer-info">
+						픽셔너리 트레이서는 회원이 기억한 것을 <b>반복적으로 인출</b>하도록 하는 기능을 제공합니다.
+						<br class="d-none d-lg-block">
+						효과적인 암기법은 반복해서 보는 것보다 기억하는 것을 인출하는 것에 초점을 두어야 합니다.
+					</div>
+				</div>
+				<div class="button-section">
+					<a th:href="@{/membership}" class="go-goldmembership">
+						Gold Membership 자세히 알아보기 <i class="fa fa-arrow-right fa-fw"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+	</div>
+	</th:block>
+
+</div><!-- end of studyPictionaryListSection -->
+
+
+</div>
+</section>
+</html>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List MembershipItem</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	
+	//[테이블 데이터(회원권 이름) 클릭시 상세보기]--------------------------------------------------
+	$('.resultWrapper').on('click', '.memberthipItemDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('#addMembershipItemDiv').css('display','block');
+		//센텐스 정보 추출
+		pickUpMembershipItemInfo($(this));
+		//이전에 수정을 했었다면
+		$('.successBtn').css('display', 'none');
+		//상세보기/수정 폼으로 이동
+		//window.scroll(0, getOffsetTop(document.getElementById("editMembershipItemForm")));
+	});
+	
+	//[회원권 등록창 토글]---------------------------------------------------
+	$('.addIcon').click(function(e){
+		$('#addMembershipItemDiv').toggle();
+	});
+	
+	//[취소버튼 클릭 시 ]---------------------------------------------------
+	$('#cancleBtn').click(function(e) {
+		$('#iid').prop("disabled", true);
+	}); 
+	
+	
+	//[등록버튼 클릭 시 iid값 체크]---------------------------------------------------
+	$('#registerBtn').click(function(e) {
+		var iid = $('#iid').val();
+		if(iid == ''){
+			$('#iid').prop("disabled", true);
+		}
+	}); 
+	
+})//end of reday
+
+
+/**
+ * 검색된 목록의 내용(paymentId 부분)을 클릭했을 때 상세보기 폼으로 복사
+  */
+function pickUpMembershipItemInfo(obj){
+	$('#iid').prop("disabled", false);
+	
+	var membershipItemTr = obj.parent();
+	var membreshipItemNo = membershipItemTr.children().first();
+
+	var iid = membreshipItemNo.next();
+	var name = iid.next();
+	var alias = name.next();
+	var price = alias.next();
+ 	var salePrice = price.next();
+	var memberType = salePrice.next();
+	var months = memberType.next();
+	var regular = months.next();
+	var description = regular.next();
+	
+	$('#iid').val(iid.text().trim());	
+	$('#name').val(name.text().trim());
+	$('#alias').val(alias.text().trim());
+	$('#price').val(parseInt(price.text().replace(/,/g,"")));
+	$('#salePrice').val(parseInt(salePrice.text().replace(/,/g,"")));
+	$('#memberType').val(memberType.text());
+	$('#months').val(months.text());
+	
+	$("input:radio[name='regular'][value='"+regular.text() + "']").prop('checked' , true);
+	
+	$('#decription').val(description.text());
+}
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+
+	<h3>회원권 목록(Membership Item List)</h3> 
+	
+	<div class="text-left"><i class="fas fa-search-plus addIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+	<!--/* ----------------[Add MembershipItem Form]--------------- */-->
+	<div id="addMembershipItemDiv" style="display: none">
+		<div class="row"><div class="col-12">
+			<div class="formContainer" id="addMembershipItemFormContainer" >
+				<form th:action="@{add}" id="addMembershipItemForm" class="form-horizontal" method="post">
+				<h3>
+					Adding New Membership Item Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+					<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+					<span>Please fill the text in the field.</span>
+				</h3>
+				<div class="resMsgs" style="display:none;">
+					<h3>
+						Response Messages
+						<span>Your request was processed.</span>
+					</h3>
+					<pre>[[${resMsgs}]]</pre>
+				</div>
+				<div>
+					<!--/* 타이틀 텍스트 div */-->
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">IID</label>
+						<div class="col-10" id="titleDiv">
+							<input type="text" id="iid" name="iid" class="form-control" disabled="disabled"/>
+						</div>
+					</div>
+					
+					<!--/* 이름 텍스트 div */-->
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">회원권 이름</label>
+						<div class="col-10" id="titleDiv">
+							<input type="text" id="name" name="name" placeholder="회원권 이름을 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 별명 텍스트 div */-->
+					<div class="form-group row">
+						<label for="membershipItemImage" class="col-2 control-label headerLabel text-right">회원권 별명</label>
+						<div class="col-10" id="membershipItemImageDiv">
+							<input type="text" id="alias" name="alias" placeholder="회원권의 별명을 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 가격 div */-->
+					<div class="form-group row">
+						<label for="membershipItemValue" class="col-2 control-label headerLabel text-right">가격</label>
+						<div class="col-10" id="membershipItemValueDiv">
+							<input type="text" id="price" name="price" placeholder="가격을 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 세일 가격 div */-->
+					<div class="form-group row">
+						<label for="membershipItemValue" class="col-2 control-label headerLabel text-right">할인 가격</label>
+						<div class="col-10" id="membershipItemValueDiv">
+							<input type="text" id="salePrice" name="salePrice" placeholder="할인 가격을 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 회원 타입 div */-->
+					<div class="form-group row">
+						<label for="membershipItemValue" class="col-2 control-label headerLabel text-right">회원 타입</label>
+						<div class="col-10" id="membershipItemValueDiv">
+							<input type="text" id="memberType" name="memberType" placeholder="회원 타입을 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 유지 개월 수 div */-->
+					<div class="form-group row">
+						<label for="membershipItemValue" class="col-2 control-label headerLabel text-right">유지 개월</label>
+						<div class="col-10" id="membershipItemValueDiv">
+							<input type="text" id="months" name="months" placeholder="유지 개월 수를 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 정기권 여부 div */-->
+					<div class="form-group row">
+						<label for="membershipItemValue" class="col-2 control-label headerLabel text-right">정기 구독 여부</label>
+						<div class="col-10" id="regularDiv">
+							<input type="radio" name="regular" value="false" checked="checked"/><span>false</span>
+							<input type="radio" name="regular" value="true"/><span>true</span>
+						</div>
+					</div>
+					
+					<!--/* 설명 텍스트 div */-->
+					<div class="form-group row">
+						<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+						<div class="col-10" id="descriptionDiv">
+							<textarea class="form-control" id="description" name="description" placeholder="설명을 입력하세요." rows="3"></textarea>
+						</div>
+					</div>
+						
+					<div class="row" id="submitDiv"><div class="col-12">
+						<div class="form-group row">
+							<div class="text-right col-6">
+								<button id="registerBtn" class="btn btn-primary" type="submit">Register</button>
+								<button id="cancleBtn" type="reset" class="btn next-btn jsAction"> 취소 </button>
+							</div>
+						</div>
+					</div></div>
+				 </div>
+				 
+				 <div class="errorMsgs" style="display: none;">
+				 	<h3>
+						Error Messages
+						<span>Error Occured while processing the request.</span>
+					</h3>
+					<pre th:text="${errorMsg}"></pre>
+			 	</div>
+			 	</form>
+			</div><!-- end of formContainer -->
+			
+		</div></div>
+	</div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	
+	<!--/* 1. 회원권 목록 Table  */-->
+	<div id="membershipItemListDiv">
+		<!-- table -->
+		<div >
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='iid'>IID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 160px;">
+						<a href="javascript:void(0)" class="thlink" data-value='name'>이름</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 120px;">별명</th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='price'>가격</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='salePrice'>세일가격</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='memberType'>회원타입</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='month'>유지개월</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regular'>정기구독</a>
+						<span class="sortMark">▼</span></th>
+				</tr></thead>
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="membershipItem, status : ${membershipItemList}">
+					<td th:text="${status.count}"></td> 
+					<td th:text="${membershipItem.iid}">iid</td>
+					<td th:text="${membershipItem.name}" class="memberthipItemDetail jsAction">title</td>
+					<td th:text="${membershipItem.alias}">title</td>  
+					<td th:text="${#numbers.formatInteger(membershipItem.price, 1, 'COMMA')}">가격</td>
+					<td th:text="${#numbers.formatInteger(membershipItem.salePrice, 1, 'COMMA')}">세일가격</td>
+					<td th:text="${membershipItem.memberType}">회원타입</td>
+					<td th:text="${membershipItem.months}">유지 개월 수</td>
+					<td th:text="${membershipItem.regular}">정기 구독 여부</td>
+					<td style="display: none" th:text="${membershipItem.description}">description</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre> 
+	</div>
+	
+</div></div> <!--/* end of 회원권 목록 */-->
+
+</section><!-- end of section -->
+

@@ -1,0 +1,1400 @@
+
+/**********************************************************
+ *					login.html
+ **********************************************************/
+.playvoice-join-body-section {
+	min-height: calc(100vh - 50px);
+	padding: 1rem 0;
+}
+
+@media (max-width: 767.5px) {
+	.playvoice-join-body-section {
+		min-height: calc(100vh - 50px);
+		padding: 0 1rem;
+	}
+}
+
+.option-input {background: #eaecee;}
+.suggest-section {
+	font-size: 12.5px;
+	font-weight: 600;
+	color: #1B1F40;
+	padding: 7.5px 0 15px;
+	font-family: '-apple-system', 'apple sd gothic neo','Open Sans', 'NanumGothic', Sans-Serif;
+}
+.remember-me-cover {padding-left: 0.25rem !important;}
+.remember-me-cover label {
+	position: relative;
+	top: -2px;
+}
+
+.login-message-section .image-div {display: none;}
+.remember-me-cover label {margin: 0;}
+
+.playvoice-join-section .resMsgs {
+	margin: 15px 0;
+	padding-top: 0;
+}
+.playvoice-join-section .formContainer h3 {
+	border-bottom: 1px dashed #ababab;
+	box-shadow: 0 0.5px 0.5px 0 #eaeaea;
+}
+.playvoice-join-section .btn-main-submit {
+	border: none;
+	height: 40px;
+	font-family: 'NanumGothic';
+	box-shadow: 2px 2px 5px 0 rgba(13,39,80,0.4), 
+				inset -1px -1px 4px 0 rgba(27,31,64,0.8), 
+				inset 2px 2px 4px 0 rgba(255,255,255,0.4);
+}
+.playvoice-join-section .btn-main-submit:hover,
+.playvoice-join-section .btn-main-submit:focus {
+	box-shadow: none;
+				
+}
+/* sns 로그인 */
+.sns-login-button-section {
+	font-size: 12.5px;
+}
+.sns-login-button-section .btn {
+	height: 40px;
+	width: 40px;
+	padding: 3px;
+	border-radius: 50%;
+	cursor: pointer;
+}
+.sns-login-button-section .btn-kakao {
+	background-color: #fbe300;
+	border-color: #fbe300;
+	color: #3b1e1e;
+}
+.sns-login-button-section .btn-kakao img {width: 17px;}
+.sns-login-button-section .btn-facebook {
+	background-color: #547bbc;
+	border-color: #547bbc;
+	color: #fff;
+}
+.sns-login-button-section .btn-google {
+	background-color: #e93d2e;
+	border-color: #e93d2e;
+	color: #fff;
+}
+.sns-login-button-section .btn-naver {
+	background-color: #00c73c;
+	border-color: #00c73c;
+	color: #fff;
+}
+.sns-login-button-section .btn-naver img {width: 18px;}
+
+@media (max-width: 767.5px) {
+	.suggest-section {
+		font-size: 15px;
+		padding: 20px 0;
+	}
+	.suggest-section > div {align-self: center;}
+	.remember-me-cover label {top: 0px;}
+	.playvoice-join-section .resMsgs {font-size: 15px;}
+}
+
+
+
+/**********************************************************
+ *					add_member.html
+ **********************************************************/
+.join-background-cover {
+	background-image: url('/images/app/member/registration_back3.jpg');
+	background-size: 100% auto;
+	background-position: center;
+	background-color: #fff;
+	background-repeat: no-repeat;
+	padding: 4.5rem;
+	border-radius: 10px;
+}
+.playvoice-join-section.register .join-background-cover {padding: 3rem 4.5rem;}
+.playvoice-join-section .formContainer {
+	border-radius: 10px;
+	box-shadow: 0 3px 8px 2px rgba(0, 0, 0, 0.4);
+	padding: 0;
+	margin-bottom: 0;
+}
+.playvoice-join-section .formContainer h3 {
+	color: #1B1F40;
+	line-height: 1.5;
+	font-weight: 600;
+	margin-top: 0;
+	font-size: 1.1rem;
+	padding-bottom: 1rem;
+	margin-bottom: 1rem;
+	font-family: 'Roboto','Nunito Sans', sans-serif;
+}
+.playvoice-join-section .formContainer h3 > span {
+	color: #5a5a5a;
+	font-weight: 500;
+	letter-spacing: 0;
+	font-family:  'Open Sans','Nunito Sans', sans-serif;
+}
+.add-member-button-section .btn-main-submit {height: 45px;}
+
+/* 체크박스 */
+.join-background-cover .option-input.checkbox {border: solid 1.5px rgba(38,43,89,0.5);}
+.join-background-cover .option-input:checked::before, 
+.join-background-cover input.option-input[type="radio"]:checked::before, 
+.join-background-cover input.option-input[type="checkbox"]:checked::before {
+	height: 15px;
+	width: 15px;
+    top: 0;
+    font-size: 11px;
+    line-height: 15px;
+}
+
+/* 가입 메세지 */
+.join-message-section {
+	background-color: rgba(242,242,242,0.7);
+	background-color: #fff;
+	padding: 3rem! important;
+	border-radius: 10px 0 0 10px;
+	text-shadow: 0.5px 0.5px 0.5px #fff;
+}
+.playvoice-join-section.register .join-message-section {padding: 2rem 2rem 1.5rem !important;} 
+.join-message-section .join-logo-section {
+	padding-bottom: 2rem;
+	text-align: center;
+}
+.join-message-section .join-logo-section .member-personacon-sm {max-width: 45px;}
+.join-message-section .join-mini-title {
+	text-align: center;
+	font-size: 1.1rem;
+	color: #1b3b8a;
+	font-weight: 400;
+	letter-spacing: -1px;
+	font-family: 'Baloo Bhai','PT Sans','Nunito Sans', sans-serif;
+	margin: 0;
+}
+.join-message-section .join-message-cover {text-align: center;}
+.join-message-section .join-message-cover b {color: #dd2138;}
+.join-message-section .join-message-cover .message1 {
+	font-size: 1.3rem;
+	font-family:  'Baloo Bhai','PT Serif','Nunito Sans', sans-serif;
+	color: #4e5166;
+	font-weight: 400;
+	letter-spacing: -1px;
+	margin-top: 0.8rem;
+	line-height: 1.1;
+}
+.join-message-section .join-message-cover .message2,
+.playvoice-join-body-section .message3 {
+	text-align: center;
+	font-size: 0.8rem;
+	color: #555;
+	margin: 2rem 0;
+	font-weight: 600;
+	font-family: 'Roboto','PT Sans','Nunito Sans', 'NanumGothic', sans-serif;
+}
+.playvoice-join-body-section .message3 {color: #dd2138;}
+.join-message-section .image-div {
+	margin: 0 auto;
+	width: 210px;
+	position: relative;
+}
+.join-message-section .image-div:before {
+	content: '';
+	position: absolute;
+	bottom: -4px;
+	left: -10px;
+	width: calc(100% + 15px);
+	height: 20px;
+	border-radius: 50%;
+	background-color: rgba(0,0,0,0.2);
+}
+.join-message-section .travel-case-section,
+.join-message-section .meerkat-shape-section,
+.join-message-section .TY-shape-section {display: inline-block;}
+.join-message-section .TY-shape-section {
+	margin-left: -30px;
+	margin-bottom: -12px;
+}
+.join-message-section .meerkat-shape-section {
+	margin-left: -30px;
+}
+.travel-case-section {
+	width: 80px;
+	height: 120px;
+	position: relative;
+}
+.travel-case-section div,
+.travel-case-section *:before,
+.travel-case-section *:after {position: absolute;}
+.travel-case {
+	width: 100%;
+	height: 80px;
+	background: #323977;
+	border-radius: 6px;
+	left: 0;
+	top: 40px;
+	box-shadow: 0 2px 0 0px rgba(0,0,0,0.25), inset 0 1px 0 0 rgba(255,255,255,0.2);
+}
+.travel-case:after {
+	content: '';
+	border-radius: 10px;
+	width: 5px;
+	height: 17px;
+	background-color: rgba(255,255,255,0.4);
+	top: 10%;
+	right: 10%;
+}
+.mark-playvoice {
+	position: absolute;
+	width: 20px;
+	height: 20px;
+	line-height: 21px;
+	font-family: 'Baloo Bhai';
+	background-color: #e94169;
+	color: #fff;
+	font-weight: 400;
+	border-radius: 50%;
+	font-size: 0.8rem;
+	bottom: 5px;
+	text-align: center;
+	left: 5px; 
+}
+.mark-playvoice:after {
+	content: 'P';
+	left: calc(50% - 0.25rem);
+}
+.wheel-section {
+	bottom: 7%;
+	width: 70%;
+	left: 15%;
+}
+.wheel-section .wheel {
+	width: 15px;
+	height: 15px;
+	border-radius: 50%;
+	background: #adaca2;
+	left: 0;
+}
+.wheel-section .wheel:nth-child(2) {
+	left: unset;
+	right: 0;
+}
+.handle {
+	top: 0;
+	left: 15%;
+	width: 70%;
+	height: 10px;
+	background-color: #1b1f40;
+	border-radius: 10px;
+}
+.handle:before,
+.handle:after {
+	content: '';
+	width: 7px;
+	height: 35px;
+	top: 10px;
+	background-color: #dbdbdb;
+	left: 0;
+}
+.handle:after {
+	left: unset;
+	right: 0;
+}
+
+@media (max-width: 767.5px) {
+	.playvoice-join-body-section .message3 {margin: 0 0 1rem;}
+	.join-background-cover .option-input.checkbox {border: none;}
+	.join-background-cover .option-input:checked::before, 
+	.join-background-cover input.option-input[type="radio"]:checked::before, 
+	.join-background-cover input.option-input[type="checkbox"]:checked::before {
+		height: 20px;
+		width: 20px;
+		line-height: 20px;
+	}
+}
+
+
+
+
+
+
+/* 가입 폼 */
+.join-form-section {
+	padding: 3rem !important;
+	background-color: #fff;
+	background-color: rgba(242,242,242,0.7);
+	border-radius: 0 10px 10px 0;
+	position: relative;
+	font-size: 13px;
+	font-family: '-apple-system', 'apple sd gothic neo','Roboto', 'Nunito Sans', 'NanumGothic', Sans-Serif;
+}
+.playvoice-join-section.register .join-form-section {padding: 2rem 2rem 1.5rem !important;}
+.join-form-section .times-section {
+	color: #1b1f40;
+	position: absolute;
+	top: 15px;
+	right: 15px;
+	font-size: 1.1em;
+}
+.playvoice-join-section .form-group {margin-bottom: 8px;}
+.playvoice-join-section .join-form-cover .col-form-label {
+	text-align: center;
+	padding-top: 0.5rem !important;
+}
+.playvoice-join-section .form-control {
+	font-size: .9rem;
+	font-family: 'apple sd gothic neo','Nunito Sans', 'NanumGothic', Sans-Serif;
+	border-radius: .25rem;
+	border-width: 2px;
+	font-weight: 500;
+}
+.playvoice-join-section .form-control:focus {
+	border-color: #313775;
+}
+.playvoice-join-section select.form-control {
+	padding: .35rem .75rem;
+}
+.playvoice-join-section select.form-control option {background: #fff;}
+.playvoice-join-section .form-group label i {color: #264590;}
+.playvoice-join-section .guide {
+	font-size: .7rem; 
+	font-weight: 600;
+	color: #1b1f40;
+	font-family: '-apple-system', 'apple sd gothic neo', 
+				'Nunito sans', 'NanumGothic', Sans-Serif;
+}
+.playvoice-join-section .guide label {margin: 0;}
+.playvoice-join-section .guide a:hover {color: #dd2138;}
+.playvoice-join-section .guide2 {color: #cb2026;}
+.playvoice-join-section .why {
+	color: #224b75; 
+	font-size: .7rem; 
+	font-weight: 600;
+	cursor: pointer;
+	position: relative;
+	padding-bottom: 5px;
+	width: 180px;
+	margin-left: auto;
+	text-align: right;
+}
+.playvoice-join-section .why-tooltip {display: none;}
+.playvoice-join-section .why:hover .why-tooltip {
+	display: inline-block;
+	width: 210px;
+	background: #fff; 
+	border-radius: 10px;
+	box-shadow: 0 1px 15px rgba(0,0,0,.2); 
+	color: #3c3c3c;
+	font-size: 12px;
+	position: absolute; 
+	right: 0; 
+	top: 22px;
+	padding: 10px; 
+	z-index: 3;
+	text-align: left;
+}
+.join-form-section .inform-guide {
+	font-size: 1.1em;
+	color: #3a478e;
+}
+.join-form-section .inform-guide .text-warning-msg {display: none;}
+.join-form-section .inform-guide:hover .text-warning-msg {display: inline-block;}
+.join-form-section .text-warning-msg {
+	position: absolute;
+	top: -35px;
+	right: 0;
+	padding: 5px 8px;
+	background-color: #808080;
+	color: #fff;
+	border-radius: 5px;
+	width: 190px;
+	display: inline-block;
+	font-size: 0.7rem;
+	z-index: 1;
+}
+.join-form-section .text-warning-msg:after {
+	content: '';
+	position: absolute;
+	bottom: -10px;
+	left: 5px;
+	border-top: solid 10px #808080;
+	border-right: solid 10px transparent;
+}
+.join-form-section .text-warning-msg.msg-passwd {top: -50px;}
+.playvoice-join-section .group-join, 
+.privacy {color: #435ba3!important;}
+.playvoice-join-section .login-link {
+	color: #224b75 !important;
+	font-size: 1rem;
+	font-weight: 600;
+	margin-left: 5px;
+}
+.playvoice-join-section .group-join:hover, 
+.playvoice-join-section .login-link:hover, .privacy:hover {
+	color: #ce0259!important; border-bottom: solid 1px #ce0259;
+}
+
+.playvoice-join-section .business-join,
+.playvoice-join-section .auth-line {
+	font-size: 12px;
+	color: #36304a;
+	font-weight: 600;
+}
+.playvoice-join-section .business-join {margin-bottom: 12px;}
+
+.playvoice-join-section .auth-line {
+	border-top: dashed 1px #ababab; 
+	box-shadow: inset 0 0.5px 0.5px 0 #eaeaea;
+	font-weight: 600;
+	padding-top: 8px;
+}
+
+
+@media(max-width: 1199.5px) {
+	.join-background-cover {
+		padding: 4rem 4.5rem;
+		background-size: cover;
+	}
+	.join-message-section, .join-form-section {padding: 2rem !important;}
+	.join-form-section .text-warning-msg {width: 140px;}
+	.playvoice-join-section .guide .terms-cover {margin-left: 22px;}
+}
+
+@media(max-width: 991.5px) {
+	.join-background-cover,
+	.playvoice-join-section.register .join-background-cover {padding: 0rem;}
+	.join-message-section, .join-form-section {padding: 1.5rem !important;}
+}
+
+@media(max-width: 767.5px) {
+	.playvoice-join-section .formContainer h3 {
+		font-size: 1.3rem;
+		letter-spacing: -1px;
+		font-weight: 400;
+		margin: 0;
+		padding: 0;
+		border: none;
+		line-height: 1.2;
+		display: block;
+		text-align: center;
+		margin: 0 0 1rem;
+		font-family: 'Baloo Bhai','나눔바른고딕';
+		border-bottom: none;
+		box-shadow: none;
+	}
+	
+	.option-input {background: #dedede;}
+	.join-background-cover {
+		background: transparent !important;
+		margin-top: 1rem;
+	}
+	.playvoice-join-section .formContainer h3 > span {display: none;}
+	.join-form-section .times-section {display: none;}
+	.join-message-section, 
+	.join-form-section,
+	.playvoice-join-section.register .join-message-section,
+	.playvoice-join-section.register .join-form-section {
+		padding: 0.5rem 0 !important;
+		background-color: #fff;
+	}
+	.playvoice-join-section .formContainer {
+		padding: 0px; 
+		box-shadow: none;
+		background-color: transparent;
+	}
+	.join-message-section {
+		padding: 0 !important;
+		border-radius: 10px;
+	}
+	.join-message-section .join-logo-section {padding: 0;}
+	.join-message-section .join-logo-section .member-personacon-sm {max-width: 65px;}
+	.join-message-section .join-mini-title,
+	.join-message-section .join-message-cover,
+	.join-message-section .join-message-cover .message2 {display: none;}
+	
+	
+	.playvoice-join-section .join-form-cover {
+		box-shadow: 0 0 10px 1px rgba(0,0,0,0.1);
+		border-radius: 8px;
+		overflow: hidden;
+	}
+	.playvoice-join-section .join-form-cover .col-form-label {
+		background-color: #303672;
+		border-bottom: none;
+		padding-top: 1rem !important;
+	}
+	.playvoice-join-section .join-form-cover .col-form-label i {color: #fff;}
+	.playvoice-join-section .join-form-cover .col-10 {border-bottom: solid 1px #d8d8d8;}
+	.playvoice-join-section .form-group {margin-bottom: 0px;}
+	.playvoice-join-section .why {
+		padding: 10px 0;
+		font-size: 14px;
+		width: 230px;
+	}
+	.playvoice-join-section .why:hover .why-tooltip {
+		font-size: 13.5px;
+		top: 32px;
+		padding: 5px 10px;
+		width: 250px;
+	}
+	.playvoice-join-section .guide {font-size: 0.85rem;}
+	.playvoice-join-section .guide .terms-cover {margin-left: 25px;}
+	.playvoice-join-section .btn-main-submit {
+		height: 50px;
+		box-shadow: 0 0 10px 1px rgba(0,0,0,0.1);
+		border-radius: 8px;
+		font-size: 16px;
+		font-family: '-apple-system', 'apple sd gothic neo','NanumSquare';
+		font-weight: 600;
+	}
+	
+	.join-form-section .inform-guide {display: none;}
+	.playvoice-join-section .formContainer .form-control {
+		font-family: '-apple-system', 'apple sd gothic neo','Nunito sans', 'NanumGothic', Sans-Serif;
+		height: 50px;
+		border: none;
+	}
+	.playvoice-join-section .formContainer select.form-control:not([size]):not([multiple]) {
+		height: calc(3.0rem + 2px);
+	}
+	.playvoice-join-section .join-img {width: 100%;}
+	
+	.join-message-cover {
+		position: static;
+		width: 100%;
+		box-shadow: none;
+		padding: 1rem;
+	}
+	.playvoice-join-section .business-join {padding: 5px 0;}
+	.playvoice-join-section .login-link {
+		color: #ce0259!important;
+	}
+}
+@media (max-width: 320px) {
+	.playvoice-join-section .guide {font-size: 0.8rem;}
+}
+
+.join-message-section.fade-background {background-color: rgba(255,255,255,0.7);}
+.com-form-group {
+	font-size: .9rem;
+	font-family: 'Nunito sans', 'NanumSquare', Sans-Serif;
+	border-radius: .25rem;
+	background-color: #fff;
+	background-image: none;
+	background-clip: padding-box;
+	border: 2px solid rgba(0,0,0,.15);
+	padding: 0;
+	transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+.com-form-group .form-control,
+.com-form-group .form-control:hover,
+.com-form-group .form-control:focus {
+	border-color: transparent;
+}
+.find-login-info-div .email-info {
+	margin-top: 0.3rem;
+	color: #303672;
+	font-size: 14px;
+}
+.find-login-info-div .guide-image.for-email {
+	text-align: center;
+	padding: 1rem 0;
+}
+.find-login-info-div .guide-image.for-email img {
+	width: 100%;
+	max-width: 150px;
+	background-image: url('/images/common/characters/aust_confirm.png');
+	background-size: contain;
+	background-position: center;
+	background-repeat: no-repeat;
+}
+.playvoice-join-section.confirm-member .find-login-info-guide {
+	border-radius: 0.5rem;
+	background-color: rgba(255,255,255,0.5);
+	width: 100%;
+	max-width: 352px;
+	margin: 0.5rem auto;
+}
+.playvoice-join-section.confirm-member .find-login-info-guide.exception-guide {
+	font-size: 11px;
+	color: #40415b;
+}
+.playvoice-join-section.confirm-member .button-section,
+.playvoice-join-section.confirm-member .sub-link-section {
+	width: 100%;
+	max-width: 352px;
+	margin: 0 auto;
+	padding: 0.5rem 1rem;
+}
+.playvoice-join-section.confirm-member .button-section .login-info-button.edit-password {
+	width: 100%;
+}
+.playvoice-join-section.confirm-member .sub-link-section {
+	font-family: '-apple-system', 'apple sd gothic neo', 'NanumGothic';
+	font-size: 13px;
+	color: #303672;
+	font-weight: 600;
+}
+.playvoice-join-section.confirm-member .sub-link-section i {font-size: 0.8em;}
+@media (max-width: 1199.5px) {
+	.playvoice-join-section.confirm-member .find-login-info-guide {margin: 0.5rem auto;}
+}
+
+
+
+/**********************************************************
+ *					welcome_member.html
+ **********************************************************/
+/* section container */
+/* 1. 캐릭터 */
+.welcome-mobile {display: none;}
+.welcome-transition-container {
+	background-color: #fff;
+	height: auto;
+	color: #1b1f40;
+	-webkit-font-smoothing: antialiased;
+}
+.welcome-transition-container .welcome-images-section {
+	height: calc(100vh - 80px);
+	min-height: 600px;
+	position: relative;
+	background-color: #1b1f40;
+}
+/* welcome 강아지 */
+.welcome-transition-container .amstrong-section {
+	width: 200px;
+	height: 63px;
+	position: relative;
+	margin: 5rem auto 0;
+	z-index: 1;
+}
+/* welcome 여행가방 */
+.welcome-transition-container .travel-case-section {
+	margin: 0 auto;
+	width: 200px;
+	height: 270px;
+	bottom: 37px;
+}
+.welcome-transition-container .travel-case {
+	height: 215px;
+	z-index: 1;
+}
+.welcome-transition-container .wheel-section .wheel {
+	width: 25px;
+	height: 20px;
+}
+.welcome-transition-container .case-verti,
+.welcome-transition-container .case-verti:before,
+.welcome-transition-container .case-verti:after {
+	height: 60%;
+	top: 20%;
+	left: 47.5%;
+	width: 5%;
+	border-radius: 10px;
+	background-color: #282d5e;
+}
+.welcome-transition-container .case-verti:before,
+.welcome-transition-container .case-verti:after {
+	content: '';
+	width: 100%;
+	height: 100%;
+	top: 0;
+}
+.welcome-transition-container .case-verti:before {left: -45px;}
+.welcome-transition-container .case-verti:after {left: 45px;}
+.welcome-transition-container .mark-playvoice {
+	width: 30px;
+    height: 30px;
+    line-height: 33px;
+    bottom: 20px;
+    left: 20px;
+    font-size: 1.2rem;
+}
+.welcome-transition-container .handle {
+	top: -70px;
+	left: 17.5%;
+	width: 65%;
+	background-color: #e91e63;
+}
+.welcome-transition-container .handle:before, 
+.welcome-transition-container .handle:after {
+	width: 9px;
+	height: 110px;
+	top: 9px;
+}
+/* welcome TY */
+.welcome-transition-container .TY-shape-section {
+	position: absolute;
+	top: 50%;
+	left: 30%;
+	animation: TYFly 1.5s linear infinite;
+}
+.welcome-transition-container .TY-shape-section .bird-body {height: 62%;}
+.welcome-transition-container .TY-shape-section .bird-body:after {content: none;}
+.welcome-transition-container .TY-shape-section .face-section .mouse {top: 27%;}
+.welcome-transition-container .TY-shape-section .bird-body .arm.left-fly {
+	animation: leftFly 0.5s linear infinite;
+}
+.welcome-transition-container .TY-shape-section .bird-body .arm.right-fly {
+    left: unset;
+    right: -20%;
+    width: 50%;
+    height: 20%;
+    background-color: #EFDCD0;
+    border-radius: 50% 50% 77% 0%/20% 60% 98% 15%;
+	animation: rightFly 0.5s linear infinite;
+}
+@keyframes TYFly {
+	0%, 100% {top: 50%;}
+	50% {top: calc(50% + 10px);}
+}
+@keyframes leftFly {
+	0%, 30%, 70% {transform: rotate(15deg);}
+	50%, 85% {transform: rotate(-5deg);}
+}
+@keyframes rightFly {
+	0%, 30%, 70% {transform: rotate(-15deg);}
+	50%, 85% {transform: rotate(5deg);}
+}
+
+.welcome-transition-container .welcome-title-section {text-align: center;}
+.welcome-transition-container .welcome-title-section h3 {
+	font-size: 2.5rem;
+	font-family: 'Baloo Bhai', 'Graphik', 'PT Sans';
+	font-weight: 400;
+	color: #fff;
+	padding: 1.4rem 0 0.7rem;
+	margin: 0 0 0.7rem;
+	letter-spacing: -1.5px;
+}
+.welcome-transition-container .welcome-title-section .sub3 {
+	padding-left: 0.5rem;
+	font-family: 'Graphik', 'PT Sans', 'NanumSquare';
+	font-size: 16px; 
+	color: #fff; 
+	font-weight: 600;
+	line-height: 1.7;
+}
+.welcome-transition-container .welcome-title-section .sub3 b {color: #ff678b;}
+
+@media (max-width: 1199.5px) {
+	.welcome-transition-container .welcome-images-section {
+		height: calc(50vh - 100px);
+	}
+	.welcome-transition-container .travel-image img {
+		height: auto;
+		width: 80%;
+	}
+}
+@media (max-width: 991.5px) {
+	.welcome-transition-container .travel-image img {width: 60%;}
+	.welcome-transition-container .TY-shape-section {left: 20%;}
+}
+@media (max-width: 767.5px) {
+	.welcome-transition-container .welcome-images-section {min-height: 450px;}
+	.welcome-transition-container .welcome-title-section h3 {
+		font-size: 1.8rem;
+		padding: 1.4rem 0 0.7rem;
+		letter-spacing: -1.5px;
+		text-align: left;
+	}
+	.welcome-transition-container .welcome-title-section .sub3 {
+		padding: 0;
+		font-family: 'Graphik', 'PT Sans', 'NanumGothic';
+		font-size: 13px; 
+		color: #fff; 
+		font-weight: 500;
+		line-height: 1.5;
+		text-align: left;
+	}
+	.welcome-transition-container .amstrong-section,
+	.welcome-transition-container .travel-case-section,
+	.welcome-transition-container .TY-shape-section {transform: scale(0.8);}
+	.welcome-transition-container .amstrong-section {margin-top: 3rem;}
+	.welcome-transition-container .travel-case-section {bottom: 60px;}
+}
+@media (max-width: 575.5px) {
+	.welcome-transition-container .welcome-images-section {
+		height: 50vh;
+	}
+	.welcome-transition-container .travel-image img {width: 90%;}
+	.welcome-transition-container .TY-shape-section {left: 10%;}
+}
+
+
+/* 2. welcome header */
+.welcome-transition-container .section-trans-container {
+	display: block;
+	position: -webkit-sticky;
+	position: sticky;
+	z-index: 1;
+	top: 0;
+	pointer-events: none;
+}
+.welcome-transition-container .welcome-ment-section {
+	height: 80px;
+	width: 100%;
+	position: relative;
+}
+.welcome-transition-container .welcome-ment-section:before {
+	content: '';
+	border-bottom: solid 5rem #e94169;
+	border-right: solid calc(100vw - 20px) transparent;
+	position: absolute;
+	top: -5rem;
+	left: 0;
+}
+.welcome-transition-container .welcome-ment {
+	position: relative;
+	padding: 0.7rem 0;
+	z-index: 1;
+	height: 100%;
+	background-color: #f5f6fa;
+}
+.welcome-transition-container .welcome-ment:before {
+	content: '';
+	border-bottom: solid 2.5rem #f5f6fa;
+	border-right: solid calc(100vw - 20px) transparent;
+	position: absolute;
+	left: 0;
+	top: -2.5rem;
+}
+.welcome-transition-container .welcome-ment .sub {
+	font-family: 'Graphik', 'PT Sans', '나눔바른고딕';
+	font-size: 16px;
+	color: #1b1f40; 
+	font-weight: 600;
+}
+.welcome-transition-container .welcome-ment .sub2 {
+	font-family: 'Baloo Bhai', 'Graphik', 'PT Sans';
+	font-weight: 400;
+	letter-spacing: -0.5px;
+	font-size: 18.3px; 
+	color: #e94169; 
+}
+@media (max-width: 1199.5px) {
+	.welcome-transition-container .welcome-ment-section:before {
+		border-bottom-width: 3rem;
+		top: -3rem;
+	}
+	.welcome-transition-container .welcome-ment:before {
+		border-bottom-width: 1.5rem;
+		top: -1.5rem;
+	}
+}
+@media (max-width: 767.5px) {
+	.welcome-transition-container .welcome-ment-section {height: 77px;}
+	.welcome-transition-container .welcome-ment-section:before {
+		border-bottom-width: 2rem;
+		top: -2rem;
+	}
+	.welcome-transition-container .welcome-ment:before {
+		border-bottom-width: 1rem;
+		top: -1rem;
+	}
+	.welcome-transition-container .welcome-ment .sub,
+	.welcome-transition-container .welcome-ment .sub2 {
+		font-size: 14px;
+		padding: 0;
+	}
+	
+}
+@media (max-width: 575.5px) {
+	.welcome-transition-container .welcome-ment-section {height: 65px;}
+}
+
+/* 3. 여권/ 팀/ 부족 설명 */
+.welcome-transition-container .scrollmagic-pin-spacer {
+	min-height: 100vh;
+	height: auto;
+}
+.welcome-transition-container .scrollmagic-pin-spacer-div {
+	height: auto;
+	padding: 7rem 0;
+}
+/* 여권 */
+.my-passport-section .passport-area {position: relative;}
+.stamp-book-cover-half {
+	height: 450px;
+	width: 320px;
+	border-radius: 5px 1rem 1rem 5px;
+	background: url('/images/app/mypage/passport/passport_texture.png');
+	background-size: 60% auto;
+	background-color: #1b1f40;
+	box-shadow: 0 2px 5px 1px rgba(0,0,0,0.1),
+				inset 7px 0 10px 1px rgba(0,0,0,0.1),
+				inset 5px 0 5px 0px rgba(0,0,0,0.1),
+				inset 3px 0 5px 0px rgba(0,0,0,0.1);
+}
+.passport-area.group-P .passport-cover-img {
+	background-image: url('/images/app/mypage/passport/pride_passport.png');
+	background-repeat: no-repeat;
+	background-size: auto 100%;
+	background-position: center; 
+	width: 100%;
+	height: 100%;
+}
+.passport-area.group-P .stamp-book-cover-half {background-color: #0d0d35;}
+
+.passport-area {
+	width: 430px;
+	margin: 0 0 0 auto;
+	-webkit-transform: rotate(-7deg);
+    -moz-transform: rotate(-7deg);
+    -o-transform: rotate(-7deg);
+    -ms-transform: rotate(-7deg);
+    transform: rotate(-7deg);
+}
+.playaccount-card-cover {margin: 5rem auto 0 1rem;}
+.playaccount-card-cover {
+	-webkit-transform: rotate(3deg);
+    -moz-transform: rotate(3deg);
+    -o-transform: rotate(3deg);
+    -ms-transform: rotate(3deg);
+    transform: rotate(3deg);
+}
+/* 가이드 */
+.travel-item-guide {
+	margin: 2rem 0;
+	font-size: 16px;
+	color: #1b1f40;
+	font-weight: 600;
+	text-align: center;
+	font-family: 'Nunito Sans', 'NanumSquare';
+}
+.travel-item-guide b {
+	color: #e94169;
+	font-weight: 600;
+}
+
+
+/* 4. 로그인 */
+.welcome-transition-container .welcome-recomment-section {
+	height: 100vh;
+	background-color: #f5f6fa;
+	-webkit-font-smoothing: antialiased;
+	position: relative;
+	z-index: 3;
+	pointer-events: all !important;
+}
+.playboive-login-btn {
+	z-index: 2;
+	position: fixed;
+	top: 1rem;
+	right: calc(50% - 570px + 15px);
+	padding: .65rem 1.5rem .5rem;
+	border-radius: 2rem;
+	color: #fff;
+	background-color: #e94169;
+	border: none;
+	cursor: pointer;
+	font-family: 'Graphik', 'Nunito Sans';
+	font-weight: 600;
+	font-size: 18px;
+	text-transform: uppercase;
+	box-shadow: 5px 5px 15px 0 rgba(13,39,80,0.36), 
+				inset -3px -3px 5px 0 #9f1728, 
+				inset 3px 3px 5px 0 #ee8a97;
+}
+.login-button-section {
+	margin-top: 2rem;
+	text-align: center;
+}
+.login-button-section .playboive-login-btn {
+	position: static;
+	font-size: 15.5px;
+	font-family: 'NanumSquare';
+	height: 50px;
+	width: 230px;
+}
+.playboive-login-btn:hover {
+	background-color: #353d80;
+	border-color: #353d80;
+	box-shadow: none;
+}
+
+@media (max-width: 1199.5px) {
+	.welcome-transition-container .scrollmagic-pin-spacer {min-height: 50vh;}
+	.playboive-login-btn {right: calc(50% - 480px + 15px);}
+}
+@media (max-width: 991.5px) {
+	.playboive-login-btn {right: calc(50% - 360px + 15px);}
+}
+@media (max-width: 767.5px) {
+	.welcome-transition-container .scrollmagic-pin-spacer-div {
+		padding: 3rem 0;
+	}
+	.passport-area {width: 250px;}
+	.stamp-book-cover-half {
+		width: 250px;
+		height: 350px;
+	}
+	
+	.travel-item-guide {
+		padding: 1rem;
+		border-radius: 0.5rem;
+		background-color: #f5f6fa;
+		margin: 2rem 0 0;
+		text-align: left;
+		word-break: keep-all;
+		word-wrap: break-word;
+		font-family: 'Open Sans','NanumGothic';
+		font-size: 13.5px;
+	}
+	.playboive-login-btn {right: 15px;}
+	.login-button-section .playboive-login-btn {
+		width: 100%;
+		border-radius: 0.5rem;
+		background-color: #1b1f40;
+		height: 50px;
+		border-color: #1b1f40;
+		box-shadow: none;
+	}
+}
+@media (max-width: 575.5px) {
+	.playboive-login-btn {
+		top: 1rem;
+		right: 15px;
+		font-size: 13px;
+	}
+	.playaccount-card-cover.member-M {
+		position: absolute;
+		bottom: 0;
+		right: 0;
+		width: 250px;
+		height: 160px;
+	}
+	.playaccount-card-cover .card-chip {
+		height: 20.8px;
+		width: 29px;
+	}
+	.playaccount-card-cover.member-M .card-info {padding-top: 1rem;}
+	.playaccount-card-cover .card-since {font-size: 9.3px;}
+	.playaccount-card-cover .card-since .title {font-size: 8px!important;}
+	.playaccount-card-cover .card-number {font-size: 13px;}
+}
+
+
+/**********************************************************
+ *					search_member.html
+ **********************************************************/
+.search-divide-div {padding: 0.5rem 0;}
+.search-member-form-section h3 {
+	font-size: 16px;
+	font-family: 'PT Serif','NanumSquare';
+	color: #1b1f40;
+	margin: 0;
+	border-bottom: none;
+	padding: 0;
+}
+
+.search-member-form {
+	border-radius: 3rem;
+	border: solid 2px #abb0dc;
+	padding: .2rem !important;
+	margin-top: .75rem;
+	max-width: 500px;
+}
+.search-member-form-section .search-member-text {
+	border: none;
+	border-radius: 3rem;
+	height: 28px;
+	font-size: 13px;
+	font-family: 'Open Sans', 'NanumGothic', Sans-Serif;
+	padding: .5rem .75rem;
+	color: #495057;
+    background-color: #fff;
+}
+.search-member-form-section .search-btn {
+	border-radius: 3rem;
+	font-size: 13.5px;
+	height: 28px;
+	padding: .3rem 1rem;
+	font-family: 'Roboto', 'NanumSquare', Sans-Serif;
+	background-color: #1b1f40;
+	border-color: #1b1f40;
+	color: #fff;
+	cursor: pointer;
+}
+.search-member-form-section .search-btn i {
+	color: #dd2138;
+	margin-left: 3px;
+}
+
+/* 검색 결과 */
+.search-list-cover {
+	max-height: 500px;
+	overflow-y: auto;
+}
+.result-search-member-list .result-title {
+	color: #2b4494;
+	font-size: 1rem;
+	font-family: 'PT Serif','NanumSquare';
+	font-weight: 600;
+}
+.result-search-member-list .result-title i {
+	margin-right: 5px;
+	font-size: 0.9em;
+	color: rgba(0,0,0,.3);
+}
+
+.result-search-member-list .search-list-cover {padding: 1rem 0;}
+.result-search-member-list .search-list-cover .result-item {
+	cursor: pointer;
+	border-radius: 3rem;
+	margin-bottom: 0.3rem;
+}
+.result-search-member-list .search-list-cover .result-item:hover {
+	background-color: #fdf9f9;
+}
+.result-search-member-list .search-list-cover .result-item.active {
+	background-color: #d0dbf3;
+}
+.result-search-member-list .personacon-section,
+.result-search-member-list .checkbox-section {padding: 0.3rem 0.4rem !important;}
+.result-search-member-list .personacon-section .member-personacon {max-width: 40px;}
+.result-search-member-list .alias {
+	font-size: 15px;
+	font-family: 'Open Sans', 'NanumSquare', Sans-Serif;
+	color: #303672;
+}
+.select-member-check {opacity: 0;}
+
+.no-result-search-member {
+	font-size: 13px;
+	font-family: 'Roboto', 'NanumGothic', Sans-Serif;
+	color: #2b4494;
+	font-weight: 600;
+	padding: 0.5rem 1rem;
+}
+
+@media (max-width: 767.5px) {
+	.search-member-form {
+		border: none;
+		box-shadow: inset -0.5px 0.8px 2px 0.5px #c1c6d7;
+		border-radius: 0.5rem;
+	}
+	.search-member-form-section .search-member-text {height: 35px;}
+	.search-member-form-section .search-btn {
+		border-radius: 0.3rem;
+		height: 35px;
+	}
+}
+
+@media(max-width: 575.5px) {
+	.search-member-form-section .search-btn {
+		padding: .3rem 0.7rem;
+	}
+	
+	/* 검색 결과 */
+	.search-list-cover {
+		max-height: 300px;
+	}
+	
+	
+	
+}
+ 
+ 
+/**********************************************************
+ *					delete_member.html
+ **********************************************************/
+
+
+
+
+
+
+
+ 
+ 
+ 
+/**********************************************************
+ *					find_password.html
+ **********************************************************/
+.playvoice-join-section.find-member .join-message-section {
+	border-radius: 10px;
+	padding: 1.5rem !important;
+	min-height: 500px;
+}
+.playvoice-join-section.find-member .join-logo-section {padding-bottom: 0;}
+.playvoice-join-section.find-member .login-info-title h3 {
+	font-family: 'Baloo Bhai','나눔바른고딕';
+	font-size: 1.5rem;
+	font-weight: 400;
+	color: #1b1f40;
+	letter-spacing: -1px;
+	margin: 0;
+	padding: 1rem 0 0;
+	border: none;
+}
+.playvoice-join-section.find-member .find-info-guide,
+.playvoice-join-section.find-member .find-login-info-guide {
+	font-size: 12.5px;
+	font-family: '-apple-system', 'apple sd gothic neo','Open Sans', 'NanumGothic';
+	color: #454965;
+	font-weight: 600;
+	text-align: center;
+	line-height: 1.5;
+	padding: 1rem;
+}
+.playvoice-join-section.find-member .find-info-guide {padding-top: 0;}
+.playvoice-join-section.find-member .find-login-info-guide {
+	font-size: 13px;
+	color: #1b1f40;
+}
+.playvoice-join-section.find-member .find-login-info-guide b {color: #dd2138;}
+.playvoice-join-section.find-member .conform-id-info {
+	color: #dd2138;
+	padding-top: 1rem;
+	font-size: 15px;
+}
+.playvoice-join-section.find-member .form-section {
+	padding: 1rem 1.5rem;
+	text-align: center;
+	max-width: 400px;
+	margin: 0 auto;
+}
+.playvoice-join-section.find-member .form-section input {
+	height: 40px;
+}
+.playvoice-join-section.find-member .button-section {
+	text-align: center;
+	padding: 0.5rem 1rem;
+}
+.playvoice-join-section.find-member .find-login-info-button,
+.playvoice-join-section.find-member .login-info-button {
+	border-radius: 0.5rem;
+	margin: 0 3px;
+	font-weight: 600;
+}
+.playvoice-join-section.find-member .login-info-button.btn-main {
+	background-color: #f5f6fa;
+	color: #1b1f40 !important;
+}
+.playvoice-join-section.find-member .login-info-button.btn-main:hover,
+.playvoice-join-section.find-member .login-info-button.btn-main:focus {
+	border-color: #c7cce2;
+	background-color: #c7cce2;
+	color: #1b1f40 !important;
+}
+.playvoice-join-section.find-member .login-info-button.btn-main3:hover,
+.playvoice-join-section.find-member .login-info-button.btn-main3:focus {
+	border-color: #b01a2c;
+	background-color: #b01a2c;
+}
+.playvoice-join-section.find-member .find-login-info-button i,
+.playvoice-join-section.find-member .login-info-button i {
+	color: #e94169;
+	margin-left: 3px;
+	position: relative;
+	top: 1px;
+}
+.playvoice-join-section.find-member .find-login-info-button {
+	height: 60px;
+	width: 200px;
+}
+.playvoice-join-section.find-member .login-info-button {
+	height: 50px;
+	width: 150px;
+}
+.playvoice-join-section.find-member .login-info-button.edit-password {
+	width: 302px;
+	height: 50px;
+}
+.playvoice-join-section.find-member .login-info-button:disabled {cursor: default;}
+
+.playvoice-join-section.find-member .join-logo-section,
+.find-login-info-div,
+.find-login-info-footer {width: 100%;}
+
+.find-login-info-div .join-message-cover .form-group {
+	font-size: 12px;
+	font-family: 'Open Sans', 'NanumGothic';
+	font-weight: 600;
+	text-align: left;
+}
+
+.find-login-info-footer {
+	padding: 1rem;
+	border-top: solid 1px #ececec;
+}
+.find-login-info-footer h5 {
+	font-family: 'Baloo Bhai','나눔바른고딕';
+	font-size: 1.2rem;
+	font-weight: 400;
+	color: #4e5070;
+	letter-spacing: -1px;
+}
+.find-login-info-footer .join-msg-section {
+	font-family: 'Open Sans', 'NanumGothic';
+	font-size: 12.5px;
+	font-weight: 600;
+	color: #4e5070;
+}
+.find-login-info-footer .join-link {
+	color: #e94169;
+}
+.find-login-info-footer .join-link i {
+	position: relative;
+	top: 1.5px;
+}
+
+@media (max-width: 991.5px) {
+	.playvoice-join-section.find-member .join-background-cover {padding: 2rem 0rem;}
+}
+
+@media (max-width: 767.5px) {
+	.playvoice-join-section.find-member .join-background-cover {padding: 1rem 0.5rem;}
+	.playvoice-join-section.find-member .find-info-guide {
+		padding: 0.5rem 0 1.5rem;
+		word-break: keep-all;
+		word-wrap: break-word;
+	}
+	.playvoice-join-section.find-member .login-info-title h3 {padding: 0.5rem 0;}
+	.playvoice-join-section.find-member .join-message-section {
+		border-radius: 0;
+		padding: 0rem !important;
+		min-height: 100px;
+	}
+	.playvoice-join-section.find-member .find-login-info-guide {padding: 0.5rem;}
+	.playvoice-join-section.find-member .join-message-section .join-message-cover {
+		display: block;
+		padding: 1rem 0 0.5rem;
+	}
+	.playvoice-join-section.find-member .form-section {
+		margin-bottom: 1.5rem;
+		padding: 0;
+	}
+	.playvoice-join-section.find-member .form-group {margin-bottom: 0.5rem;}
+	.playvoice-join-section.find-member .login-info-button.btn-main {background-color: #fff;}
+	.playvoice-join-section.find-member .button-section .login-info-button.edit-password {
+		width: 100%;
+		margin: 0;
+	}
+	.find-login-info-div {
+		padding: 1rem;
+		border-radius: 0.5rem;
+		background-color: #f5f6fa;
+		margin-bottom: 1rem;
+	}
+	.playvoice-join-section.find-member .button-section {padding: 0;}
+	.playvoice-join-section.find-member .find-login-info-button,
+	.playvoice-join-section.find-member .login-info-button {
+		width: 45%;
+	}
+	.find-login-info-footer {
+		padding: 1rem;
+		border-top: none;
+		background-color: #fff;
+		border-radius: 0.5rem;
+		box-shadow: rgba(27,31,64, 0.05) 0 1px 2px, rgba(27,31,64,0.05) 0 2px 4px, 
+					rgba(27,31,64,0.05) 0 3px 8px, rgba(27,31,64,0.05) 0 5px 16px, 
+					rgba(27,31,64,0.05) 0 10px 32px, rgba(27,31,64,0.05) 0 15px 64px;
+	}
+	
+
+	
+}
+
+
+
+

@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+<title>List Replies</title>
+<style>
+	.board-content{ padding-top: 0px;}
+	.board-table .t-date{width: 100px; padding:8px 0; border-left: solid 1px #d8d8d8;}
+</style>   
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	$(document).on("mouseover", '[data-toggle="tooltip"]', function(){
+		$('[data-toggle="tooltip"]').tooltip();
+	})
+	
+	
+	//------------------------------------------------------------[댓글 좋아요 처리]
+	$('.comment-button').on("click",'.like-comment', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if(isLogin == null){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = [[@{/auth/login}]]+"?destPage=" + destPage;
+			}
+			return;
+		}
+		
+		var contentId = $(this).attr("data-contentId");//${reply.rid}
+		var mid = $('#yourId').val();
+		
+		var obj = {
+			contentId : contentId,
+			memberId : mid,
+			contentApp : "COMMENT"
+		}
+		
+		handleCommentLike(obj, $(this));
+	});
+	
+	//----------------------------------------------------------[댓글 싫어요 처리]
+	$('.comment-button').on("click",'.dislike-comment', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if(isLogin == null){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = [[@{/auth/login}]]+"?destPage=" + destPage;
+			}
+			return;
+		}
+		
+		var contentId = $(this).attr("data-contentId");//${reply.rid}
+		var mid = $('#yourId').val();
+		
+		var obj = {
+			contentId : contentId,
+			memberId : mid,
+			contentApp : "COMMENT"
+			//csrf:csrf
+		}
+
+		handleCommentDislike(obj, $(this));
+	});
+	
+	//------------------------------------------------------[댓글 텍스트폼 엔터처리]
+	$("#comment").on("change keyup keydown", function(){
+		if($(this).val().length > 0){
+			$("#addCommentBtn").prop("disabled", false); 
+			$(this).height(0).height($(this).prop('scrollHeight') + 1);
+		} else {
+			$("#addCommentBtn").prop("disabled", true);
+			$("#comment").css("height", "32px");
+		}
+	});
+	//------------------------------------------------------[등록버튼 활성화]
+	$("#comment").click(function(){
+		$("#comment_button_section").fadeIn(200);
+	});
+	
+	//------------------------------------------------------[댓글 취소, 등록버튼 비활성화]
+	$("#cancelCommentBtn").click(function(){
+		$("#comment").css("height", "32px");
+		$("#comment_button_section").css("display", "none");
+		$("#addCommentBtn").prop("disabled", true);
+	});
+	
+	//------------------------------------------------------[대댓글 텍스트폼 엔터처리]
+	$(document).on("change keyup keydown", "#comment2", function(e){
+		if($(this).val().length > 0){
+			$("#addCommentBtn2").prop("disabled", false);
+			$(this).height(0).height( $(this).prop('scrollHeight') + 0);
+		} else {
+			//$("#addCommentBtn2").attr("disabled", "disabled");
+			$("#addCommentBtn").prop("disabled", false);
+			$("#comment2").css("height", "32px");
+		}
+	});
+	
+}); /* end of ready */
+
+
+
+
+/*
+ * 댓글 및 대댓글에 대한 '좋아요'처리
+ */
+/* function handleCommentLike(obj, thisObj){
+	$.ajax({
+		type:'post',
+		url: '/reply/board/like/'+ obj.contentId,	//reply.rid
+		data:JSON.stringify(obj), 
+		dataType:'json', */
+		/* beforeSend : function(xhr){
+			xhr.setRequestHeader(obj.csrf.headerName, obj.csrf.token);
+		}, */
+		/* contentType: "application/json",
+		success: function(result){
+			var count = result;
+			if(count == -1){
+				alert("이미 처리 되었습니다.");
+				return;
+			}
+			//'좋아요' 갱신
+			thisObj.children('span').text(count);
+			thisObj.children('i').css("color", "#0080c0");
+		},
+		error: function(e){
+			alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+			console.log("ERROR : ", e);
+			return;
+		}
+	});
+} */
+
+
+/*
+ * 댓글 및 대댓글에 대한 '싫어요'처리
+ */
+function handleCommentDislike(obj, thisObj){
+	$.ajax({
+		type:'post',
+		url: '/reply/board/dislike/'+ obj.contentId,	//reply.rid
+		data:JSON.stringify(obj), 
+		dataType:'json',
+		/* beforeSend : function(xhr){
+			xhr.setRequestHeader(obj.csrf.headerName, obj.csrf.token);
+		}, */
+		contentType: "application/json",
+		success: function(result){
+			var count = result;
+			if(count == -1){
+				alert("이미 처리 되었습니다.");
+				return;
+			}
+			//'싫어요' 갱신
+			thisObj.children('span').text(count);
+			thisObj.children('i').css("color", "#D9544F");
+		},
+		error: function(e){
+			alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+			console.log("ERROR : ", e);
+			return;
+		}
+	});
+}
+
+//------------------------------------------------------[대댓글 불러오기]
+function display_child(id){
+	$("#loading_" + id).fadeIn(100);
+	setTimeout(function(){
+		$("#loading_" + id).css("display", "none");
+		$(".child-" + id).parent(".comment-area").fadeIn(100);
+	},330);
+	//대댓글 부르기 버튼
+	$("#display_" + id).css("display", "none");
+	$("#disappear_" + id).css("display", "");
+}
+
+//------------------------------------------------------[대댓글 숨기기]
+function disappear_child(id){
+	$(".child-" + id).parent(".comment-area").css("display", "none");
+	//대댓글 부르기 버튼
+	$("#display_" + id).css("display", "");
+	$("#disappear_" + id).css("display", "none");	
+	//대댓글 폼 지우기
+	$(".re-form").html(""); 
+	$(".re-form").css("display", "none");
+}
+
+/* 대댓글 폼 불러오기 */
+function re_reply(index, parentId){
+	var alias = $("#alias" + index).text(); // 별명
+	$(".re-form").html(""); // 다른 대댓글 폼 지우기
+	$(".re-form").css("display", "none");
+	
+	var paste = $("#re_comment_paste" + index); //붙여넣기 되는 영역
+	var input = $("#re_comment_copy").clone();
+	input.appendTo(paste); //end copy
+	
+	$(".re-comment-copy").last().attr("id", "re_comment_copy" + index);
+	$(".re-comment-copy").last().css("display", "");
+	$(".hidden_parentId").last().attr("id", "parentId");
+	$(".hidden_parentId").last().val(parentId);
+	$(".recomment-area").last().attr("id", "comment2");
+	$(".recomment-btn").last().attr("id", "addCommentBtn2");
+	$(".recomment-cancel").last().attr("onclick", "cancel_recomment(" + index + ")");
+	
+	$("#re_comment_paste" + index).css("display", ""); // 해당 폼 열기
+	$("#comment2").focus(); 
+	$(".re-alias").html(alias); // 답글을 받는 사람 별명 보여주기
+}
+
+/* 대댓글 취소 */
+function cancel_recomment(index) {
+	$("#re_comment_paste" + index).html(""); // 다른 대댓글 폼 지우기
+	$("#re_comment_paste" + index).css("display", "none");
+}
+
+
+/* 대댓글 입력 처리 */
+function handleReComment(e){
+	var comment = $('#comment2').val();
+	var personaconId = $('#yourId').val(); 
+	var parentId = $('#parentId').val();
+	var articleId = $('#articleId').val();
+	var recipient = $(".re-alias").last().text();
+	
+	var obj = {
+		comment:comment, 
+		parentId : parentId,
+		personaconId:personaconId, 
+		articleId:articleId, 
+		recipient : recipient
+		//csrf:csrf
+	};
+	console.log(obj);
+
+	$.ajax({
+		type:'post',
+		url: '/reply/board/add/'+ obj.articleId,
+		data:JSON.stringify(obj), 
+		dataType:'json',
+		/* beforeSend : function(xhr){
+			xhr.setRequestHeader(obj.csrf.headerName, obj.csrf.token);
+		}, */
+		contentType: "application/json",
+		success:function(reply){
+			reload();
+		}
+	});
+}
+
+/* 대댓글 페이지 리로드 */
+function reload(){
+	var articleId = $('#articleId').val();
+	var next = [[@{/reply/board/list/}]] + articleId;
+	$('#commentPage').load(next+' #commentList');
+}
+
+</script>
+</head>
+
+
+
+
+
+		
+<!-------------------------------------/* 댓글 영역 */---------------------------------------->
+<div id="commentList" class="row no-gutters">
+	<div class="comment-area col-12" th:each="reply,iterStat : ${replyList}">
+		<!-- 댓글1 -->
+		<div th:unless="${reply.parentId}" class="parent-comment row no-gutters">
+			<div class="col-sm-1 col-2" style="padding: 5px;">
+				<a>
+					<img th:if="${reply.personacon.memberType eq 'G'}" 
+						th:src="@{/images/app/member/frame_gold_sm.png}"
+						class="personacon-frame">
+					<img th:if="${reply.personacon.memberType eq 'S'}" 
+						th:src="@{/images/app/member/frame_silver_sm.png}"
+						class="personacon-frame">
+					<img th:if="${reply.personacon.memberType eq 'P'}" 
+						th:src="@{/images/app/member/frame_platinum_sm.png}"
+						class="personacon-frame">
+				</a>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+			</div>
+			<div class="col-sm-11 col-10" style="padding:0;">
+				<div class="nickname d-none d-sm-block"> 
+					<a><span th:id="'alias' + ${iterStat.index}" th:text="${reply.personacon.alias}">별명 (PC)</span></a>
+					<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}">
+						작성날짜 (PC)
+					</span>
+				</div>
+				<div class="comment-body" th:text="${reply.comment}+'('+${reply.rid}+' / '+${reply.parentId}+')' ">
+					댓글 내용
+				</div>
+				<div class="nickname d-sm-none"> 
+					<a><span th:id="'alias' + ${iterStat.index}" th:text="${reply.personacon.alias}">별명 (Mobile)</span></a>
+					<span class="date"><b>ㆍ</b> [[${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+				</div>
+				<div class="comment-button">
+					<a data-toggle="tooltip" title="좋아요" data-placement="bottom" th:data-contentId="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn like-comment">
+						<i class="thumb-up"></i>
+						<span style="color: #444;" th:text="${reply.likeCount}">12</span>
+					</a> 
+					<a data-toggle="tooltip" title="싫어요" data-placement="bottom" th:data-contentId="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn dislike-comment">
+						<i class="thumb-down"></i>
+						<span style="color: #444;" th:text="${reply.dislikeCount}">3</span>
+					</a> 
+					<a th:onclick="'re_reply(\'' + ${iterStat.index} + '\',\'' + ${reply.rid} + '\')'"  
+						class="like-comment-btn">
+						<span style="color: #444;">REPLY</span>
+					</a>
+					<div class="button-etc float-right btn-group">
+						<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+							<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+						    <li class="dropdown-item text-center"><a href="#">삭제</a></li>
+						</ul>
+					</div>
+				</div> 
+				<div th:id="'re_comment_paste' + ${iterStat.index}" class="re-form child-comment col-12" style="display: none;">
+				</div><!-- /.re-form -->
+			</div>
+		</div><!-- /.parent-comment row -->
+		
+		
+		<div th:unless="${reply.parentId}" class="row no-gutters">
+			<div class="col-sm-1 col-2"></div>
+			<div class="display-child-btn col-sm-11 col-10">
+				<div>
+					<button type="button" class="btn-none" th:id="'display_' + ${reply.rid}" 
+						th:onclick="'display_child(\'' + ${reply.rid} + '\')'" style="display: none;">
+						답글 보기 
+						<i lang="fa" class="fa fa-angle-down"></i>
+					</button>
+					<button type="button" class="btn-none" th:id="'disappear_' + ${reply.rid}" 
+						th:onclick="'disappear_child(\'' + ${reply.rid} + '\')'">
+						답글 숨기기 <i lang="fa" class="fa fa-angle-up"></i>
+					</button>
+				</div>
+				<div th:id="'loading_' + ${reply.rid}" style="padding: 10px; display: none;">
+					<i lang="fa" class="fa fa-spinner fa-spin fa-2x"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 대댓글 -->
+		<div th:if="${reply.parentId}" th:class="'child-' + ${reply.parentId}"><div class=" child-comment row no-gutters">
+			<div class="col-sm-1 col-2"></div>
+			<div class="re-comment col-sm-11 col-10">
+				<div class="row">
+					<div class="col-sm-1 col-2" style="padding: 5px;">
+						<a>
+							<img th:if="${reply.personacon.memberType eq 'G'}" 
+								th:src="@{/images/app/member/frame_gold_sm.png}"
+								class="personacon-frame">
+							<img th:if="${reply.personacon.memberType eq 'S'}" 
+								th:src="@{/images/app/member/frame_silver_sm.png}"
+								class="personacon-frame">
+							<img th:if="${reply.personacon.memberType eq 'P'}" 
+								th:src="@{/images/app/member/frame_platinum_sm.png}"
+								class="personacon-frame">
+						
+						</a>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+					</div>
+					<div class="col-sm-11 col-10" style="padding:0;">
+						<div class="nickname d-none d-sm-block"> 
+							<a><span th:id="'alias' + ${iterStat.index}" th:text="${reply.personacon.alias}">
+								작성자 (PC)
+							</span></a>
+							<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}">
+								작성날짜 (PC)
+							</span>
+						</div>
+						<div class="comment-body" th:text="${reply.recipient}+' : '+${reply.comment} +'('+${reply.rid}+' / '+${reply.parentId}+')'">
+							대댓글 내용
+						</div>
+						<div class="nickname d-sm-none"> 
+							<a><span th:id="'alias' + ${iterStat.index}" th:text="${reply.personacon.alias}">
+								작성자 (Mobile)
+							</span></a>
+							<span class="date"><b>ㆍ</b> [[${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+						</div>
+						<div class="comment-button">
+							<a data-toggle="tooltip" title="좋아요" data-placement="bottom" th:data-contentId="${reply.rid}" 
+								href="javascript:void(0)" class="like-comment-btn like-comment">
+								<i class="thumb-up"></i>
+								<span style="color: #444;" th:text="${reply.likeCount}">12</span>
+							</a> 
+							<a data-toggle="tooltip" title="싫어요" data-placement="bottom" th:data-contentId="${reply.rid}" 
+								href="javascript:void(0)" class="like-comment-btn dislike-comment">
+								<i class="thumb-down"></i>
+								<span style="color: #444;" th:text="${reply.dislikeCount}">3</span>
+							</a> 
+							<a th:onclick="'re_reply(\'' + ${iterStat.index} + '\',\'' + ${reply.parentId} + '\')'" 
+								class="like-comment-btn">
+								<span style="color: #444;">REPLY</span>
+							</a>
+							<div class="button-etc float-right btn-group">
+								<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+									<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+								</button>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+								    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+								    <li class="dropdown-item text-center"><a href="#">삭제</a></li>
+								</ul>
+							</div>
+						</div> 
+					</div>
+					<div th:id="'re_comment_paste' + ${iterStat.index}" class="re-form child-comment col-12" style="display: none;">
+					</div><!-- /.re-form -->
+				</div>
+			</div><!-- /.re-comment -->
+		</div></div><!-- /.child-comment row -->
+		
+	</div><!-- /.comment-area col-12 -->
+	
+</div> <!-- end of commentList -->
+
+
+<div class="text-right" style="color:red;">
+	source :: admin/board/list_replies.html	
+</div>

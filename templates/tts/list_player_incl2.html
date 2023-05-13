@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="player">
+<!-- -----------------------------[3 플레이어]--------------------------------- -->
+<div id="myAlbumPlayerDiv" class="my-album-content-div">
+	<div th:each="text, iter : ${textList}" class="list-player-cover">
+		<div class="list-player-back"></div>
+		<div class="list-player-sentence">
+			<div class="num" th:text="${iter.count}"></div>
+			<div class="eng-text">[[${text}]]</div>
+			<div class="trans-text">[[${transList[iter.index]}]]</div>
+		</div>
+	</div>
+</div><!-- end of myAlbumPlayerDiv -->
+
+</th:block>
+
+</html>

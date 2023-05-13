@@ -1,0 +1,530 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout2}">
+<head>
+<title>다이제스트 (Digest) - 플레이보이스 (playvoice)</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '다이제스트 (Digest) - 플레이보이스 (playvoice)', 
+	metaDescription = '다이제스트는 영어 표현, 영어 문법, 영어와 우리말의 문화적 차이, 여러분들이 공부한 것들에 대한 정리 등
+	입시 시험에서는 잘 다루지는 않지만 중요한 내용들에 대해 함께 공유할 수 있는 공간입니다.', 
+	metaImage = '/images/app/playsquare/square_index3.jpg'"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/common.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [아티클 등록폼으로 이동]------------------------------------------------------
+	$(".addDigestBtn").click(function(){
+		location.href="/square/digest/add";
+	});
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [검색버튼 활성화]----------------------------------------------------------
+	$(document).on("change keyup keydown", ".requireSentenceForm", function(){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			add_btn.removeAttr("disabled");
+		} else {
+			add_btn.attr("disabled", "disabled");
+		}
+	});
+
+
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	
+}); //end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- ------------------------[digest guide modal]--------------------------- -->
+<div id="successEdit_modal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<span id='modalMsg'>수정에 성공하였습니다</span> <i class="far fa-grin-alt fa-lg fa-fw"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<div id="introductionSection" class="introduction-section digest mt-4">
+	<h3 class="row no-gutters">
+		<label class="pv-tm col-auto">Digest</label>
+		<label class="search-button-section col text-right d-md-none">
+			<a class="addDigestBtn"><i class="fa fa-pen fa-flip-horizontal fa-fw"></i></a>
+			<a class="squareSearchBtn"><i class="fa fa-search"></i></a>
+		</label>
+	</h3>
+	<div class="sub">We all build libraries of small pieces of knowledge about English.</div>
+</div>
+
+
+<div id="translationSection" class="translation-section digest">
+	<!-- ----------------------------[앱 컨셉 바]------------------------------- -->
+	<div class="trans-list only-PC"><div class="translation-cover gold-membership 
+		row no-gutters">
+		<div class="logo col-md-auto align-self-center">
+			<i class="fa fa-crown fa-3x"></i> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership">
+				Join in <span class="pv-tm">Playvoice</span> Membership
+			</div>
+			<div>
+				플레이보이스는 일상에서 자신의 삶에 도움이 되는 실리적 영어 학습 캠페인을 전개하고 있습니다.<br class="d-none d-sm-block">
+				사람들에게 필요한 것은 새로운 컨텐츠가 아니라 영어를 사용할 환경을 제공하는 것이라고 봅니다.<br>
+				지금 플레이보이스 계정을 만들어 보세요 
+				<i class="fa fa-comment-dollar fa-lg"></i>
+				재미있고 흥미로운 일들을 만날 수 있습니다  
+				<i class="far fa-grin-squint fa-lg"></i>
+			</div>
+		</div>
+		<div class="star col-md-auto col-12 align-self-center">
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+		</div>
+	</div></div>
+	
+	
+	<div class="translation-bg">
+		<!-- -----------------------[wise saying]--------------------------- -->
+		<div class="trans-list only-PC" 
+			style="box-shadow: none; background-color: transparent;">
+			<div class="translation-cover wise-saying">
+			<div class="wise-saying-cover text-center">
+				<i class="fa fa-quote-left"></i>
+				<div class="saying">
+					학습은 암기를 얼마나 열심히 했는지, 혹은 얼마나 많이 아는 지가 아니다.<br class="d-none d-sm-block"> 
+					중요한 것은 <b>아는 것과 모르는 것을 구분할 줄 아는 능력</b>이다.
+				</div>
+				<div class="who">
+					- <b>Anatole France</b>, 
+					 French poet, journalist -
+				</div>
+				<i class="fa fa-quote-right"></i>
+			</div>
+		</div></div>
+		
+		
+		<!-- --------------[다이제스트 등록 버튼/ 검색 버튼 (PC ver.)]----------------- -->
+		<div class="d-none d-md-block"><div class="translation-guide row no-gutters">
+			<div class="add-digest-button-div col-auto align-self-center">
+				<button type="button" class="addDigestBtn btn btn-digest loginRequired">
+					<span class="d-none d-md-inline-block">다이제스트 등록</span> 
+					<i class="fa fa-pen fa-fw"></i>
+				</button>
+				<div class="add-guide">
+					작성하려는 다이제스트와 같은 주제가 있는지 오른쪽의 검색 버튼을 눌러 먼저 <b>검색</b>해 보세요
+					<i class="far fa-grin-alt"></i>
+				</div>
+			</div>
+			<div class="add-babel-guide col px-2 align-self-center py-1 only-PC">
+				영어 표현, 영어 문법, 영어와 우리말의 문화적 차이, 여러분들이 공부한 것들에 대한 정리 등<br class="d-none d-md-block">
+				입시 시험에서는 잘 다루지는 않지만 중요한 내용들에 대해 함께 공유해 보세요.
+			</div>
+			<div class="search-button-section col-auto align-self-center">
+				<a class="squareSearchBtn" title="주제 검색">
+					<i class="fa fa-search" style="color: #494c66!important;"></i>
+				</a>
+			</div>
+		</div></div>
+		
+		<!-- -------------------------[주제, 작성자 검색]------------------------ -->
+		<div id="searchSentence_div" class="search-sentence-section trans-list add" style="display: none;">
+			<div class="translation-cover"><div class="sentence">
+				<h3>주제 검색 <i class="fa fa-search fa-fw"></i></h3>
+				<form>
+				<div class="squareSentenceForm-div row no-gutters">
+					<div class="col-md-2 py-2 align-self-center">
+						<select class="playvoice-form form-control">
+							<option>주제</option>
+							<option>작성자</option>
+						</select>
+					</div>
+					<div class="col-md-10 pl-md-3 py-2 align-self-center">
+						<input type="search" class="squareSentenceForm requireSentenceForm 
+							playvoice-form form-control" placeholder="검색어를 입력해주세요."/>
+					</div>
+				</div>	
+				<div class="squareSentenceDiv mt-2 text-right">
+					<button id="cancelSearch_btn" type="reset" class="btn btn-outline-playsquare 
+						btn-sm" style="width: 80px; margin-right: 10px;">취 소</button>
+					<button type="button" class="squareAddBtn btn btn-playsquare btn-sm" 
+						disabled="disabled" style="width: 80px;">
+						<i class="fa fa-search fa-fw"></i> 검 색
+					</button>
+				</div>
+				</form>
+			</div></div>
+		</div>
+	
+		<!-- ----------[앱 컨셉 바, 다이제스트 리스트 sort 버튼 (Mobile ver.)]---------- -->
+		<div class="mobile-concept-bar-section box-cover-mobile box-main d-md-none">
+			<!-- 앱 컨셉 바 -->
+			<div class="trans-list only-mobile"><div class="toggleAppConceptBar
+				translation-cover gold-membership">
+				<div class="logo"><label><i class="fa fa-book"></i></label></div>
+				<div class="guide"><div class="detail-cover">
+					<div class="point">
+						<b>언어는 생각의 집이다</b>
+					</div>
+					<div class="detail">
+					문법책에서 알려주지 않는 영어에 대한 소프트한 주제들을 가볍게 다뤄봅니다.<br>
+					우리말과 어떻게 다른지 형식과 내용은 물론이고 문화적 배경까지 살펴봅시다. 
+					하나의 언어를 문법책의 목차 속에서만 볼 게 아니라 사람들간의 의사소통을 위한
+					공감성 차원에서 본다면 외국어에 대한 이해 폭을 더 넓힐 수 있을 것입니다.
+					</div>
+				</div></div>
+			</div></div>
+			<!-- 바벨 리스트 sort 버튼 -->
+			<div class="translation-guide">
+				<div class="select-trans-list dropdown">
+					<button class="btn btn-secondary dropdown-toggle w-100" 
+						data-toggle="dropdown" type="button">
+						<span>전체보기</span>
+						<i class="fa fa-caret-down fa-fw float-right"></i>
+					</button>
+					<div class="dropdown-menu w-100">
+						<a class="dropdown-item">전체보기</a>
+						<a class="dropdown-item">내가 쓴 글 보기</a>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div id="defaultDigestList">
+		<!-- ---------------------[다이제스트 리스트 sort 버튼]--------------------- -->
+		<div class="d-none d-md-block">
+			<div class="select-trans-list list-pc row no-gutters">
+				<div class="col-4 dropdown align-self-center">
+					<button class="btn btn-secondary dropdown-toggle text-center w-100" 
+						data-toggle="dropdown" type="button">
+						<i class="fa fa-list fa-fw float-left"></i>
+						<span>전체보기</span>
+						<i class="fa fa-caret-down fa-fw float-right"></i>
+					</button>
+					<ul class="dropdown-menu w-100">
+						<li class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 전체보기
+						</li>
+						<li class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 단어
+							<i class="fa fa-caret-right"></i>
+							<ul class="second-menu">
+								<li>메뉴1
+									<ul class="second-menu">
+										<li>메뉴11</li>
+										<li>메뉴12</li>
+									</ul>	
+								</li>
+								<li>메뉴2
+									<ul class="second-menu">
+										<li>메뉴21</li>
+										<li>메뉴22</li>
+									</ul>	
+								</li>
+							</ul>	
+						</li>
+						<li class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 문화
+							<i class="fa fa-caret-right"></i></li>
+						<li class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 이디엄
+							<i class="fa fa-caret-right"></i></li>
+						<li class="dropdown-item">
+							<i class="fa fa-list fa-fw"></i> 기타
+							<i class="fa fa-caret-right"></i></li>
+						<li class="dropdown-item">
+							<i class="fa fa-brain fa-fw"></i> 내가 쓴 글 보기</li>
+					</ul>
+				</div>
+				<div class="col text-right align-self-center">
+					<a class="">
+						<i class="fa fa-brain fa-fw mr-1"></i> <span>내가 쓴 글 보기</span>
+					</a>
+				</div>
+			</div>
+		</div>
+		<!-- -----------------------[다이제스트 리스트]--------------------------- -->
+		<div class="bookstore-list-section" th:with="id64 = 'window'">
+			<div class="trans-list"><div class="digest-cover row no-gutters">
+				<div class="category-icon col-auto align-self-center text-center">
+					<i class="far fa-lemon fa-3x"></i>
+				</div>
+				<span class="digest-content-section col row no-gutters">
+					<a th:href="@{'/square/view/digest/' + ${id64}}" 
+						class="col-12 row no-gutters">
+						<!-- title -->
+						<span class="content toggleDigestCover col-12 pr-md-3">
+							<span class="title-sent">
+								<i class="fas fa-quote-left mr-1"></i>
+								<span>바리스타가 알려주는 딸기잼을 이용한 아이스 음료레시피</span>
+								<i class="fas fa-quote-right ml-1"></i>
+							</span>
+						</span>
+						<span class="col-12 pr-md-3 row no-gutters" style="display: none;">
+							<span class="col-md col-12">
+								<input type="text" class="titleInput form-control" 
+									value="바리스타가 알려주는 딸기잼을 이용한 아이스 음료레시피"/>
+							</span>
+							<span class="col-md-auto col-12 pl-md-2 py-1 text-right">
+								<button class="btn btn-sm btn-playsquare2" type="reset">취 소</button>
+								<button class="btn btn-sm btn-playsquare" type="button">수 정</button>
+							</span>
+						</span>
+					</a>
+					<a th:href="@{'/square/view/digest/' + ${id64}}" 
+						class="col-12 row no-gutters">
+						<!-- written by 조회수 -->
+						<span class="content-writers toggleDigestCover col-md-6 pb-2">written by</span>
+						<span class="digest-info toggleDigestCover col-md-6 col-12 pr-md-3 
+							text-right d-none d-md-inline-block">
+							<span class="view" title="조회 수">
+								<i class="fa fa-paw fa-fw"></i>
+								<span>1235</span>
+							</span>
+							<span class="date ml-3">2019-06-27</span>
+						</span>
+						<span class="w-100"></span>
+					</a>
+					<a th:href="@{'/square/view/digest/' + ${id64}}" 
+						class="col row no-gutters">
+						<!-- 컨텐츠 작성자 -->
+						<span class="personal-cover col-auto align-self-center">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url(/images/app/member/profile_ex2.jpg) no-repeat;
+								background-position: center; background-size: cover;">
+						</span>
+						<span class="personal-cover col-auto align-self-center">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url(/images/app/member/profile_ex3.jpg) no-repeat;
+								background-position: center; background-size: cover;">
+						</span>
+						<span class="personal-cover col-auto align-self-center">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url(/images/app/member/profile_ex4.jpg) no-repeat;
+								background-position: center; background-size: cover;">
+						</span>
+						<span class="personal-cover col-auto align-self-center">
+							<label class="personal-other">+ 2</label>
+						</span>
+						<!-- 아티클 개수 메세지 -->
+						<span class="content-writers col-md col-10 px-md-4 pt-md-2 pt-2">
+							5 article(s) in this theme
+						</span><span class="col d-md-none"></span>
+						<span class="digest-info col-auto px-2 d-md-none align-self-end">
+							<i class="fa fa-paw fa-fw"></i> <span>1235</span>
+						</span>
+					</a>
+					<!-- 수정, 신고 버튼 -->
+					<label class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+						<span class="etc btn-group">
+							<a class="dropdown-toggle" data-toggle="dropdown">
+								<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+							</a>
+							<span class="dropdown-menu dropdown-menu-right" role="menu">
+							    <span class="dropdown-item text-center">수정</span>
+							    <span class="openReportModal dropdown-item text-center">신고</span>
+							</span>
+						</span>
+					</label>
+				</span>
+			</div></div>
+			
+			
+			
+			
+			<div class="trans-list"><div class="digest-cover row no-gutters">
+				<div class="category-icon col-auto align-self-center text-center">
+					<i class="far fa-lemon fa-3x"></i>
+				</div>
+				<div class="digest-content-section col row no-gutters">
+					<!-- 주제 정보 -->
+					<div class="content toggleDigestCover col-12 pr-md-3">
+						<div class="title-sent">
+							<i class="fas fa-quote-left mr-1"></i>
+							<span>놀다를 표현할 때 play를 쓰는 당신을 위해 준비한 주제!</span>
+							<i class="fas fa-quote-right ml-1"></i>
+						</div>
+					</div>
+					<!-- written by 조회수 -->
+					<div class="content-writers toggleDigestCover col-md-6 pb-2">written by</div>
+					<div class="digest-info toggleDigestCover col-md-6 col-12 pr-md-3 
+						text-right d-none d-md-inline-block">
+						<span class="view" title="조회 수">
+							<i class="fa fa-paw fa-fw"></i>
+							<span>1235</span>
+						</span>
+						<span class="date ml-3">2019-06-27</span>
+					</div>
+					<div class="w-100"></div>
+					<!-- 컨텐츠 작성자 -->
+					<div class="personal-cover toggleDigestCover col-auto align-self-center">
+						<img src="/images/app/member/profile_paper.png" 
+							style="background: url(/images/app/member/profile_ex3.jpg) no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<div class="personal-cover toggleDigestCover col-auto align-self-center">
+						<img src="/images/app/member/profile_paper.png" 
+							style="background: url(/images/app/member/profile_ex6.jpg) no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<!-- 아티클 개수 메세지 -->
+					<div class="content-writers toggleDigestCover col-md col-10 px-md-4 align-self-center pt-md-0 pt-2">
+						2 article(s) in this theme
+					</div><div class="toggleDigestCover col d-md-none"></div>
+					<div class="digest-info toggleDigestCover col-auto px-2 d-md-none align-self-end">
+						<i class="fa fa-paw fa-fw"></i> <span>1235</span>
+					</div>
+					<div class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+						<div class="etc btn-group">
+							<a class="dropdown-toggle" data-toggle="dropdown">
+								<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+							</a>
+							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							    <li class="dropdown-item text-center"><a>수정</a></li>
+							    <li class="openReportModal dropdown-item text-center">신고</li>
+							</ul>
+						</div>
+					</div>
+					
+				</div>
+			</div></div>
+			
+			
+			
+			<div class="trans-list"><div class="digest-cover row no-gutters">
+				<div class="category-icon col-auto align-self-center text-center">
+					<i class="far fa-lemon fa-3x"></i>
+				</div>
+				<div class="digest-content-section col row no-gutters">
+					<!-- 주제 정보 -->
+					<div class="content toggleDigestCover col-12 pr-md-3">
+						<div class="title-sent">
+							<i class="fas fa-quote-left mr-1"></i>
+							<span>disturb와 bother의 차이점은 뭘까요?</span>
+							<i class="fas fa-quote-right ml-1"></i>
+						</div>
+					</div>
+					<!-- written by 조회수 -->
+					<div class="content-writers toggleDigestCover col-md-6 pb-2">written by</div>
+					<div class="digest-info toggleDigestCover col-md-6 col-12 pr-md-3 
+						text-right d-none d-md-inline-block">
+						<span class="view" title="조회 수">
+							<i class="fa fa-paw fa-fw"></i>
+							<span>1235</span>
+						</span>
+						<span class="date ml-3">2019-06-27</span>
+					</div>
+					<div class="w-100"></div>
+					<!-- 컨텐츠 작성자 -->
+					<div class="personal-cover toggleDigestCover col-auto align-self-center">
+						<img src="/images/app/member/profile_paper.png" 
+							style="background: url(/images/app/member/profile_ex6.jpg) no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<div class="personal-cover toggleDigestCover col-auto align-self-center">
+						<img src="/images/app/member/profile_paper.png" 
+							style="background: url(/images/app/member/profile_ex3.jpg) no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<div class="personal-cover toggleDigestCover col-auto align-self-center">
+						<img src="/images/app/member/profile_paper.png" 
+							style="background: url(/images/app/member/profile_ex5.jpg) no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<!-- 아티클 개수 메세지 -->
+					<div class="content-writers toggleDigestCover col-md col-10 px-md-4 align-self-center pt-md-0 pt-2">
+						3 article(s) in this theme
+					</div><div class="toggleDigestCover col d-md-none"></div>
+					<div class="digest-info toggleDigestCover col-auto px-2 d-md-none align-self-end">
+						<i class="fa fa-paw fa-fw"></i> <span>1235</span>
+					</div>
+					<div class="col-auto pr-md-3 pl-md-0 px-2 text-right align-self-end">
+						<div class="etc btn-group">
+							<a class="dropdown-toggle" data-toggle="dropdown">
+								<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+							</a>
+							<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							    <li class="dropdown-item text-center"><a>수정</a></li>
+							    <li class="openReportModal dropdown-item text-center">신고</li>
+							</ul>
+						</div>
+					</div>
+				</div>
+			</div></div>
+		</div>
+		</div>
+	</div>
+	
+	<!-- pagination -->
+	<div class="d-none d-md-block">
+		<div class="trans-list-page row no-gutters my-3">
+			<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+				<a 
+					class="btn btn-playsquare2">
+					<i class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item active">
+						<a class="page-link">1</a>
+					</li>
+					<li class="page-item">
+						<a class="page-link">2</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+				<a class="btn btn-playsquare2">
+					next <i class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="d-md-none">
+		<div class="trans-list-page row no-gutters my-3">
+			<div class="col-6 text-left">
+				<a class="btn btn-playsquare2">
+					<i class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-6 text-right">
+				<a class="btn btn-playsquare2">
+					next <i class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	
+	
+</div><!-- end of translationSection -->
+	
+
+</section>
+</html>

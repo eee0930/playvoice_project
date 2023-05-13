@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- ------------------------------[스토어 menu]-------------------------------- -->
+<div th:fragment="menu">
+<div class="main-header d-none d-lg-block">
+<div class="store-menu-section">
+	<div class="container"><div class="row no-gutters">
+		<!-- 메뉴 -->
+		<div class="store-menu col-auto align-self-center">
+			<a th:href="@{/store}" class="playStoreHomeMenu">
+				<i class="fa fa-store-alt fa-fw"></i> Home
+			</a>
+		</div>
+		<div class="store-menu col-auto align-self-center">
+			<a class="playStoreAboutMenu">
+				<i class="fa fa-box-open fa-fw"></i> About PlayStore
+			</a>
+		</div>
+		<div class="store-menu col-auto align-self-center">
+			<a th:href="@{/store/product/list}" class="playStoreProductsMenu">
+				<i class="fa fa-gem fa-fw"></i> Products
+			</a>
+		</div>
+		<div class="store-menu col-auto align-self-center">
+			<a class="playStoreEventMenu">
+				<i class="fa fa-snowflake fa-fw"></i> Events
+			</a>
+		</div>
+		<div class="store-menu col-auto align-self-center">
+			<a class="playStoreMembershipMenu">
+				<i class="fa fa-crown fa-fw"></i> Gold Membership
+			</a>
+		</div>
+		<div class="col"></div>
+		<div class="header-cart col-auto align-self-center">
+			<a>
+				<img class="cart_icon" src="/images/common/icon/icon_paper.png" 
+					title="장바구니" alt="플레이스토어">
+				<label class="cart-size badge badge-pill badge-danger">3</label>
+			</a>
+		</div>
+		<!-- 퍼스나콘 / 별명 -->
+		<div class="header-personacon col-auto align-self-center">
+			<div class="header-alias"><a>lazyhysong님의 정보 <i class="fa fa-caret-down"></i></a></div>
+			<div class="personal-tooltip">
+				<ul>
+					<li>
+						lazyhysong님의 정보
+					</li>
+					<li><hr class="division-line"></li>
+					<li class="title"><a>My Community</a></li>
+					<li><a>학습한 상품들</a></li>
+					<li><a>상품 리뷰</a></li>
+					<li><hr class="division-line"></li>
+					<li class="title"><a>My Shopping</a></li>
+					<li><a>주문 정보</a></li>
+					<li><a>위시리스트</a></li>
+					<li><a>배송지 정보</a></li>
+				</ul>
+			</div>
+		</div>
+	</div></div>
+</div>
+
+</div><!-- end of PC ver. -->
+</div>
+
+
+
+
+
+

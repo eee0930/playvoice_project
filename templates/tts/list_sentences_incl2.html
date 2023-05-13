@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="list">
+<!-- ----------------------------[1. 플레이 리스트]------------------------------ -->
+<div id="myAlbumPlayListDiv" class="my-album-content-div" style="display: none;">
+<div class="list-sentences-cover-back">
+	<!-- 플레이 리스트 -->
+	<th:block th:each="text, iter : ${textList}">
+	<div class="list-sentences-cover">
+		<div class="list-player-sentence row no-gutters">
+			<div class="num col-auto">
+				<div class="count">[[${iter.count}]]</div>
+				<input type="checkbox" class="del-check option-input checkbox"/>
+			</div>
+			<div class="eng-text col open">[[${text}]]</div>
+			<div class="move-button-section col-auto">
+				<button class="btn btn-trans" type="button">
+					<i class="fa fa-grip-lines"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	</th:block>
+</div>
+</div><!-- end of myAlbumPlayerDiv -->
+
+<!-- ----------------------------[2. 편집 컨트롤러]------------------------------ -->
+<div id="editFileControlDiv" class="edit-file-control-section">
+	<div id="deleteFileController" class="delete-file-control-section">
+		<div class="delete-file-control-cover row no-gutters">
+			<div class="select-count col-auto align-self-center">
+				<span class="num">0</span> 개 선택
+			</div>
+			<div class="col"></div>
+			<div class="button-section col-auto align-self-center">
+				<button class="submitEdit btn btn-trans" type="button">
+					<i class="fa fa-trash-alt"></i> <span>선택 삭제</span>
+				</button>
+			</div>
+			<div class="button-section col-auto align-self-center">
+				<button class="cancelEdit btn btn-trans" type="button">
+					<i class="fa fa-times"></i> <span>취소</span>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div id="editOrderFileController" class="edit-order-file-control-section">
+		<div class="delete-file-control-cover row no-gutters">
+			<div class="col"></div>
+			<div class="button-section col-auto align-self-center">
+				<button class="submitEdit btn btn-trans" type="button">
+					<i class="fa fa-trash-alt"></i> <span>순서 저장</span>
+				</button>
+			</div>
+			<div class="button-section col-auto align-self-center">
+				<button class="cancelEdit btn btn-trans" type="button">
+					<i class="fa fa-times"></i> <span>취소</span>
+				</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of editFileControlDiv -->
+
+<div class="list-sentences-cover empty-section"></div>
+
+</th:block>
+
+</html>

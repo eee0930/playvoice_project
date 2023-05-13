@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+<head>
+<title>Today Study - 플레이보이스(playvoice)</title>
+
+<link rel="stylesheet" th:href="@{/css/library.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+   
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+<script th:src="@{/js/public/chart.min.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [오늘 학습한 컨텐츠 갯수 보여주기]--------------------------------------------------
+	var studyHistoryNum = $(".study-list-div .study-list").length;
+	$(".studyHistoryNum").text(studyHistoryNum);
+	if(studyHistoryNum == 0) {
+		$(".study-done").hide();
+	}
+	
+	// [오늘 학습한 컨텐츠의 타이틀 스타일 입히기]--------------------------------------------
+	$(".study-list").each(function(index,element){
+		var title = $(element).find('a').html();
+		var titles = title.split('-');
+		if(titles[1] != null) {
+			var titleCover1 = '<span class="row no-gutters"><span class="title-cover col-xl-3 col-sm-4 col-auto">';
+			var titleCover2 = '</span><span class="title-style col-xl-9 col-sm-8 col pl-2 align-self-center">';
+			var study_title = titleCover1 + titles[0] + titleCover2 + titles[1] + '</span></span>';
+		} else {
+			var titleCover1 = '<span class="title-cover">';
+			var study_title = titleCover1 + titles[0] + '</span>';
+		}
+		$(element).find('a').html(study_title);
+	});
+	
+	
+	
+});//end of ready
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!--/* PC Mobile Independent version */-->
+
+<div th:insert="~{/mypage/incl/mypage_top_menu2::menuAccount}"></div>
+
+<!-- [today's study info] -->
+<div class="profile-top-cover mt-4">
+	<h3>
+		Today's Study
+		<i class="fa fa-chalkboard-teacher"></i>
+	</h3>
+	<div class="sub-title"><span class="kor">
+		<i class="fa fa-quote-left relative-font"></i>
+		오늘 얼마나 많은 포인트를 쌓았냐 보다 중요한 건 오늘은 빠지지 않았다는 것이다.
+		<i class="fa fa-quote-right relative-font"></i>
+	</span></div>
+</div>
+
+<th:block th:with="plusPlayPoint = '24.0', minusPlayPoint = '12.5', rankingPoint = '30'">
+<!-- -------------------------[1. PC & Tablet ver.]------------------------- -->
+<div id="todaysStudySection" class="todays-study-section d-none d-md-block">
+<!-- 오늘 학습한 컨텐츠 갯수 -->
+<div class="profile-top-content row no-gutters">
+	<div class="title-icon col-auto text-center">
+		<i class="fa fa-calendar-check fa-lg fa-fw"></i>
+	</div>
+	<div class="title-body col align-self-center">
+		<span class="title kor">오늘 학습한 컨텐츠 </span>
+		<span class="studyHistoryNum body"></span>
+	</div>
+</div>
+
+<!-- [1.1 플레이포인트 학습 입출금] -->
+<div id="todayStudyPointDiv" class="mypage-content-box-section">
+<div class="mypage-content-box-div row no-gutters">
+	<div class="point-icon col-auto">
+		<i class="fa fa-money-check-alt fa-fw"></i>
+	</div>
+	<div class="col pl-md-4 pl-2">
+		<div class="title">Today's Play Point</div>
+		<div class="detail gold row no-gutters">
+			<div class="col-md-4">
+				<div class="title2">적립 Play Point <i class="fa fa-plus-circle"></i></div>
+				<div class="data">
+					<span class="num">[[${plusPlayPoint}]]</span> golds
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="title2">차감 Play Point <i class="fa fa-minus-circle"></i></div>
+				<div class="data gold">
+					<span class="num">[[${minusPlayPoint}]]</span> golds
+				</div>
+			</div>
+			<div class="col-md-4">
+				<div class="title2">적립 Ranking Point <i class="fa fa-plus-circle"></i></div>
+				<div class="data">
+					<span class="num">[[${rankingPoint}]]</span> RP
+				</div>
+			</div>
+			<div class="col-12 sub-detail-guide">
+				* 골드 &#5867; 플래티넘 회원은 골드 차감이 적용되지 않습니다.
+			</div>
+		</div>
+	</div>
+</div></div><!-- end of todayStudyPointDiv -->
+
+<!-- [1.2 학습 내용] -->
+<div id="todayStudyPointDiv">
+	<div class="study-guide study-done">
+		오늘 학습한 내용들입니다.<br class="d-sm-none">
+		복습 혹은 재평가를 수행 하려면 아래 학습 내역을 클릭해주세요.
+	</div>
+	<div class="study-list-div">
+		<div th:each="appTitle, iter : ${studyMap.keySet()}" 
+			th:class="'title-' + ${appTitle} + ' study-list-cover row no-gutters'">
+			<div class="title-img col-md-auto">
+				<img src="/images/app/mypage/title_img_paper.png" class="app-img"
+					alt="플레이보이스">
+				<div class="title-position text-center">
+					<span class="pv-tm" th:text="${appTitle}"></span>
+				</div>
+			</div>
+			<div class="col-md"><div class="study-history-cover">
+				<div th:each="studyTitle : ${studyMap.get(appTitle)}" class="study-list">
+					<a th:href="@{${urls[iter.index]}}" target="_sub"
+						th:text="${studyTitle}"></a>
+				</div>
+			</div></div>
+		</div>
+	</div>
+</div><!-- end of todayStudyPointDiv -->
+
+</div><!-- end of todaysStudySection -->
+
+
+
+<!-- ---------------------------[2. Mobile ver.]---------------------------- -->
+<div id="todaysStudyMobileSection" class="todays-study-mobile-section d-md-none"
+	th:with="memberType='P'">
+<!-- 오늘 학습한 컨텐츠 갯수 -->
+<div class="box-list-mobile box-main row no-gutters">
+	<div class="icon-section col-auto pr-3">
+		<label><i class="fa fa-calendar-check"></i></label>
+	</div>
+	<div class="detail col">
+		<div class="guide-cover">오늘 학습한 컨텐츠</div>
+		<div>
+			<span class="studyHistoryNum num"></span>
+			<span class="ment">Contents</span>
+		</div>
+	</div>
+</div>
+<!-- -[2.1 플레이포인트 학습 입출금] -->
+<div id="todayStudyPointDiv">
+	<div class="box-cover-mobile box-white icon">
+		<div class="top-icon">
+			<label><i class="fa fa-money-check-alt"></i></label>
+		</div>
+		<div class="title-mobile">적립 Play Point <i class="fa fa-plus-circle"></i></div>
+		<div class="detail-mobile col">
+			<div class="num">[[${plusPlayPoint}]]</div>
+			<div class="empty1"></div>
+			<div class="guide-mobile text-center">golds</div>
+		</div>
+		<div class="empty1 empty-line"></div>
+		<div class="title-mobile">차감 Play Point <i class="fa fa-minus-circle"></i></div>
+		<div class="detail-mobile">
+			<div class="num">-[[${minusPlayPoint}]]</div>
+			<div class="empty1"></div>
+			<div class="guide-mobile text-center">golds</div>
+		</div>
+		<div th:if="${memberType} != 'M'" class="empty1 empty-line"></div>
+		<div th:if="${memberType} == 'S'" class="ment text-center">
+			※ 실버 회원은 포인트 적립/차감이 적용되지 않습니다.
+		</div>
+		<div th:if="${memberType} == 'G'" class="ment text-center">
+			※ 골드 회원은 골드가 차감되지 않습니다.
+		</div>
+		<div th:if="${memberType} == 'P'" class="ment text-center">
+			※ 플래티넘 회원은 골드가 차감되지 않습니다.
+		</div>
+	</div>
+	<div class="box-cover-mobile box-white icon">
+		<div class="top-icon">
+			<label><i class="fa fa-chart-line"></i></label>
+		</div>
+		<div class="title-mobile">적립 Ranking Point <i class="fa fa-plus-circle"></i></div>
+		<div class="detail-mobile col">
+			<div class="num">[[${rankingPoint}]]</div>
+			<div class="empty1"></div>
+			<div class="guide-mobile text-center">RP</div>
+		</div>
+	</div>
+</div><!-- end of todayStudyPointDiv -->
+
+<!-- [2.2 학습 내용] -->
+<div id="todayStudyPointDiv" class="today-study-point-div mt-5">
+	<div class="profile-top-cover mt-4">
+		<h3>
+			Review Details
+			<i class="fa fa-history d-none d-md-inline"></i>
+		</h3>
+		<div class="sub-title d-none d-md-block"><span class="kor">
+			복습 혹은 재평가를 하려면 아래 학습 내역을 클릭해주세요.
+		</span></div>
+		<div class="sub-title-guide d-none-none">
+			복습 혹은 재평가를 하려면 아래 학습 내역을 클릭해주세요.
+		</div>
+	</div>
+
+	<div th:each="appTitle, iter : ${studyMap.keySet()}" 
+		th:class="'title-' + ${appTitle} + ' box-cover-mobile box-main'">
+		<div class="title-img">
+			<img src="/images/app/mypage/title_img_paper.png" class="app-img"
+				alt="플레이보이스">
+			<label class="d-md-none"><i></i></label>
+			<span class="title pv-tm" th:text="${appTitle}"></span>
+		</div>
+		<div class="study-history-cover">
+			<div th:each="studyTitle : ${studyMap.get(appTitle)}" class="study-list">
+				<a th:href="@{${urls[iter.index]}}" target="_sub"
+					th:text="${studyTitle}"></a>
+			</div>
+		</div>
+	</div>
+</div><!-- end of todayStudyPointDiv -->
+
+</div><!-- end of todaysStudyMobileSection -->
+</th:block>
+</section>

@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Add Voice</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/junglebook.js}"></script>
+	
+<script th:inline="javascript">
+var targetFoldingList="";
+
+$(document).ready(function() {
+	$('[data-toggle="tooltip"]').tooltip();
+	
+	//['전체 체크' 체크시 해당 테이블 속의 체크박스를 모두 토글]-------------------------------------
+	$(document).on('click','.all-checkbox',function(){
+		//.all-checkbox는 admin/jungleBook/list_select_sentences_fragment.html에 있음
+		var columnIndex = $(this).closest('th').index();
+		var rows = $(this).closest('table').find('tbody tr');
+		rows.each(function(i, element) {
+			$(element).find('td:eq(' + columnIndex + ') :checkbox')
+			.prop('checked',function(){
+				return !$(this).prop('checked');
+			});
+		});
+	});
+	
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	if(query.indexOf('=') == -1){
+		var tagetLink = $('th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	}
+	
+	//[검색폼 보이기]---------------------------------------------------------------
+	$('#showSearchForm').click(function(){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[보이스 폼 추가]--------------------------------------------------------------
+	$("#additioinal").click(function(e){
+		var voiceDiv = createVoiceDiv();
+		$("#submitDiv").before(voiceDiv);
+	});
+	
+	
+	//[보이스 등록할 예문 선택시(ref: list_sentence.html)]-----------------------------
+	$('.resultWrapper').on('click', '.sentenceDetail', function(e) {
+		e.preventDefault();
+		
+		//success버튼 숨기기
+		$('#addVoiceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'none');
+		//기존 파일 정보 지우기
+		$('input[type=file]').val("");
+		
+		
+		//1. 예문 상세 정보 폼 채우기
+		$('#voiceList').empty();
+		//$('#sentenceListStatic, #sentenceListDynamic').css('display','none');	//검색된 미등록 예문 목록 접기
+		var sentenceList = $(this).parent().parent().parent().parent().parent().parent();
+		targetFoldingList = sentenceList.attr("id");
+		
+		//alert("targetFoldingList="+targetFoldingList);
+		//$('#'+targetFoldingList).css('display','none');
+		$('#editSentenceForm, #existingVoiceList').css('display','block');
+		
+		
+		var sentenceTr = $(this).parent().parent();
+		var sentenceNo = sentenceTr.children().first();
+		var jid = sentenceNo.next();
+		var eng = jid.next();
+		var kor = eng.next();
+		var voiceExist = kor.next();
+		var cateExist = voiceExist.next();
+		var source = cateExist.next();
+		var firstWriter = source.next();
+	
+		$('#jid').val(jid.text());
+		$('#addVoiceForm .sentenceId').val(jid.text());
+		$('#eng').val(eng.text().trim());
+		$('#kor').val(kor.text().trim());
+		$('#voiceExist').val(voiceExist.text());
+		$('#cateExist').val(cateExist.text());
+		$('#source').val(source.text());
+		$('#firstWriter').val(firstWriter.text());
+		
+		//2. 해당 예문의 기존 보이스 목록 조회
+		$.getJSON("/admin/jungleVoiceBook/list/"+jid.text(),function(result){
+			var voiceResourcePath=[[@{/resource/jungleVoice/}]];
+			
+			$('#voiceList').empty();
+			result.forEach(function(voice,index) {
+				var tr = document.createElement("tr");
+				tr.className = "contents";
+				
+				var demo="";
+				if(voice.demo ==true){
+					demo='<i class="fas fa-check"></i>';
+				}
+				tr.innerHTML +=
+				"<td>"+voice.vid+"</td>"
+				+"<td>"+demo+"</td>"
+				+"<td>"+voice.voiceType+"</td>"
+				+"<td>"+voice.voiceRate+"</td>"
+				+"<td>"+voice.voiceSex+"</td>"
+				+"<td>"+voice.accent+"</td>"
+				+"<td>"+voice.source+"</td>"
+				+"<td><i class='fas fa-volume-up' onclick='playVoice(\""+voiceResourcePath+voice.path+"\", this)'></i><i class=\'fas fa-stop\' onclick=\'stopVoice(this)\' style=\'display:none\'></td>"
+				+"<td>"+voice.regDate+"</td>"
+				+"<td><i class=\"fas fa-edit\" onclick=\"showVoiceForm(this)\"></i> " 
+				+"<i class=\"fas fa-file-excel\" onclick=\"changeVoiceFiles('"+voice.vid+"')\"></i> "
+				+"<i class=\"fas fa-trash-alt\" onclick=\"deleteVoiceFile('"+voice.vid+"')\"></i></td>"
+				+"<td style='display:none'>"+voice.description+"</td>"
+				$('#voiceList').append(tr);
+			});
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+
+	});
+	
+	
+	//[보이스 등록]---------------------------------------------------------------
+	$("#addVoiceBtn").click(function(e){
+		e.preventDefault();
+		$(':file').on('change', function() {
+			var file = this.files[0];
+			if (file.size > 1024 * 1000 * 5) {
+				alert('max upload size is 5MB')
+			}
+			if(file.type.indexOf('audio') == -1){
+				alert(file.name+'('+file.type+') is not audio file. sorry only audio files allowed');
+			}
+		});
+
+		var form = $('#addVoiceForm')[0];
+		var sentenceId = $('#jid').val();
+		var data = new FormData(form);
+		//data.append("sentenceId", sentenceId);
+		$("#addVoiceBtn").prop("disabled", true);
+
+		$.ajax({
+			type: "POST",
+			url: '/admin/jungleVoiceBook/add/'+sentenceId,
+			enctype: 'multipart/form-data',            
+			data: data,
+			processData: false,
+			contentType: false,
+			cache: false,
+			timeout: 600000,
+			success: function (data) {
+				$("#addVoiceBtn").prop("disabled", false);
+				alert("success");
+				$('#addVoiceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'inline');
+				
+				
+				//2. 해당 예문의 기존 보이스 목록 조회
+				$.getJSON("/admin/jungleVoiceBook/list/"+jid.text(),function(result){
+					var voiceResourcePath=[[@{/resource/jungleVvoice/}]];
+					
+					$('#voiceList').empty();
+					result.forEach(function(voice,index) {
+						var tr = document.createElement("tr");
+						tr.className = "contents";
+						
+						var demo="";
+						if(voice.demo ==true){
+							demo='<i class="fas fa-check"></i>';
+						}
+						tr.innerHTML +=
+						"<td>"+voice.vid+"</td>"
+						+"<td>"+demo+"</td>"
+						+"<td>"+voice.voiceType+"</td>"
+						+"<td>"+voice.voiceRate+"</td>"
+						+"<td>"+voice.voiceSex+"</td>"
+						+"<td>"+voice.accent+"</td>"
+						+"<td>"+voice.source+"</td>"
+						+"<td><i class='fas fa-volume-up' onclick='playVoice(\""+voiceResourcePath+voice.path+"\", this)'></i><i class=\'fas fa-stop\' onclick=\'stopVoice(this)\' style=\'display:none\'></td>"
+						+"<td>"+voice.regDate+"</td>"
+						+"<td><i class=\"fas fa-edit\" onclick=\"showVoiceForm(this)\"></i> " 
+						+"<i class=\"fas fa-file-excel\" onclick=\"changeVoiceFiles('"+voice.vid+"')\"></i> "
+						+"<i class=\"fas fa-trash-alt\" onclick=\"deleteVoiceFile('"+voice.vid+"')\"></i></td>"
+						+"<td style='display:none'>"+voice.description+"</td>"
+						$('#voiceList').append(tr);
+					});
+					$('[data-toggle="tooltip"]').tooltip();
+				});
+				
+				
+			},
+			error: function (e) {
+				//$("#result").text(e.responseText);
+				console.log("ERROR : ", e);
+				$("#addVoiceBtn").prop("disabled", false);
+			}
+		});
+	});
+	
+	//[예문 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchSentenceDiv').toggle();
+	});
+	
+	
+	//[악센트 기타 작성부분]------------------------------------------------
+	$(document).on('change','.accent-etc',function(){
+		$(this).siblings(':text').focus();
+	});
+	$(document).on('click','.accent-text',function(){
+		var radio = $(this).siblings(':radio');
+		radio.prop('checked',true);
+	});
+	$(document).on('input','.accent-text',function(){
+		$(this).siblings(':radio').val($(this).val());
+	});
+});//end of ready
+
+var formNum = 0;
+
+function createVoiceDiv(){
+	var formText = $("#copyVoiceForm").clone();
+	formText.appendTo("#pasteVoiceForm"); //end of copy
+	formNum++;
+	
+	var sentenceDiv = $(".sentenceDiv").eq(formNum - 1);
+	sentenceDiv.attr("id", "sentenceDiv" + formNum);
+	sentenceDiv.css("display", "");
+	var delBtn = $(".deleteVoiceFormBtn").eq(formNum - 1);
+	delBtn.attr("id", "delete_btn" + formNum);
+	delBtn.attr("onclick", "deleteVoiceForm(this.id)");
+	var demo = $(".voices-demo").eq(formNum - 1);
+	demo.attr("id", "voices[" + formNum + "].demo");
+	demo.attr("name", "voices[" + formNum + "].demo");
+	var sentenceId = $(".voices-sentenceId").eq(formNum - 1);
+	sentenceId.attr("name", "voices[" + formNum + "].sentenceId");
+	
+	var jid = document.getElementsByName("voices[0].sentenceId")[0].value;
+	document.getElementsByName("voices[" + formNum + "].sentenceId")[0].value=jid;
+	
+	var demo2 = $("._voices-demo").eq(formNum - 1);
+	demo2.attr("name", "_voices[" + formNum + "].demo");
+	var voiceFile = $(".voices-voiceFile").eq(formNum - 1);
+	voiceFile.attr("id", "voices[" + formNum + "].voiceFile");
+	voiceFile.attr("name", "voices[" + formNum + "].voiceFile");
+	
+	//각각의 라디오 버튼 갯수
+	var voicetype_size = sentenceDiv.find(".voicetype-size").length;
+	var voicerate_size = sentenceDiv.find(".voicerate-size").length;
+	var accent_size = sentenceDiv.find(".accent-size").length;
+	var voicesex_size = sentenceDiv.find(".voicesex-size").length;
+	for(var i = 0; i < voicetype_size; i++){
+		var voiceType = $(".voices-voiceType" + i).eq(formNum - 1);
+		voiceType.attr("name", "voices[" + formNum + "].voiceType");
+	}
+	for(var i = 0; i < voicerate_size; i++){
+		var voiceRate = $(".voices-voiceRate" + i).eq(formNum - 1);
+		voiceRate.attr("name", "voices[" + formNum + "].voiceRate");
+	}
+	for(var i = 0; i < accent_size; i++){
+		var accent = $(".voices-accent" + i).eq(formNum - 1);
+		accent.attr("name", "voices[" + formNum + "].accent");
+	}
+	for(var i = 0; i < voicesex_size; i++){
+		var voiceSex = $(".voices-voiceSex" + i).eq(formNum - 1);
+		voiceSex.attr("name", "voices[" + formNum + "].voiceSex");
+	}
+	
+	var source = $(".voices-source").eq(formNum - 1);
+	source.attr("name", "voices[" + formNum + "].source");
+	var description = $(".voices-description").eq(formNum - 1);
+	description.attr("name", "voices[" + formNum + "].description");
+}
+
+function deleteVoiceForm(id) {
+	for(var i = 1; i <= formNum; i++) {
+		if(id == "delete_btn" + i){
+			$("#sentenceDiv" + i).remove();
+			break;
+		}
+	}
+	var sentenceDiv = document.getElementsByClassName("sentenceDiv");
+	var demo = document.getElementsByClassName("voices-demo");
+	var demo2 = document.getElementsByClassName("_voices-demo");
+	var sentenceId = document.getElementsByClassName("voices-sentenceId");
+	var file = document.getElementsByClassName("voices-voiceFile");
+	var source = document.getElementsByClassName("voices-source");
+	var description = document.getElementsByClassName("voices-description");
+	var del_btn = document.getElementsByClassName("deleteVoiceFormBtn");
+	
+	//각각의 라디오 버튼 갯수
+	var voicetype_size = $("#copyVoiceForm").find(".voicetype-size").length;
+	var voicerate_size = $("#copyVoiceForm").find(".voicerate-size").length;
+	var accent_size = $("#copyVoiceForm").find(".accent-size").length;
+	var voicesex_size = $("#copyVoiceForm").find(".voicesex-size").length;
+	
+	for(var k = 1; k < formNum; k++) {
+		sentenceDiv[k-1].id = "sentenceDiv" + k;
+		del_btn[k-1].id = "delete_btn" + k;
+		demo[k-1].id = "voices[" + k + "].demo";
+		demo[k-1].name = "voices[" + k + "].demo";
+		sentenceId[k-1].name = "voices[" + k + "].sentenceId";
+		demo2[k-1].name = "_voices[" + k + "].demo";
+		file[k-1].id = "voices[" + k + "].voiceFile";
+		file[k-1].name = "voices[" + k + "].voiceFile";
+		source[k-1].name = "voices[" + k + "].source";
+		description[k-1].name = "voices[" + k + "].description";
+		
+		for(var j = 0; j < voicetype_size; j++) {
+			var type = document.getElementsByClassName("voices-voiceType" + j); //속도
+			type[k-1].name = "voices[" + k + "].voiceType";
+		}
+		for(var j = 0; j < voicerate_size; j++) {
+			var rate = document.getElementsByClassName("voices-voiceRate" + j); //속도
+			rate[k-1].name = "voices[" + k + "].voiceRate";
+		}
+		for(var j = 0; j < accent_size; j++) {
+			var accent = document.getElementsByClassName("voices-accent" + j); //악센트
+			accent[k-1].name = "voices[" + k + "].accent";
+		}
+		for(var j = 0; j < voicesex_size; j++) {
+			var voiceSex = document.getElementsByClassName("voices-voiceSex" + j); //성별
+			voiceSex[k-1].name = "voices[" + k + "].voiceSex";
+		}
+	}
+	formNum--;
+}
+	
+</script>
+</head>
+
+<!-- <div layout:fragment="jide-menu">
+	<div th:insert="~{/admin/sentenceBook/incl/sentenceBook_menu::adminMenu}">관리자 메뉴</div>
+</div> -->
+
+<section layout:fragment="content">
+
+<!-- <h3>보이스 등록 (Add Voice)</h3> -->
+
+<!--/* ----------------[inclule : 1. Search Sentence Form]---------------- */-->
+<div id="searchSentenceDiv" style="display: none"
+	th:insert="~{/admin/jungleBook/incl/search_sentence::search_sentence}" ></div>
+<!--/* ------------------------------------------------------------------- */-->
+
+
+<!--/* ------------------[inclule : 2. voice미등록 결과 목록]------------------ */-->
+<div th:insert="~{/admin/jungleBook/list_select_sentences_fragment::content}"></div>
+<!--/* ------------------------------------------------------------------- */-->
+
+
+
+	
+<div class="text-right" style="color:red;">
+	source :: add_voices.html	
+</div>	
+
+
+
+
+
+
+</section><!-- end of section -->
+

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+	<h3>게시글 등록 (Add Article)</h3>
+	<div>
+	
+		<!-- 2. Add Article Form -->
+		<div class="formContainer" id="addArticleFormContainer">
+			<!-- 1) 폼 타이틀 헤더 -->
+			<h3>
+				Adding New Articles Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> Ok</button>
+				<span>Please fill the text in the field.</span>
+			</h3>
+			<!-- 2) 응답 메세지 영역 -->
+			<div class="resMsgs" style="display:none;">
+				<h3>
+					Response Messages
+					<span>Your request was processed.</span>
+				</h3>
+				<pre>[[${resMsgs}]]</pre>
+			</div>
+			<!-- 3) 폼 구성 영역 -->
+			<form th:action="@{add}" th:object="${article}" method="post" class="form-horizontal" id="addArticleForm">
+				<!-- 폼 컴포넌트 영역 -->
+				<div id="articleDiv" class="row">
+					<div class="form-group">
+						<label for="title" class="col-xs-2 control-label headerLabel">타이틀</label>
+						<div class="col-xs-10">
+							<input type="text" th:field="*{title}" placeholder="제목"  class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="content" class="col-xs-2 control-label headerLabel">내용</label>
+						<div class="col-xs-10">
+							<textarea th:id="content" th:name="content" placeholder="내용"  class="form-control">[[${content}]]</textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="writer" class="col-xs-2 control-label headerLabel">작성자</label>
+						<div class="col-xs-10 ">
+							<input type="text" th:field="*{writer}" placeholder="작성자"  class="form-control"/>
+						</div>
+					</div>
+				</div>	
+				<!-- 폼 전송 영역 -->
+				<div class="row" id="submitDiv">
+					<div class="form-group">
+						<div class="col-xs-offset-2 col-xs-10">
+							<input type="submit" id="addArticleBtn" value="Register" class="btn btn-main"/>
+							<input type="reset" value="Reset" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			 </form>
+			 <!-- 4) 에러 메세지 영역 -->
+			 <div class="errorMsgs" style="display: none;">
+			 	<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre></pre>
+		 	</div>
+		</div><!-- end of formContainer -->
+		
+		
+	</div>

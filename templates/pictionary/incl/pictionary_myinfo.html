@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="myInfo" id="myinfoDiv" class="myinfo-area col-lg-3 px-3">
+<script>
+
+</script>
+
+<!--/*=====================================================================*/-->
+<!--/*  						My info PC ver. 						   */-->
+<!--/*=====================================================================*/-->
+<div class="d-none d-lg-inline">
+	
+	<!-- 나의 픽셔너리 정보 -->
+	<div th:if="${session?.userContainer}" th:with="personacon=${session?.userContainer?.personacon}" class="my-info rounded"><div class="row no-gutters">
+		<div class="col-8 py-2 px-3 align-self-center">
+			<div th:text="${session.userContainer.personacon.alias}" class="alias">lazyhysong</div>
+			<div class="mycrown py-1">
+				<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+				<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+				<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+				<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+				<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+			</div>
+		</div>
+		<div class="col-4 py-2 px-3">
+			<div class="member-personacon">
+				<a><img th:src="@{/images/app/member/profile_paper.png}" class="personacon-profile" 
+				th:style="'background: url(' + ${personacon.iconPath!=null?personacon.iconPath:'/images/app/member/profile_default.png'} +') no-repeat;
+				background-position: center; background-size: 100% auto;'">
+				<img th:src="@{/images/app/member/profile_paper.png}" 
+					th:class="'personacon-frame frame-' + ${personacon.memberType}"></a>
+			</div>
+		</div>
+		<div class="col-12 px-2 pb-3">
+			<div class="myinfo-list p-2 rounded">
+				<ul>
+					<li class="info-item">
+						<a>내가 만든 픽셔너리 <i lang="fa" class="fa fa-angle-right"></i></a>
+						<label class="badge badge-danger">N</label></li>
+					<li class="info-item">
+						<a>내 단어장 <i lang="fa" class="fa fa-angle-right"></i></a></li>
+				</ul>
+			</div>
+		</div>
+	</div></div>
+	<div th:unless="${session?.userContainer}" class="my-info rounded">
+		<div class="py-2 px-3 align-self-center">
+			<div class="alias">Pictionary My Info</div>
+			<div class="py-2">
+				<a th:href="@{/login}">로그인이 필요한 서비스입니다.</a>
+			</div>
+		</div>
+	</div>
+	
+	<!-- Gold Membership -->
+	<div th:if="${personacon.memberType eq 'M'}" class="membership my-3 px-1 rounded jsAction"><div class="row">
+		<span class="col-10 py-3 pl-4 pr-2 align-self-center">
+			<span class="fa-stack fa">
+				<i class="far fa-circle fa-stack-2x"></i>
+				<i class="fas fa-crown fa-stack-1x"></i>
+			</span>
+			<span style="margin-left: 3px; font-weight: 500;">지금 멤버쉽에 가입하세요!</span>
+		</span>
+		<span class="col-2 py-3 pl-0 pr-4 text-right align-self-center">
+			<i lang="fa" class="fa fa-angle-right fa-fw fa-2x"></i>
+		</span>
+	</div></div>
+	
+	<!-- 이 주의 인기 검색어 -->
+	<div class="weekends-popular my-3 rounded px-3 py-2">
+		<h3>Trends for you <i lang="fa" class="far fa-kiss-wink-heart"></i></h3>
+		<div class="search-list pt-1">
+			<ul>
+				<li class="search-item"><a>#TousLesJours<br>
+					<span class="promotion">
+					<i class="fa fa-arrow-alt-circle-right"></i>
+					promoted by tours les jours
+					</span></a></li>
+				<li class="search-item"><a>#여행</a></li>
+				<li class="search-item"><a>signify</a></li>
+				<li class="search-item"><a>#생일파티</a></li>
+				<li class="search-item"><a>scorn</a></li>
+				<li class="search-item"><a>#봄소풍</a></li>
+			</ul>
+		</div>
+	</div>
+
+	
+	<!-- 오늘 학습한 단어 -->
+	<div th:if="${session?.userContainer}" class="todays-study my-3 rounded px-3 py-2">
+		<h3>오늘 학습한 단어 <i lang="fa" class="fa fa-graduation-cap"></i></h3>
+		<a class="btn btn-xs btn-pictionary">
+			<i lang="fa" class="fa fa-plus"></i>
+			모두 단어장에 추가
+		</a>
+		<div class="study-list pt-1"><div class="row no-gutters">
+			<span class="col-auto"><a class="study-item">study</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">born</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">signify</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">party</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">scorn</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">struck</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">java</a>
+				<a class="study-item-delete">&times;</a></span>
+			<span class="col-auto"><a class="study-item">default</a>
+				<a class="study-item-delete">&times;</a></span>
+		</div></div>
+	</div>
+
+		
+	<!-- 알파벳 메뉴 -->
+	<div class="alphabet-menu my-3 rounded px-2 py-2">
+		<h3 class="px-2">알파벳 별 단어 보기 <i lang="fa" class="fa fa-book"></i></h3>
+		<div class="alphabet p-2 rounded">
+			<a> A </a><a> B </a><a> C </a><a> D </a><a> E </a>
+			<a> F </a><a> G </a><a> H </a><a> I </a><a> J </a>
+			<a> K </a><a> L </a><a> M </a><a> N </a><a> O </a>
+			<a> P </a><a> Q </a><a> R </a><a> S </a><a> T </a>
+			<a> U </a><a> V </a><a> W </a><a> X </a><a> Y </a>
+			<a> Z </a>
+		</div>
+	</div>
+
+
+	
+	<!-- 픽셔너리 가이드 -->
+	<div class="quide my-3 rounded py-3 text-center">
+		<div>
+			<h3><span>
+				<a>Pictionary guide
+				<i lang="fa" class="fa fa-utensils"></i></a>
+			</span></h3>
+			<span class="detail">
+				<a>픽셔너리 이용이 조금 어려우신가요?<br>
+				가이드를 보고 더욱 재미있고 유용하게<br>이용해 보세요!</a>
+			</span>
+		</div>
+		<div class="ad mt-2 px-2 pt-2 text-center">
+			<span class="detail">
+				<a><i lang="fa" class="fa fa-arrow-circle-right"></i>
+				픽셔너리로 광고하세요</a>
+			</span>
+		</div>
+	</div>
+	
+</div>
+	
+<!--/*=====================================================================*/-->
+<!--/*  					My info Tablet&Mobile ver. 					   */-->
+<!--/*=====================================================================*/-->	
+<div class="d-lg-none">
+	<button id="myMenuOpenBtn" class="myinfo-btn btn rounded-circle">
+		<i lang="fa" class="fa fa-book-open fa-lg"></i>
+	</button>
+
+	<div onclick="history.back();" class="pictionaryMyinfoMenu-pageCover"><!-- 메뉴 바깥 영역 --></div>
+	<div id="myinfoMenu" class="pictionaryMyinfoMenu-xs d-lg-none">
+		<!-- 나의 픽셔너리 정보 -->
+		<div class="my-info row no-gutters">
+			<div th:if="${session?.userContainer}" class="col-3 align-self-center">
+				<div class="member-personacon">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-profile"
+						style="background: url('/images/app/member/profile_default.png') no-repeat;
+						background-position: center; background-size: 100% auto;">
+					<img src="/images/app/member/profile_paper.png" 
+						th:class="'personacon-frame frame-' + ${personacon.memberType}">
+				</div>
+			</div>
+			<div th:unless="${session?.userContainer}" class="col-3 align-self-center">
+				<!-- 비 로그인 -->
+				<div class="member-personacon">
+					<img th:src="@{/images/app/member/profile_paper.png}" 
+						class="personacon-profile"
+						style="background: url('/images/app/member/profile_default.png') no-repeat;
+						background-position: center; background-size: 100% auto; opacity: .5;">
+				</div>
+			</div>
+			<div th:if="${session?.userContainer}" class="col-6 text-left align-self-center">
+				<div th:text="${session.userContainer.personacon.alias}" class="alias">lazyhysong</div>
+				<div class="mycrown">
+					<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+					<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+					<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+					<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+					<i lang="fa" class="fa fa-crown fa-fw text-warning"></i> 
+				</div>
+			</div>
+			<div th:unless="${session?.userContainer}" class="col-6 text-left align-self-center">
+				<div class="alias"><a th:href="@{/login}">로그인을 해달라</a></div>
+			</div>
+			<div class="col-3 text-right pr-2">
+				<a onclick="history.back();" id="myMenuCloseBtn">
+					<i lang="fa" class="fa fa-times fa-2x"></i>
+				</a>
+			</div>
+		</div>
+		
+		<!-- 오늘 학습한 단어 -->
+		<div class="todays-study my-3 p-2">
+			<div class="row no-gutters">
+				<h3 class="col-6 align-self-center">
+					<i lang="fa" class="fa fa-graduation-cap"></i> 오늘 학습한 단어 
+				</h3>
+				<div class="col-6 align-self-center">
+					<a class="btn btn-sm btn-pictionary">
+						<i lang="fa" class="fa fa-plus"></i>모두 단어장에 추가
+					</a>
+				</div>
+			</div>
+			<div th:if="${session?.userContainer}" class="study-list pt-1" ><div class="row no-gutters">
+				<span class="col-auto p-2"><a class="study-item">study</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">born</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">signify</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">party</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">scorn</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">struck</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">java</a>
+					<a class="study-item-delete">&times;</a></span>
+				<span class="col-auto p-2"><a class="study-item">default</a>
+					<a class="study-item-delete">&times;</a></span>
+			</div></div>
+			<div th:unless="${session?.userContainer}" class="study-list px-2 py-3 text-left" style="font-size: .9rem;">
+				<a th:href="@{/login}">로그인이 필요한 서비스입니다</a>
+			</div>
+		</div>
+		
+		
+		<div class="row mb-3">
+			<div class="col-12 text-left">
+				<ul class="list-group list-group-flush">
+					<li th:if="${session?.userContainer}" class="list-group-item py-3 px-1">
+						<a><i lang="fa" class="fa fa-book-open fa-fw" style="color: #f9c9c4;"></i>
+						&nbsp;&nbsp;&nbsp;&nbsp;내가 만든 픽셔너리</a>
+					</li>
+					<li th:if="${session?.userContainer}" class="list-group-item py-3 px-1">
+						<a><i lang="fa" class="fa fa-briefcase fa-fw" style="color: #b8e0fc;"></i>
+						&nbsp;&nbsp;&nbsp;&nbsp;내 단어장</a>
+					</li>
+					<li class="list-group-item py-3 px-1">
+						<a><i lang="fa" class="fa fa-utensils fa-fw" style="color: #bfddca;"></i>
+						&nbsp;&nbsp;&nbsp;&nbsp;픽셔너리 가이드</a>
+					</li>
+					<li class="list-group-item py-3 px-1">
+						<a><i lang="fa" class="fa fa-crown fa-fw" style="color: #fff0b7;"></i>
+						&nbsp;&nbsp;&nbsp;&nbsp;골드 멤버쉽</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+		
+	</div><!-- end of myinfoMenu -->
+	
+</div>
+	
+	
+<div class="text-right" style="color:red;">
+	source :: pictionary/incl/pictionary_myinfo.html	
+</div>
+</div><!-- end of myinfoDiv -->

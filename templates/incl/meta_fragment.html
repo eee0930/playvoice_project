@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<th:block th:fragment="meta">
+<!-- ------------------------[1. crawling robot]---------------------------- -->
+<meta name="robots" th:content="${metaRobot}? ${metaRobot}:'all'"/>
+
+<!-- --------------------------[2. basic meta]------------------------------ -->
+<!-- [2.1 title] -->
+<meta name="title" th:content="${metaTitle}? ${metaTitle}:'플레이보이스 | Playvoice'"/>
+
+<!-- [2.2 description] -->
+<meta name="description" th:content="${metaDescription}? 
+	${#strings.abbreviate(metaDescription,200)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - 
+	The First BaseCamp for Climbing English, 플레이보이스 | Playvoice'"/>
+
+<!-- [2.3 search consol 사이트 소유권] -->
+<meta name="naver-site-verification" content="8edd6a240277651f2ca1778fb731a5928c63789c"/>
+<meta name="google-site-verification" content="YOsYpUx08Pu2IqqGOeV8Q458zmdyJWd262h8OAjHYtc"/>
+
+<meta name="content-language" content="kr"/>
+<meta name="Location" content="South Korea"/>
+<meta name="theme-color" content="#1B1F40"/>
+<meta name="keywords" th:content="${metaKeyword}? 
+	'playvoice, 플레이보이스, ' + ${metaKeyword} : 
+	'playvoice, 플레이보이스, 영어, English, 커뮤니티, 오픈 사전, 
+	무료 영어, AI, 독해, 회화, 어학연수, 미국 문화, 패턴 영어, 대학 영어, 직장인 영어, 실버 영어'"/>
+
+<!-- --------------------------[3. SNS meta]-------------------------------- -->
+<!-- [3.1 faceBook / kakao / naver -->
+<meta th:property="'fb:app_id'" content="APP_ID"/>
+<meta th:property="'og:type'" content="website"/>
+<meta th:property="'og:site_name'" content="플레이보이스 | Playvoice"/> 
+<meta th:property="'og:title'" th:content="${metaTitle}? 
+	${metaTitle}:'플레이보이스 | Playvoice'"/>
+<meta th:property="'og:url'" th:content="'https://www.playvoice.org' + 
+	${#httpServletRequest.requestURI}"/>
+<meta th:property="'og:description'"  th:content="${metaDescription}? 
+	${#strings.abbreviate(metaDescription,60)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - 
+	The First BaseCamp for Climbing English, 플레이보이스 | Playvoice'"/>
+<meta th:property="'og:image'" th:content="${metaImage}? 
+	'https://www.playvoice.org' + ${metaImage}:
+	'https://www.playvoice.org/images/common/characters/goto_travel_evening.jpg'"/>
+<meta th:if="${metaRegDate}" th:property="'og:updated_time'" 
+	th:content="${#dates.format(metaRegDate,'yyyy-MM-dd')}"/>
+
+<!-- [3.2 twitter] -->
+<meta name="twitter:card" content="summary">
+<meta name="twitter:url" th:content="'https://www.playvoice.org' + 
+	${#httpServletRequest.requestURI}"/>
+<meta name="twitter:description"  th:content="${metaDescription}? 
+	${#strings.abbreviate(metaDescription,60)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - 
+	The First BaseCamp for Climbing English, 플레이보이스 | Playvoice'"/>
+<meta name="twitter:title" th:content="${metaTitle}? 
+	${metaTitle}:'플레이보이스 (playvoice)'"/>
+<meta name="twitter:image" th:content="${metaImage}?  
+	'https://www.playvoice.org' + ${metaImage}:
+	'https://www.playvoice.org/images/common/characters/goto_travel_evening.jpg'">
+<meta name="twitter:site" content="@playvoice"/> 
+
+<!-- [3.3 google] -->
+<meta th:itemprop="'name'" th:content="${metaTitle}? 
+	${metaTitle}:'플레이보이스 | Playvoice'"/>
+<meta th:itemprop="'description'" th:content="${metaDescription}? 
+	${#strings.abbreviate(metaDescription,60)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - 
+	The First BaseCamp for Climbing English, 플레이보이스 | Playvoice'"/>
+<meta th:itemprop="'image'" th:content="${metaImage}?  
+	'https://www.playvoice.org' + ${metaImage}:
+	'https://www.playvoice.org/images/common/characters/goto_travel_evening.jpg'"/>
+
+</th:block>
+
+
+
+
+<!-- --------------------------[4. schema org]------------------------------ -->
+<!-- [4.1 사이트 로고] -->
+<th:block th:fragment="schemaLogo">{
+	"@context": "https://schema.org/",
+	"@type": "Organization",
+	"url": "http://www.playvoice.org",
+	"logo": "http://www.playvoice.org/images/logo/logo_seonbi.png"
+}</th:block><!-- end of Organization -->
+
+
+<!-- [4.2 사이트 검색] -->
+<th:block th:fragment="schemaWebSite">{
+	"@context": "https://schema.org/",
+	"@type": "WebSite",
+	"name": "플레이보이스 | Playvocie",
+	"url": "https://www.playvoice.org",
+	"potentialAction": [<th:block th:each="searchUrl, iter : ${urlList}">
+	<th:block th:if="${iter.index > 0}">,</th:block>{
+		"@type": "SearchAction",
+		"target": "https://www.playvoice.org[[${searchUrl}]]{search_term_string}",
+		"query-input": "required name=search_term_string"
+	}</th:block>]
+}</th:block><!-- end of website -->
+
+
+<!-- [4.3 BlogPosting 전용] -->
+<th:block th:fragment="schemaBlog">{
+	"@context": "https://schema.org",
+	"@type": "BlogPosting",
+	"mainEntityOfPage": {
+		"@type": "WebPage",
+		"@id": "http://www.playvoice.org[[${#httpServletRequest.requestURI}]]"
+	},
+	"headline": "[[${schemaHeadline}? ${schemaHeadline}:'플레이보이스 | Playvoice']]",
+	"description": "[[${metaDescription}? ${#strings.abbreviate(metaDescription,200)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - The First BaseCamp for Climbing English, 플레이보이스 | Playvoice']]",
+	"image": "https://www.playvoice.org[[${metaImage}? ${metaImage}:
+	'/images/common/characters/goto_travel_evening.jpg']]",  
+	"author": {
+		"@type": "Person",
+		"name": "[[${schemaAlias}]]"
+	},  
+	"publisher": {
+		"@type": "Organization",
+		"name": "플레이보이스 | Playvoice",
+		"logo": {
+			"@type": "ImageObject",
+			"url": "https://www.playvoice.org/images/logo/logo_seonbi.png"
+		}
+	}<th:block th:if="${metaRegDate}">
+	,"datePublished": "[[${#dates.format(metaRegDate,'yyyy-MM-dd')}]]"
+	</th:block><th:block th:if="${ratingCount}">
+	,"aggregateRating" : {
+		"@type" : "AggregateRating",
+		"ratingCount" : "[[${ratingCount}]]"
+	}</th:block>			
+}</th:block><!-- end of BlogPosting -->
+
+
+<!-- [4.4 Article 전용] -->
+<th:block th:fragment="schemaArticle">{
+	"@context": "https://schema.org",
+	"@type": "Article",
+	"mainEntityOfPage": {
+		"@type": "WebPage",
+		"@id": "http://www.playvoice.org[[${#httpServletRequest.requestURI}]]"
+	},
+	"headline": "[[${schemaHeadline}? ${schemaHeadline}:'플레이보이스 | Playvoice']]",
+	"image": "https://www.playvoice.org[[${metaImage}? ${metaImage}:
+	'/images/common/characters/goto_travel_evening.jpg']]",  
+	"articleSection" : "[[${articleSection}? ${articleSection}:${schemaHeadline}]]",
+	"articleBody" : "[[${metaDescription}? ${#strings.abbreviate(metaDescription,200)}:
+	'대한민국 영어 리부트 프로젝트 : 닥치고 Talk! - The First BaseCamp for Climbing English, 플레이보이스 | Playvoice']]",	
+	"author": {
+		"@type": "Person",
+		"name": "[[${schemaAlias}]]"
+	},  
+	"publisher": {
+		"@type": "Organization",
+		"name": "플레이보이스 | Playvoice",
+		"logo": {
+			"@type": "ImageObject",
+			"url": "https://www.playvoice.org/images/logo/logo_seonbi.png"
+		}
+	}<th:block th:if="${metaRegDate}">
+	,"datePublished": "[[${#dates.format(metaRegDate,'yyyy-MM-dd')}]]"
+	</th:block><th:block th:if="${ratingCount}">
+	,"aggregateRating" : {
+		"@type" : "AggregateRating",
+		"ratingCount" : "[[${ratingCount}]]"
+	}</th:block>
+}</th:block><!-- end of Article -->
+
+
+<!-- [4.5 페이지 경로] -->
+<th:block th:fragment="schemaBread">{
+	"@context": "https://schema.org",
+	"@type": "BreadcrumbList",
+	"itemListElement": [{
+		"@type": "ListItem",
+		"position": 1,
+		"name": "플레이보이스 | Playvoice",
+		"item": "https://www.playvoice.org"
+	}<th:block th:each="bread, iter : ${breadList}">,{
+		"@type": "ListItem",
+		"position": [[${iter.count + 1}]],
+		"name": "[[${breadName[iter.index]}]]",
+		"item": "https://www.playvoice.org[[${bread}]]"
+	}</th:block>]
+}</th:block><!-- end of BreadcrumbList -->
+
+</html>

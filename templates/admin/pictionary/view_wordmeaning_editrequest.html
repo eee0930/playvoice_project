@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="editRequest">
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [단어 뜻 파싱. meanings는 1차배열 [품사,뜻]이 한 쌍으로 이루어진 2차배열이다.]----------------
+	var meanings = JSON.parse([[${word.meaningText}]]);
+	var $meaningsDiv = $("#editWordDiv .origin-meaning");
+	for(var i = 0; i < meanings.length; i++) {
+		$meaningRow = $("<div class='meaning row no-gutters'></div>");
+		var category = meanings[i][0];	//	품사
+		var meaning = meanings[i][1];	//	뜻
+		
+		var $categoryDiv = $("<div class='report-select-section col-lg-2 col-md-3 col-auto px-2'></div>").text(category);
+		var $meaningDiv = $("<div class='col pb-1'></div>").text(meaning);
+		$meaningRow.append($categoryDiv).append($meaningDiv);
+		$meaningsDiv.append($meaningRow);
+	}
+	
+	// [요청된 내용의 잘못 수정했을 시 기존 요청 내용으로 되돌리기]----------------------------------
+	$(document).on("click", ".undoMeaning", function(){
+		var requestOrigin = $(this).closest(".meaning").find(".reportOriginalMeanings").val();
+		var reportInput = $(this).closest(".meaning").find(".reportInput");
+		
+		reportInput.val(requestOrigin);
+	});
+	
+	
+	// [수정 요청 반영]--------------------------------------------------------------
+	$("#applyReportButton").click(function(){
+		$(".reportBtnDiv").hide();
+		$(".refuseCommentDiv").show();
+		$(".confirmSelectOption").text("== 승인 사유 선택 ==");
+	});
+	
+	// [수정 요청 미반영]------------------------------------------------------------
+	$("#refuseReportBtn").click(function(){
+		$(".reportBtnDiv").hide();
+		$(".refuseCommentDiv").show();
+		$(".confirmSelectOption").text("== 미승인 사유 선택 ==");
+	});
+	
+	// [승인 or 미승인 취소 (승인 or 미승인 다시 선택하기)]------------------------------------
+	$("#cancelConfirmBtn").click(function(){
+		$(".reportBtnDiv").show();
+		$(".refuseCommentDiv").hide();
+	});
+});   
+   
+</script>
+
+<div class="mt-4">
+<div id="editPictionSection" class="edit-pictionary-word-section admin p-0 px-lg-3">
+
+
+<!-- --------------------------[1. 기존 단어 뜻]-------------------------------- -->
+<div id="editWordDiv" class="add-word-container add">
+	<div class="pictionary-word-section"><div class="word-cover px-md-4 px-2 py-3">
+		<div class="report-owner" th:text="${word.personacon.alias}"></div>
+		<div class="add-word-div px-2 pb-2">
+			<!-- WORD -->
+			<span class="word">
+				<span th:text="${word.title}"></span>
+			</span>
+		</div>
+		<!-- 단어 뜻 -->
+		<div class="origin-meaning"></div>
+	</div></div>
+</div><!-- end of editWordDiv -->
+
+
+
+<!-- ---------------------------[2. 단어 수정 요청]------------------------------ -->
+<div id="reportWordListDiv" class="report-word-list-section add-word-container add">
+	
+	<!-- 수정 요청 리스트 -->
+	<div class="pictionary-word-section">
+		
+		<div th:if="${editRequest}" class="reportCoverDiv word-cover px-md-4 px-2 py-3" 
+			th:with="wtypeMap=${ {100:'동사',110:'자동사',120:'타동사',200:'명사',
+								210:'대명사',300:'형용사',400:'부사',500:'전치사',
+								600:'접속사',700:'감탄사'} },
+					statusMap=${ {'H':'작성자 미확인','A':'수정 채택','R':'수정 거부'} }">
+			<div>
+				<span class="status" th:text="${editRequest.status}"></span>
+				<span class="date ml-3" th:text="${#dates.format(editRequest.regDate,'yyyy-MM-dd')}"></span>
+			</div> 
+			<div class="report-owner row no-gutters my-3"> 
+				<!-- <div class="col-auto px-2"> 
+					<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+				</div> -->
+				<div class="col-auto pr-3 align-self-center">
+					수정 요청자 : <span class="alias">[[${editRequest.alias}]]</span>
+				</div>
+			</div>
+			<div th:each="additory:${editRequest.additoryList}" class="meaning row no-gutters">
+				<div class="col-lg-2 col-3 px-2">
+					<select class="form-control">
+						<option value="0">-- 품사--</option>
+						<option value="100" >동사</option>
+						<option value="110" >자동사</option>
+						<option value="120" >타동사</option>
+						<option value="200" >명사</option>
+						<option value="210" >대명사</option>
+						<option value="300" >형용사</option>
+						<option value="400" >부사</option>
+						<option value="500" >전치사</option>
+						<option value="600" >접속사</option>
+						<option value="700" >감탄사</option>
+					</select>
+				</div>
+				<!--/* <div class="report-select-section col-lg-2 col-md-3 col-auto px-2 pt-2" 
+					th:text="${wtypeMap[additory.wtype]}"></div> */-->
+				<div class="col">
+					<!-- 품사 뜻 -->
+					<div class="mb-1">
+						<input type="text" class="reportInput form-control" 
+							th:value="${additory.meaning}"/>
+						<input type="hidden" class="reportOriginalMeanings" 
+							th:value="${additory.meaning}"/>
+					</div>
+					<!-- comment -->
+					<div class="report-msg" th:text="${additory.comment}"></div>
+				</div>
+				<div class="col-lg-auto p-2">
+					<i class="undoMeaning fa fa-undo" title="요청된 내용으로 되돌리기"></i>
+				</div>
+			</div>
+			<!-- 거절 사유 -->
+			<div id="refuseCommentDiv" class="refuse-comment-section meaning row no-gutters">
+				<div class="report-select-section col-lg-2 col-3 px-2 py-2">
+					단어 작성자<br>거절 사유
+				</div>
+				<div class="col">
+					<div class="report-pictionary-mean h-100">거절 사유 내용</div>
+				</div><div class="col-lg-auto" style="width: 29.4px"></div>
+			</div>
+			
+			<div class="reportBtnDiv row no-gutters">
+				<div class="col-lg-2 col-3"></div>
+				<div class="col-lg-auto pt-md-2 py-2 text-center">
+					<button id="applyReportButton" type="button"
+						class="submit-btn btn btn-pictionary-add mr-2">수정 승인</button>
+					<button id="refuseReportBtn" type="button" 
+						class="btn btn-outline-pictionary">수정 미승인</button>
+				</div>
+			</div>
+			
+			<!-- 승인 사유 -->
+			<div class="refuseCommentDiv row no-gutters" style="display: none;">
+				<div class="col-lg-2 col-3"></div>
+				<div class="col-lg-6 py-2 pr-2">
+					<select class="form-control">
+						<option class="confirmSelectOption">최종 수정 사유</option>
+					</select>
+				</div>
+				<div class="col-lg pt-md-2 py-2">
+					<button type="button" class="btn btn-pictionary2">submit</button>
+					<button id="cancelConfirmBtn" type="button" 
+						class="btn btn-outline-pictionary2">cancel</button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div><!-- end of reportWordListDiv -->
+
+
+
+</div><!-- end of editPictionSection -->   
+
+<div class="text-right" style="color:red;">
+	source :: admin/pictionary/view_wordmeaning_editrequest.html	
+</div>
+</div></div>

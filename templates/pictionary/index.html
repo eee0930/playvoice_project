@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/pictionary_layout}">
+<head>
+<title>이미지 단어 학습 픽셔너리 (Pictionary) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '이미지 단어 학습 픽셔너리 (Pictionary) - 플레이보이스 | Playvoice', 
+	metaDescription = '픽셔너리는 픽처(Picture)와 사전(Dictionary)의 합성어로써 동사(verb)와 
+	동사구(phrasal verb) 중심으로 구성된 이미지 기반 오픈 사전입니다.
+	어릴 적 그림책을 보며 새로운 단어를 배웠듯이 회화에서 가장 중요한 동사 위주로 이미지와 보이스 기반의 단어 암기 서비스를 제공합니다.', 
+	metaImage = '/images/common/characters/pictionary.jpg',
+	metaKeyword = '픽셔너리, Pictionary, 사전, 이미지, 오픈 사전, 동사구 '"></th:block>
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/pictionary'} },
+	breadName = ${ {'픽셔너리'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/pictionary/word/search/eng/', '/pictionary/word/search/kor/', 
+	'/pictionary/word/list/'} }"></th:block>]
+</script>	
+	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/public/lozad_custom.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+const observer = lozad();
+$(document).ready(function(){
+	observer.observe();
+	// [단어 상세보기 화면에서 회귀할 주소를 브라우저에 저장]
+	var pictionaryDest = location.toString().replace(location.origin,"");
+	sessionStorage.setItem("pictionaryDest", pictionaryDest);
+	
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	// [리스트의 단어 이미지를 해당 단어에 속한 픽션 이미지로 순환적 교체]-----------------------------
+	var $wordCovers = $(".wordRepImgDiv");
+	$wordCovers.each(function(i, element) {
+		if($(element).find(".standbyImage").length > 1){
+			var iteration = 1;
+			var start = Math.random() * 1500; // 첫 이미지 교체~마지막 교체까지 최대 15초 차이
+			setTimeout(function(){
+				// 2초마다 이미지 교체
+				setInterval(function(){
+					// 이미지가 화면의 보이는 범위에 있을 때 이미지 교체를 실행
+					var elementTop = $(element).offset().top,
+						elementBottom = $(element).offset().top + $(element).height(),
+						windowTop = $(window).scrollTop(),
+						windowBottom = $(window).scrollTop() + $(window).height();
+					if((elementTop > windowTop && elementTop < windowBottom)
+						|| (elementBottom > windowTop && elementBottom < windowBottom)){
+						var $standbyImages = $(element).find(".standbyImage");
+						var len = $standbyImages.length;
+						$(element).find(".wordRepImg:visible").hide();
+						if($(element).find(".wordRepImg:eq("+(iteration%len)+")").length > 0){
+							$(element).find(".wordRepImg:eq("+(iteration%len)+")").fadeIn();
+						}else{
+							var $newImg = $(element).find(".wordRepImg:eq(0)").clone().fadeIn();
+							$newImg.css("backgroundImage", "url(/resource/pictionary/images/"
+														+ $standbyImages.eq(iteration%len).val()+")");
+							$(element).find(".wordRepImg:last").after($newImg);
+						}
+						if(iteration > 1000){
+							iteration = 1;
+						}else{
+							iteration++;
+						}
+					}
+				}, 2000);
+			}, start);
+		}
+	});
+	
+	
+	// [단어 검색 버튼 활성화]---------------------------------------------------------
+	$(document).on("change keyup keydown", ".searchFormAbled", function(){
+		if($(this).val().length > 0) {
+			$(this).siblings("button").prop("disabled", false);
+		} else {
+			$(this).siblings("button").prop("disabled", true);
+		}
+	});
+
+	// [단어 검색 실행]--------------------------------------------------------------
+	$(document).on('submit',"#searchWord_form", function(e) {
+		e.preventDefault();
+		searchPictionaries($(this).find("input[type='search']").val().trim().toLowerCase());
+	});
+	
+}); //end of ready
+
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+/**
+ * 키워드로 픽셔너리 검색. 검색키워드를 sessionStorage에 저장.
+ */
+function searchPictionaries(keyword) {
+	if(keyword !=null && keyword.length > 0){
+		// 검색어가 숫자를 포함한 기본기호와 한글일 경우
+		if(keyword.match(/[^(\u0020-\u0040|\u005B-\u0060|\u007B-\u007F|\uAC00-\uD7AF)]/gi)==null){
+			self.location = "/pictionary/word/search/kor/" + keyword;
+		// 검색어가 숫자를 포함한 기본기호와 영어일 경우
+		}else if(keyword.match(/[^(\u0020-\u007F)]/)==null){
+			self.location = "/pictionary/word/search/eng/" + keyword;
+		}else{
+			alert("영어나 한글 중 한 언어로만 검색해 주세요.");
+		}
+	}else{
+		alert("검색 할 단어를 입력해 주세요.");
+		return false;
+	}
+};
+</script>
+
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/pictionary/incl/pictionary_menu::menu}" class="col-lg-10"></div>
+	<div th:insert="~{/pictionary/incl/pictionary_menu::alphabetMenu}"
+		class="d-lg-none col"></div>
+</div>
+
+<div id="indexContentSection"><div class="row">
+<div class="col-lg-1"></div>
+<div id="introDiv" class="col-lg-10">
+
+<div class="index-animal d-md-none">
+	<div class="title-cover">
+		<div class="title">Welcome to <span class="pv-tm">Pictionary</span></div>
+	</div>
+	<div class="row no-gutters pt-2">
+		<div class="body col-lg-9 col">
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				아이들은 <b>이미지들을 각인</b>시킴으로써 기억을 보존하고 추상화에 다가선다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from"><span class="kor">
+				<span class="d-none d-sm-inline-block">- </span>
+				귀여운 이미지 덕분에 자본주의 광고 시장에도 등장한<br class="d-sm-none">
+				<b>북극 최강의 포식자</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</span></div>
+		</div>
+	</div>
+	<div class="animal-image">
+		<img src="/images/app/pictionary/bear.jpg" alt="픽셔너리 (Pictionary)"
+			class="rounded-circle">
+	</div>	
+</div>
+
+<div class="d-none d-md-block">
+<div id="introductionDiv" class="introduction-section index animal-saying row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png" class="level-img"
+			style="background: url('/images/common/characters/pictionary.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;"
+			alt="픽셔너리 (Pictionary)">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			<div>Welcome to <span class="pv-tm">Pictionary</span></div>
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				아이들은 <b>이미지들을 각인</b>시킴으로써
+				기억을 보존하고 추상화에 다가선다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from">
+				<span class="d-none d-sm-inline-block">- </span>
+				귀여운 이미지 덕분에 자본주의 광고 시장에도 등장한<br class="d-sm-none">
+				<b>북극 최강의 포식자</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</div>
+		</div>
+	</div>
+</div><!-- end of introductionDiv -->
+</div>
+
+<!-- ------------------------[키워드 검색 (PC ver.)]---------------------------- -->
+<div class="pictionary-keyword-search-section d-none d-lg-block">
+	<div class="search-form-align pictionary-keyword-search-cover">
+		<form id="searchWord_form" th:action="@{/pictionary/word/search}" method="get">
+			<div class="searchform-cover">
+				<input id="search_input" placeholder="키워드 검색" name="title" 
+					class="searchFormAbled search-form-pc form-control" type="search">
+				<button class="search-btn-pc btn" disabled="disabled" type="submit">
+					search <i class="fa fa-search"></i>
+				</button>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+<div class="index-container">
+<!-- -------------------------[Pictioanry Notice]--------------------------- -->
+<div class="notice-board-section index-content-section">
+	<div th:replace="~{/incl/list_notices::board}"></div>
+</div>
+
+<!--/* -----------------------[pictionary new word] -----------------------*/-->
+<div class="new-word-section index-content-section">
+	<h3 class="row no-gutters">
+		<span class="col-auto">
+			Pictionary <span class="index-text-color">New Words</span>
+			<i class="fas fa-cube fa-fw d-none d-md-inline" style="color: #d81b60;"></i><br>
+			<small>Check out these new registered words</small>
+		</span>
+		<span class="go-register-word col align-self-end text-right d-none d-md-inline-block">
+			<a class="loginRequired" th:href="@{/pictionary/word/add}">
+				단어 등록하기 <i class="fa fa-plus-circle fa-lg"></i>
+			</a>
+		</span>
+	</h3>
+
+	<div class="box-cover-mobile box-main"><div class="practice-list-cover row no-gutters">
+		<div th:each="pictionaryWord : ${latestPictionaryWords}"
+			th:if="${!#strings.isEmpty(pictionaryWord.repImage)}"
+			class="practice-list col-xl-auto col-md-3 col-6">
+			<div class="pictionary-card-cover">
+				<div class="loginRequired jsAction" onclick="location.href=$(this).attr('href');"
+					th:href="'/pictionary/word/view/' + ${pictionaryWord.id56}">
+					<!-- 대표 사진 -->
+					<div class="wordRepImgDiv pictionary-img-cover" 
+						th:with="imgPaths=${#strings.arraySplit(pictionaryWord.repImage,',')}">
+						<div th:if="${#arrays.length(imgPaths) GT 0}" class="wordRepImg piction-img lozad"
+							th:data-background-image="'/resource/pictionary/images/' + ${imgPaths[0]}"
+							style="background-repeat: no-repeat; background-size: cover; 
+							background-position: center;"></div>
+						<div th:unless="${#arrays.length(imgPaths) GT 0}" 
+							class="wordRepImg piction-img default"></div>
+						<th:block th:each="imgPath,iter:${imgPaths}">
+							<input class="standbyImage" type="hidden" th:value="${imgPath}">
+						</th:block>
+					</div>
+					<!-- 단어 -->
+					<div class="pictionary-title">
+						<i class="fa fa-cube"></i> [[${pictionaryWord.title}]]  
+					</div>
+				</div>
+			</div>
+		</div></div>
+	</div>
+</div><!-- end of member practice section -->
+
+
+<!--/* -------------------[pictionary member ranking 1] -------------------*/-->	
+<div class="member-ranking-section monthly index-content-section">
+	<h3>
+		Pictionary <span class="period">Month</span><br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">최다 컨텐츠 메이커</span> Top 10</span>
+		<i class="fa fa-fire-alt fa-fw" style="color: #FF6740;"></i><br>
+		<small>Pictionary Monthly Top Rankers Creating Contents</small>
+	</h3>
+	<div class="ranking-bg">
+	<div class="ranking-date text-md-right text-center">
+		<i class="far fa-clock fa-fw"></i> Updated 
+		<span class="date">[[${rankingUpdate}]]</span>
+	</div>
+	<div id="rankingSwipe" class="ranking-list">
+		<ul class="rank-slide">
+			<li th:each="ranker, iter:${monthlyTopRankers}"
+				th:with="personacon = ${ranker.personacon}, iconPath=${personacon.iconPath},
+						memberTypeNames = ${ {M:'Play',S:'Silver',G:'Gold',P:'Platinum'} }">
+				<div class="ranker-cover"><div class="rank-style">
+					<div th:text="${#numbers.formatInteger(iter.count, 2)}" 
+						class="rank-num-cover">01</div>
+					<div class="alias">
+						<div>[[${personacon.alias}]]</div>
+					</div>	
+					<div class="openProfile personacon"
+						th:data-mid="${personacon.id56}">
+						<img th:if="${iconPath}" class="lozad"
+							src="/images/app/member/profile_paper.png" 
+							th:data-background-image="'/resource/profile/' + ${iconPath}"
+							style="background-repeat: no-repeat; background-size: cover; background-position: center;">
+						<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png" 
+							class="profile-default">
+					</div>
+					<div class="buttons">
+						<div th:text="${memberTypeNames[#strings.toString(personacon.memberType)]}">Play</div>
+						<div class="openProfile" th:data-mid="${personacon.id56}">
+							<i class="far fa-address-card fa-fw"></i>
+						</div>
+					</div>
+				</div></div>
+			</li>
+		</ul>
+	</div>
+	<div class="direction-button">
+		<span class="prev ranking-slide">
+			<i class="fa fa-angle-left fa-4x fa-fw"></i>
+		</span>
+		<span id="next" class="next ranking-slide">
+			<i class="fa fa-angle-right fa-4x fa-fw"></i>
+		</span>
+	</div>
+	
+	<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+
+
+
+<!--/* -------------------[pictionary member ranking 2] -------------------*/-->	
+<div class="member-ranking-section index-content-section">
+	<h3>
+		Pictionary <span class="period">Total</span><br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">최다 컨텐츠 메이커</span> Top 10</span>
+		<i class="fa fa-brain fa-fw" style="color: pink;"></i><br>
+		<small>Pictionary Top Rankers Creating the Most Pictionary Contents</small>
+	</h3>
+	<div class="ranking-bg">
+	<div class="ranking-date text-md-right text-center">
+		<i class="far fa-clock fa-fw"></i> Updated 
+		<span class="date">[[${rankingUpdate}]]</span>
+	</div>
+	<div id="rankingSwipe" class="ranking-list">
+		<ul class="rank-slide">
+			<li th:each="ranker, iter:${topRankers}"
+				th:with="personacon = ${ranker.personacon}, iconPath=${personacon.iconPath},
+						memberTypeNames = ${ {M:'Play',S:'Silver',G:'Gold',P:'Platinum'} }">
+				<div class="ranker-cover"><div class="rank-style">
+					<div th:text="${#numbers.formatInteger(iter.count, 2)}" 
+						class="rank-num-cover">01</div>
+					<div class="alias">
+						<div>[[${personacon.alias}]]</div>
+					</div>	
+					<div class="openProfile personacon"
+						th:data-mid="${personacon.id56}">
+						<img th:if="${iconPath}" class="lozad"
+							src="/images/app/member/profile_paper.png" 
+							th:data-background-image="'/resource/profile/' + ${iconPath}"
+							style="background-repeat: no-repeat; background-size: cover; background-position: center;">
+						<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png" 
+							class="profile-default">
+					</div>
+					<div class="buttons">
+						<div th:text="${memberTypeNames[#strings.toString(personacon.memberType)]}">Play</div>
+						<div class="openProfile" th:data-mid="${personacon.id56}">
+							<i class="far fa-address-card fa-fw"></i>
+						</div>
+					</div>
+				</div></div>
+			</li>
+		</ul>
+	</div>
+	<div class="direction-button">
+		<span class="prev ranking-slide">
+			<i class="fa fa-angle-left fa-4x fa-fw"></i>
+		</span>
+		<span id="next" class="next ranking-slide">
+			<i class="fa fa-angle-right fa-4x fa-fw"></i>
+		</span>
+	</div>
+	
+	<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+
+
+<!--/* -------------------[pictionary member ranking 3] -------------------*/-->	
+<div class="member-ranking-section popular index-content-section">
+	<h3>
+		Pictionary <span class="period">Total</span><br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">최다 추천 랭커</span> Top 10</span>
+		<i class="fa fa-medal" style="color: gold;"></i><br>
+		<small>Pictionary Top Rankers Received the Most Upvotes</small>
+	</h3>
+	<div class="ranking-bg">
+	<div class="ranking-date text-md-right text-center">
+		<i class="far fa-clock fa-fw"></i> Updated 
+		<span class="date">[[${rankingUpdate}]]</span>
+	</div>
+	<div id="rankingSwipe" class="ranking-list">
+		<ul class="rank-slide">
+			<li th:each="ranker, iter:${bestLikers}"
+				th:with="personacon = ${ranker.personacon}, iconPath=${personacon.iconPath},
+						memberTypeNames = ${ {M:'Play',S:'Silver',G:'Gold',P:'Platinum'} }">
+				<div class="ranker-cover"><div class="rank-style">
+					<div th:text="${#numbers.formatInteger(iter.count, 2)}" 
+						class="rank-num-cover">01</div>
+					<div class="alias">
+						<div>[[${personacon.alias}]]</div>
+						<div class="info"><i class="fa fa-heart"></i> [[${ranker.count}]]</div>
+					</div>	
+					<div class="openProfile personacon"
+						th:data-mid="${personacon.id56}">
+						<img th:if="${iconPath}" class="lozad"
+						 	src="/images/app/member/profile_paper.png" 
+							th:data-background-image="'/resource/profile/' + ${iconPath}"
+							style="background-repeat: no-repeat; background-size: cover; background-position: center;">
+						<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png" 
+							class="profile-default">
+					</div>
+					<div class="buttons">
+						<div th:text="${memberTypeNames[#strings.toString(personacon.memberType)]}">Play</div>
+						<div class="openProfile" th:data-mid="${personacon.id56}">
+							<i class="far fa-address-card fa-fw"></i>
+						</div>
+					</div>
+				</div></div>
+			</li>
+		</ul>
+	</div>
+	<div class="direction-button">
+		<span class="prev ranking-slide">
+			<i class="fa fa-angle-left fa-4x fa-fw"></i>
+		</span>
+		<span id="next" class="next ranking-slide">
+			<i class="fa fa-angle-right fa-4x fa-fw"></i>
+		</span>
+	</div>
+	
+	<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+
+
+
+</div>
+
+</div><!-- end of introDiv -->
+	
+	
+</div></div><!-- end of indexContentSection -->
+</section>
+</html>

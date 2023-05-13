@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>Add Story - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [번역 입력칸과 영어 문단의 높이가 같도록 높이 수정]----------------------------------------
+	$(".paragraphDiv").each(function(i, obj){
+		var paraHeight = $(obj).find(".paragraph-eng-cover").height();
+		$(obj).find(".translate-paragraph-cover textarea").css("height", paraHeight*2);
+	});
+	
+	// [가이드 닫기]----------------------------------------------------------------
+	$("#closeGuide_btn").click(function(){
+		$(".smalltalkGuide").hide(100);
+		$(".openGuideBtn").show();
+	});
+	
+	// [가이드 열기]---------------------------------------------------------------
+	$(".openGuideBtn").click(function(){
+		$(this).hide();
+		$(".smalltalkGuide").show(100);
+	});
+	
+	// [AI 번역 영역 클릭 시 번역 선택]---------------------------------------------------
+	$(".selectTransAIDiv").click(function(){
+		$(this).find(".transOption").prop('checked', true).change();
+	});
+	
+	// [AI 번역 선택 시 나의 번역으로 내용 복사]---------------------------------------------
+	$(".transOption").change(function(){
+		var $computerTransList = $(this).closest(".computerTranslateList");
+		var $thisTranslation = $(this).closest(".selectTransAIDiv").find(".kor-cover");
+		$computerTransList.find(".kor-cover").removeClass("active");
+		$thisTranslation.addClass("active");
+		$(this).closest(".paragraphDiv").find("textarea").val($thisTranslation.text());
+	});
+	
+	// [번역 등록]-----------------------------------------------------------------
+	$("#translationSubmit").click(function(){
+		var form = $("#translationForm")[0];
+		$("textarea[name^='storyParaTextList']").each(function(index,para){
+			if($(para).val().length == 0){
+				$(para).val($(".computerTranslateList:eq("+index+") .kor-cover:first").html());
+			}
+		});
+		$(":radio.transOption").prop("disabled", true);
+		$("#loadingSection").show();
+		
+		$(form).submit();
+	});
+	
+}); //end of ready
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div th:replace="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+
+<div id="introductionSection" class="article-introduction-section mt-5">
+	<h3><span>Adding Translate Form</span></h3>
+	<!-- 작성 목적 -->
+	<div class="add-purpose-info cha11 row no-gutters">
+		<div class="col">
+			<img class="character d-sm-none" src="/images/common/icon/icon_paper.png">
+			<div class="purpose-title">
+				해석해 보기! <br class="d-md-none">
+				<small>feat. Machine Translators (선택사항)</small>
+			</div>
+			<div>
+				많은 회원들이 읽을 수 있도록 작성한 게시글을 우리말로 번역해 보세요.<br class="d-none d-lg-block">
+				인공지능(AI)보다 월등한 인간 지능(HI)의 힘을 보여주세요.<br class="d-none d-lg-block">
+				회원들에게 직접 번역을 제공하지 않은 경우 AI의 번역 결과가 제공됩니다.
+			</div>
+		</div>
+		<div class="character-section col-auto">
+			<img class="character" src="/images/common/icon/icon_paper.png">
+		</div>
+	</div>
+</div>
+
+
+<div id="addSmallTalkSection" class="add-smalltalk-section">
+	<!-- 스토리 등록 순서 표시 -->
+	<div class="add-order-point row no-gutters"><div class="col"></div>
+	<div class="order-point step1 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 1</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step2 active col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 2</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step3 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 3</span>
+	</div>
+	<div class="col text-right align-self-center">
+		<div class="open-guide-section d-none d-md-block">
+		<a class="openGuideBtn" style="display: none;">
+			<i lang="fa" class="fa fa-robot fa-fw"></i> 
+			번역 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+		</div>
+	</div></div>
+	
+	<!-- --------------------------[작성 가이드]-------------------------------- -->
+	<div class="open-guide-section d-md-none">
+		<a class="openGuideBtn" style="display: none;">
+			<i lang="fa" class="fa fa-robot fa-fw"></i>
+			번역 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+	</div>
+	<div class="add-digest-guide-cover smalltalkGuide row no-gutters">
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="title">
+				<span>번역 가이드</span>
+				<span class="guide-icon"><i class="fa fa-robot fa-lg"></i> </span>
+				<i id="closeGuide_btn" class="fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> AI 시스템들이 번역한 내용을 선택 후 어색한 부분을 수정해 보세요.<br>
+				<span class="num">2.</span> 부담 없이 직역과 의역을 스스로 판단하세요.<br>
+				<span class="num">3.</span> 번역이 완료되면 'NEXT'버튼을 누르세요.<br>
+				<span class="num">4.</span> 'NEXT'버튼 클릭 후 <b>다시 이 페이지로 되돌아올 수 없으니 주의하세요.</b><br> 
+			</div>
+		</div>
+	</div>
+	
+	<div class="translation-bg">
+	<form id="translationForm" th:action="@{/square/smalltalk/analyze}" method="post">
+		<!-- ---------------------------[1. 문단 ]---------------------------- -->
+		<div th:each="translatedParagraph, iter : ${session.storyForm?.storyParaTextList}" 
+			class="paragraphDiv translate-story-section">
+			<div class="para-num" th:text="${iter.count}"></div>
+			<!-- [문단에 텍스트가 없을 경우 메세지]-->
+			<div th:if="${translatedParagraph.eng == null} OR 
+				${#strings.isEmpty(translatedParagraph.eng)}" 
+				class="paragraph-eng-cover none-text">
+				이 문단은 텍스트가 없어 번역이 필요하지 않습니다
+				<i class="far fa-grin-alt fa-lg"></i>
+			</div>
+			
+			<div th:style="${translatedParagraph.eng == null} OR 
+				${#strings.isEmpty(translatedParagraph.eng)}?'display:none;':''">
+				<!-- [1.1 아티클 문단] -->
+				<div class="paragraph-eng-cover" th:utext="${translatedParagraph.eng}"></div>
+				<input type="hidden" th:name="'storyParaTextList[' + ${iter.index} + '].paraNum'" 
+					th:value="${iter.index}">
+				<!-- [1.2 작성자 번역] -->
+				<div class="translate-paragraph-cover">
+					<textarea th:name="'storyParaTextList[' + ${iter.index} + '].kor'" 
+						class="form-control playvoice-form" 
+						placeholder="아래 번역 결과 중 하나를 선택하여 편집하거나 직접  번역할 수도 있어요"></textarea>
+				</div>
+				<!-- [1.3 AI 번역] -->
+				<div class="computerTranslateList computer-translate-section">
+					<div class="trans-title">농땡이 로봇들의 번역 결과</div>
+					<div th:each="kor, iter2 : ${translatedParagraph.korList}" 
+						class="selectTransAIDiv translate-kor-cover row no-gutters">
+						<!-- 아이콘 / 라디오 버튼 -->
+						<div class="col-auto px-2">
+							<div class="ai-icon">
+								<img src="/images/app/member/profile_paper.png">
+							</div>
+							<div class="text-center">
+								<input type="radio" th:name="'kor' + ${iter.index}" 
+									class="transOption option-input radio"/>
+							</div>
+						</div>
+						<!-- 번역 -->
+						<div class="kor-section col">
+							<div class="kor-cover" th:utext="${kor}"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	
+		<div class="add-button-section">
+			<button id="translationSubmit" class="loginRequired btn btn-smalltalk2" type="button">
+				NEXT <i class="fa fa-arrow-right"></i>
+				<div class="button-msg">이 페이지로 돌아올 수 없으니 번역한 내용을 다시 확인해 주세요</div>
+			</button>
+		</div>
+	
+	</form>
+	</div>
+</div><!-- end of addSmallTalkSection -->
+
+<div id="loadingSection" class="loading-section" style="display: none;">
+	<div class="loading-progress">
+		<div class="loading-icon"><i class="fa fa-spin fa-spinner"></i></div>
+		<div class="loading-text">
+			잠시만 기다려 주세요<br>
+			Mr. Watson이 구문 분석을 위해 두뇌 풀가동 중입니다 <i class="fa fa-robot fa-fw"></i>
+		</div>
+	</div>
+</div>
+
+<div class="text-right" style="color:red;">
+	source :: square/smalltalk/translate_story.html 
+</div> 
+
+</section>
+</html>

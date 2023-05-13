@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="board">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	//[게시글 제목 클릭시]----------------------------------------------------------
+	$('.articleLink').click(function(e){
+		e.preventDefault();
+		var aid = $(this).attr("data-aid");
+		var boardAlias = [[${board.alias}]];
+		
+		var articleSection = $(this).closest(".notice-board").find(".notice-content");
+		
+		//게시물 내용을 한번만 가져오도록 함 & 펼치고 접기
+		if($(this).is('.articleLoaded')){
+			articleSection.toggle(100, function(){
+				if(articleSection.is(":visible")){
+					window.scrollTo(0, articleSection.offset().top - $("#headerNavbar").height());
+				   }
+			   });
+		}else{
+			articleSection.toggle();
+			var url=[[@{'/board/'}]]+[[${board.alias}]]+'/view/'+aid;
+			
+			articleSection.load(url + ' #viewArticleFormContainer');
+			
+			var scrollPosition = $('html, body').offset().top;			
+			$("html, body").animate({
+				scrollTop: scrollPosition
+			}, 0); 
+			$(this).addClass('articleLoaded');
+		}
+		
+	});
+	
+	//[더보기 클릭시]----------------------------------------------------------
+	$('.viewMore').click(function(e){
+		e.preventDefault();
+		var aid = $(this).attr("data-aid");
+		var boardAlias = [[${board.alias}]];
+		aid = window.btoa(aid);
+		//location.pathname;
+		var link = [[@{/board/}]];
+		link += boardAlias+'/list';
+		location.href=link;
+	});
+});
+</script> 
+
+
+<div>
+	<h3 class="row no-gutters">
+		<span class="col-auto">
+			[[${board.engName}]]
+			<i lang="fa" class="fa fa-bell fa-fw" style="color: #f6aa37;"></i><br>
+			<small>Don't miss the latest news about [[${board.engName}]]</small>
+		</span>
+		<span class="col text-right align-self-end">
+			<a class="viewMore" style="font-size: 0.7em;">
+				더보기 <i class="far fa-arrow-alt-circle-right fa-lg"></i>
+			</a>
+		</span>
+	</h3>
+	<div class="notice-cover">
+		<div class="notice-header row no-gutters">
+			<div class="title col-md-9">
+				Title
+			</div>
+			<div class="date col-md-2 col-6">
+				Date
+			</div>
+			<div class="view col-md-1 col-6">
+				View
+			</div>
+		</div>
+		
+		<div th:each="article, status : ${noticeList}" class="notice-board">
+			<div class="notice-list row no-gutters" >
+				<div class="title col-md-9">
+					<th:block th:if="${article.pinned}"> 
+						<i lang="fa" class="fa fa-thumbtack"></i>
+					</th:block>
+					<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+						<span class="subject" th:text="${article.title}">
+							제목 
+						</span>
+					</a>
+				</div>
+	
+				<div th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+							?#dates.format(article.regDate, 'HH:mm')
+							:#dates.format(article.regDate, 'MM-dd')}" class="date col-md-2 col-6">
+				</div>
+	
+				<div class="view col-md-1 col-6">
+					<i class="fa fa-paw"></i>
+					[[${article.hits}]]
+				</div>
+			</div>
+			<div class="notice-content" style="display: none;"></div>
+		</div>
+		
+	</div>
+</div>	
+</div>
+
+</html>

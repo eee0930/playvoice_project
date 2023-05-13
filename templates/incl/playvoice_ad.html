@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- 
+*	가로 긴 배너 : 100% * 120px (max-width: 728px) ; size= horizon
+*	가로 긴 배너 (태블릿) : 100% * 100px (max-width: 500px) ; 
+*	가로 긴 배너 (모바일) : 100% * 50px ;
+*	정사각형 배너 : 250px * 250px ; size= square
+*	사각형 배너 : 100% * 250px (max-width: 300px) ; size= rectangle
+*	세로 긴 배너 : 160px * 600px ; size= vertical
+-->
+
+<!-- 
+*	반응형으로 보여주기 위해 각 배너마다 사이즈 지정은 따로 하지 않으며, 반응형으로만 구현한다
+*	ex) 가로 긴 배너가 PC에서는 4개의 상품이 가로로 배치되어있다면 모바일에선 2*2로 배치
+*	대신 배너를 보여주는 각각의 화면에서 배너의 사이즈를 지정한다 
+-->
+
+<!-- ======================================================================= -->
+<!-- 						Playvoice App Banner							 -->
+<!-- ======================================================================= -->
+<!-- -----------------------[1. 배너 크기별로 배치]------------------------------- -->
+<th:block th:fragment="appAd(size, appName, event)">
+<div th:switch="${appName}" th:class="${size} + '-ad-cover-section playvoice-app-ad'">
+	<a th:case="'Pictionary'" th:href="@{/pictionary}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event != null}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Pictionary</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'PlayvoiceBook'" th:href="@{/playvoiceBook}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Playvoice Book</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'DictationBook'" th:href="@{/dictationBook}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event != null}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Dictation Book</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'JohnnyDeck'" th:href="@{/playvoiceBook/kick/deck}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Johnny Deck</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'EggShot'" th:href="@{/playvoiceBook/kick/egg}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Egg Shot</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'DetectiveJulie'" th:href="@{/pictionary/kick/detective}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Detective Julie</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'PlaySquare'" th:href="@{/square}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">PlaySquare</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'EnglishStack'" th:href="@{/square/babel/list/eng}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">English Stack</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'KoreanStack'" th:href="@{/square/babel/list/kor}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Korean Stack</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'Digest'" th:href="@{/square/digest/list}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Digest</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'GrammarBook'" th:href="@{/square/grammarBook/list}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">GrammarBook</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="'Smalltalk'" th:href="@{/square/smalltalk/list}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">Smalltalk</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+	<a th:case="*" th:href="@{/main}" 
+		th:class="'ad-link-cover app-' + ${appName}" target="_blank"
+		th:classappend="${event}? 'banner-'+${event}:''">
+		<span class="ad-title-section">playvoice</span>
+		<span class="ad-image-section"></span>
+		<span class="ad-copy-section"></span>	
+	</a>
+</div>
+</th:block>
+
+<!-- -----------------------[2. 모든 앱 순서대로 슬라이드 배치]------------------------ -->
+<th:block th:fragment="appRandom(size)">
+<script th:inline="javascript">
+
+</script>
+<div th:class="${size} + '-ad-cover-section playvoice-app-ad random-ad'">
+	<a th:href="@{/main}" class="ad-link-cover" target="_blank">playvoice</a>
+	<a th:href="@{/pictionary}" class="ad-link-cover" target="_blank">Pictionary</a>
+	<a th:href="@{/playvoiceBook}" class="ad-link-cover" target="_blank">PlayvoiceBook</a>
+	<a th:href="@{/dictationBook}" class="ad-link-cover" target="_blank">DictationBook</a>
+	<a th:href="@{/playvoiceBook/kick/deck}" class="ad-link-cover" target="_blank">Johnny Deck</a>
+	<a th:href="@{/playvoiceBook/kick/egg}" class="ad-link-cover" target="_blank">Egg Shot</a>
+	<a th:href="@{/pictionary/kick/detective}" class="ad-link-cover" target="_blank">Detective Julie</a>
+	<a th:href="@{/square}" class="ad-link-cover" target="_blank">PlaySquare</a>
+	<a th:href="@{/square/babel/list/eng}" class="ad-link-cover" target="_blank">English Stack</a>
+	<a th:href="@{/square/babel/list/kor}" class="ad-link-cover" target="_blank">Korean Stack</a>
+	<a th:href="@{/square/digest/list}" class="ad-link-cover" target="_blank">Digest</a>
+	<a th:href="@{/square/grammarBook/list}" class="ad-link-cover" target="_blank">GrammarBook</a>
+	<a th:href="@{/square/smalltalk/list}" class="ad-link-cover" target="_blank">Smalltalk</a>
+</div>
+</th:block>
+
+
+
+
+<!-- ======================================================================= -->
+<!-- 						Play Store Item Banner							 -->
+<!-- ======================================================================= -->
+
+<!-- index 상품소개 큰 배너 (/store/index.html) -->
+<div th:fragment="banner_big"></div>
+
+<!-- 이벤트 배너 (/store/index.html) -->
+<div th:fragment="banner_event"></div>
+
+<!-- 정사각형 배너 -->
+<div th:fragment="store_square"></div>
+
+<!-- 가로 긴 배너 -->
+<div th:fragment="store_horizon"></div>
+
+<!-- 세로 긴 배너 -->
+<div th:fragment="store_vertical"></div>
+
+<!-- My Page mypoint banner (골드회원의 골드에 맞춰서 보여줌) (/mypage/mypoint.html) -->
+<div th:fragment="mypoint_side"></div>
+
+
+
+
+<!-- ======================================================================= -->
+<!-- 					Business account Item Banner						 -->
+<!-- ======================================================================= -->
+
+<!-- 정사각형 배너 -->
+<div th:fragment="business_square"></div>
+
+<!-- 옆으로 긴 배너 -->
+<div th:fragment="business_horizon"></div>
+
+<!-- 세로 긴 배너 -->
+<div th:fragment="business_vertical"></div>
+
+
+
+

@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List DictationTheme</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]----------------------------------------------
+	var query = $(location).attr('search');
+	
+	//if(query.indexOf('=') == -1){
+		var tagetLink = $('#dictationThemeListDiv th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	//}
+	
+	//[제목 클릭시 테이블 접고 펼치기]----------------------------------------------------
+	$("#dictationThemeListTitle").click(function(e) {
+		console.log($('#dictationThemeListDiv').css('display'));
+		//block, none
+		if($('#dictationThemeListDiv').css('display') == 'block'){
+			$('#dictationThemeListDiv').hide();
+		}
+		else if($('#dictationThemeListDiv').css('display') == 'none'){
+			$('#dictationThemeListDiv').show();
+		}
+		
+	});
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시]---------------------------------------------------------
+	$("#dictationThemeListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		var sort = $(this).attr('data-value');
+		
+		$('#sortName').val(sort);
+		
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		displaySearchMark($(this));
+		searchDictationTheme('all', page, 'list'); 
+	});
+	
+	//[테이블 데이터(title) 클릭시 상세보기]-----------------------------------------------
+	$('.resultWrapper').on('click', '.dictationThemeDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.dictationThemeDetailPart').show();
+
+		//딕테이션 테마 정보 추출
+		//--------------------------------------
+		pickUpDictationThemeInfo($(this));
+		//--------------------------------------
+		//딕테이션 정보 조회
+		//--------------------------------------
+		searchDictationList($('#tid').text(), 1);
+		//--------------------------------------
+		
+		//이전에 수정을 했었다면
+		$('.successBtn').hide();
+		//상세보기/수정 폼으로 이동 
+		//window.scroll(0, getOffsetTop(document.getElementById("editDictationThemeForm")));
+	});
+	
+	//[상세보기 헤더 클릭시 상세보기 닫기]-------------------------------------------------
+	$('#themeDetailHeader').click(function(e) {
+		$('.dictationThemeDetailPart').hide();
+	});
+	
+	//[테마 수정 버튼 클릭시 테마 수정 처리]-------------------------------------------------
+	$('#editDictationThemeBtn').click(function(e) {
+		e.preventDefault();
+		updateDictationTheme($('#tid').text());
+	});
+
+	
+	//[예문 검색창 토글]-------------------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchDictationThemeDiv').toggle();
+	});
+	
+	//[신규 테마 등록창 토글]----------------------------------------------------------
+	$('.addIcon').click(function(e){
+		$('#addDictationThemeDiv').toggle();
+	});
+	
+	//[테마 선택 후  테마예문신청 버튼 클릭]--------------------------------------------
+	$('#chooseTargetThemes').click(function(e) {
+		e.preventDefault(); 
+		var themeChkList = $(":checkbox[name='chkList']:checked");
+			
+		// 유효성 검사 
+		var validation = false;
+		if(themeChkList.length > 0 ){
+			validation = true;
+		}
+		
+		if(validation){
+			saveTargetThemes(themeChkList);	//dictationBook.js
+			$("#requestSentenceForm").submit();							//sentence 목록 조회
+		}else{
+			alert('테마를 선택하세요');
+		}
+		
+		}); 
+	
+	//[테마 선택 후  테스트테마 예문 빌드하기 버튼 클릭]--------------------------------------------
+	 $('#buildTestThemeDictation').click(function(e) {
+		e.preventDefault(); 
+		var dictationThemeTr = $(":checkbox[name='chkList']:checked").parent();
+		var tid = dictationThemeTr.next().next();
+		
+		if(isEmpty(tid.text())){
+			alert("테마를 선택하세요.");
+			return false;
+		}
+		var appCode = tid.next();
+		var limit = tid.next().next().next().next();
+      
+		$('#buildTestThemeDictationForm [name="themeId"]').val(tid.text());
+		$('#buildTestThemeDictationForm [name="appCode"]').val(appCode.text());
+		$('#buildTestThemeDictationForm [name="limit"]').val(limit.text());
+      
+		$("#buildTestThemeDictationForm").submit();  
+   }); 
+	
+	
+	$('#eidtDictationThemeFormContainer .hideBtn').click(function(e) {
+		e.preventDefault(); 
+		$('#eidtDictationThemeFormContainer').hide();
+	}); 
+	
+})//end of reday
+
+
+/**
+ * 목록 헤더 컬럼 정렬 기능 처리
+ */
+function displaySearchMark(target){
+	
+	//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+	$('#dictationThemeListDiv .sortMark, #searchResultTable_list .sortMark').css('display', 'none');
+	
+	//var target = $(this);
+	var dynamicTargets = document.querySelectorAll('#searchResult_list .thlink');
+	//$('#searchResult_list .thlink')
+	
+	//<th><a href="javascript:void(0)" class="thlink" data-value='eng'>영어</a><span class="sortMark">▼</span></th>
+	
+	var sortName = target.attr('data-value');
+	var sortMark = target.next();
+	
+	for(var i = 0; i < dynamicTargets.length; i++){
+		if(dynamicTargets[i].getAttribute("data-value") == sortName){
+			sortMark = dynamicTargets[i].nextSibling;
+		}
+	}
+	
+	//현재 선택한 sortName이 이전과 같다면
+	if(sortName == $('#searchFormHidden_list #sortName').val()){
+		//현재 설정된 정렬방향을 가져온다.
+		var direction = $('#searchFormHidden_list #asc').val();
+		
+		//정렬방향을 반대로 변경한다.
+		if(direction == 'false'){
+			$('#searchFormHidden_list #asc').val('true');
+			//sortMark.text('▲');
+			sortMark.innerHTML='▲';
+		}else{
+			$('#searchFormHidden_list #asc').val('false');
+			//sortMark.text('▼');
+			sortMark.innerHTML='▼';
+			
+		}
+		console.log("이전과 동일=");
+		
+	}else{
+		//새로운 sortName으로 교체
+		$('#searchFormHidden_list #sortName').val(sortName);
+		
+		//기본값을 desc로 설정한다.
+		$('#searchFormHidden_list #asc').val('false');
+		
+		console.log("이전과 다름=");
+	}
+	//----------------------------------------
+	//sortMark.css('display', 'inline');
+	
+	//var st = sortMark.style;
+	//st.display = 'inline';
+	
+	//----------------------------------------
+}
+
+
+
+
+
+</script>
+</head>
+
+
+<section layout:fragment="content"> 
+<div class="row"><div class="col-12">
+	 
+	 	
+	<!--/* ----------------[inclule : Search DictationTheme Form]--------------- */-->
+	<div	id="searchDictationThemeDiv" 
+			th:insert="~{/admin/dictationBook/incl/search_dictation_theme::search_dictation_theme}" 
+			style="display: none"></div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+
+	 
+	<h3 th:text="${tableTitle?:'테마 목록(DictationTheme List)'}" id="dictationThemeListTitle" >
+			테마 목록(DictationTheme List)</h3>
+			
+	<!--/* 1. 테마 목록 Table  */-->
+	<div id="dictationThemeListDiv" >
+		<!-- table --> 
+		<div th:if="${pageMaker}" th:with="result=${pageMaker.result}">
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;"></th>
+						
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='tid'>TID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='appCode'>앱 코드</a>
+						<span class="sortMark">▼</span></th>
+					<th>
+						<a href="javascript:void(0)" class="thlink" data-value='title'>타이틀</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='themeType'>테마 유형</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">범위</th>
+					<th style="width: 150px;">
+						<a href="javascript:void(0)" class="thlink" data-value='numOfQuestions'>테마의 기본 출제 문제 수</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="dictationTheme, status : ${result.content}">
+					<td style="width: 50px;">
+						<input type="checkbox" th:id="${dictationTheme.tid}" name="chkList">
+					</td>
+					<td th:text="${(pageMaker.result.totalElements-(status.index)) - 
+							( (pageMaker.currentPageNum -1) * 
+							T(com.varxyz.playvoice.common.Constants).FETCH_SIZE	)} ">
+					</td>
+					 
+					<td th:text="${dictationTheme.tid}">tid</td>
+					<td th:text="${dictationTheme.appCode}">appCode</td>
+					<td class="text-left">
+						<a href="javascript:void(0)" class="dictationThemeDetail">[[${dictationTheme.title}]]</a></td>
+					<td th:text="${dictationTheme.description}" style="display: none">description</td>
+					<td th:text="${dictationTheme.themeType}">themeType</td>
+					<td th:text="${dictationTheme.limit}">limit</td>
+					<td th:text="${dictationTheme.cutOffPoint}" style="display: none">cutOffPoint</td>
+					<td th:text="${dictationTheme.numOfQuestions}">numOfQuestions</td>
+					<td th:text="${#dates.format(dictationTheme.regDate, 'yyyy-MM-dd')}">날짜</td>
+				</tr>
+			</table>
+		</div> 
+			
+		<!--/* ----------------[paging]------------------------------- */-->
+		<nav class="py-3">
+			<div id="searchResultPageNavi">
+				<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item" th:if="${pageMaker?.prevPage}">
+					<a class="page-link" th:href="${(pageMaker.currentPageNum > 100)?
+						(pageMaker.currentPageNum - 100) : 1}">
+						PREV[[${(pageMaker.currentPageNum > 100)?
+						(pageMaker.currentPageNum - 100) : 1}]]</a>
+				</li>				
+				<li class="page-item" th:if="${pageMaker?.prevPage}">
+					<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+						PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:each="p:${pageMaker?.pageList}"
+					th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+					<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:if="${pageMaker?.nextPage}">
+					<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+						NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:if="${pageMaker?.nextPage}">
+					<a class="page-link" th:href="${(pageMaker.totalPageNum < pageMaker.currentPageNum + 100)?
+						pageMaker.totalPageNum : (pageMaker.currentPageNum + 100)}">
+						NEXT [[${(pageMaker.totalPageNum < pageMaker.currentPageNum + 100)?
+						pageMaker.totalPageNum : (pageMaker.currentPageNum + 100)}]]</a>
+				</li>
+			</ul>
+			</div>
+		</nav>
+	</div>
+	
+	<!--/* 2. 예문 목록 Table By Ajax */-->
+	<div id="searchResult_list" style="display: none">
+		<div>
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table id="searchResultTable_list" class="resultWrapper table table-bordered table-striped table-sm table-hover text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;"></th>
+						
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='tid'>TID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='appCode'>앱 코드</a>
+						<span class="sortMark">▼</span></th>
+					<th>
+						<a href="javascript:void(0)" class="thlink" data-value='title'>타이틀</a>
+						<span class="sortMark">▼</span></th>
+					<th>
+						<a href="javascript:void(0)" class="thlink" data-value='themeType'>테마 유형</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">범위</th>
+					<th style="width: 150px;">
+						<a href="javascript:void(0)" class="thlink" data-value='numOfQuestions'>테마의 기본 출제 문제 수</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<tbody><!--/* 결과 목록 */--></tbody>
+			</table>
+		</div>
+		<!--/* ----------------[paging]------------------------------- */-->
+		<nav class="py-3">
+			<div id="searchResultPageNavi">
+				<ul class="pagination pagination-sm justify-content-center"></ul>
+			</div>
+		</nav>
+	</div> <!-- end of searchResult -->
+
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:none; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+</div></div> <!--/* end of 테마 목록 */-->
+	
+<div class="row my-3"> 
+	<!--/* ----------------[딕테이션(문제)등록 페이지로 이동]--------------- */-->
+	<div class="col-6 text-right">
+		<form id='requestSentenceForm'
+			th:action="@{/admin/dictationBook/sentence/list}" method="get">
+			<button id="chooseTargetThemes" class="btn btn-primary btn-sm" type="button">테마 예문 선정하기</button>
+		</form>
+	</div>
+	<div class="col-6 text-left">
+		<form id='buildTestThemeDictationForm'
+			th:action="@{/admin/dictationBook/dictation/test/add}" method="post">
+			<input type="hidden" name="themeId" />
+			<input type="hidden" name="appCode" />
+			<input type="hidden" name="limit" />
+			<button id="buildTestThemeDictation" class="btn btn-dark btn-sm" type="button">테스트 테마 예문 빌드하기</button>
+		</form>
+	</div>
+</div>	
+
+<!--/* =====================[테마 상세 보기/딕테이션(문제) 목록/ 딕테이션 삭제]====================== */-->	
+<div class="row dictationThemeDetailPart" style="display:none"><div class="col-12">
+	
+	<div id="eidtDictationThemeFormContainer" class="formContainer">
+		<h3>
+			<a id="themeDetailHeader">View Detail &amp; Editing DictationTheme Form</a>
+			<button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<button type="button" class="btn btn-info btn-xs hideBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> HIDE</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<!--/*---------------------------- [Dictation Theme 상세 정보 폼]-------------------------------*/-->
+		<form id="editDictationThemeForm" class="form-horizontal">
+			<div class="row">
+				<div class="col-12">
+				
+					<div class="form-group row">
+						<label for="tid" class="col-2 control-label headerLabel text-right">TID</label>
+						<div class="col-10 form-text-value">
+							<span id="tid"></span>
+						</div>
+					</div>
+
+					<div class="form-group row">
+						<label for="appCode" class="col-2 control-label headerLabel text-right">앱코드</label>
+						<div class="col-10">
+							<input type="text" id="appCode" name="appCode" class="form-control" />
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">타이틀</label>
+						<div class="col-10">
+							<input type="text" id="title" name="title" class="form-control" />
+						</div>
+					</div>
+					
+					<!--/* 설명 텍스트 div */-->
+					<div class="form-group row">
+						<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+						<div class="col-10" id="descriptionDiv">
+							<textarea id="description" name="description" rows="3" class="form-control" ></textarea>
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="themeType" class="col-2 control-label headerLabel text-right">테마타입</label>
+						<div class="col-10">
+							<input type="text" id="themeType" name="themeType" class="form-control" />
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="limit" class="col-2 control-label headerLabel text-right">범위</label>
+						<div class="col-10">
+							<input type="text" id="limit" name="limit" class="form-control" />
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="cutOffPoint" class="col-2 control-label headerLabel text-right">합격 기준 점수</label>
+						<div class="col-10">
+							<input type="text" id="cutOffPoint" name="cutOffPoint" class="form-control" placeholder="DSR 포인트로 기입하세요"/>
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">테마 출제 문제 수</label>
+						<div class="col-10">
+							<input type="text" id="numOfQuestions" name="numOfQuestions" class="form-control" />
+						</div>
+					</div>
+					
+					<div class="form-group row">
+						<label for="regDate" class="col-2 control-label headerLabel text-right">등록일</label>
+						<div class="col-10 form-text-value">
+							<span id="regDate"></span>
+						</div>
+					</div>
+
+				</div>
+			</div>
+			
+			<div class="row" id="editSubmitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="editDictationThemeBtn" value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		<!--/*---------------------------- [등록된 Dictation 목록 정보]-------------------------------*/-->
+		<div class="row no-gutters" style="margin: 20px 0px 0px 0px;">
+			<div id="existingDictationList" class="col-12"  style="display: block">
+				<table id="dictationListTable" class="table table-bordered table-sm table-hover text-center" style="table-layout:fixed;">
+					<thead>
+					<tr class="thead">
+						<th style="width: 60px;">번호</th>
+						<th style="width: 80px;">DID</th>
+						<th>영어</th>
+						<th>한국어</th>
+						<th style="width: 60px;">출제횟수</th>
+						<th style="width: 60px;">정답횟수</th>
+						<th style="width: 60px;">정답률</th>
+						<th style="width: 80px;">등록일</th>
+						<th style="width: 60px;">삭제</th>
+					</tr></thead>
+					<tbody id="dictationList"><!--/* 기존 등록된 딕테이션 목록 */--></tbody>
+				</table>
+			</div>
+		</div>
+      <!--/* ----------------[paging]------------------------------- */-->
+		<nav class="mt-3">
+			<div id="dictationListPageNavi">
+				<ul class="pagination pagination-sm justify-content-center"></ul>
+			</div>
+		</nav>
+	</div><!-- eidtDictationThemeFormContainer -->
+</div></div><!--/* end of 테마 상세보기 */-->
+
+
+
+</section><!-- end of section  -->
+

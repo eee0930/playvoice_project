@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playkick_layout}">
+
+<head>
+<title>토일레또 (Toiletto) - 플레이보이스 | Playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<script th:src="@{/js/app/playkick.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [가이드 열고 닫기 (mobile ver.)]-----------------------------------------------
+	$(".guideBtnXs").click(function(){
+		$(".guide-toiletto-cover").toggle();
+	});
+
+	// [당첨 안내 가이드 열고 닫기]------------------------------------------------------
+	$("#openWinnerGuide").click(function(){
+		$("#winnerGuideDiv").toggle();
+	});
+	
+	// [로또 번호 자동 생성하기]--------------------------------------------------------
+	$(".createNumBtn").click(function(){
+		var generated = makeArray(1,40,1)
+			.sort(function(){return Math.random() - 0.5})
+			.slice(0,5).sort(function(a,b){return a - b});
+		
+		$(this).closest('.lottoSetDiv').find('.form-control').each(function(i, element) {
+			$(element).text(generated[i]);
+		})
+	});
+	
+	// [번호 수동 선택창 펼치기]-----------------------------------------------------
+	$(".selectNumDiv").click(function () {
+		var disabled = $(this).find('.form-control').prop("disabled");
+		
+		if(!disabled){
+			$(this).closest($(".blankDiv")).hide();
+			$(this).closest($(".lottoSetDiv")).find(".manualSetDiv").show();
+		}
+	});
+	
+	// [번호 수동 선택 취소]---------------------------------------------------------
+	$(".selectCancleBtn").click(function () {
+		$(this).closest($(".lottoSetDiv")).find(".blankDiv").show();
+		$(this).closest($(".lottoSetDiv")).find(".manualSetDiv").hide();
+	});
+	// [번호 수동 선택 시 선택한 번호 표시]---------------------------------------------
+	$(".lottoNumber").change(function(){
+		if($(this).is(":checked")) {
+			$(this).closest("label").addClass("active");
+		} else {
+			$(this).closest("label").removeClass("active");
+		}
+	});
+	
+	// [로또 번호 수동으로 선택완료]---------------------------------------------------
+	$(".selectCompletedBtn").click(function () {
+		var checkedNumbers = [];
+		$("input:checkbox:checked").each(function() { 
+			checkedNumbers.push($(this).val());
+		})
+		
+		if(checkedNumbers.length != 5){
+			alert('5개의 숫자를 선택하세요');
+		} else {
+			$(this).closest('.lottoSetDiv').find('.form-control').each(function(i, element) {
+				$(element).text(checkedNumbers[i]);
+			})
+			$(this).closest($(".lottoSetDiv")).find("input:checkbox").prop("checked", false);
+			$(this).closest($(".lottoSetDiv")).find("label").removeClass("active");
+			$(this).closest($(".lottoSetDiv")).find(".blankDiv").show();
+			$(this).closest($(".lottoSetDiv")).find(".manualSetDiv").hide();
+		}
+		
+	});
+	
+	// [당첨 번호 확인하기]-----------------------------------------------------------
+	$("#checkWinningNumber").click(function(){
+		var choices = [];
+		var complete = true;
+		var appCode = /*[[${toilettoEntry.targetAppCode}]]*/0;
+		var activeLine = /*[[${toilettoEntry.setSize}]]*/0;
+		
+		$('.lottoSetDiv .form-control:lt('+activeLine*5+')').each(function(i,el){
+			var pickNum = el.innerText;
+
+			if(pickNum.length == 0 || Number(pickNum) < 1 || Number(pickNum) > 40
+					|| (choices.indexOf(pickNum, Math.floor(i/5)*5) > -1)){
+				complete = false;
+				alert('1~40 사이의 번호를(같은 줄에는 중복 없이) 모두 채워 주세요.');
+				return false;
+			}
+			choices.push(pickNum);
+		});
+		if(complete){
+			// 클릭 이벤트 제거, 
+			$(this).off('click');
+			$('#checkWinningNumber .click-text').text('');
+			
+			$('.lottoSetDiv .form-control:lt('+activeLine*5+')').prop('disabled', true);
+			$('.lottoSetDiv .createNumBtn:lt('+activeLine+')').prop('disabled', true);
+			$('.lottoSetDiv .createNumBtn:lt('+activeLine+')').removeClass('btn-main');
+			
+			var userTicket = {
+				userNums : choices,
+				appCode : appCode
+			};
+			
+			//------------------------
+			checkToiletto(userTicket);
+			//------------------------
+		}
+	});
+
+	// [당첨 모달 닫기]--------------------------------------------------------------
+	$(".closeAlertModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#alertJackpotModal, #alertFailedModal").hide();
+	});
+	
+});
+
+
+/**
+ * 당첨 번호 확인 후 화면 세팅
+ */
+function successCheckToiletto(serverLotto) {
+	var nextUri = /*[[${toilettoEntry.nextUri}]]*/'/';
+	var lottoNums = serverLotto.lottoNums;
+	
+	$(".play-toiletto-section").addClass("active");
+	$('#winningNumberDiv').show();
+	$('#checkWinningNumber').attr("id", "").removeClass("jsAction");
+	
+	$('#checkWinningNumber').find(".click-text").hide().off('click');
+	$("#resultBtns").show();
+	$('#continueBtn').off('click').on('click', function() {
+		// 다음 버튼의 url설정 
+		location.replace(nextUri);
+	});
+	var serverLottoNums = Array.from(lottoNums, function(elt) {
+		return elt.num;
+	});
+	for (var i = 0; i < serverLottoNums.length; i++) {
+		$('#winningNumberDiv .answer:eq(' + i + ')').text(serverLottoNums[i]);
+	}
+	
+	checkJackpotToiletto(serverLottoNums);
+}
+
+/**
+ * 토일레또 당첨 여부 화면 표시
+ */
+function checkJackpotToiletto(serverLottoNums) {
+	var hitCount = 0;
+	var isJackpot = false;
+	var activeLine = /*[[${toilettoEntry.setSize}]]*/0;
+	var winnerRank = 5;
+	
+	$('.lottoSetDiv .form-control:lt('+activeLine*5+')').each(function(i, elt) {
+		if(serverLottoNums.indexOf(Number(elt.innerText)) > -1){
+			// 정답
+			$(elt).closest(".lotto-blank-cover").addClass("same");
+			hitCount++;
+		}else{
+			// 오답
+			$(elt).closest(".lotto-blank-cover").addClass("different");
+		}
+		
+		//한 세트가 당첨된 경우, 화면 표시
+		if(i%5 == 4){
+			if(hitCount >= 3) {
+				$(elt).closest(".lottoSetDiv").addClass("jackpot");
+				isJackpot = true;
+				winnerRank = (winnerRank <= (6 - hitCount))? winnerRank : (6 - hitCount);
+			}
+			hitCount = 0;
+		}
+	});
+	
+	if(isJackpot) {
+		celebrationJackpot(winnerRank);
+		setTimeout(function() {
+			$("#jackPotFireworks").show();
+		}, 1500);
+	} else {
+		alertFailedJackpot();
+	}
+}
+
+/**
+ * 당첨 된 후 화면 표시
+ */
+function celebrationJackpot(winnerRank) {
+	var giftImage = $("<img class=\"gift" + winnerRank + "\" src=\"/images/common/icon/icon_paper.png\">");
+	$("#alertJackpotModal").find(".rankNum").text(winnerRank);
+	$("#alertJackpotModal").find(".giftImage").html(giftImage);
+	
+	setTimeout(function() {
+		$("#jackPotFireworks").show();
+		$("#alertJackpotModal").fadeIn(100);
+		$("html").addClass("modalOpen");
+	}, 1500);
+}
+
+/**
+ * 미당첨 시 모달 띄우기
+ */
+function alertFailedJackpot() {
+	setTimeout(function() {
+		$("#alertFailedModal").show();
+		$("html").addClass("modalOpen");
+	}, 1500);
+}
+</script>
+
+<style>
+@font-face {
+	font-family: 'Cafe24Simplehae'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Simplehae.woff') format('woff'); 
+	font-weight: normal; font-style: normal; 
+}
+
+</style>
+
+</head>
+
+<section layout:fragment="content">
+
+<div id="playToilettoSection" class="playvoice-play-kick-section my-4 container">
+	
+<div class="row"><div class="col-lg-1"></div>
+<div class="col-lg-10">
+
+<h1 class="title text-center">
+	Toiletto <i class="fa fa-splotch"></i>
+	<label class="toiletto-guide-button-xs d-md-none">
+		<i class="guideBtnXs far fa-question-circle"></i>
+	</label>
+</h1>
+
+<!-- -------------------------[1. 토일레또 플레이 방법]---------------------------- -->
+<div id="guideToilettoDiv" class="guide-toiletto-section row no-gutters">
+	<!-- [1.1 이용 방법] -->
+	<div class="guide-section col-md-7">
+		<h3><b><i class="fa fa-bullhorn"></i> 토일레또</b> 즉석 당첨기회를 잡으세요!</h3>
+		<div class="guide-toiletto-cover">
+			<div class="precaution-title">- 이용 방법 -</div>
+			<div class="precaution-body">
+				<ol>
+					<li>5개의 빈칸에 <b>1~40개의 번호 중 원하는 5개의 숫자</b>를 중복 없이 선택하세요.</li>
+					<li><label class="for-PC">자동선택</label><label 
+						class="for-Mobile"><i class="fa fa-random"></i></label> 버튼을 
+						클릭하면 숫자가 랜덤으로 입력됩니다.</li>
+					<li>숫자를 모두 채우면 CLICK 버튼을 눌러주세요.</li>
+					<li>1등: 숫자 5개 일치, 2등: 숫자 4개 일치, 3등: 숫자 3개 일치</li>
+				</ol>
+				<div class="small-quotation">※ 골드회원에게는 토일레또 plus 혜택이 주어집니다.</div>
+			</div>	
+		</div>
+	</div>
+	<!-- [1.2 캐릭터] -->
+	<div class="toiletto-image-section col-md-5">
+		<div class="gift-box-container">
+			<div class="box"></div>
+			<div class="dog">
+				<div class="dog-group">
+					<div class="body-group">
+						<div class="TY-shape-section">
+							<div class="mane-section">
+								<div class="mane"></div>
+							</div>
+							<div class="bird-body">
+								<div class="face-section">
+									<div class="eye"></div>
+									<div class="eye"></div>
+									<div class="mouse"></div>
+								</div>
+								<div class="arm hello"></div>
+							</div>
+						</div>
+						<div class="dog-box">
+							<div class="dog-box-sign"></div>
+							<div class="bottom-shadow"></div>
+							<div class="top-left-shadow"></div>
+						</div>
+						<div class="tail-group">
+							<div class="tail"><div class="tail">
+								<div class="tail"><div class="tail">
+									<div class="tail"><div class="tail">
+										<div class="tail last"></div>
+									</div></div>
+								</div></div>							
+							</div></div>
+						</div>
+						<div class="dog-shape"></div>
+					</div>
+				</div>
+			</div>
+			<div class="plant-group">
+				<div class="pot"></div>
+				<div class="plant">
+					<div class="stem">
+						<div class="leaf"></div>
+						<div class="leaf"></div>
+						<div class="leaf"></div>
+						<div class="leaf"></div>
+						<div class="leaf"></div>
+					</div>
+				</div>
+			</div>
+			<div class="shapes">
+				<div class="red-shape"></div>
+				<div class="blue-shape"></div>
+				<div class="yellow-shape"></div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of guideToilettoDiv -->
+	
+
+<!-- 잭팟 폭죽 (토일레또 당첨된 경우) -->
+<div id="jackPotFireworks" class="firework-effect" style="display: none;">
+	<div class="firework-start"></div>
+	<div class="firework-during"></div>
+</div>	
+
+<!-- ---------------------------[2. 로또 플레이]------------------------------- -->	
+<div id="playToilettoDiv" class="play-toiletto-section">
+	<!-- [2.1 로또 세트 리스트] -->
+	<div class="lotto-set-list-section" th:with="activeLine=${toilettoEntry.setSize}">
+		<!-- 로또 한 세트 -->
+		<div th:each="lottoSet:${#numbers.sequence(1, activeLine)}" 
+			class="lottoSetDiv lotto-set-cover">
+			<div class="blankDiv row no-gutters">
+				<div class="col-auto align-self-center"><div class="set-image"></div></div>
+				<div class="selectNumDiv col row no-gutters jsAction">
+					<div class="lotto-blank-cover col">
+						<div class="form-control playvoice-form" 
+							th:disabled="${lottoSet GT activeLine}"></div>
+					</div>
+					<div class="lotto-blank-cover col">
+						<div class="form-control playvoice-form" 
+							th:disabled="${lottoSet GT activeLine}"></div>
+					</div>
+					<div class="lotto-blank-cover col">
+						<div class="form-control playvoice-form" 
+							th:disabled="${lottoSet GT activeLine}"></div>
+					</div>
+					<div class="lotto-blank-cover col">
+						<div class="form-control playvoice-form" 
+							th:disabled="${lottoSet GT activeLine}"></div>
+					</div>
+					<div class="lotto-blank-cover col">
+						<div class="form-control playvoice-form" 
+							th:disabled="${lolttoSet GT activeLine}"></div>
+					</div>
+				</div>
+				<div class="lotto-blank-cover col-auto">
+					<button class="createNumBtn btn btn-random" type="button" 
+						th:disabled="${lottoSet GT activeLine}">
+						<span class="d-none d-md-block">자동 선택</span>
+						<span class="d-md-none"><i class="fa fa-random"></i></span>
+					</button>
+				</div>
+			</div>
+			<!-- 수동선택으로 번호 선택 -->
+			<div class="manualSetDiv select-number-section" style="display: none">
+				<div class="manual-set-title row no-gutters">
+					<div class="col"></div>
+					<div class="col-auto"><div class="set-image"></div></div>
+					<div class="col-auto align-self-center">5개 번호 직접 선택</div>
+					<div class="col"></div>
+				</div>
+				<div class="select-number-cover row no-gutters">
+					<div th:each="lottoNumber:${#numbers.sequence(1,40)}"
+						class="select-num col-auto">  
+						<label>
+							<input type="checkbox" class="lottoNumber" 
+								th:value="${lottoNumber}"/>[[${lottoNumber}]]
+						</label>
+					</div>	
+				</div>
+				<div class="select-num-button-section">
+					<button class="selectCompletedBtn btn btn-main" type="button">선택 완료</button>
+					<button class="selectCancleBtn btn btn-main" type="button">취소</button>
+				</div>
+			</div>
+		</div>	
+	</div>
+	
+	<div class="lotto-button-section text-center">
+		<!-- 당첨 번호 영역 -->
+		<div id="winningNumberDiv" class="toiletto-number-section">
+			<div class="answer num-ball"></div>
+			<div class="answer num-ball"></div>
+			<div class="answer num-ball"></div>
+			<div class="answer num-ball"></div>
+			<div class="answer num-ball"></div>
+		</div>
+		<!-- 당첨 확인 버튼 -->
+		<div class="toiletto-button-cover">
+			<div id="checkWinningNumber" class="crystal-ball-section jsAction">
+				<div class="ball">
+					<div class="ball-item"></div>
+					<div class="ball-item"></div>
+					<div class="ball-item"></div>
+					<div class="click-text infi-blink">click</div>
+				</div>
+				<div class="step first"></div>
+				<div class="step second"></div>
+			</div>
+		</div>
+	</div>
+	<!-- next 버튼 -->
+	<div id="resultBtns" class="result-btn-section text-center" style="display: none;">
+		<button id="continueBtn" class="btn next-btn" type="button">
+			<span class="infi-blink">next</span>
+		</button>
+	</div>
+</div><!-- end of playToilettoDiv -->
+
+<!-- ---------------------------[3. 상품 지급 설명]------------------------------ -->
+<div id="descriptionToilettoDiv" class="description-toiletto-div">
+	<div class="kick-precaution-cover kick-gift-section mb-3">
+		<!-- [3.1 에그샷 상품] -->
+		<th:block th:if="${toilettoEntry.targetAppCode
+			==T(com.varxyz.playvoice.common.Constants).PLAYVOICE_BOOK_KICK_EGG}">
+			<div class="precaution-body egg-shot box-inner mb-3 row no-gutters">
+				<div class="col-4">
+					<b>1등</b><br>
+					판도라의 상자 <i class="fa fa-star text-warning"></i><br>
+					<img class="gift1" src="/images/common/icon/icon_paper.png">
+				</div>
+				<div class="col-4">
+					<b>2등</b><br>
+					치킨<br>
+					<img class="gift2" src="/images/common/icon/icon_paper.png">
+				</div>
+				<div class="col-4">
+					<b>3등</b><br>
+					구운 계란<br>
+					<img class="gift3" src="/images/common/icon/icon_paper.png">
+				</div>
+			</div>
+		</th:block>
+		<!-- [3.2 탐정줄리 상품] -->
+		<th:block th:if="${toilettoEntry.targetAppCode
+			==T(com.varxyz.playvoice.common.Constants).PICTIONARY_KICK_DETECTIVE}">
+			<div class="precaution-body detective box-inner mb-3 row no-gutters">
+				<div class="col-4">
+					<b>1등</b><br>
+					판도라의 상자 <i class="fa fa-star text-warning"></i><br>
+					<img class="gift1" src="/images/common/icon/icon_paper.png">
+				</div>
+				<div class="col-4">
+					<b>2등</b><br>
+					피자<br>
+					<img class="gift2" src="/images/common/icon/icon_paper.png">
+				</div>
+				<div class="col-4">
+					<b>3등</b><br>
+					커피<br>
+					<img class="gift3" src="/images/common/icon/icon_paper.png">
+				</div>
+			</div>
+		</th:block>
+		<div id="openWinnerGuide" class="precaution-title box-inner border-style jsAction">
+			당첨 안내 <i class="fa fa-caret-down"></i>
+		</div>
+		<div id="winnerGuideDiv" class="precaution-body box-inner" style="display: none;">
+			<ol>
+				<li>경품 지급은 당첨된 날로부터 다음 달 1일(휴무 제외)에 일괄 발송됩니다.</li>
+				<li>경품 지급일 전날까지 휴대폰 번호, 주소지 정보가 등록되지 않은 경우, 경품 발송이 누락될 수 있습니다.</li>
+				<li>휴대폰 번호, 주소지 등록은 <a th:href="@{/mypage/member/edit}">마이페이지 > 회원 정보 수정</a>에서 등록할 수 있습니다.</li>
+				<li>연락처 오기입, 변경으로 인한 책임은 참여자 본인에게 있습니다.</li>
+				<li>부적절한 방법으로 이벤트에 응모하여 당첨된 경우, 당첨이 취소될 수 있습니다.</li>
+				<li>회신 받은 개인 정보는 경품 제공 외에 다른 용도로 사용되지 않습니다.</li>
+				<li>당첨 시 5만 원이 넘는 경품은 소득세법에 의거하여 제세 공과금 22%는 당첨자 본인 부담이며, 
+					제세공과금과 경품 수령에 필요한 서류를 납부 또는 제출하지 않은 경우 당첨이 취소될 수 있습니다.</li>
+				<li>본 이벤트는 당사 사정에 의해 예고 없이 변경될 수 있으며, 경품 이미지는 실제와 다를 수 있습니다.</li>
+				<li>경품에 대한 문의사항은 <a th:href="@{/qna/order/list}">주문, 결제 문의</a> 게시판에 글을 남겨주세요. </li>
+			</ol>
+		</div>	
+	</div>
+</div><!-- end of descriptionToilettoDiv -->
+
+
+</div></div>
+</div><!-- end of playToilettoSection -->
+
+
+<!-- ------------------------[jackpot alert modal]-------------------------- -->
+<div id="alertJackpotModal" class="playvoice-inform-modal-section modal-jackpot"
+	style="display: none;">
+	<div class="closeAlertModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeAlertModal fa fa-times"></i>
+			<h5>Congratulations!</h5>
+		</div>
+		<div class="inform-modal-body kick-gift-section">
+			<div class="detail-msg main">
+				축하합니다! <i class="far fa-grin-squint fa-lg"></i> <br>
+				<span class="rankNum"></span> 등에 당첨되었습니다!
+			</div>
+			<div th:if="${toilettoEntry.targetAppCode
+				==T(com.varxyz.playvoice.common.Constants).PLAYVOICE_BOOK_KICK_EGG}" 
+				class="giftImage image-section egg-shot"></div>
+			<div th:if="${toilettoEntry.targetAppCode
+				==T(com.varxyz.playvoice.common.Constants).PICTIONARY_KICK_DETECTIVE}" 
+				class="giftImage image-section detective"></div>
+			<div class="detail-msg">
+				당첨된 경품은 다음 달 초 일괄 지급됩니다.<br>
+				개인 정보가 정확히 입력되었는지 확인해 주세요.
+			</div>
+			<div class="content-button-section d-md-none">
+				<a th:href="@{/mypage/member/edit}" class="loginRequired btn btn-main2">개인 정보 수정</a>
+			</div>
+		</div>
+		<div class="inform-modal-footer d-none d-md-block">
+			<button class="closeAlertModal btn btn-main2" 
+				type="button">확인</button>
+			<a th:href="@{/mypage/member/edit}" class="loginRequired btn btn-main2">개인 정보 수정</a>
+		</div>
+		<div class="closeAlertModal inform-modal-footer close d-md-none">
+			close
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+<!-- -------------------------[failed alert modal]-------------------------- -->
+<div id="alertFailedModal" class="playvoice-inform-modal-section modal-jackpot failed"
+	style="display: none;">
+	<div class="closeAlertModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeAlertModal fa fa-times"></i>
+			<h5 class="kor">당첨 실패 <i class="far fa-tired fa-fw fa-lg"></i></h5>
+		</div>
+		<div class="inform-modal-body">
+			<div th:if="${toilettoEntry.targetAppCode
+				==T(com.varxyz.playvoice.common.Constants).PLAYVOICE_BOOK_KICK_EGG}" 
+				class="image-section">
+				<img src="/images/common/characters/africa_sad.png">
+			</div>
+			<div th:if="${toilettoEntry.targetAppCode
+				==T(com.varxyz.playvoice.common.Constants).PICTIONARY_KICK_DETECTIVE}" 
+				class="image-section">
+				<img src="/images/common/characters/julie_sad.png">
+			</div>
+			<div class="detail-msg">
+				다음 기회를 노려보세요!
+			</div>
+		</div>
+		<div class="inform-modal-footer d-none d-md-block">
+			<button class="closeAlertModal btn btn-main2" 
+				type="button">확인</button>
+		</div>
+		<div class="closeAlertModal inform-modal-footer close d-md-none">
+			close
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+</section>

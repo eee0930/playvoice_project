@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>Add Story - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [가이드 닫기]----------------------------------------------------------------
+	$("#closeGuide_btn").click(function(){
+		$(".smalltalkGuide").hide(100);
+		$(".openGuideBtn").show();
+	});
+	
+	// [가이드 열기]---------------------------------------------------------------
+	$(".openGuideBtn").click(function(){
+		$(this).hide();
+		$(".smalltalkGuide").show(100);
+	});
+	
+	// [카테고리 선택]--------------------------------------------------------------
+	$(".categorySelect").change(function(){
+		if($(this).val() == 'etc') {
+			$("#selectCategoryDiv").slideDown(100);
+			$("#selectCategoryDiv option:eq(0)").prop("selected", true);
+			$("#addSmallTalkBtn").prop("disabled", true);
+		} else {
+			$("#selectCategoryDiv").hide();
+			$("#addSmallTalkBtn").prop("disabled", false);
+		}
+	});
+	$("#selectCategoryDiv select").change(function(){
+		if($(this).val() == '0'){
+			$("#addSmallTalkBtn").prop("disabled", true);
+		}else{
+			$("#addSmallTalkBtn").prop("disabled", false);
+		}
+	})
+	
+	// [스몰톡 등록]----------------------------------------------------------------
+	$("#addSmallTalkBtn").click(function(){
+		if($(".categorySelect:checked").val() == 'etc'){
+			$(".categorySelect").prop("disabled", true);
+		}else{
+			$("#selectCategoryDiv select").prop("disabled", true);
+		}
+		
+		$("#selectCategoryForm").submit();
+	});
+	
+}); //end of ready
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div th:replace="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+
+<div id="introductionSection" class="article-introduction-section mt-5">
+	<h3 class="category"><span>Select Category</span></h3>
+</div>
+
+
+<div id="addSmallTalkSection" class="add-smalltalk-section">
+	<div class="text-right">
+		<div class="open-guide-section mb-3 d-none d-md-block">
+			<a class="openGuideBtn" style="display: none;">
+				<i class="fa fa-robot fa-fw"></i> 
+				카테고리 선정 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+			</a>
+		</div>
+	</div>
+	
+	<!-- -----------------------[1. 작성 가이드]-------------------------------- -->
+	<div class="open-guide-section d-md-none">
+		<a class="openGuideBtn" style="display: none;">
+			<i class="fa fa-robot fa-fw"></i> 
+			카테고리 선정 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+	</div>
+	<div class="add-digest-guide-cover smalltalkGuide row no-gutters">
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="title">
+				<span>카테고리 선정 가이드</span>
+				<span class="guide-icon"><i lang="fa" class="fa fa-robot fa-lg"></i> </span>
+				<i id="closeGuide_btn" class="fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				Watson이 <span class="alias">'[[${session.userContainer.personacon.alias}]]'</span> 
+					님의 글을 읽고 제멋대로 카테고리를 선정했습니다.<br>
+				<span class="num">1.</span> 추천 카테고리 중 가장 적절하다고 생각하는 걸 선택해 주세요.<br>
+				<span class="num">2.</span> 추천 카테고리가 내용과 관련이 없다고 생각되면 '직접 선택하기'를 클릭하여 카테고리를 선택해 주세요.<br>
+			</div>
+			<div class="another-info">
+				<div class="info-title">IBM-Watson 경력</div>
+				<div class="row no-gutters">
+					<span class="col-xl-1 col-md-2">- 2011년</span>
+					<span class="col-xl-11 col-md-10">제퍼디 퀴즈쇼에서 최고 금액 수상자 브레드 러터, 
+					최다 챔피언 켄 제닝스와의 대결에서 승리</span>
+					<span class="col-xl-1 col-md-2">- 현재</span>
+					<span class="col-xl-11 col-md-10"> 금융, 보험, 법률, 유통, 교육을 포함한 17개 산업에서 근무</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="translation-bg">
+	<form id="selectCategoryForm" th:action="@{/square/smalltalk/add}" method="post">
+		<div class="smalltalk-category-list-section">
+			<h5>
+				Watson이 추천하는 카테고리 <i class="fa fa-list-ul"></i><br>
+				<span class="sub">(카테고리의 괄호 부분은 카테고리 내의 주요 내용들입니다.)</span>
+			</h5>
+			<div class="category-list-div">
+				<div th:each="categoryCandidate, iter : ${categoryCandidateList}">
+					<label th:with="relevanceScore = ${categoryCandidate.relevanceScore * 100}">
+						<input class="categorySelect option-input radio" type="radio"
+							name="category" th:checked="${iter.index} == 0? true: false"
+							th:value="${categoryCandidate.engName}"/>
+						[[${categoryCandidate.korName}]]
+						<span>추천도: [[${#numbers.formatDecimal(relevanceScore,1,1)}]] %</span>
+					</label>
+				</div>
+				<div>
+					<label>
+						<input class="categorySelect option-input radio" type="radio" 
+							name="category" value="etc"/> 직접 선택하기
+					</label>
+				</div>
+				<div id="selectCategoryDiv" class="category-list-section row no-gutters" style="display: none;">
+					<div class="select-category col-xl-5 col-md-6">
+						<select name="category" class="form-control playvoice-form" size="10">
+							<option value="0" selected>== 카테고리를 선택해 주세요 ==</option>
+							<option th:each="allCategory : ${allCategoryList}"
+								th:value="${allCategory.engName}">[[${allCategory.korName}]]</option>
+						</select>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="add-button-section">
+			<button id="addSmallTalkBtn" class="loginRequired btn btn-smalltalk" type="button">
+				등 록  <i class="far fa-grin-alt"></i>
+			</button>
+		</div>
+	</form>
+	</div>
+</div><!-- end of addSmallTalkSection -->
+	
+<div class="text-right" style="color:red;">
+	source :: square/smalltalk/category_story.html 
+</div> 
+
+</section>
+</html>

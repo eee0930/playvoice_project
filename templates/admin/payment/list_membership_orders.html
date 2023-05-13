@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List MembershipOrder</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/payment.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	
+		var tagetLink = $('#membershipOrderListDiv th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시]-----------------------------------------------------
+	$("#membershipOrderListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		var sort = $(this).attr('data-value');
+		console.log('sort '+sort);
+		$('#sortName').val(sort);
+		
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		displaySearchMark($(this));
+		//searchMembershipOrder(searchType, page, 'list'); 
+		searchMembershipOrder2(searchType, page, 'list');
+	});
+	
+	//[테이블 데이터(eng) 클릭시 상세보기]--------------------------------------------------
+	$('.resultWrapper').on('click', '.membershipOrderDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.membershipOrderDetailPart').css('display','block');
+		//결제 정보 추출
+		pickUpMembershipOrderInfo($(this));
+		//이전에 수정을 했었다면
+		$('.successBtn').css('display', 'none');
+		//상세보기,수정 폼으로 이동
+		window.scroll(0, getOffsetTop(document.getElementById("editMembershipOrderForm")));
+	});
+	
+	//[결제 수정 버튼 클릭시 결제 수정 처리]------------------------------------------------------
+	$('#editMembershipOrderBtn').click(function(e) {
+		e.preventDefault();
+		updateMembershipOrder($('#jid').val());
+	});
+	
+	//[보이스 수정 버튼 클릭시 보이스 수정 처리]---------------------------------------------------
+	$('#editVoiceBtn').click(function(e) {
+		e.preventDefault();
+		updateVoice($('#vid').val());
+	});
+	
+	//[결제 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchMembershipOrderDiv').toggle();
+	});
+	
+	//[환불 금액의 퍼센트 변경 시 ]---------------------------------------
+	$(document).on('change','.percent',function(){
+		var percent = $(this).val();
+		var strAmount = $('#totalAmount').text().trim();
+		var numAmount = Number(strAmount.replace(/,/g,""));
+		
+		var result = numAmount*(percent/100);
+		
+		var regexp = /\B(?=(\d{3})+(?!\d))/g;
+		result = result.toString().replace(regexp, ',');
+		  
+		$('#amount').val(result);
+		
+	});
+	
+})//end of reday
+
+function searchMembershipOrder2(searchType, page, suffix){
+	
+	if(page==undefined){
+		page = 1;
+	}
+	
+	var sType = searchType;
+	if(sType==undefined){
+		sType=$('#searchFormHidden_'+suffix+' #searchType').val();
+	}
+	
+	console.log('page ' + page);
+	console.log('sType ' + sType);
+	console.log('keyword ' + $('#keyword').val().trim());
+	var keyword =  $('#keyword').val().trim();
+	if(sType == 'appCode'){ 
+		keyword = $('#appCodeDiv #keyword').val().trim();
+	}
+	
+	
+	$.getJSON({
+		//type: "GET", 
+		url : '/admin/jungleBook/search',
+		data : {
+			searchType : sType,
+			keyword : keyword,
+			fromDate : $('#fromDate').val(),
+			toDate : $('#toDate').val(),
+			page : page,
+			sortName : $('#searchFormHidden_'+suffix+' #sortName').val(),
+			asc : $('#searchFormHidden_'+suffix+' #asc').val()
+		},
+		success : function(result){
+			//resetDefault();
+			
+			var page = result.result;
+			displayMembershipOrderList(page.content, result.currentPageNum, page.totalElements, suffix);		
+			displayPageNavigation2(result, sType, 'list'); 
+
+			//if open, 에러 패널 닫기
+			$('#errorDiv').css("display",'none');
+			//기존 테이블 닫기
+			$('#membershipOrderListDiv').css("display",'none');
+			//신규 테이블 show
+			$('#searchResult_'+suffix).css("display",'block');
+		},
+		error : function (e) {
+			$('#errorDiv').css("display",'inline');
+			$('#errorDiv > pre').text(e.responseText);
+
+            console.log("ERROR : ", e);
+        }
+	});
+} 
+
+function displayPageNavigation2(pageMaker, sType, suffix){
+	console.log('displayPageNavigation 2');
+	console.log("pageMaker="+JSON.stringify(pageMaker));
+	console.log('sType ' + sType);
+	
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var ul = $('#searchResultPageNavi ul');
+	ul.empty();
+	
+	if(prevPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+			html('PREV'+parseInt(prevPage.pageNumber+1));
+		link.attr('onclick','searchMembershipOrder2("'+sType+'",'+parseInt(prevPage.pageNumber+1)+',"'+suffix+'")');
+		link.appendTo(li);
+		li.appendTo(ul);
+		
+	}
+	
+	$.each(pageList, function(index, page){
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="page-link"></a>');
+		link.attr('href', 'javascript:void(0)');
+		link.attr('onclick','searchMembershipOrder2("'+sType+'",'+parseInt(page.pageNumber+1)+',"'+suffix+'")');
+		link.html(parseInt(page.pageNumber + 1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	});
+	
+	if(nextPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+		html('NEXT'+parseInt(nextPage.pageNumber+1));
+		link.attr('onclick','searchMembershipOrder2("'+sType+'",'+parseInt(nextPage.pageNumber+1)+',"'+suffix+'")');
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+}
+
+/**
+ * 목록 헤더 컬럼 정렬 기능 처리
+ */
+function displaySearchMark(target){
+	
+	//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+	$('#membershipOrderListDiv .sortMark, #searchResultTable_list .sortMark').css('display', 'none');
+	
+	var dynamicTargets = document.querySelectorAll('#searchResult_list .thlink');
+	
+	var sortName = target.attr('data-value');
+	console.log('sortName ' + sortName);
+	var sortMark = target.next();
+	
+	for(var i = 0; i < dynamicTargets.length; i++){
+		//alert(dynamicTargets[i]);
+		if(dynamicTargets[i].getAttribute("data-value") == sortName){
+			//alert(sortName);
+			sortMark = dynamicTargets[i].nextSibling;
+		}
+	}
+	
+	//현재 선택한 sortName이 이전과 같다면
+	if(sortName == $('#searchFormHidden_list #sortName').val()){
+		//현재 설정된 정렬방향을 가져온다.
+		var direction = $('#searchFormHidden_list #asc').val();
+		
+		//정렬방향을 반대로 변경한다.
+		if(direction == 'false'){
+			$('#searchFormHidden_list #asc').val('true');
+			//sortMark.text('▲');
+			sortMark.innerHTML='▲';
+		}else{
+			$('#searchFormHidden_list #asc').val('false');
+			//sortMark.text('▼');
+			sortMark.innerHTML='▼';
+			
+		}
+		console.log("이전과 동일=");
+		
+	}else{
+		//새로운 sortName으로 교체
+		$('#searchFormHidden_list #sortName').val(sortName);
+		
+		//기본값을 desc로 설정한다.
+		$('#searchFormHidden_list #asc').val('false');
+		
+		console.log("이전과 다름=");
+	}
+	//----------------------------------------
+	//sortMark.css('display', 'inline');
+	
+	target.next().css('display', 'inline');
+	//sortMark.css('display', 'inline');
+	//var st = sortMark.style;
+	//st.display = 'inline'; 
+	//----------------------------------------
+}
+
+/**
+ * 검색된 목록의 내용(orderNum 부분)을 클릭했을 때 상세보기 폼으로 복사
+  */
+function pickUpMembershipOrderInfo(obj){
+	var membershipOrderTr = obj.parent().parent();
+	var membershipOrderNo = membershipOrderTr.children().first();
+	var oid = membershipOrderNo.next();
+	var orderNum = oid.next();
+	var membership = orderNum.next();
+	var totalAmount = membership.next();
+	var paid = totalAmount.next();//테이블의 tr요소를 가리킴
+	var loginId = paid.next();
+	var orderDate = loginId.next();
+	var startDate = orderDate.children().eq(0);
+	var endDate = orderDate.children().eq(1);
+	
+	$('#oid').text(oid.text().trim());	
+	$('#orderNum').text(orderNum.text().trim());
+	$('#membership').text(membership.text().trim());
+	$('#totalAmount').text(totalAmount.text());
+	$('#paid').text(paid);
+	$('#loginId').text(loginId.text());
+	$('#orderDate').text(orderDate.text());
+	$('#period').text(startDate.val() + ' ~ ' + endDate.val());
+	
+	$('#amount').val(totalAmount.text());
+}
+
+ 
+
+
+/**
+ * 결제 수정하기
+ * function updateMembershipOrder(jungleMembershipOrderId) -> jungleBook.js로 이동
+ */
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+	
+	<!--/* ----------------[inclule : Search MembershipOrder Form]--------------- */-->
+	<div	id="searchMembershipOrderDiv" 
+			th:insert="~{/admin/payment/incl/search_membership_order::search_membership_order}" 
+			style="display: none"></div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	<h3 th:text="${tableTitle}">결제 목록(MembershipOrder List)</h3> 
+	
+	<!--/* 1. 결제 목록 Table  */-->
+	<div id="membershipOrderListDiv">
+		<!-- table -->
+		<div th:with="result=${pageMaker.result}">
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de; table-layout:fixed;"></i></div>
+			<table class="resultWrapper text-truncate table table-striped table-sm table-bordered table-hover text-center admin-membershipOrderbook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='oid'>OID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;"> 
+						<a href="javascript:void(0)" class="thlink" data-value='orderNum'>주문번호</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 170px;"> 
+						<a href="javascript:void(0)" class="thlink" data-value='membership'>회원권</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 70px;">총 가격</th>
+					<th style="width: 70px;">결제 여부</th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" data-value='loginId'>구매자</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="membershipOrder, status : ${result.content}">
+					 <td th:text="${( pageMaker.result.totalElements - status.count+1) - ((pageMaker.currentPageNum -1) * 20)} "></td> 
+					<!-- <td th:text="${(pageMaker.totalElements-(status.index)) - 
+							( (pageMaker.currentPageNum -1) * 
+							T(com.varxyz.playvoice.common.Constants).FETCH_SIZE	)} ">
+					</td> -->
+					
+					<td th:text="${membershipOrder.oid}"> </td>
+					<td>
+						<a href="javascript:void(0)" class="membershipOrderDetail">[[${membershipOrder.orderNum}]]</a>
+						
+					</td>
+					<td class="text-left" th:text="${membershipOrder.membership.item.name}"></td>
+					<td th:text="${#numbers.formatInteger(membershipOrder.totalAmount, 3, 'COMMA')}"></td>
+					<td th:text="${membershipOrder.paid}">결제 여/부</td>
+					<td th:text="${membershipOrder.member.loginId}">구매자</td>
+					<td>
+						[[${#dates.format(membershipOrder.orderDate, 'yyyy-MM-dd')}]]
+						<input type='hidden' th:value="${#dates.format(membershipOrder.membership.startDate, 'yyyy-MM-dd')}"/>
+						<input type='hidden' th:value="${#dates.format(membershipOrder.membership.endDate, 'yyyy-MM-dd')}"/>
+					</td>
+					
+				</tr>
+			</table>
+		</div>
+		<!--/* 1.paging */--> 
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	
+	<!--/* 2. 결제 목록 Table By Ajax */-->
+	<div id="searchResult_list" style="display: none">
+		<div>
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table id="searchResultTable_list" class="resultWrapper table table-bordered table-striped table-sm table-hover text-center admin-membershipOrderbook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='jid'>JID</a>
+						<span class="sortMark">▼</span></th>
+					<th>
+						<a href="javascript:void(0)" class="thlink" data-value='eng'>영어</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 220px;">한국어</th> 
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink" data-value='added'>결제북 추가여부</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='appCode'>앱코드</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">작성자</th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<tbody><!--/* 결과 목록 */--></tbody>
+			</table>
+		</div>
+		<!--/* paging */-->
+		<nav class="row my-333">
+			<div  class="col-12" id="searchResultPageNavi">
+				<ul class="pagination pagination-sm justify-content-center">
+					
+				</ul>
+			</div>
+		</nav>
+	</div> <!-- end of searchResult -->
+	
+	
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	
+	
+</div></div> <!--/* end of 결제 목록 */-->
+	
+	
+<!--/* =====================[주문내역 상세 보기/환불 및 취소]====================== */-->	
+<div class="row membershipOrderDetailPart" style="display:none"><div class="col-12">
+	
+	<div class="formContainer" id="eidtMembershipOrderFormContainer">
+		<h3>
+			View Detail &amp; Editing MembershipOrder Form <button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<!--/*---------------------------- [MembershipOrder 상세 정보 폼]-------------------------------*/-->
+		<form th:action="@{/membershipOrder/edit}" method="post" class="form-horizontal" id="editMembershipOrderForm">
+			<div class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="oid" class="col-2 control-label headerLabel text-right">OID</label>
+						<div class="col-10">
+							<p id="oid" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="orderNum" class="col-2 control-label headerLabel text-right">주문번호</label>
+						<div class="col-10">
+							<p id="orderNum" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="membership" class="col-2 control-label headerLabel text-right">회원권</label>
+						<div class="col-10">
+							<p id="membership" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="totalAmount" class="col-2 control-label headerLabel text-right">총 가격</label>
+						<div class="col-10">
+							<p id="totalAmount" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="loginId" class="col-2 control-label headerLabel text-right">구매자</label>
+						<div class="col-10">
+							<p id="loginId" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="orderDate" class="col-2 control-label headerLabel text-right">구매일</label>
+						<div class="col-10 ">
+							<!-- <input type="text" id="regDate" name="regDate" class="form-control" /> -->
+							<p id="orderDate" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="period" class="col-2 control-label headerLabel text-right">회원권 기간</label>
+						<div class="col-10 ">
+							<!-- <input type="text" id="regDate" name="regDate" class="form-control" /> -->
+							<p id="period" class="form-control-static"></p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		<h3>
+			환불/취소<button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<form action="">
+			<div class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="oid" class="col-2 control-label headerLabel text-right">은행 코드</label>
+						<div class="col-10">
+							<input type="text" id="bankCode" name="bankCode" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="accountNum" class="col-2 control-label headerLabel text-right">계좌 번호</label>
+						<div class="col-10">
+							<input type="text" id="accountNum" name="accountNum" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="holder" class="col-2 control-label headerLabel text-right">예금주</label>
+						<div class="col-10">
+							<input type="text" id="holder" name="holder" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="amount" class="col-2 control-label headerLabel text-right">환불 금액</label>
+						<div class="col-10">
+							<input type="text" id="amount" name="amount" class="form-control" />
+							<label class="radio-inline">
+								<input type="radio" name="percent" class="percent" value="100" checked="checked"/><span>100%</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="percent" class="percent" value="80" /><span>80%</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="percent" class="percent" value="50"/><span>50%</span>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="orderNum" class="col-2 control-label headerLabel text-right">취소 사유</label>
+						<div class="col-10">
+							<input type="text" id="holder" name="holder" class="form-control" />
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<div class="row" id="editSubmitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="editMembershipOrderBtn" value="환불" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		<!--/*---------------------------- [Voice 정보 수정 폼]-------------------------------*/-->
+		<form method="post" class="form-horizontal" id="editVoiceForm" style="display:none">
+			<div id="membershipOrderDiv0" class="row my-2">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="demo" class="col-2 control-label headerLabel text-right">VID</label>
+						<div class="col-10">
+							<label class="checkbox-inline">
+ 								<input type="text" id="vid" name="vid" />
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="demo" class="col-2 control-label headerLabel text-right">대표 보이스</label>
+						<div class="col-10">
+							<label class="checkbox-inline">
+ 								<input type="checkbox" name="demo" />
+ 								<input type="hidden" value="on" name="_demo"/>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">구분</label>
+						<div class="col-10 ">
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="TTS1"/><span>무료TTS</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="TTS2" /><span>유료TTS</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="MV" /><span>Movie/Drama</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="YOU" /><span>YouTube</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="TED" /><span>TED</span>
+							</label><br>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="LV" /><span>라이센스 보이스</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="MV" /><span>회원 보이스</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="DV" /><span>기증자 보이스</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceType" value="ETC" /><span>기타</span>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">속도</label>
+						<div class="col-10 ">
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceRate" value="A"/><span>학습용</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceRate" value="B" /><span>일반대화</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceRate" value="C" /><span>빠른대화</span>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">액센트</label>
+						<div class="col-10 ">
+							<label class="radio-inline">
+								<input type="radio" name="accent" value="US" checked="checked"/><span>미국</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="accent" value="CA" /><span>캐나다</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="accent" value="UK"/><span>영국</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="accent" value="AU"/><span>호주</span>
+							</label>
+							<label class="radio-inline">
+								<input type="radio" name="accent" value="IN"/><span>인디아</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="accent" value="KR"/><span>한국</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="accent" value="EU"/><span>유럽</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="accent" value="ASA" /><span>아시아</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="accent" class="accent-etc" value="ETC"/><span>기타</span>
+								<input type="text" class="accent-text" placeholder="국가코드 입력"/>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">성별</label>
+						<div class="col-10 ">
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceSex" value="M"/><span>남자</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceSex" value="W"/><span>여자</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceSex" value="B"/><span>남자 아이</span>
+							</label>
+							<label class="radio-inline">
+ 								<input type="radio" name="voiceSex" value="G"/><span>여자 아이</span>
+							</label>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="source" class="col-2 control-label headerLabel text-right">출처/제공자</label>
+						<div class="col-10 ">
+							<input type="text" name="source"
+									  placeholder="출처 URL, 회원 Id, 보이스 제공자 이름, 영화 제목, 기타 등"  class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="description" class="col-2 control-label headerLabel text-right">비고</label>
+						<div class="col-10 ">
+							<textarea name="description"
+									  placeholder="비고"  class="form-control" ></textarea>
+						</div>
+					</div>
+				</div>	
+			</div>
+			
+			<div class="row" id="submitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="editVoiceBtn" value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+		</form>
+	</div><!-- eidtMembershipOrderFormContainer -->
+	
+</div></div><!--/* end of 결제 상세보기 */-->
+
+</section><!-- end of section -->
+

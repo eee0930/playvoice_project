@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+<title>[[${grammar.title}]] - 플레이보이스 | Playvoice</title>
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = ${grammar.title} + ' - 플레이보이스 | Playvoice', 
+	metaDescription = ${#stringUtil.removeTag(articleList[0]?.content)}, 
+	metaImage = '/images/app/playsquare/green_cat.jpg', 
+	metaRegDate = ${articleList[0]?.regDate}"></th:block>
+	
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', '/square/grammarBook/pages', 
+	#httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '그래머북 아티클 목록', grammar.title} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaBlog}"
+	th:with="schemaHeadline = ${grammar.title},
+	metaImage = '/images/app/playsquare/green_cat.jpg',
+	articleSection = ${#strings.isEmpty(articleList[0].subtitle)? 
+	grammar.title:articleList[0].subtitle},
+	metaDescription = ${#stringUtil.removeTag(articleList[0]?.content)},
+	schemaAlias = ${articleList[0]?.personacon?.alias},
+	metaRegDate = ${articleList[0]?.regDate},
+	ratingCount = ${articleList[0]?.likeCount}"></th:block>]
+</script>
+
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/plugin/semanticroles.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+
+<script th:inline="javascript">
+var grammarId = /*[[${grammar.gid}]]*/0;
+var mid = /*[[${session?.userContainer?.personacon?.pid}]]*/0;
+$(document).ready(function(){
+	
+	// [목차에서 아티클 주제 클릭 시 아티클 보여주기]-------------------------------------------
+	$(document).on("click",".openArticleContent:not(#openAddArticle)",function(){
+		$(".openArticleContent").removeClass("active");
+		$(this).addClass("active");
+		
+		var openArticleId = $(this).attr("id");
+		
+		$(".articleView").hide();
+		$("#" + openArticleId + "_div").show(100);
+	});
+	
+	// [신규 아티클 작성 화면 보여주기]----------------------------------------------------
+	$("#openAddArticle").click(function(){
+		$(".openArticleContent").removeClass("active");
+		$(".articleView").hide();
+		if($(this).is(":not(.editorLoaded)")){
+			$("#openAddArticle_div,.introduction-section").show();
+			var editor = $("#editorPlace");
+			editor.load("/square/grammarBook/add #addArticleForm", function() {
+				$(this).closest("#editorPlace").find(".categorySelect").remove();
+				
+				// [썸머노트 에디터가 로드된 후 임시저장된 작성글 불러오기]------------------------------------
+				tempArticleKey = /*[[${session.userContainer?.personacon?.alias}]]*/null;
+				var tempGrammarArticle = sessionStorage.getItem('tempGrammarArticle_' + tempArticleKey);
+				if(tempGrammarArticle != null && tempGrammarArticle.length > 0
+					&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+					$("#summernote").text(tempGrammarArticle);
+				}
+				//---------------------------------------
+				insertGrammarEditor($("#summernote"), null, 360);
+				//---------------------------------------
+				
+				editor.find(".form-group:eq(0)").hide();
+				editor.find("#title").val(/*[[${grammar.title}]]*/'playvoice');
+				// categoryId 설정
+				var categoryId = /*[[${grammarCategory.cid}]]*/0;
+				createHidden(editor.find("form")[0], "categoryId", categoryId);
+				createHidden(editor.find("form")[0], "grammarId", grammarId);
+				
+				
+				
+				// Register 버튼 재정의
+				editor.find("#save").attr("type","button").on("click", function(){
+					//------------------------------------------------------
+					var content = filterSummernoteContent($("#summernote"));
+					//------------------------------------------------------
+					var len = content.length;
+					if( len == 0 || len > 65000) {
+						alert("Content length must be between 0 and 65,000."
+						+" Total Length : "
+						+ content.length +" characters");
+						return;
+					}else{
+						editor.find("textarea[name='content']").val(content);
+						sessionStorage.removeItem('tempGrammarArticle_' + tempArticleKey);
+						//--------------------------------------
+						appendGrammar(editor.find("form"), $("#viewArticleDiv .articleView:last"));
+						//--------------------------------------
+					}
+					
+				});
+				
+				// Cancel 버튼 삭제
+				editor.find("button[type='reset']").remove();
+				
+				
+				$(this).addClass("editorLoaded");
+			});
+		}else{
+			$("#openAddArticle_div,.introduction-section").show(100);
+		}
+		$(this).addClass("active");
+		//----------------------
+		initSessionMonitor(120);
+		//----------------------
+	});
+	
+	// [아티클 수정폼 표시]-----------------------------------------------------------
+	$(document).on("click", ".editArticle", function(){
+		var article = $(this).closest(".article-cover");
+		var articleId = article.find(".articleId").val();
+		var title = /*[[${grammar.title}]]*/'playvoice';
+		var subtitle = article.find(".article-header").text().trim();
+		var content = article.find(".contentText").html();
+		var editor = $("#editorPlace");
+		var likeCount = article.find(".recommend-count").attr("data-like");
+		
+		$(".articleView").hide();
+		$("#openAddArticle_div").show();
+		$(".introduction-section").hide();
+		editor.empty();
+		editor.load("/square/grammarBook/article/edit #addArticleForm", function(){
+			$(this).closest("#editorPlace").find(".categorySelect").remove();
+			editor.find(".form-group:eq(0)").remove();
+			editor.find("textarea[name='content']").val(content);
+			// [썸머노트 에디터가 로드된 후 임시저장된 작성글 불러오기]------------------------------------
+			tempArticleKey = /*[[${session.userContainer?.personacon?.alias}]]*/null;
+			var tempGrammarArticle = sessionStorage.getItem('tempGrammarArticle_' + tempArticleKey);
+			if(tempGrammarArticle != null && tempGrammarArticle.length > 0
+				&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+				$("#summernote").text(tempGrammarArticle);
+			}
+			//-------------------------------------
+			insertGrammarEditor($("#summernote"), null, 450);
+			//-------------------------------------
+			
+			// grammarId 설정
+			createHidden(editor.find("form")[0], "grammarId", grammarId);
+			// articleId 설정
+			createHidden(editor.find("form")[0], "articleId", articleId);
+			createHidden(editor.find("form")[0], "likeCount", likeCount);
+			// title 설정
+			editor.find("#title").val(title)
+								 .prop("readonly", true)
+								 .parent().hide();
+			editor.find(".added-title span").text(title);
+			editor.find(".added-title").show();
+			// subtitle 설정
+			editor.find("#subtitle").val(subtitle);
+			
+			
+			// Register 버튼 재정의
+			editor.find("#save").attr("type","button").on("click", function(){
+							//------------------------------------------
+				var content = filterSummernoteContent($("#summernote"));
+							//------------------------------------------
+				var len = content.length;
+				if( len == 0 || len > 65000) {
+					alert("Content length must be between 0 and 65,000."
+					+" Total Length : "
+					+ content.length +" characters");
+					return;
+				}else{
+					editor.find("textarea[name='content']").val(content);
+					sessionStorage.removeItem('tempGrammarArticle_' + tempArticleKey);
+					//--------------------------------------
+					editGrammarArticle(editor.find("form"), article);
+					//--------------------------------------
+				}
+				
+			})
+			
+			// Cancel 버튼 재정의
+			editor.find("button[type='reset']").text("Cancel").on("click", function(){
+				editor.empty();
+				article.show();
+			});
+		});
+		//----------------------
+		initSessionMonitor(120);
+		//----------------------
+	});
+	
+	
+	// [그래머 share link 클립보드로 복사]-------------------------------------------
+	$(".clip-target").click(function(){
+		var clipParent = $(this).closest(".copy-url-section");
+		var inputClip = clipParent.find(".hide-input");
+		inputClip.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			clipParent.find(".successClip-guide").show();
+			setTimeout(function() {
+				clipParent.find(".successClip-guide").hide();
+			}, 2000);
+			
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+	});
+    
+	// [아티클 추천]----------------------------------------------------------------
+	$(document).on("click", ".articleLikeBtn", function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$(this).addClass("heart-blast");
+		if($(this).is(":not(.active)")){
+			var contentId = $(this).closest(".articleView").find(".articleId").val();
+			var likeCount = $(this).closest(".articleView").find('.articleLikeCount').text().trim();
+			
+			var obj = {
+				contentId : contentId,
+				memberId : mid,
+				likeCount : Number(likeCount)
+			}
+			//-----------------------------
+			handleGrammarArticleLike(obj, $(this));
+			//-----------------------------
+		}else{
+			alert("이미 처리 되었습니다.");
+			return;
+		}
+	});
+	
+	// [아티클 신고]----------------------------------------------------------------
+	$(document).on('click','.articleReport', function(){
+		var articleId = $(this).closest(".articleView").find(".articleId").val();
+		var articleWriter = $(this).closest(".articleView").find(".alias:eq(0)").text().trim();
+		var reportReadyResource = {
+				appResourceId: Number(grammarId),
+				appContentId: Number(articleId),
+				appCodeName: 'GrammarBook_Article',
+				reporterId: mid,
+				repAlias: yourAlias,
+				posAlias: articleWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	})
+	
+	// [댓글 리스트 펼치기]-----------------------------------------------------------
+	$(".article-view-section").on("click", ".openCommentList", function(){
+		
+		if($(this).is('.replyLoaded')){
+			var commentListSection = $(this).closest(".articleView").find(".comment-list-section");
+			commentListSection.toggle(100, function(){
+				if(commentListSection.is(":visible")){
+					window.scrollTo(0, commentListSection.offset().top);
+				}
+			});
+		}else{
+			$(this).closest(".articleView")
+				   .find(".comment-list-section .comment-title")
+				   .before($("#commentForCopy>div").clone());
+			var commentListSection = $(this).closest(".articleView").find(".comment-list-section");
+			commentListSection.show();
+			
+			var articleId = $(this).closest(".articleView").find(".articleId").val();
+			var parentId = grammarId;
+			var url = "/reply/grammarBook/list/"+ articleId;
+			
+			reloadAll(url, commentListSection.find(".commentPage"));
+			//댓글 폼 placeholder 변경
+			$(".comment-textarea").attr("placeholder", "그래머에 대한 의견이나 궁금한 점을 남겨봅시다.");
+			var content = $(this).closest(".articleView");
+			commentListSection.find(".appContentWriter").val(content.find(".alias:eq(0)").text().trim());
+			commentListSection.find(".appDomain").val("grammarBook");
+			commentListSection.find(".appContentId").val(articleId);
+			commentListSection.find(".parentContentId").val(parentId);
+			
+			commentListSection.show(100, function(){
+				setTimeout(function() {
+					window.scrollTo(0, commentListSection.offset().top);
+				}, 100);
+			});
+			$(this).addClass('replyLoaded');
+		}
+	});
+	
+	//[댓글 리스트 접기]-------------------------------------------------------------
+	$(document).on("click", ".comment-title", function(){
+		$(this).closest(".comment-list-section").hide();
+	});
+}); 
+
+/**-----------------------------------------------------------------------------
+ * 							Handling page event
+ -----------------------------------------------------------------------------*/
+ /**
+  * 그래머 아티클 수정 후 주제 표시 수정 및 아티클 표시
+  */
+function successEditGrammar(resultTarget, articlePage){
+	// destroy 명령을 쓰지 않으면 popover메뉴가 사라지지 않음
+	$("#summernote").summernote("destroy");
+	if(resultTarget!=null){
+		var $contentPage = $(articlePage);
+		var $content = $contentPage.find(".contentText");
+		var $articleHeader = $contentPage.find('.displayGrammarArticle');
+		var replyCount = $(resultTarget).find('.replyCount').text();
+		var likeCount = $(resultTarget).find('.articleLikeCount').text();
+		$articleHeader.find('.articleLikeCount').text(likeCount);
+		
+		resultTarget.find('.displayGrammarArticle').replaceWith($articleHeader);
+		
+		// 제목 갱신
+		var $window = resultTarget.closest('#grammarWindowBodySection');
+		var $windowTitle = $window.find('.grammar-title a');
+		$windowTitle.text('<i class="fa fa-quote-left fa-fw"></i> ' 
+						+ $articleHeader.find('.title').val())
+		// 부제 갱신
+		var $windowSubTitle = $window.find('.active .windowTitle')
+								.add(resultTarget.find('.windowTitle'));
+		var subTitle = ($articleHeader.find('.subtitle').val().length > 0)
+						? $articleHeader.find('.subtitle').val()
+						: $articleHeader.find('.title').val();
+		$windowSubTitle.text(subTitle)
+		// 본문 갱신
+		resultTarget.find('.contentText').replaceWith($content);
+		resultTarget.attr("tabindex","-1").focus();
+		$("#editorPlace").empty();
+		resultTarget.show();
+	}
+	//-------------------------------
+	popupModal("본문이 수정되었습니다.");
+	//-------------------------------
+}
+
+ /**
+  * 그래머 아티클 추가 후 주제 표시 수정 및 아티클 표시
+  */
+function successAppendGrammar(resultTarget, articlePage) {
+	// destroy 명령을 쓰지 않으면 popover메뉴가 사라지지 않음
+	$("#summernote").summernote("destroy");
+	var $articleList = $(resultTarget).closest(".grammarBody");
+	$articleList.find(".member-trans-form,.member-trans-guide").show();
+	$articleList.find(".member-trans-editor").empty();
+	
+	var articleId = $(articlePage).find(".articleId").val();
+ 	var subtitle = $(articlePage).find(".subtitle").val();
+ 	var date = $(articlePage).find(".date").text();
+ 	var $content = $(articlePage).find(".contentText");
+ 	
+ 	var leftMenu = $("#divsForCopy .openArticleContent").clone();
+ 	leftMenu.find(".title").text(subtitle);
+ 	leftMenu.appendTo($(".article-title-list-cover"));
+ 	leftMenu.attr("id","openArticle_" + leftMenu.index(".openArticleContent:not(#openAddArticle):visible"));
+ 	
+ 	var article = $("#divsForCopy .articleView").clone();
+ 	article.find(".articleId").val(articleId);
+ 	article.find(".article-header h3").text(subtitle);
+ 	article.find(".date").text(date);
+ 	article.find(".contentText").replaceWith($content);
+ 	$("#openAddArticle_div").before(article);
+ 	article.attr("id","openArticle_" + article.index("#viewArticleDiv .articleView.article-cover") + "_div");
+ 	
+ 	leftMenu.click();
+ 	//-------------------------------
+	popupModal("아티클이 등록되었습니다.");
+	//-------------------------------
+ }
+ 
+/**
+ * 메세지를 모달로 띄운다.
+ */
+function popupModal(msg){
+	$("#modalMsg").text(msg);
+	$("#popModalDiv").modal({
+		show: true
+	});
+}
+</script>   
+
+
+</head>
+<section layout:fragment="content" class="digest-window-section"
+	th:with="yourPersonacon = ${session.userContainer?.personacon},
+			yourId = ${yourPersonacon?.pid},
+			yourAlias = ${yourPersonacon?.alias},
+			yourMemberType = ${yourPersonacon?.memberType}">
+<!-- ------------------------[grammar guide modal]--------------------------- -->
+<div id="popModalDiv" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<span id='modalMsg'>수정에 성공하였습니다</span>
+			</div>
+			<div class="modal-footer align-self-center">
+				<button type="button" class="btn" data-dismiss="modal">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- ------------------------[grammar window header]------------------------- -->
+<div id="grammarWindowHeaderSection" class="digest-window-header row no-gutters">
+	<div class="logo-section col px-2 align-self-center">
+		<a th:replace="~{/incl/playvoice_logo::white_seonbi_logo}"></a>
+		<a th:replace="~{/incl/playvoice_logo::white_text_logo}"></a>
+	</div>
+	<div class="digest-title col-auto align-self-center">
+		<h1><a th:href="@{'/square/grammarBook/list/' + ${grammar.id56}}">
+			<i class="fa fa-quote-left fa-fw"></i> [[${grammar.title}]]
+		</a></h1>
+	</div>
+	<div class="logo-section col align-self-center"></div>
+</div><!-- end of grammarWindowHeaderSection -->
+<div th:replace="~{/incl/nav_header::nav_header}"></div>
+
+
+<!-- -------------------------[grammar window body]-------------------------- -->
+<div id="grammarWindowBodySection" class="row no-gutters">
+	<!-- ---------------------------[1. 아티클 목차]---------------------------- -->
+	<div id="articleListDiv" class="article-list-section col-lg-3">
+		<div class="arcitle-title-guide">
+			<div><i class="fa fa-list fa-fw"></i> 아티클 목차</div>
+			<div class="guide mt-1">목차를 클릭하여 해당 아티클을 읽어 보세요.</div>
+		</div>
+		
+		<!-- [1.1 아티클 목차 리스트] -->
+		<div class="article-title-list-cover">
+			<div th:each="article, iter:${articleList}" th:id="'openArticle_' + ${iter.index}" 
+				class="openArticleContent arcitle-title-cover row no-gutters"
+				th:classappend="${iter.count == 1}? 'active':''">
+				<!-- 퍼스나콘 -->
+				<div class="col-auto pr-3">
+					<img src="/images/app/member/profile_paper.png" class="list-personacon" 
+						th:style="'background: url(\'/resource/profile/' +${article.personacon.iconPath} +'\') no-repeat;
+						background-position: center; background-size: cover;'">
+				</div>
+				<div class="col align-self-center">
+					<!-- sub title -->
+					<h3 th:if="${#strings.isEmpty(article.subtitle)}" 
+						class="windowTitle title">
+						[[${article.grammar.title}]]
+					</h3>
+					<h3 th:unless="${#strings.isEmpty(article.subtitle)}" 
+						class="windowTitle title">
+						[[${article.subtitle}]]
+					</h3>
+					<!-- 별명 -->
+					<div class="alias text-right ">[[${article.personacon.alias}]]</div>
+				</div>
+			</div>
+			<!-- [1.2 아티클 작성] -->
+			<div id="openAddArticle" 
+				class="openArticleContent loginRequired arcitle-title-cover add"
+				th:href="${#request.requestURI}">
+				<div class="title">
+					<span class="d-none d-lg-inline-block">주제에 관한 내용 작성하기 </span>
+					<i class="fa fa-pencil-alt fa-fw"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 광고 -->
+		<div th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+			class="digest-window-ad-section">
+			<hr>
+			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+			<!-- (PC) GrammarBook window left menu -->
+			<ins class="adsbygoogle"
+			     style="display:block"
+			     data-ad-client="ca-pub-7152306695077047"
+			     data-ad-slot="2947308951"
+			     data-ad-format="rectangle, vertical"
+			     data-full-width-responsive="true"></ins>
+			<script>
+			     (adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+			<hr>
+		</div>
+		
+		<!-- playvoice logo -->
+		<div class="digest-window-logo-section">
+			<div class="logo-container">
+				<a th:href="@{/square/grammarBook/list}">
+					<img class="logo2" src="/images/logo/logo_white_inset.png">
+					<span class="pv-tm">playvoice GrammarBook</span>
+				</a>
+			</div>
+		</div>
+		
+	</div><!-- end of articleListDiv -->
+	
+	
+	<!-- --------------------------[2. view 아티클]--------------------------- -->
+	<div id="viewArticleDiv" class="article-view-section col-lg-9">
+		<!-- [2.1 veiw 아티클] -->
+		<div th:each="article, iter:${articleList}" 
+			th:id="'openArticle_' + ${iter.index} + '_div'" 
+			class="articleView article-cover" 
+			th:style="${iter.count > 1}? 'display: none':''">
+			<input class="articleId" type="hidden" th:value="${article.aid}">
+			<!-- 아티클 정보 (tablet, mobile ver.) -->
+			<div class="d-lg-none"><div class="article-details row no-gutters">
+				<div class="recommend-count col-auto px-3 align-self-center"
+					th:data-like="${article.likeCount}">
+					<label>
+						<i class="fa fa-heart fa-fw fa-lg"></i>
+						<span class="articleLikeCount">[[${article.likeCount}]]</span>
+					</label>
+				</div>
+				<div class="hits col-auto px-2 text-right align-self-center">
+					[[${grammar.hits}]] views
+				</div>
+				<div class="date col-auto px-2 text-right align-self-center"
+					 th:text="${#dates.format(article.regDate, 'yyyy-MM-dd')}"></div>
+			</div></div>
+			<!-- sub title -->
+			<div class="article-header">
+				<h1 class="windowTitle" th:if="${#strings.isEmpty(article.subtitle)}">
+					[[${article.grammar.title}]]
+				</h1>
+				<h1 class="windowTitle" th:unless="${#strings.isEmpty(article.subtitle)}">
+					[[${article.subtitle}]]
+				</h1>
+			</div>
+			<div class="article-personal row no-gutters my-2" 
+				th:with="personacon=${article.personacon}">
+				<!-- 작성자 퍼스나콘 PC ver. -->
+				<div class="col-auto px-3 d-none d-lg-inline-block">
+					<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+				</div>
+				<!-- 작성자 퍼스나콘 Table, Mobile ver. -->
+				<div class="col-auto px-3 d-lg-none">
+					<div th:replace="~{/incl/user_personacon::user_md}"></div>
+				</div>
+				<!-- 작성자 별명 PC ver. -->
+				<div class="alias col pr-3 align-self-center d-none d-lg-inline-block">
+					[[${personacon.alias}]]
+				</div>
+				<!-- 작성자 별명 Table, Mobile ver.-->
+				<div class="col pr-3 align-self-center d-lg-none">
+					<div class="alias">
+						[[${personacon.alias}]]
+						<span class="owner">Article Owner</span>
+					</div>
+					<div class="member-type">
+						<span th:if="${personacon.memberType} == 'M'">Play</span>
+						<span th:if="${personacon.memberType} == 'S'">Silver</span>
+						<span th:if="${personacon.memberType} == 'G'">Gold</span>
+						<span th:if="${personacon.memberType} == 'P'">Platinum</span>
+						Membership
+					</div>
+				</div>
+				<!-- 추천 수 -->
+				<div class="recommend-count col-auto px-3 align-self-center
+					d-none d-lg-inline-block"
+					th:data-like="${article.likeCount}">
+					<i class="fa fa-heart fa-fw fa-lg"></i>
+					<span class="articleLikeCount">[[${article.likeCount}]]</span>
+				</div>
+				<!-- 등록일 -->
+				<div th:text="${#dates.format(article.regDate, 'yyyy-MM-dd')}" 
+					class="date col-auto px-3 text-right align-self-center
+					d-none d-lg-inline-block"></div>
+				<!-- 수정 및 삭제 -->
+				<div th:if="${session.userContainer}" 
+					class="etc btn-group col-auto align-self-center px-3">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-v fa-lg"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+					    <th:block th:if="${article.personacon.pid==yourId} OR
+							${yourPersonacon?.memberType} == 'A'">
+						    <li class="editArticle dropdown-item text-center"><a>수정</a></li>
+						    <li class="dropdown-item text-center"><a>삭제</a></li>
+					    </th:block>
+					    <li class="articleReport dropdown-item text-center"><a>신고</a></li>
+					</ul>
+				</div>
+			</div>
+			<!-- article 내용 -->
+			<div class="article-body article-default-font-style hint-active">
+				<pre class="contentText" th:utext="${article.content}"></pre>
+			</div>
+			
+			<!-- 추천 / 댓글 버튼 -->
+			<div class="article-button-section row no-gutters">
+				<div class="col"></div>
+				<div class="col-auto px-3">
+					<div class="recomment-button">
+						<div class="loginRequired articleLikeBtn heart text-right"
+							th:href="${#request.requestURI}">추천</div>
+					</div>
+				</div>
+				<div class="col px-3 text-right align-self-center">
+					<a class="openCommentList btn btn-sm btn-playsquare">
+						<i class="fa fa-comment-dots fa-fw"></i>
+						댓글 <label class="badge badge-secondary badge-pill">
+							[[${article.replyCount}]]</label>
+					</a>
+				</div>
+			</div>
+			
+			<!-- 광고 -->
+			<div th:if="${iter.index == 0}" class="digest-ad-section">
+				<hr>
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- GrammarBook window view -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="6690009199"
+				     data-ad-format="horizontal"
+				     data-full-width-responsive="false"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+				<hr>
+			</div>
+			<div th:unless="${iter.index == 0}" class="digest-ad-section">
+				<hr>
+				<!-- 광고 (Mobile) -->
+				<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+					<ins class="kakao_ad_area" style="display:none;" 
+						data-ad-unit    = "DAN-GzzrYp5Yo2A5Ujf4" 
+						data-ad-width   = "320" 
+						data-ad-height  = "50"></ins> 
+					<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+				</th:block>
+				<!-- 광고 (PC) -->
+				<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+					<ins class="kakao_ad_area" style="display:none;" 
+						data-ad-unit    = "DAN-9AZNK7SzHNDyZ8Hw" 
+						data-ad-width   = "728" 
+						data-ad-height  = "90"></ins> 
+					<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+				</th:block>
+				<hr>
+			</div>
+			
+			<!-- 댓글 -->
+			<div class="commentListDiv comment-list-section" style="display: none;">
+				<div class="comment-title">
+					Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- [2.2 아티클 등록] -->
+		<div id="openAddArticle_div" class="articleView " style="display: none;">
+			<div class="introduction-section digest">
+				<h3 class="mt-0">Adding New Article Form</h3>
+				<div class="sub row no-gutters">
+					<div class="col-md-auto">Please fill the text in the field.</div>
+				</div>
+			</div>
+			<div id="editorPlace"></div>
+			<div class="errorMsgs" style="display: none;">
+				<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre></pre>
+			</div>
+		</div>
+	</div><!-- end of viewArticleDiv -->
+</div><!-- end of grammarWindowBodySection -->
+
+
+
+<!-- ---------------------------[divsForCopy]------------------------------- -->
+<div id="divsForCopy" style="display: none;">
+	<!-- [1. article title for copy] -->
+	<div class="openArticleContent arcitle-title-cover row no-gutters">
+		<!-- 퍼스나콘 -->
+		<div class="col-auto pr-3">
+			<img src="/images/app/member/profile_paper.png" class="list-personacon" 
+				th:style="'background: url(\'/resource/profile/' +${session?.userContainer?.personacon?.iconPath} +'\') no-repeat;
+				background-position: center; background-size: cover;'">
+		</div>
+		<div class="col align-self-center">
+			<!-- sub title -->
+			<h3 class="windowTitle title"></h3>
+			<!-- 별명 -->
+			<div class="alias text-right">[[${yourAlias}]]</div>
+		</div>
+	</div>
+	
+	<!-- [2. article view for copy] -->
+	<div class="articleView article-cover">
+		<input class="articleId" type="hidden">
+		<!-- 아티클 정보 (tablet, mobile ver.) -->
+		<div class="d-lg-none"><div class="article-details row no-gutters">
+			<div class="recommend-count col-auto px-3 align-self-center"
+				data-like="0">
+				<label>
+					<i class="fa fa-heart fa-fw fa-lg"></i>
+					<span class="articleLikeCount">0</span>
+				</label>
+			</div>
+			<div class="hits col-auto px-2 text-right align-self-center">
+				[[${grammar.hits}]] views
+			</div>
+			<div class="date col-auto px-2 text-right align-self-center"></div>
+		</div></div>
+		<!-- sub title -->
+		<div class="article-header">
+			<h3 class="windowTitle"></h3>
+		</div>
+		<div class="article-personal row no-gutters my-2"
+			th:with="personacon = ${session?.userContainer?.personacon}">
+			<!-- 작성자 퍼스나콘 PC ver. -->
+			<div class="col-auto px-3 d-none d-lg-inline-block">
+				<th:block th:replace="~{/incl/user_personacon::sm}"></th:block>
+			</div>
+			<!-- 작성자 퍼스나콘 Table, Mobile ver. -->
+			<div class="col-auto px-3 d-lg-nonde">
+				<div th:replace="~{/incl/user_personacon::md}"></div>
+			</div>
+			<!-- 작성자 별명 PC ver. -->
+			<div class="alias col pr-3 align-self-center d-none d-lg-inline-block">
+				[[${yourAlias}]]
+			</div>
+			<!-- 작성자 별명 Tablet, Mobile ver. -->
+			<div class="col pr-3 align-self-center d-lg-none">
+				<div class="alias">
+					[[${yourAlias}]]
+				</div>
+				<div class="member-type">
+					<span th:if="${yourMemberType} == 'M'">Play</span>
+					<span th:if="${yourMemberType} == 'S'">Silver</span>
+					<span th:if="${yourMemberType} == 'G'">Gold</span>
+					<span th:if="${yourMemberType} == 'P'">Platinum</span>
+					Membership
+				</div>
+			</div>
+			<!-- 추천 수 -->
+			<div class="recommend-count col-auto px-3 align-self-center
+				d-none d-lg-inline-block" data-like="0">
+				<i class="fa fa-heart fa-fw fa-lg"></i>
+				<span class="articleLikeCount">0</span>
+			</div>
+			<!-- 등록일 -->
+			<div class="date col-auto px-3 text-right align-self-center
+				d-none d-lg-inline-block"></div>
+			<!-- 수정 및 삭제 -->
+			<div class="etc btn-group col-auto align-self-center px-3">
+				<a class="dropdown-toggle" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-v fa-lg"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+				    <li class="editArticle dropdown-item text-center"><a>수정</a></li>
+				    <li class="dropdown-item text-center"><a>삭제</a></li>
+				    <li class="articleReport dropdown-item text-center"><a>신고</a></li>
+				</ul>
+			</div>
+		</div>
+		<!-- article 내용 -->
+		<div class="article-body article-default-font-style hint-active">
+			<pre class="contentText"></pre>
+		</div>
+		
+		<!-- 추천 / 댓글 버튼 -->
+		<div class="article-button-section row no-gutters">
+			<div class="col"></div>
+			<div class="col-auto px-3">
+				<div class="recomment-button">
+					<div class="articleLikeBtn heart text-right">추천</div>
+				</div>
+			</div>
+			<div class="col px-3 text-right align-self-center">
+				<a class="openCommentList btn btn-sm btn-playsquare">
+					<i class="fa fa-comment-dots fa-fw"></i>
+					댓글 <label class="replyCount badge badge-secondary badge-pill"></label>
+				</a>
+			</div>
+		</div>
+		
+		<!-- 댓글 -->
+		<div class="commentListDiv comment-list-section" style="display: none;">
+			<div class="comment-title">
+				Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+			</div>
+		</div>
+	</div>
+	<div id="commentForCopy" th:insert="~{/common/comment::comment}"></div>
+</div>
+	
+<footer th:insert="~{/incl/footer::footer}"></footer>
+
+</section>
+
+</html>

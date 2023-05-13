@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<div th:fragment="header" class="contentapp-header"
+	style="box-shadow: 0 1px 5px -1px #bdbdbd;">
+	
+	<div class="header-color header-menulist d-none d-lg-block">
+		<div class="container">
+			<!-- Login -->
+			<span id="loginStatus" th:if="${session.userContainer}" 
+				th:text="true" style="display: none;" ></span>
+			<div class="row no-gutters">
+				<!--/* Logo */-->
+				<div class="logo-content col-auto text-left mr-3">
+					<div class="logo-content-size"></div>
+							
+					<div class="logo-cover">
+						<span class="playvoice-logo"
+							th:insert="~{/incl/playvoice_logo::logo-playvoicebook}"> logo is here </span>
+					</div>
+				</div>
+				<!--/*=====================================================*/-->
+				<!--/*  				PC ver main menu				   */-->
+				<!--/*=====================================================*/-->
+				<!-- 1차 메뉴 -->
+				<div th:replace="~{/incl/main_menu::playvoiceBook_menu}" 
+					class="col-auto align-self-center"></div>
+				
+				<!--/* 로그인 여부 : 로그인 상태*/-->
+				<div th:if="${session.userContainer}" class="col-lg-auto ml-auto align-self-center"><div align="center">
+					<form th:action="@{/auth/logout}" method="post" > 
+						<div id="headerLogout" class="member-personacon-sm jsAction">
+							<img th:src="@{/images/app/member/profile_paper.png}" 
+								class="personacon-profile"
+								th:style="background: url(/images/app/member/profile_default.png) no-repeat;
+								background-position: center; background-size: cover;">
+							<img th:src="@{/images/app/member/profile_paper.png}" 
+								th:class="'personacon-frame frame-' + ${session.userContainer.personacon.memberType}">
+						</div>
+						<div th:text="${session.userContainer.personacon.alias}" class="alias">Logout</div>
+						<!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> -->
+					</form>
+				</div></div>
+				<!--/* 비로그인 상태*/-->
+				<div th:unless="${session.userContainer}" class="col-lg-auto ml-auto align-self-center"><div align="center">
+					<div id="headerLogin" class="member-personacon-sm jsAction">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							class="off-login personacon-profile"
+							style="background: url('/images/app/member/profile_default.png') no-repeat;
+							background-position: center; background-size: cover;">
+					</div>
+					<div class="alias">Login</div>
+				</div></div>
+			</div>
+		</div>
+	</div>
+
+	<!--/*=================================================================*/-->
+	<!--/*  						PC ver app menu						   */-->
+	<!--/*=================================================================*/-->
+	<div id="playvoice_menu_section" style="display: none;">
+		<div class="container">
+			<div th:insert="~{/incl/app_menu::app_menu}"></div>
+		</div>
+	</div>
+
+
+
+
+	<!--/*=================================================================*/-->
+	<!--/*  					tablet & mobile ver menu				   */-->
+	<!--/*=================================================================*/-->
+	<div th:fragment="header_mobile" class="main-header header-color py-1 d-lg-none">
+		<div class="row no-gutters">
+			<!-- menu toggle button -->
+			<div class="col-2 px-2 text-center align-self-center">
+				<a id="menuOpenBtn">
+					<i lang="fa" class="fa fa-bars fa-2x"></i>
+				</a>
+			</div>
+			<div class="col-8 text-center align-self-center">
+				<span class="playvoice-logo" th:insert="~{/incl/playvoice_logo::logo-playvoicebook}">
+					logo is here
+				</span> 
+				<span class="contentapp-title">playvoiceBook</span>
+			</div>
+			<div class="col-2"></div>
+		</div>
+	
+		<div onclick="history.back();" class="page_cover"></div>
+		<div th:replace="~{/incl/main_menu_mobile::menu_mobile}"></div>
+		
+	</div>
+	
+	
+</div>
+<!-- end of header -->

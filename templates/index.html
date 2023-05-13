@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_basic_layout}">
+<head>
+<title>플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"></th:block>
+
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/index.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script src="/js/public/jquery.waitforimages.min.js"></script>
+<script src="/js/app/masonry.pkgd.min.js"></script>
+<script src="/js/common.js"></script>
+<script th:src="@{/js/app/playvoice_audio.js}"></script>
+<script th:src="@{/js/public/lozad_custom.js}"></script>
+<script src="/js/app/main.js"></script>
+<script th:inline="javascript">
+var ajaxDefaultPageNum = 2;
+var footerHeight;
+const observer = lozad();
+$(document).ready(function(){
+	observer.observe();
+	$("#login_btn").click(function(){
+		location.href="/auth/login";
+	});
+	footerHeight = $("footer").height();
+	
+	
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	
+	/*[# th:if="${session.userContainer}"]*/
+	// [달력 펼치기]----------------------------------------------------------------
+	$("#openCalendarBtn").click(function(){
+		var calendarBody = $("#attendCalendarSection");
+		var hiddenDiv = $(".isHiddenDate[value='true']").closest(".date-section");
+		if(calendarBody.is(".open")) {
+			$(this).removeClass("active");
+			calendarBody.removeClass("open");
+			$("#eventScheduleDiv").hide();
+			hiddenDiv.hide();
+		} else {
+			$(this).addClass("active");
+			calendarBody.addClass("open");
+			$("#eventScheduleDiv").show();
+			hiddenDiv.show();
+		}
+	});
+	
+	/*[# th:if="${attendanceHistory}"]*/
+	// [출석한 날짜 스탬프 세팅]--------------------------------------------------------
+	var attendanceHistory = /*[[${attendanceHistory}]]*/[];
+	$("#attendCalendarBodyDiv .date-section").each(function(i, obj) {
+		var $date = $(obj).find(".todayDate").val();
+		$date = $date.replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3');
+		var stampDiv = $(obj).find(".stamp-cover");
+		if(attendanceHistory.indexOf($date) > -1) {
+			stampDiv.addClass("attend");
+		}
+	});
+	/*[/]*/
+	
+	// [나의 출석 정보에 오늘 날짜 세팅 / 다음 레벨 스탬프 표시]------------------------------------
+	var todayStudy = $(".date-section.today");
+	settingTodayLevelInfo(todayStudy);
+	// [오늘날짜로 스크롤 이동]---------------------------------------------------------
+	var todayStudy = $(".date-section.today");
+	$(".slideDateSection").scrollLeft(todayStudy.offset().left - $(".slideDateSection").width() + 100);
+	// [달력 마우스 슬라이드]----------------------------------------------------------
+	const slider = document.querySelector(".slideDateSection");
+	let isDown = false;
+	let startX;
+	let scrollLeft;
+	
+	slider.addEventListener('mousedown', (e) => {
+		isDown = true;
+		startX = e.pageX - slider.offsetLeft;
+		scrollLeft = slider.scrollLeft;
+	});
+	slider.addEventListener('mouseleave', () => {
+		isDown = false;
+	});
+	slider.addEventListener('mouseup', () => {
+		isDown = false;
+	});
+	slider.addEventListener('mousemove', (e) => {
+		if(!isDown) return;
+		e.preventDefault();
+		const x = e.pageX - slider.offsetLeft;
+		const walk = (x - startX) * 3; //scroll-fast
+		slider.scrollLeft = scrollLeft - walk;
+	});
+	// [메인 캐릭터 이미지 세팅 (5가지 종류를 날짜별로 보여줌)]-----------------------------------
+	var calcDateNum = Math.floor(Math.random() * 5);
+	$("#stockImage").addClass("image-" + calcDateNum);
+
+	/*[/]*/
+	
+	
+	
+	// [signature text 카드 레이아웃 정렬]--------------------------------------------
+	var profileListDiv = $('#profileListDiv');
+	profileListDiv.waitForImages(function(){
+		profileListDiv.masonry({
+			itemSelector: '.sentence-item',
+			isAnimated: !Modernizr.csstransitions
+		});
+	});
+	
+	// [스크롤을 통해 profile 추가 불러오기]---------------------------------------------
+	$(document).on("scroll", profileListScrollHandler);
+	
+	// [프로필 문장 클릭시 해당 문장의 바벨스택 정보를 새창으로 표시]--------------------------------
+	$(document).on("click", ".profileIntroduction", function(){
+		window.open("/square/babel/answer/profile/" + $(this).attr("data-mid")
+				, "profileText", "width=810, height=710, left=0, top=0");
+	});
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 랭킹리스트 페이지 이동
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+
+
+/**
+ * 화면 하단으로 스크롤 시 프로필을 추가로 불러온다.
+ */
+function profileListScrollHandler(){
+	$(document).off("scroll");
+	if($(window).scrollTop() + $(window).height() > $(document).height() - footerHeight){
+		$(".loading").show();
+		//--------------------------
+		getProfiles(ajaxDefaultPageNum);
+		//--------------------------
+		ajaxDefaultPageNum++;
+	}else{
+		$(document).scroll(profileListScrollHandler);
+	}
+}
+
+/**
+ * 불러 온 profile들 카드 레이아웃으로 정렬하여 추가로 붙여 넣는다
+ */
+function successGetProfiles(profiles) {
+	var profileElements = "";
+	var tribe = 'Pride';
+	
+	profiles.forEach(function(profile, i){
+		if(profile.tribe) {
+			var tribe = profile.tribe;
+		}
+		tribe = tribe.substring(0,1); 
+		
+		profileElements += '<div class="sentence-item p-1 py-2 p-md-2">'
+			+ '<div class="member-signiture-text-cover ';
+		if(profile.gold == true) {
+			profileElements += 'member-G';
+		} 
+		profileElements += '"><div class="logo-section">'
+			+ '<img src="/images/common/icon/icon_paper.png" class="logo1"></div>'
+			+ '<div class="signiture-text-section tribe-' + tribe + '">'
+			+ '<div class="profileIntroduction sentence-cover jsAction"' 
+			+ 'data-mid="' + profile.id56 + '">'
+			+ profile.introduction + '</div>'
+			+ '<div class="member-signiture-info-cover row no-gutters">'
+			+ '<div class="member-signiture-info col align-self-end">'
+			+ '<div class="button-section row no-gutters">'
+			+ '<div class="sound-button-section col-auto align-self-center">'
+			+ '<a onclick="playVoice(\'/resource/jungleVoice/\',\'' 
+			+ profile.voicePath + '\',3, this)">'
+			+ '<i class="fa fa-headphones-alt"></i></a></div>'
+			+ '<div class="col text-right align-self-center">'
+			+ '<img data-src="/images/logo/card_logo.png" class="lozad logo2"></div></div>'
+			+ '<div class="alias-section"><div class="from">from.</div>'
+			+ '<div class="alias">' + profile.alias + '</div></div></div>'
+			+ '<div class="personacon-section col-auto">';
+		if(profile.profPic != null) {
+			profileElements += '<div class="lozad openProfile card-personacon" '
+				+ 'data-background-image="/resource/profile/' + profile.profPic
+				+ ',/images/app/member/image_updating.png"'
+				+ 'style="background-repeat:no-repeat;'
+				+ 'background-position: center; background-size: cover;" '
+				+ 'data-mid="' + profile.id56 + '">';
+		} else {
+			profileElements += '<div class="openProfile card-personacon profile-default"'
+				+ 'data-mid="' + profile.id56 + '">';
+		}
+		profileElements += '</div></div></div></div></div></div>';
+		
+	});
+	var $profileElements = $(profileElements);
+	$("#profileListDiv").append($profileElements);
+	observer.observe();
+	$profileElements.waitForImages(function(){
+		$("#profileListDiv").masonry('appended', $profileElements);
+		$(document).on("scroll", profileListScrollHandler);
+		$(".loading").hide();
+	});
+}
+
+
+/**
+ * 오늘 날짜, 다음 레벨 정보 세팅
+ */
+function settingTodayLevelInfo(todayStudy) {
+	var todayDate = Number(todayStudy.find(".date-cover").text());
+	var todayWeek = todayStudy.find(".week-cover").text();
+	$(".attend-info-cover .today-info .date").text(todayDate);
+	$(".attend-info-cover .today-info .week").text(todayWeek);
+	
+	var todayStr = todayStudy.find(".todayDate").val();
+	var lastdayStr = $(".isHiddenDate[value='false']").last().siblings(".todayDate").val();
+	var shortage = /*[[${attendanceLevel?.shortage}]]*/100;
+	if((lastdayStr - todayStr) >= shortage && (lastdayStr - todayStr) != 0) {
+		var nextLevelDateStr = Number(todayStr) + shortage;
+		$(".todayDate[value=\'"+nextLevelDateStr+"\']").closest(".date-section").addClass("next");
+		$("#alertNextLevelUp .event-date").text((nextLevelDateStr+"").replace(/(\d{4})(\d{2})(\d{2})/, '$1-$2-$3'));
+		$("#alertNextLevelUp").show();
+	}
+}
+
+
+</script>
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>
+
+</head>
+
+
+<section layout:fragment="content">
+
+<!-- --------------------------[1. billboard text]-------------------------- -->
+<div id="billboardTextSection">
+	<!-- 국기 / 닥톡 -->
+	<div class="daktalk-ment-section">
+		<div class="daktalk-flags">
+			<img src="/images/common/flags/KR.png">
+			<img src="/images/common/flags/UK.png">
+			<img src="/images/common/flags/DE.png">
+			<img src="/images/common/flags/US.png">
+			<img src="/images/common/flags/FR.png">
+		</div>
+		<div class="daktalk-ment">노하우? 비법?  <b>닥치고 Talk !</b></div>
+	</div>
+	
+	<!-- 메인 이미지/ 빌보드 텍스트 -->
+	<div class="billboard-text-section row no-gutters">
+		<div class="billboard-text-main-img-cover col-md-auto col-12">
+			<div class="img-poistion">
+				<div><img src="/images/logo/faces2.png" alt="playvoice 플레이보이스"></div>
+				<div class="tourist-text">
+					<div class="project-title">Playvoice English Rebirth Project</div>
+					<div><span class="episode">Episode<span class="i">I</span></span> 
+					- A cosmopolitan tourist</div>
+				</div>
+				<a class="hey-link" th:href="@{/tts}">Paul</a>
+			</div>
+		</div><div class="col d-none d-md-inline-block"></div>
+		<div class="billboard-text-quote col-md-auto col-12">
+			<div class="text-question">다음 내용을 영어로 말해보자.</div>
+			<div class="billboard-text-cover">
+				<div class="text">[[${billboardText}]]</div>
+			</div>
+			<div class="text-guide">
+				<div>영어를 배우기 위해서는 <b>딱 하나의 질문</b>만 있으면 된다.</div>
+				<div class="important-one-cover">
+					<span class="important-one">이 말을 영어로 어떻게 말하지?</span>
+				</div>
+				<div class="daktalk-ment mobile">노하우? 비법? <b>닥치고 Talk !</b></div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of billboardTextSection -->
+
+
+
+<div class="index-container mt-5">
+<!-- -----------------------------[2. 출석 달력]------------------------------- -->
+<div th:if="${session.userContainer}" id="attendCalendarSection" 
+	class="member-attend-calendar-section"
+	th:with="sampleDate = ${#dates.createToday()},
+			firstDay = ${#dates.dayOfWeek(#dates.create(#dates.year(sampleDate),
+											#dates.month(sampleDate), 1))},
+			totalDays = 32 - ${#dates.day(#dates.create(#dates.year(sampleDate),
+											#dates.month(sampleDate), 32))},
+			monthNames = ${#strings.arraySplit('January,February,March,April,May,June,
+						July,August,September,October,November,December',',')},
+			weekNames = ${#strings.arraySplit('Sun,Mon,Tue,Wed,Thu,Fri,Sat',',')}">
+<div class="d-md-none">
+<h3 class="row no-gutters">
+	<span class="logo-section col-auto">
+		<img src="/images/common/icon/icon_paper.png">
+	</span>
+	<span class="col text-left align-self-center pl-sm-3 pl-2">
+		Playvoice Journey :<br class="d-md-none">
+		<span class="index-text-color">
+			<span class="kor">
+				<span class="memeber-alias">[[${session.userContainer.personacon.alias}]]</span>
+				님의 자취
+			</span>
+		</span>
+	</span>
+</h3></div>
+<div class="attend-calendar-section row no-gutters">
+	<div class="attend-calendar-container col-lg-9 col-12">
+		<!-- [2.1 출석 정보 헤더] -->
+		<div id="attendCalendarHeaderDiv" class="attend-calendar-header-div row no-gutters">
+			<div class="col-md"></div>
+			<!-- month / year -->
+			<h1 class="this-month col-md-auto col-12 align-self-center"
+				th:data-month="${sampleDate.month + 1}">
+				[[${monthNames[sampleDate.month]}]]
+				[[${#dates.year(sampleDate)}]]
+			</h1>
+			<div class="move-study-link col-md d-none d-md-inline-block align-self-center">
+				<a th:href="@{/mypage/journey/study}" class="btn btn-study">
+					<i class="far fa-clipboard"></i> 이달의 학습 내역
+				</a>
+			</div>
+			<a th:href="@{/mypage/journey/study}" class="btn btn-move-link">
+				<i class="fa fa-clipboard"></i>
+			</a>
+		</div><!-- end of attendCalendarHeaderDiv -->
+		<!-- [2.2 출석 달력] -->
+		<div id="attendCalendarBodyDiv" class="attend-calendar-body-div"
+			th:with="weeks = 'Sun, Mon, Tue, Wed, Thu, Fri, Sat',
+			restDateCount = ${(-firstDay + 2 + totalDays) MOD 7}">
+			<div class="open-week-section">
+				<div th:each="week : ${#strings.arraySplit(weeks,',')}" class="week-box">
+					[[${week}]]
+				</div>
+			</div>
+			<div class="slideDateSection calendar-body-cover">
+				<!-- date 단위 -->
+				<div class="date-section" 
+					th:each="date,calOrder : ${#numbers.sequence(-firstDay + 2, totalDays + restDateCount)}"
+					th:with="dateStr = ${#dates.format(sampleDate,'yyyyMM')
+										 + #numbers.formatInteger(date,2)}"
+					th:styleappend="${date < 1} OR ${date > totalDays}?'display:none;':''"
+				 	th:classappend="${dateStr EQ #dates.format(#dates.createNow(),'yyyyMMdd')}?'today':''">
+					<div class="date-box">
+						<!-- 요일 -->
+						<div class="week-cover" 
+							th:classappend="${(calOrder.index MOD 7) EQ 0}?'weekend-sun'
+									:(${(calOrder.index MOD 7) EQ 6}?'weekend-sat':'')"
+							th:text="${weekNames[calOrder.index MOD 7]}">week</div>
+						<div th:if="${date > 0} AND ${date <= totalDays}" class="attend-date-area">
+							<!-- 날짜 -->
+							<div class="date-cover">[[${date}]]</div>
+							<!-- 스탬프 (출석여부) -->
+							<div class="stamp-cover"></div>
+						</div>
+					</div>
+					<input class="todayDate" type="hidden" th:value="${dateStr}"/>
+					<input class="isHiddenDate" type="hidden" 
+						th:value="${date < 1} OR ${date > totalDays}? 'true':'false'"/>
+				</div>
+			</div>
+		</div><!-- end of attendCalendarBodyDiv -->
+		<!-- 모바일 버전 등급 표시 -->
+		<div class="mobile-member-rank">
+			등급 <span class="rank">[[${attendanceLevel.title}]]</span>
+		</div>
+		<!-- 펼치기 버튼 -->
+		<div class="open-calendar-button-section">
+			<button id="openCalendarBtn" class="btn btn-main2" type="button">
+				<i class="fa fa-angle-down"></i>
+			</button>
+		</div>
+	</div>
+	<!-- [2.2 연속 출석 정보 / 플보 스케쥴] -->
+	<div class="attend-info-section col-lg-3 d-none d-lg-block">
+		<!-- 나의 출석 정보 -->
+		<div class="attend-info-coverage">
+			<div class="playvoice-stock-soard-image attend-image-cover">
+				<img id="stockImage" src="/images/common/images/43_paper.png" alt="playvoice">	
+			</div>
+			<div class="attend-info-cover row no-gutters">
+				<!-- 오늘 날짜 -->
+				<div class="today-info col-3 align-self-center">
+					<div class="week">Mon</div>
+					<div class="date">15</div>
+				</div>
+				<!-- 나의 출석 정보 -->
+				<div class="attend-info col-9 align-self-center">
+					<div class="my-rank-info title">
+						성취력 지수 : <span class="rank">[[${attendanceLevel.title}]]</span> 
+					</div>
+					<div th:if="${attendanceLevel.shortage > 0}" class="my-rank-info">
+						다음 등급까지 <span class="num">[[${attendanceLevel.shortage}]]</span>일
+					</div>
+					<div th:unless="${attendanceLevel.shortage > 0}" class="my-rank-info">
+						최고 등급 달성! 
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- 이달의 이벤트 스케쥴 -->
+		<div id="eventScheduleDiv" class="playvoice-event-schedule-cover" style="display: none;">
+			<!-- 이벤트 단위 -->
+			<div class="event-schedule-cover today">
+				<div class="event-title">Today : 연속 출석 [[${attendance.series}]]일 째</div>
+				<div class="event-date">[[${#dates.format(sampleDate,'yyyy-MM-dd')}]]</div>
+				<i class="fa fa-circle"></i>
+			</div>
+			<div id="alertNextLevelUp" class="event-schedule-cover next-level" 
+				style="display: none;">
+				<div class="event-title">다음 등급으로 레벨 업!</div>
+				<div class="event-date">다음 등급 날짜</div>
+				<i class="fa fa-circle"></i>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of attendCalendarSection -->
+
+
+
+
+
+<!-- --------------------------[3. Hall of Fame]---------------------------- -->
+<div id="hallOfFameSection">
+<!-- [3.1 Play Point] -->
+<div class="member-ranking-section play-point">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-end pl-sm-3 pl-3">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">
+				<span class="kor">파워 컨텐츠 작성자</span> Top 10
+			</span><br>
+			<small class="kor">플레이 포인트 최다 적립 회원</small>
+		</span>
+	</h3>
+
+	<div class="ranking-bg bg2">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">[[${rankingUpdate}]]</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="topRanker,iter : ${topPpList}"
+					th:with="personacon = ${topRanker.personacon}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>[[${personacon.alias}]]</div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${personacon.iconPath}" class="lozad" 
+								data-src="/images/app/member/profile_paper.png" 
+								th:data-background-image="'/resource/profile/' +${personacon.iconPath}"
+								style="background-repeat:no-repeat;background-position: center; background-size: cover;">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:if="${topRanker.memberType} == 'M'">Play</div>
+							<div th:if="${topRanker.memberType} == 'S'">Silver</div>
+							<div th:if="${topRanker.memberType} == 'G'">Gold</div>
+							<div th:if="${topRanker.memberType} == 'P'">Platinum</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->
+
+<!-- [3.2 Ranking Point] -->
+<div class="member-ranking-section">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-center pl-sm-3 pl-2">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">
+				<span class="kor">파워 학습자</span> Top 10
+			</span><br>
+			<small class="kor">랭킹 포인트 최다 적립 회원</small>
+		</span>
+	</h3>
+
+	<div class="ranking-bg bg1">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">[[${rankingUpdate}]]</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="topRanker,iter : ${topRpList}"
+					th:with="personacon = ${topRanker.personacon}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>[[${personacon.alias}]]</div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${personacon.iconPath}" class="lozad"
+								src="/images/app/member/profile_paper.png" 
+								th:data-background-image="'/resource/profile/' +${personacon.iconPath}"
+								style="background-repeat:no-repeat;background-position:center; background-size:cover;">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								class="profile-default lozad">
+						</div>
+						<div class="buttons">
+							<div th:if="${topRanker.memberType} == 'M'">Play</div>
+							<div th:if="${topRanker.memberType} == 'S'">Silver</div>
+							<div th:if="${topRanker.memberType} == 'G'">Gold</div>
+							<div th:if="${topRanker.memberType} == 'P'">Platinum</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->
+
+</div><!-- end of hallOfFameSection -->
+	
+
+<!-- -------------------------[4. Signature Text]--------------------------- -->
+<div id="memberSetenceSection" class="member-sentence-div">
+	<h3 class="text-center row no-gutters">
+		<span class="logo-section col-auto">
+			<img src="/images/common/icon/icon_paper.png">
+		</span>
+		<span class="col text-left align-self-center pl-sm-3 pl-2">
+			Playvoice Travelers :<br class="d-md-none">
+			<span class="index-text-color">
+				<span class="kor">세상과 일상에서 배우다</span>
+			</span><br>
+			<small class="kor">당신과 함께 하는 플레이보이스 회원들</small>
+		</span>
+		<a th:href="@{/mypage/profile/edit}" class="signature-text-link loginRequired">
+			<img src="/images/common/characters/TY_taran.png" alt="playvoice 플레이보이스">
+			<span class="signature-text-guide">내 프로필에<br>좋아하는 문장 넣기!</span>
+		</a>
+	</h3>
+	
+	<div id="profileListDiv" class="member-sentence-area">
+		
+	<div th:each="profile,iter:${profileCardCacheList}" class="sentence-item p-1 py-2 p-md-2">
+		<th:block th:with="tribe = ${profile?.tribe}? ${profile.tribe}:'Pride'">
+		<div class="member-signiture-text-cover" 
+			th:classappend="${profile.gold == true}? 'member-G':''"
+			th:with="tribeCode = ${#strings.substring(tribe,0,1)}">
+			<!-- 선비 로고 -->
+			<div class="logo-section">
+				<img src="/images/common/icon/icon_paper.png" class="logo1">
+			</div>
+			<!-- 시그니쳐 텍스트 / alias section -->
+			<div th:class="'signiture-text-section tribe-' + ${tribeCode}">
+				<!-- sentence -->
+				<div class="profileIntroduction sentence-cover jsAction" 
+					th:data-mid="${profile.id56}" 
+					th:utext="${profile.introduction}"></div>
+				<div class="member-signiture-info-cover row no-gutters">
+					<div class="member-signiture-info col align-self-end">
+						<div class="button-section row no-gutters">
+							<!-- sound button -->
+							<div class="sound-button-section col-auto align-self-center">
+								<a th:data-path="${profile.voicePath}" 
+									th:onclick="playVoice('/resource/jungleVoice/',$(this).attr('data-path'),3, this)">
+									<i class="fa fa-headphones-alt"></i>
+								</a>
+							</div>
+							<!-- text 로고 -->
+							<div class="col text-right align-self-center">
+								<img data-src="/images/logo/card_logo.png" class="lozad logo2">
+							</div>
+						</div>
+						<!-- 별명 -->
+						<div class="alias-section">
+							<div class="from">from.</div>
+							<div class="alias">[[${profile.alias}]]</div>
+						</div>
+					</div>
+					<!-- 퍼스나콘 -->
+					<div class="personacon-section col-auto">
+						<div th:if="${profile.profPic}" class="openProfile lozad card-personacon" 
+							th:data-mid="${profile.id56}"
+							th:data-background-image="'/resource/profile/' + ${profile.profPic} + ',/images/app/member/image_updating.png'"
+							style="background-repeat: no-repeat;background-position: center; background-size: cover;"></div>
+						<div th:unless="${profile.profPic}" 
+							th:data-mid="${profile.id56}"
+							class="openProfile card-personacon profile-default"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		</th:block>
+	</div>
+		
+	</div><!-- end of profileListDiv -->
+	<div class="loading text-center" style="display: none;">
+		<i class="fa fa-spinner fa-spin fa-3x fa-fw" style="color: #af80ea;"></i>
+	</div>
+</div><!-- end of memberSetenceSection -->
+</div>	
+	
+</section><!-- end of content -->
+</html>

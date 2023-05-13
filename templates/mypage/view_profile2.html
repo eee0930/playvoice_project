@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+
+<head>
+<title>lazyhysong님의 프로필 - 플레이보이스(playvoice)</title>
+  
+<!-- datepicker -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// #attach_image 버튼을 클릭하면 파일을 찾는 창을 띄운다.
+	$("#attach_image").click(function() {
+		var inputFileElement = $(this).prev();
+		inputFileElement.click();
+	});
+	
+	// #profPicFile의 입력된 파일정보가 바뀌면 미리보기 변경
+	$("#profPicFile").change(function(e) {
+		var preview = $(this).prev();
+		var file = $(this)[0].files[0];
+		if(file != undefined){
+			var reader = new FileReader();
+			reader.onload = function(f) {
+				preview.attr("src",f.target.result);
+				preview.e
+				preview.show();
+			}
+			reader.readAsDataURL(file);
+		}
+	});
+	
+	// 프로필 수정 페이지로 이동
+	$("#editProfile").click(function(){
+		self.location="/mypage/profile/edit";
+	});
+	
+	// [프로필 픽쳐 보기]------------------------------------------------------------
+	$(".displayPictures").click(function(){
+		$(this).parent(".picture-cover").find(".picture-list-cover").toggle(100);
+	});
+	
+	
+});//end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div th:insert="~{/mypage/incl/mypage_top_menu2::menuProfile}"></div>
+
+<!-- ----------------------------[profile info]----------------------------- -->
+<div class="profile-top-cover mt-4 py-1">
+	<h3>
+		Profile Info
+		<i class="fa fa-universal-access"></i><br>
+	</h3>
+	<div class="sub-title">
+		<span class="kor">
+			<i class="fa fa-quote-left relative-font"></i>
+			의지와 결심은 자신을 제대로 정의하는 것으로부터 시작된다.
+			<i class="fa fa-quote-right relative-font"></i>
+		</span>
+	</div>
+</div>
+<!-- member personacon (Mobile ver.) -->
+<div class="profile-personacon d-none d-md-block d-lg-none my-3" align="center">
+	<a th:href="@{/mypage/profile/edit}" th:insert="~{/incl/user_personacon::lg_test}"></a>
+</div>
+<div class="profile-top-content"><div class="row no-gutters">
+	<div class="title-icon col-auto text-center">
+		<i class="fa fa-address-card fa-lg fa-fw"></i>
+	</div>
+	<div class="title-body col align-self-center">
+		<span class="title">Nickname</span>
+		<span class="body">lazyhysong</span>
+	</div>
+</div></div>
+
+
+<div id="viewProfileContainer" class="view-profile-container" th:with="tribe = 'Pride'">
+<!-- ---------------------[1. profile info PC ver.]------------------------- -->
+<div id="viewProfileDiv" class="mypage-content-box-section my-profile d-none d-md-block">
+<div class="mypage-content-box-div row no-gutters">
+	<div class="col pr-md-4">
+		<div class="detail row no-gutters">
+			<div class="col">
+				<div class="title2" title="부족">TRIBE <i class="fa fa-landmark"></i></div>
+				<div class="data">
+					<span class="num">Troop</span>
+				</div>
+			</div>
+			<div class="col">
+				<div class="title2" title="성별">SEX <i class="fa fa-venus-mars"></i></div>
+				<div class="data">
+					<span th:if="${#strings.equals(sex, 'X')}" 
+						class="kor">미정</span>
+					<span th:unless="${#strings.equals(sex, 'X')}" 
+						class="num">[[${profile.sex}]]</span>
+				</div>
+			</div>
+			<div class="col">
+				<div class="title2" title="나이">AGE <i class="fa fa-birthday-cake"></i></div>
+				<div class="data gold">
+					<span class="num">29</span>
+					<i class="fa fa-lock" title="비공개"></i>
+				</div>
+			</div>
+			<div class="col">
+				<div class="title2" title="지역">CITY <i class="fa fa-map-marker-alt"></i></div>
+				<div class="data">
+					<span class="kor">경상북도</span>
+					
+				</div>
+			</div>
+			<div class="col-auto pr-3">
+				<div class="title2" title="이메일">EMAIL <i class="far fa-envelope"></i></div>
+				<div class="data">
+					lazyhysong@naver.com
+				</div>
+			</div>
+		</div>
+	</div>
+	<div th:class="'point-icon col-auto tribe-' + ${tribe}">
+		<img src="/images/common/icon/icon_paper.png" th:title="'부족 ' + ${tribe}">
+	</div>
+	<div class="detail signiture-text col-12">
+		<div class="title2" title="시그니쳐 텍스트">
+			Your Signature Text <i class="fa fa-signature"></i>
+		</div>
+		<div class="data">
+			For each person there are <b>thousands of opportunities and challenges</b> 
+			to expand ourselves!! We all are <b>the best</b> for each other.<br>
+		</div>
+		<div class="data" style="display: none;">
+			<a th:href="@{/mypage/profile/edit}">
+			※ <b>lazyhysong님의 시그니처 텍스트(Signature Text)가 비어있습니다.</b><br><br>
+			시그니처 텍스트는 <b>lazyhysong</b> 님이 좋아하는 말, 명대사, 모토 등
+			어떤 문장이라도 적을 수 있습니다.<br>
+			시그니처 텍스트를 통해 자신을 표현해 보고 다른 회원들과 함께 공유해 보세요. <br>
+			시그니처 텍스트는 메인 화면과 바벨 카페에도 표시됩니다.
+			등록하려면 클릭하세요.</a>
+		</div>
+	</div>
+</div>
+</div><!-- end of viewProfileDiv -->
+
+<!-- -------------------[2. profile info Mobile ver.]----------------------- -->
+<div id="viewProfileMobileDiv" class="view-profile-mobile-section d-md-none">
+<div class="box-cover-mobile box-white icon">
+	<div class="top-icon">
+		<a th:href="@{/mypage/profile/edit}"><img src="/images/app/member/profile_paper.png"
+			style="background: url('/images/app/profile/7.jpg') no-repeat;
+			background-size: cover; background-position: center;"></a>
+	</div>
+	<div class="title-mobile alias">
+		lazyhysong 화요닝
+		<a th:href="@{/mypage/profile/edit}"><i class="fa fa-edit"></i></a>
+	</div>
+	<div class="detail-mobile">
+		<div class="guide-mobile row no-gutters">
+			<div class="title2 col-auto align-self-center">
+				<i class="fa fa-landmark fa-fw"></i>Tribe
+			</div> 
+			<div class="col">Horde</div>
+		</div>
+		<div class="guide-mobile row no-gutters">
+			<div class="title2 col-auto align-self-center">
+				<i class="fa fa-venus-mars fa-fw"></i>SEX
+			</div> 
+			<div class="kor col" th:if="${#strings.equals(sex, 'X')}">미정</div>
+			<div class="col" th:unless="${#strings.equals(sex, 'X')}">[[${profile.sex}]]</div>
+		</div>
+		<div class="guide-mobile row no-gutters">
+			<div class="title2 col-auto align-self-center">
+				<i class="fa fa-birthday-cake fa-fw"></i>AGE
+			</div> 
+			<div class="col">29 <i class="fa fa-lock" title="비공개"></i></div>
+		</div>
+		<div class="guide-mobile row no-gutters">
+			<div class="title2 col-auto align-self-center">
+				<i class="fa fa-map-marker-alt fa-fw"></i>CITY
+			</div> 
+			<div class="kor col">경상북도</div>
+		</div>
+		<div class="guide-mobile row no-gutters">
+			<div class="title2 col-auto align-self-center">
+				<i class="far fa-envelope fa-fw"></i>Email
+			</div> 
+			<div class="detail-email col">lazyhysong@naver.com</div>
+		</div>
+		<div class="guide-mobile signiture-text">
+			<div class="title2">시그니쳐 텍스트 <i class="fa fa-signature fa-fw"></i></div>
+			<div class="data">
+				For each person there are <b>thousands of opportunities and challenges</b> 
+				to expand ourselves!! We all are <b>the best</b> for each other.<br>
+			</div>
+			<div class="data signiture-none" style="display: none;">
+				<a th:href="@{/mypage/profile/edit}">
+				※ <b>lazyhysong님의 시그니처 텍스트(Signature Text)가 비어있습니다.</b><br><br>
+				시그니처 텍스트는 <b>lazyhysong</b> 님이 좋아하는 말, 명대사, 모토 등
+				어떤 문장이라도 적을 수 있습니다.<br>
+				시그니처 텍스트를 통해 자신을 표현해 보고 다른 회원들과 함께 공유해 보세요. <br>
+				시그니처 텍스트는 메인 화면과 바벨 카페에도 표시됩니다.
+				등록하려면 클릭하세요.</a>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of viewProfileMobileDiv -->
+
+</div><!-- end of viewProfileContainer -->
+
+
+<!-- -----------------------[3. Identity Pictures]-------------------------- -->
+<div class="profile-top-cover none-sub-title mt-4">
+	<h3>
+		Identity Pictures
+		<i class="fa fa-images"></i><br>
+	</h3>
+</div>
+<div class="picture-guide">취미, 소망 등을 사진으로 표현해 보세요.</div>
+<div id="viewProfileContainer" class="mypage-content-box-section profile-picture">
+	<div id="picturesDiv" class="mypictures p-2">
+		<div class="picture-guide2">
+			※ 아래의 <b>타이틀을 클릭</b>하면 사진을 볼 수 있습니다.<br class="d-md-none">
+			새로운 사진을 등록할 때 <b>수정 버튼</b>을 꼭 눌러주세요.
+		</div>
+		<div class="picture-list-cover"><div class="picture-cover">
+			<div class="displayPictures picture-title row no-gutters">
+				<div class="icon-section col-auto">
+					<label><i class="far fa-grin-hearts"></i></label>
+				</div>
+				<div class="col pl-3 align-self-center">
+					<div class="title2">내가 좋아하는 인물</div>
+					<div class="title">People whom I like</div>
+				</div>
+			</div>
+			<div class="picture-list-cover row no-gutters" style="display: none;">
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/test/s.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/P_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/P_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/P_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="picture-cover">
+			<div class="displayPictures picture-title row no-gutters">
+				<div class="icon-section col-auto">
+					<label><i class="fa fa-suitcase-rolling"></i></label>
+				</div>
+				<div class="col pl-3 align-self-center">
+					<div class="title2">갖고 싶은 아이템</div>
+					<div class="title">Items I want to have</div>
+				</div>
+			</div>
+			<div class="picture-list-cover row no-gutters" style="display: none;">
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/H_like0.jpg') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/H_like1.jpg') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/H_like2.jpg') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/H_like3.jpg') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="picture-cover">
+			<div class="displayPictures picture-title row no-gutters">
+				<div class="icon-section col-auto">
+					<label><i class="fa fa-parachute-box"></i></label>
+				</div>
+				<div class="col pl-3 align-self-center">
+					<div class="title2">나의 취미</div>
+					<div class="title">My hobby</div>
+				</div>
+			</div>
+		</div>
+		<div class="picture-cover">
+			<div class="displayPictures picture-title row no-gutters">
+				<div class="icon-section col-auto">
+					<label><i class="fa fa-plane"></i></label>
+				</div>
+				<div class="col pl-3 align-self-center">
+					<div class="title2">행복했던 여행지</div>
+					<div class="title">Happy destinations</div>
+				</div>
+			</div>
+			<div class="picture-list-cover row no-gutters" style="display: none;">
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/M_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/M_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/M_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+				<div class="picture-list col-md-3 col-6 p-1">
+					<div class="picture-display-section">
+						<img src="/images/app/member/profile_paper.png"
+							style="background: url('/images/app/mypage/M_like.png') no-repeat;
+							background-size: cover; background-position: center;">
+						<div class="btn-change-picture hover-text text-center">
+							<i class="far fa-hand-point-up fa-lg"></i><br>
+							사진 변경
+						</div>
+					</div>
+					<div class="picture-button-section">
+						<button class="btn btn-outline-mypage2 btn-xs btn-delete-picture" 
+							style="display: none;">삭제</button>
+						<button class="btn btn-outline-mypage2 btn-xs btn-cancel-picture" 
+							style="display: none;">취소</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="picture-cover">
+			<div class="displayPictures picture-title row no-gutters">
+				<div class="icon-section col-auto">
+					<label><i class="fa fa-hat-wizard"></i></label>
+				</div>
+				<div class="col pl-3 align-self-center">
+					<div class="title2">나의 목표</div>
+					<div class="title">My goal</div>
+				</div>
+			</div>
+		</div>
+	</div>
+		
+	</div><!-- end of picturesDiv -->
+	
+</div>	
+</section>

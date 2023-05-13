@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playboard_layout2}">
+<head>
+<title>플레이보드 (Play Board) - 플레이보이스 | Playvoice</title>
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '플레이보드 (Play Board) - 플레이보이스(playvoice)', 
+	metaDescription = '여정에서의 경험, To write interesting diaries and stories.
+	플레이보이드는 다양한 주제의 글을 작성하는 게시판으로써, 잠깐의 여유를 만끽하고 싶은 여러분을 위해 만들어진 쉬어가는 공간입니다.', 
+	metaImage = '/images/app/board/index_board.jpg'"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment2::schemaBread}"
+	th:with="breadList = ${ {#httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 보드'} }"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">	
+<link rel="stylesheet" th:href="@{css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:inline="javascript">
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div id="boardIndexSection" class="mt-lg-5 mt-4">
+
+<div id="introductionSection" class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png"
+			style="background: url('/images/app/board/index_board.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			Welcome to <span class="pv-tm">Play Board</span><br>
+			<small><b>여정에서의 경험,</b> To write interesting diaries and stories</small>
+		</div>
+	</div>
+</div>	
+	
+	
+<!-- -----------------------[1. BEST Contents]------------------------------ -->
+<div id="bestArticleSection" class="index-article-list-section row no-gutters">
+	<div id="weeklyBestDiv" class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3>주간 베스트 TOP 10 <i class="fa fa-star fa-fw"></i></h3>
+			</div>
+			<div id="bestBoard">
+				<table class="board-table table table-hover table-sm text-center">
+					<tbody><tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] 황교익 "한국의 치킨은 맛이 없어요".jpg</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">2412</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left" title="YG 소속으로 20년만에 처음 전역할 예정인 가수인데 넘나 불쌍.jpg">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] YG 소속으로 20년만에 처음 전역할 예정인 가수인데 넘나 불쌍.jpg</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">342</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left" title="국내 요식업계 대가들의 일치하는 조언 / 행동">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[자료실] 국내 요식업계 대가들의 일치하는 조언 / 행동</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">422</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left" title="이미 기원전에 인간의 본질을 꿰뚫어 본 공자님">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[자유게시판] 이미 기원전에 인간의 본질을 꿰뚫어 본 공자님</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">468</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left" title="이승엽의 후회">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] 이승엽의 후회</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">748</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr></tbody>
+				</table>
+			</div>
+		</div>
+	</div><!-- end of weeklyBestDiv -->
+	
+	<div id="monthlyBestDiv" class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3>월간 베스트 TOP 10 <i class="fa fa-star fa-fw"></i></h3>
+			</div>
+			<div id="bestMonthBoard">
+				<table class="board-table table table-hover table-sm text-center">
+					<tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] 황교익 "한국의 치킨은 맛이 없어요".jpg</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">2412</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] YG 소속으로 20년만에 처음 전역할 예정인 가수인데 넘나 불쌍.jpg</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">342</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[자료실] 국내 요식업계 대가들의 일치하는 조언 / 행동</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">422</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[자유게시판] 이미 기원전에 인간의 본질을 꿰뚫어 본 공자님</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">468</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<span class="badge badge-danger best">BEST</span>
+							<a>[유머게시판] 이승엽의 후회</a>
+						</td>
+						<td class="t-info text-right hidden-xs">
+							<span class="badge badge-pill badge-danger best-count">748</span>
+						</td>
+						<td class="t-date text-center">
+							10-01
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div><!-- end of monthlyBestDiv -->
+</div><!-- end of bestArticleSection -->
+
+
+<!--/* ----------------------------[광고]------------------------------ */-->
+<div id="playBoardIndexAdSection" class="playboard-index-ad-section">
+	<div class="playboard-index-ad-cover">
+		<img src="/images/common/ads/playboard.jpg" style="width: 100%;">	
+	</div>	
+</div>
+
+
+<div id="newArticleSection" class="index-article-list-section row no-gutters">
+	<!-- 자유 -->
+	<div class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3 style="display: inline-block;">자유 게시판</h3>
+				<a class="float-right"><span class="badge badge-info">더보기</span></a>
+			</div>
+			<div id="freeBoard">
+				<table class="board-table table table-hover table-sm text-center">
+					<tr>
+						<td class="t-title text-left">
+							<a>진라면이 맛있어진거 맞지요?</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-warning pic-label">P</span>
+							<span class="badge badge-info video-label">V</span>	
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					
+					<tr>
+						<td class="t-title text-left">
+							<a>결국 행사 취소 됐어요 ㅜㅜ.</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-info video-label">V</span>	
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>어제 퇴사했는데 난리네요</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-warning pic-label">P</span>
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>차례상 음식 새 풍속도 논란</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-info video-label">V</span>	
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>택배 상하차 18시간 후기</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-warning pic-label">P</span>
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div><!-- /.board-div -->
+	</div><!-- /.board-content -->
+	
+	<!-- 자료실 -->
+	<div class="board-content col-md-6">
+		<div class="board-div">
+			<div class="title">
+				<h3 style="display: inline-block;">자료실</h3>
+				<a class="float-right"><span class="badge badge-info">더보기</span></a>
+			</div>
+			<div id="freeBoard">
+				<table class="board-table table table-hover table-sm text-center">
+					<tr>
+						<td class="t-title text-left">
+							<a>개인적으로 좋아하는 평택 식당들(마지막글).jpg</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-info video-label">V</span>	
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>나눔합니다. 추석맞이..</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-warning pic-label">P</span>
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					
+					<tr>
+						<td class="t-title text-left">
+							<a>하드 디스크 용량 넉넉들 하신지요?</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-danger new-label">N</span>
+							<span class="badge badge-warning pic-label">P</span>
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>진짜 좋은 목소리의 외국인 음성 모음 (공부하기 좋음)</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-warning pic-label">P</span>
+							<span class="badge badge-info video-label">V</span>	
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+					<tr>
+						<td class="t-title text-left">
+							<a>모던 패밀리 시즌1 1화 (짤리기전에 보셈)</a>
+						</td>
+						<td class="t-info">
+							<span class="badge badge-warning pic-label">P</span>
+						</td>
+						<td class="t-date text-center">
+							10-06
+						</td>
+					</tr>
+				</table>
+			</div>
+		</div>
+	</div>
+	
+	<!--/* ----------------------------[광고]------------------------------ */-->
+	<div class="playboard-index-ad-section col-12 px-3">
+		<div class="playboard-index-ad-cover">
+			<img src="/images/common/ads/playboard.jpg" style="width: 100%;">	
+		</div>	
+	</div>
+</div><!-- end of newArticleSection -->
+
+
+</div><!-- end of boardIndexSection -->
+</section>
+
+
+

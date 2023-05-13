@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout2}">
+
+<head>
+<title>List Sentence</title>
+<link rel="stylesheet" th:href="@{/css/app/admin.css}">
+<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+<script th:src="@{/js/app/junglebook.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	adjustSearchForm();			//[select 검색 타입 설정]
+	adjustDateForm();			//[datepicker 설정]
+	
+	//[select : 검색타입 선택]------------------------------------------------------
+	$("#searchTypeSelect").change(function(){
+		$("#keyword").val('');
+		adjustSearchForm();
+	});
+	
+	//[각 APP별 JungleSentence 개수]-----------------------------------------------
+	$("#groupByAppCodeBox").click(function(){
+		statsJungleSentence('groupByAppCode');
+	});
+	
+	//[playMember 등급별 JungleSentence 개수]--------------------------------------
+	$("#groupByRoleNameBox").click(function(){
+		statsJungleSentence('groupByRoleName');
+	});
+	
+	//[sentence를 많이 등록한 회원과 JS수]----------------------------------------------
+	$("#groupByTopMemberBox").click(function(){
+		statsJungleSentence('groupByTopMember');
+	});
+	
+	
+	//[버튼 클릭 시 ajax 전송 ]------------------------------------------------
+	$('#searchBtn').click(function(event) {
+		//---------[폼 초기화] ----------
+		var type = $('#searchTypeSelect').val();
+		
+		//------------------------
+		statsJungleSentence(type);
+		//------------------------
+		
+	});
+	
+
+	
+});//end of ready
+
+/**
+ * select박스의 선택 항목에 따른 폼의 구성요소를 조정한다.
+ */
+function adjustSearchForm(){
+	var search = $("#searchTypeSelect");
+	$('#searchTypeForDynamic').val(search.val());
+	
+	if(search.val() == 'groupByTopMember') {
+		$("#memberSizeDiv").show();
+	} else {
+		$("#memberSizeDiv").hide();
+	}
+
+}
+
+
+
+/*startDate의 기본값으로 한달 전인 지난 달로 설정시*/
+function lastMonth(){
+	var startDate = new Date();
+	startDate.setMonth(startDate.getMonth()-1);
+	return startDate;// star기본값으로 오늘 날짜  
+}
+
+/*startDate의 기본값으로 이 달의 첫째날을 기본값으로 설정시 */
+function firstDay(){
+	var startDate = new Date();
+	startDate.setDate(1);
+	return startDate;// 기본값으로 오늘 날짜  
+}
+
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+<div id="searchSection">
+	<h3>통계 검색</h3>
+
+
+	<!--/* ----------------[stats form]--------------- */-->
+	<div class="formContainer">
+	<h3>
+		Statistics Jungle Sentences Form
+		<span>Please fill the text in the field.</span>
+	</h3>
+	<div>
+		<form id="statsForm" method="get" class="form-horizontal">
+				
+			<div class="form-group row">
+				<!--/* 선택박스 */-->
+				<div id="searchOptionDiv" class="col-3 headerLabel"> 
+					<select id="searchTypeSelect" name="searchType" class="form-control">
+						<option value=""> --선택-- </option>
+						<option />
+	               	</select>
+				</div>
+				 
+				<!--/* 등록기간 설정 */-->
+				<div id="regDateDiv" class="col-5"><div class="row no-gutters">
+					<div id="fromDateDiv" class="col text-left lp0"> 
+						<input type="text" placeholder="시작날짜"  class="form-control"/>
+					</div>
+					
+					<div class="col-auto text-center px-2">
+						<i class="fas fa-window-minimize" style="color: #999999"></i>
+					</div>
+					
+					<div id="toDateDiv" class="col lp0">
+						<input type="text" placeholder="종료날짜" class="form-control"/>
+					</div>
+				</div></div>
+				
+				<!--/* 회원 수 (센텐스 많이 등록한 회원 수 검색 시) */-->
+				<div id="memberSizeDiv" class="col-2" style="display: none;">
+					<input id="size" name="size" type="text" placeholder="회원 수" 
+						value="20" class="form-control"/>
+				</div> 
+				
+				<!--/* 검색버튼 */-->
+				<div class="col-1">
+					<input id="searchBtn" type="button" 
+						class="btn btn-default jsAction" value="Search"/>
+				</div>
+				
+			</div>
+		</form>
+	</div>
+	<div id="errorDiv" class="errorMsgs" style="display: none;">
+	 	<h3>
+			Error Messages 
+			<span>Error Occured while processing the request.</span>
+		</h3>
+		<pre></pre>
+	</div>
+	
+	</div>
+</div><!-- end of searchSection -->
+
+
+
+
+<!-------------------------/* 2. Result Section */----------------------------->
+<div id="statsResultSection">
+
+<h3>통계 결과</h3>
+<small>각 box를 클릭하면 최근 1개월의 통계 결과가 나오며, 검색을 통해 다른 기간의 통계를 확인 할 수 있음</small>
+
+<div class="row">
+	<div class="col-6 px-3"><div class="row no-gutters">
+		<div class="col-6 pr-2 py-2">
+			<div id="newSentenceBox" class="dashboard-box">
+				<div class="title">
+					한 달간 JS 개수
+					<hr class="my-2">
+				</div>
+				<div class="content-section row no-gutters">
+					<div class="col-auto align-self-center">
+						<i class="fa fa-tree fa-2x" style="color: #6bd098;"></i>
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span data-value="count" class="num">21554</span> 개
+					</div>
+				</div>
+				<div class="period pt-2 text-secondary text-right">
+					<i class="far fa-calendar-alt"></i>
+					<span class="regDate">2020-02-22~2020-03-22</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-6 pl-2 py-2">
+			<div id="memberCountOnAddBox" class="dashboard-box jsAction">
+				<div class="title">
+					한 달간 JS 등록 회원 수
+					<hr class="my-2">
+				</div>
+				<div class="content-section row no-gutters">
+					<div class="col-auto align-self-center">
+						<i class="fa fa-users fa-2x" style="color: #fbc658;"></i>
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span data-value="count" class="num">5441</span> 명
+					</div>
+				</div>
+				<div class="period pt-2 text-secondary text-right"> 
+					<i class="far fa-calendar-alt"></i>
+					<span class="regDate">2020-02-22~2020-03-22</span>
+				</div>
+			</div>
+		</div>
+		<div class="col-12 py-2">
+			<div id="groupByAppCodeBox" class="dashboard-box jsAction">
+				<div class="row no-gutters py-1">
+					<div class="title col-auto">
+						각 APP별 JS 개수
+					</div>
+					<div class="period col text-secondary text-right">
+						<i class="far fa-calendar-alt"></i> 
+						<span class="regDate">2020-02-22~2020-03-22</span>
+					</div>
+				</div>
+				<table class="resultWrapper table table-striped table-bordered 
+					table-hover table-sm text-center admin-sentencebook-board">
+					<thead>
+					<tr class="thead">
+						<th>번호</th>
+						<th data-value='appName'>앱이름</th>
+						<th data-value='count'>개수</th>
+						<th data-value='percent'>비율(%)</th>
+					</tr></thead>
+					<tbody>
+						
+					</tbody>
+				</table>
+			</div>
+			
+		</div>
+	</div></div>
+	
+	
+	<div class="col-6 px-3">
+		<div class="py-2">
+			<div id="groupByRoleNameBox" class="dashboard-box jsAction">
+				<div class="title">
+					회원 등급별 JS 개수
+					<hr class="my-2">
+				</div>
+				<div class="content-section row no-gutters text-center">
+					<div class="col">
+						<i class="fa fa-user" style="color: #ef8157;"></i>
+						member<br>
+						<span id='MCount' data-value="count" class="count">34</span> 개
+					</div>
+					<div class="col">
+						<i class="fa fa-medal" style="color: silver;"></i>
+						silver<br>
+						<span id='SILVERCount' data-value="count" class="count">-</span> 개
+					</div>
+					<div class="col"> 
+						<i class="fa fa-medal" style="color: gold;"></i>
+						gold<br>
+						<span id='GOLDCount' data-value="count" class="count">-</span> 개
+					</div>
+					<div class="col">
+						<i class="fa fa-trophy" style="color: #51cbce;"></i>
+						platinum<br>
+						<span id='PLATINUMCount' data-value="count" class="count">-</span> 개
+					</div>
+				</div>
+				<div class="period pt-2 text-secondary text-right">
+					<i class="far fa-calendar-alt"></i>
+					<span class="regDate">2020-02-22~2020-03-22</span>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="py-2">
+			<div id="groupByTopMemberBox" class="dashboard-box p-3 jsAction">
+				<div class="row no-gutters py-1">
+					<div class="title col-auto">
+						최다 JS 등록 회원
+					</div>
+					<div class="period col text-secondary text-right">
+						<i class="fa fa-user"></i> 
+						<span>20명</span>
+						<i class="far fa-calendar-alt"></i> 
+						<span class="regDate">2020-02-22~2020-03-22</span>
+					</div>
+				</div>
+				<table class="resultWrapper table table-striped table-bordered 
+					table-hover table-sm text-center admin-sentencebook-board">
+					<thead>
+					<tr class="thead">
+						<th >번호</th>
+						<th data-value='alias'>회원 별명</th>
+						<th data-value='memberType'>멤버 타입</th>
+						<th data-value='count'>개수</th>
+					</tr></thead>
+					<tbody>
+						
+					</tbody>
+				</table>
+			</div>
+		</div>
+	
+	</div>
+</div>
+	
+</div><!-- end of statisticsResultSection -->
+	
+	
+
+
+
+
+
+<div class="text-right" style="color:red;">
+	source :: stats_jungle_sentences.html	 
+</div>
+
+
+
+
+</section><!-- end of section -->
+

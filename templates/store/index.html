@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playstore_layout}">
+<head>
+<title>index : PlayStore</title>
+<link rel="stylesheet" th:href="@{/css/app/playstore.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [header menu active]-----------------------------------------------------
+	$(".store-menu-section .playStoreHomeMenu").addClass("active");
+	
+}); //end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="background-index">
+<div class="big-banner-section">
+	<div th:replace="~{/store/incl/playstore_banner::banner_big}"></div>
+</div>
+<div class="container">
+
+<!-- ---------------------[Item lists (MD's Choice)]------------------------ -->
+<div id="itemListsSection">
+	<div>
+		item1
+	</div>
+	<div>
+		item2
+	</div>
+	<div>
+		item3
+	</div>
+</div><!-- end of itemListsSection -->
+
+
+<!-- ---------------------[Play Store Ranking Lists]------------------------ -->
+<div id="playStoreRankingSection">
+
+</div><!-- end of playStoreRankingSection -->
+
+
+<!-- ----------------------[Item lists (New Items)]------------------------- -->
+<div id="newItemListsSection">
+
+</div><!-- end of newItemListsSection -->
+
+
+<!-- ---------------------------[Instagram]--------------------------------- -->
+<div id="storeInstagramSection">
+
+</div><!-- end of storeInstagramSection -->
+	
+	
+	
+</div>
+
+</div>
+</section>
+
+</html>

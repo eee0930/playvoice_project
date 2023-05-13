@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="search">
+	<!-- -------------------------[search sentence]------------------------- -->
+	<div id="searchSentence_div" class="search-sentence-section trans-list add" style="display: none;"
+		th:with="searchTarget=${#strings.contains(#request.requestURI, '/babel/')?'예문':
+				#strings.contains(#request.requestURI, '/digest/')?'주제':'기타'}">
+		<div class="translation-cover" th:unless="${session.userContainer}"><div class="sentence">
+			<h3>[[${searchTarget}]] 검색 <i class="fa fa-search fa-fw"></i></h3>
+			<form  id="searchForm">
+			<div class="squareSentenceForm-div row no-gutters">
+				<div class="col-md-2 py-2 align-self-center">
+					<select id="searchType" class="form-control">
+						<option th:each="option,iter:${searchOptions}" th:value="${option.value}" th:text="${option.name}"></option>
+					</select>
+				</div>
+				<div class="col-md-10 pl-md-3 py-2 align-self-center">
+					<input id="searchKeyword" type="text" class="requireSentenceForm form-control" 
+						placeholder="검색어를 입력해주세요." autocomplete="off">
+					<!-- 제시어 기능 -->
+					<ul class="suggest-list-cover" style="display: none;"></ul>
+				</div>
+			</div>	
+			<div class="squareSentenceDiv mt-2 text-right">
+				<button id="cancelSearch_btn" type="reset" class="btn btn-outline-playsquare btn-sm" 
+					style="width: 80px; margin-right: 10px;">취 소</button>
+				<button id="searchSentenceBtn" type="submit" class="squareAddBtn loginRequired btn btn-playsquare btn-sm" 
+					disabled style="width: 80px;" th:href="${#request.requestURI}">
+					<i class="fa fa-search fa-fw"></i> 검 색
+				</button>
+			</div>
+			<input id="searchStackType" type="hidden" th:value="${stackType}">
+			</form>
+		</div></div>
+		<div th:if="${session.userContainer}" class="translation-cover">
+			<div class="form-control jsAction" title="클릭하면 로그인 화면으로 이동합니다."
+				onclick="location.href='/auth/login?destPage=' + self.location">로그인 후 이용 가능합니다.</div>
+		</div>
+	</div>
+	
+	<!-- --------------------------[검색 결과 list]----------------------------- -->
+	<div class="result-search-section" style="display: none;">
+		<h3 class="row no-gutters">
+			<span class="col-md"></span>
+			<span class="col-md-auto align-self-center">
+				<i class="fa fa-search"></i> 검색 결과<br>
+				<small>Check out the search results and We hope these help you.</small>
+			</span>
+			<span class="search-result-close col-md text-md-right py-2 align-self-center">
+				<button id="closeResultSearchSentence_btn" type="button"
+					class="btn btn-outline-playsquare2 btn-xs">
+					<span>닫기 </span><i class="fa fa-times"></i>
+				</button>
+			</span>
+		</h3>
+		<th:block th:if="${#strings.contains(#request.requestURI, '/babel/')}">
+			<!-- [1. Playvoice Crew Sentence] -->
+			<div id="crewSentence" class="crew-sentence">
+				<h5><i class="fa fa-ellipsis-v"></i> Playvoice App Library</h5>
+	
+				<!-- ----------- searched Sentences Copy Place------------------->
+				<div class="member-trans-list row no-gutters">
+					<!-- 답변 작성자 정보 (PC ver.) -->
+					<div class="personal-cover col-md-auto d-none d-md-inline-block" align="center">
+						<div class="member-personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								class="personacon-profile profile-default">
+							<img src="/images/app/member/profile_paper.png" 
+								class="personacon-frame frame-G">
+						</div>
+						<div class="alias mt-1">별명 PC</div>
+					</div>
+					
+					<div class="trans-sentence-cover col-md col-12 pl-md-3">
+						<div class="translate-cover">
+							<!-- 작성자 퍼스나콘 별명(Mobile ver.) -->
+							<div class="d-md-none"><div class="row no-gutters mb-3">
+								<div class="personal-cover col-auto align-self-center">
+									<img src="/images/app/member/profile_paper.png" 
+										class="profile-default">
+								</div>
+								<div class="alias-cover col align-self-center">
+									<div class="alias">별명 Mobile</div>
+									<div class="date">2019-05-18</div>
+								</div>
+								<div class="etc col-auto text-right btn-group dropup align-self-center">
+									<a class="dropdown-toggle" data-toggle="dropdown">
+										<i class="fa fa-ellipsis-v fa-lg fa-fw"></i>
+									</a>
+									<ul class="dropdown-menu dropdown-menu-right" role="menu">
+										<th:block>
+										<li class="editCommentBtn dropdown-item text-center"><a>수정</a></li>
+										<li class="dropdown-item text-center"><a href="#">삭제</a></li>
+										</th:block>
+										<li class="openReportModal dropdown-item text-center">신고</li>
+									</ul>
+								</div>
+							</div></div>
+							<!-- 답변, 코멘트 -->
+							<div class="translate-kor">
+								<div class="kor">당신은 한국어로 해석함으로써 공부할 수 있다.</div>
+								<div class="guide mt-2">
+									<label class="badge d-none d-md-inline-block">코멘트</label>
+									<i class="far fa-comment-dots fa-flip-horizontal d-md-none"></i>
+									<span>제가 쓴 거 다이제스트에 있는데 제 별명 검색해서 참고해 주세욤!!</span>
+								</div>
+							</div>
+							<!-- 날짜/ 수정,삭제,신고 버튼 -->
+							<div class="d-none d-md-block"><div class="info row no-gutters">
+								<div class="date col-auto align-self-center">2019-05-18</div>
+								<div class="col"></div>
+								<div class="etc col-auto text-right btn-group dropup align-self-center">
+									<a class="dropdown-toggle" data-toggle="dropdown">
+										<i class="fa fa-ellipsis-h fa-lg"></i>
+									</a>
+									<ul class="dropdown-menu dropdown-menu-right" role="menu">
+										<th:block>
+										<li class="editCommentBtn dropdown-item text-center"><a>수정</a></li>
+										<li class="dropdown-item text-center"><a href="#">삭제</a></li>
+										</th:block>
+										<li class="openReportModal dropdown-item text-center">신고</li>
+									</ul>
+								</div>
+							</div></div>
+							<!-- 답변 추천 (Mobile ver.) -->
+							<div class="estimate-section d-md-none">
+								<label class="follow-up">
+									<i class="fa fa-arrow-circle-up"></i>
+									<br>선택 <span class="num">22</span>
+								</label>
+							</div>
+						</div>
+					</div>
+					<!-- 추천 버튼 (PC ver.) -->
+					<div class="estimate-section col-auto text-center pl-3 pt-2
+						d-none d-md-inline-block">
+						<div><i class="fa fa-arrow-circle-up"></i></div>
+						<div>선택</div>
+						<div class="num">22</div>
+					</div>
+				</div>
+				
+				
+				<div class="trans-list-page search text-center my-3">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item">
+							<a class="page-link">1</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+			
+			
+			<!-- [2. Playvoice Sentence] -->
+			<div id="internalSentence" class="internal-sentence">
+				<h5><i class="fa fa-ellipsis-v"></i> Playvoice Book Library</h5>
+				<!-- ----------- searched Sentences Copy Place------------------->
+							
+				<div class="trans-list-page search text-center my-3">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item">
+							<a class="page-link">1</a>
+						</li>
+					</ul>
+				</div>
+			</div>
+		</th:block>
+		<!-- [3. Normal] -->
+		<th:block th:unless="${#strings.contains(#request.requestURI, '/babel/')}">
+			<!-- ----------- searched Results Copy Place------------------->
+						
+			<div class="trans-list-page search text-center my-3">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item">
+						<a class="page-link">1</a>
+					</li>
+				</ul>
+			</div>
+		</th:block>
+	</div>
+	<!--/*------------------- /검색된 예문 for copy----------------------------*/-->
+</div>
+</html>

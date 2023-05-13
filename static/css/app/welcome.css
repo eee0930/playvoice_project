@@ -1,0 +1,507 @@
+
+
+/* *****************************************************************************
+	   	 						welcome.html
+***************************************************************************** */  
+.playvoice-first-entry-section {
+	width: 100%;
+	min-height: 100vh;
+	overflow: hidden;
+	transition: transform 0.8s ease;
+}
+.playvoice-first-entry-section.-apps {min-height: 110vh;}
+.playvoice-first-entry-section.-about,
+.playvoice-first-entry-section.-howto,
+.playvoice-first-entry-section.-enjoy {
+	position: relative;
+}
+.playvoice-first-entry-section.-apps,
+.playvoice-first-entry-section.-enjoy {
+	background-color: transparent;
+}
+.playvoice-first-entry-section .playvoice-first-entry-cover {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+.playvoice-first-entry-section.-about .playvoice-first-entry-cover {
+	background-color: #fdf0e5;
+}
+.playvoice-first-entry-section.-howto .playvoice-first-entry-cover {
+	background-color: #eefbff;
+}
+
+.playvoice-welcome-coverage .playvoice-title-section .playvoice-title {
+	position: absolute;
+	text-align: center;
+	width: 100%;
+	left: 0;
+	top: 40%;
+	-webkit-transform: translateY(-50%) skewY(0deg);
+	-moz-transform: translateY(-50%) skewY(0deg);
+	-ms-transform: translateY(-50%) skewY(0deg);
+	-o-transform: translateY(-50%) skewY(0deg);
+	transform: translateY(-50%) skewY(0deg);
+	animation: showUpTitle 3s ease;
+}
+@keyframes showUpTitle {
+	0% {
+		top: 100%;
+		-webkit-transform: translateY(100%) skewY(20deg);
+		-moz-transform: translateY(100%) skewY(20deg);
+		-ms-transform: translateY(100%) skewY(20deg);
+		-o-transform: translateY(100%) skewY(20deg);
+		transform: translateY(100%) skewY(20deg);
+	}
+	100% {
+		top: 40%;
+		-webkit-transform: translateY(-50%) skewY(0deg);
+		-moz-transform: translateY(-50%) skewY(0deg);
+		-ms-transform: translateY(-50%) skewY(0deg);
+		-o-transform: translateY(-50%) skewY(0deg);
+		transform: translateY(-50%) skewY(0deg);
+	}
+}
+.playvoice-welcome-coverage .playvoice-title .eng-title {
+	font-size: 20px;
+	color: #dd2138;
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+	letter-spacing: -0.5px;
+}
+.playvoice-welcome-coverage .playvoice-title .episode {
+	font-family: 'PT Serif';
+	font-weight: 600;
+}
+.playvoice-welcome-coverage .playvoice-title h1 {
+	font-family: 'Baloo Bhai';
+	font-size: 7vmax;
+	color: #303672;
+	letter-spacing: -0.2vmax;
+	line-height: 1;
+}
+.playvoice-welcome-coverage .playvoice-title .sub-title {
+	font-size: 16px;
+	color: #1b1f40;
+	font-weight: 600;
+	font-family: 'Cafe24Simplehae';
+}
+.playvoice-welcome-coverage .playvoice-title .sub-title span {color: #dd2138;}
+
+/* 페이지 노트북 */
+.playvoice-first-entry-section .laptop-cover {
+	margin-top: 60vh;
+	min-height: 700px;
+	position: relative;
+}
+.playvoice-first-entry-section .laptop .carousel,
+.playvoice-first-entry-section .laptop .carousel .carousel-inner,
+.playvoice-first-entry-section .laptop .carousel .carousel-item {height: 100%;}
+.playvoice-first-entry-section .laptop {
+	position: relative;
+	top: 0;
+	width: 600px;
+	height: 400px;
+	-webkit-transform-origin: 0 40px;
+	transform-origin: 0 40px;
+	margin: 0 auto;
+	transition: top 0.3s linear;
+}
+.playvoice-first-entry-section .laptop .shadow {
+	left: 17px;
+	right: 17px;
+	top: 90px;
+	height: 450px;
+	opacity: .3;
+	background: #7692b3;
+	-webkit-filter: blur(30px);
+	filter: blur(30px);
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .lid {
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(45deg, #e5ebf2, #f3f8fb);
+	border-radius: 20px;
+	-webkit-box-shadow: inset 1px -4px 6px rgba(145,161,181,0.3);
+	box-shadow: inset 1px -4px 6px rgba(145,161,181,0.3);
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .screen {
+	top: 25px;
+	bottom: 25px;
+	left: 25px;
+	overflow: hidden;
+	right: 25px;
+	border-radius: 4px;
+	-webkit-box-shadow: -1px 1px 6px rgba(171,183,204,0.2);
+	box-shadow: -1px 1px 6px rgba(171,183,204,0.2);
+	background: /* #f2f6fa */ #fff;
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .bottom {
+	width: 100%;
+	height: 142px;
+	top: calc(100% - 11px);
+	border-radius: 8px 8px 14px 14px;
+	-webkit-transform: perspective(880px) rotateX(40deg);
+	transform: perspective(880px) rotateX(40deg);
+	-webkit-transform-origin: 50% 0;
+	transform-origin: 50% 0;
+	background: linear-gradient(rgba(145,161,181,0.2), rgba(145,161,181,0)),linear-gradient(45deg, #e5ebf2, #f3f8fb);
+	-webkit-box-shadow: inset 0 -2px 3px rgba(145,161,181,0.5), inset -1px -6px 4px rgba(253,255,255,0.9);
+	box-shadow: inset 0 -2px 3px rgba(145,161,181,0.5), inset -1px -6px 4px rgba(253,255,255,0.9);
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .bottom .keyboard, 
+.playvoice-first-entry-section .laptop .bottom .trackpad {
+	opacity: .3;
+	background: linear-gradient(45deg, #b2bdcc, #c1ccd8);
+	-webkit-box-shadow: 1px 1px 1px rgba(255,255,255,0.75);
+	box-shadow: 1px 1px 1px rgba(255,255,255,0.75);
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .keyboard {
+	left: 28px;
+	right: 28px;
+	top: 8px;
+	height: 66px;
+	border-radius: 2px 2px 4px 4px;
+	position: absolute;
+}
+.playvoice-first-entry-section .laptop .trackpad {
+	left: 165px;
+	right: 165px;
+	top: 80px;
+	height: 52px;
+	border-radius: 4px 4px 6px 6px;
+	position: absolute;
+}
+
+@media (max-width: 991.5px) {
+	.playvoice-first-entry-section .laptop .shadow {height: 350px;}
+}
+@media (max-width: 767.5px) {
+	.playvoice-first-entry-section {height: auto;}
+	.playvoice-first-entry-section .laptop {display: none;}
+}
+
+.playvoice-first-entry-section .laptop-cover .fa-plane {
+	font-size: 3rem;
+	color: #303672;
+	position: absolute;
+	bottom: 0;
+	left: -3rem;
+	transform: rotate(-5deg);
+	transition: transform 0.5s ease;
+	animation: showUpParticle 3s ease;
+}
+
+/* 앱 가이드 영역 */
+.playvoice-first-entry-section {
+	-webkit-transition: all 1s cubic-bezier(.4,0,.2,1);
+    -o-transition: all 1s cubic-bezier(.4,0,.2,1);
+    transition: all 1s cubic-bezier(.4,0,.2,1);
+}
+.playvoice-first-entry-section .app-guide-back {
+	transition: all 0.3s ease;
+	height: 100%;
+	min-height: 110vh;
+	position: relative;
+}
+.playvoice-first-entry-section.active .app-guide-back {
+	position: fixed;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 1;
+	width: 100%;
+	background-color: #fff;
+}
+.playvoice-first-entry-section .app-guide-section {
+	transition: all 0.3s ease;
+	transform: scale(0.8) translateY(-50%);
+	padding: 1rem 0.35rem;
+	will-change: transform;
+	user-select: none;
+	display: flex;
+	flex-wrap: nowrap;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+	user-select: none;
+	border-radius: 0;
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+}
+.playvoice-first-entry-section.active .app-guide-section {
+	transform: scale(1) translateY(-50%);
+}
+.playvoice-first-entry-section .app-guide-cover {
+	min-width: 600px;
+	width: 100%;
+	max-width: 1000px;
+	height: 400px;
+	margin: 0 2rem;
+	background-color: #1b1f40;
+	border-radius: 0.5rem;
+}
+.playvoice-first-entry-section .app-guide-cover:first-child,
+.playvoice-first-entry-section .app-guide-cover:last-child {
+	min-width: calc(50% - 300px - 4rem);
+	width: calc(50% - 300px - 2rem);
+	background-color: transparent;
+} 
+
+
+
+
+
+/* *****************************************************************************
+	   	 						welcome effect
+***************************************************************************** */  
+/* particle 효과 */
+.pv-hero-particle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	z-index: 2;
+	pointer-events: none;
+	overflow: hidden;
+	opacity: 0.7;
+}
+.pv-hero-particle .pv-particle {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+	pointer-events: none;
+	contain: content;
+	animation: showUpParticle 1s ease;
+}
+@keyframes showUpParticle {
+	0% {transform: translateY(100vh);}
+	100% {transform: translateY(0);}
+}
+.pv-hero-particle .pv-particle-item {
+	position: absolute;
+	bottom: 0;
+	will-change: transform;
+	pointer-events: auto;
+	position: absolute;
+	-webkit-transition: -webkit-transform .5s ease-out;
+	transition: -webkit-transform .5s ease-out;
+	-o-transition: -o-transform .5s ease-out;
+	-moz-transition: transform .5s ease-out, -moz-transform .5s ease-out;
+	transition: transform .5s ease-out;
+	transition: transform .5s ease-out, -webkit-transform .5s ease-out,
+			-moz-transform .5s ease-out, -o-transform .5s ease-out;
+}
+.pv-hero-particle .pv-particle-item.-v1 {
+	background-image: url('/images/common/characters/TY_particle.png');
+	transform: translate(89.3485vw, 10px) scale(0.7495);
+	animation: particleUp1 15s -23s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v2 {
+	background-image: url('/images/common/characters/amstrong_particle.png');
+	transform: translate(23.9376vw, 10px) scale(0.6049);
+	animation: particleUp2 10s -20s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v3 {
+	background-image: url('/images/common/characters/ken_particle.png');
+	transform: translate(67.8313vw, 10px) scale(0.6944);
+	animation: particleUp3 24s -17s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v4 {
+	background-image: url('/images/common/characters/meerkat_particle.png');
+	transform: translate(49.4471vw, 10px) scale(0.6794);
+	animation: particleUp4 21s -9s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-img {
+	width: 60px;
+	opacity: 0.7;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+.pv-hero-particle .pv-particle-item.-v5 {
+	background-color: #0248db;
+	transform: translate(80.2462vw, 10px) scale(0.632);
+	animation: particleUp5 14s -6s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v6 {
+	background-color: #ff5e00;
+	transform: translate(66.0046vw, 10px) scale(0.3702);
+	animation: particleUp6 10s -1s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v7 {
+	background-color: #ffeaea;
+	transform: translate(90.2412vw, 10px) scale(0.4413);
+	animation: particleUp7 19s -14s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v8 {
+	background-color: #89f6ff;
+	transform: translate(10.77vw, 10px) scale(0.4948);
+	animation: particleUp8 17s -16s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v9 {
+	background-color: #feca00;
+	transform: translate(87.2597vw, 10px) scale(0.3074);
+	animation: particleUp9 11s -19s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v10 {
+	background-color: #89f6ff;
+	transform: translate(63.0916vw, 10px) scale(0.2988);
+	animation: particleUp10 14s -7s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-v11 {
+	background-color: #090d99;
+	transform: translate(26.9933vw, 10px) scale(0.6897);
+	animation: particleUp11 10s -1s linear infinite;
+}
+.pv-hero-particle .pv-particle-item.-dot {
+	width: 25px;
+	height: 25px;
+	border-radius: 50%;
+}
+
+@keyframes particleUp1 {
+	41.432% {transform: translate(50.58vw, -41.432vh) scale(0.7495) rotate(-25deg);}
+	100% {transform: translate(59.96425vw, -100vh) scale(0.7495) rotate(30deg);}
+}
+@keyframes particleUp2 {
+	50.985% {transform: translate(14.0041vw, -50.985vh) scale(0.6049) rotate(-15deg);}
+	100% {transform: translate(18.97085vw, -100vh) scale(0.6049) rotate(10deg);}
+}
+@keyframes particleUp3 {
+	38.717% {transform: translate(65.9222vw, -38.717vh) scale(0.6944) rotate(-15deg);}
+	100% {transform: translate(66.87675vw, -100vh) scale(0.6944) rotate(15deg);}
+}
+@keyframes particleUp4 {
+	31.723% {transform: translate(41.6268vw, -31.723vh) scale(0.6794) rotate(-15deg);}
+	100% {transform: translate(45.53695vw, -100vh) scale(0.7794) rotate(15deg);}
+}
+@keyframes particleUp5 {
+	62.799% {transform: translate(85.75vw, -62.799vh) scale(0.632);}
+	100% {transform: translate(82.9981vw, -100vh) scale(0.632);}
+}
+@keyframes particleUp6 {
+	31.252% {transform: translate(63.1973vw, -31.252vh) scale(0.3702);}
+	100% {transform: translate(64.60095vw, -100vh) scale(0.3702);}
+}
+@keyframes particleUp7 {
+	33.879% {transform: translate(83.4381vw, -33.879vh) scale(0.4413);}
+	100% {transform: translate(86.83965vw, -100vh) scale(0.4413);}
+}
+@keyframes particleUp8 {
+	47.388% {transform: translate(13.2369vw, -47.388vh) scale(0.4948);}
+	100% {transform: translate(12.00345vw, -100vh) scale(0.4948);}
+}
+@keyframes particleUp9 {
+	58.847% {transform: translate(77.8894vw, -58.847vh) scale(0.3074);}
+	100% {transform: translate(82.57455vw, -100vh) scale(0.3074);}
+}
+@keyframes particleUp10 {
+	57.972% {transform: translate(59.8515vw, -57.972vh) scale(0.2988);}
+	100% {transform: translate(61.47155vw, -100vh) scale(0.2988);}
+}
+@keyframes particleUp11 {
+	47.388% {transform: translate(26.8952vw, -62.576vh) scale(0.6897);}
+	100% {transform: translate(26.94425vw, -100vh) scale(0.6897);}
+}
+
+/* 구름 둥둥 효과 */
+.cloud-gather-section {
+	position: relative;
+	height: 80px;
+	max-width: 100%;
+}
+.cloud-gather-section .cloud-image {
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	position: absolute;
+	opacity: 0.5;
+	z-index: -1;
+}
+.cloud-gather-section .cloud1 {
+	background-image: url('/images/common/images/cloud1.png');
+	width: 200px;
+	height: 180px;
+	bottom: 0;
+	left: 50px;
+	animation: bungbung 1.5s infinite linear;
+}
+.cloud-gather-section .cloud2 {
+	background-image: url('/images/common/images/cloud2.png');
+	width: 180px;
+	height: 150px;
+	bottom: 120px;
+	left: -10px;
+	animation: bungbung 0.8s infinite linear;
+}
+.cloud-gather-section .cloud3 {
+	background-image: url('/images/common/images/cloud3.png');
+	width: 150px;
+	height: 120px;
+	bottom: 200px;
+	left: 200px;
+	animation: bungbung 1.2s infinite linear;
+}
+.cloud-gather-section .cloud4 {
+	background-image: url('/images/common/images/cloud4.png');
+	width: 120px;
+	height: 100px;
+	bottom: -50px;
+	left: 175px;
+	animation: bungbung 1.8s infinite linear;
+}
+
+
+/* *****************************************************************************
+									스크롤 style 
+***************************************************************************** */  
+/* Chrome */
+::-webkit-scrollbar{width: 10px;}
+::-webkit-scrollbar-track {
+	/* bar background color */
+	background-color: transparent;
+}
+::-webkit-scrollbar-thumb {
+	/* bar color */
+	background-color: #303672;
+	border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {background: #4e78c2;}
+::-webkit-scrollbar-button:start:decrement,
+::-webkit-scrollbar-button:end:increment {height: 0px;} 
+
+.app-guide-section::-webkit-scrollbar {height: 0;}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

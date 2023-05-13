@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>나의 앨범 (Playvoice TTS) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '나의 앨범 (Playvoice TTS) - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 TTS는 영어 전문 TTS MP3 파일 변환 서비스입니다. 플레이보이스에는
+	수십명의 다양한 성우들의 목소리가 있으며, 자신이 원하는 문장들을 고품질 음성 파일로 쉽고 간편하게 만들 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = 'TTS, MP3, 영어 듣기, 받아쓰기, 딕테이션, 스피킹 '"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [페이지 진입 세팅]-------------------------------------------------------------
+	// [헤더 title setting]-------------------------------------------------------
+	$("#historyBackBtn, #functionBackBtn").hide();
+	$("#mainBackBtn").show();
+	setHeaderTitle("My Album");
+	
+	
+	// [앨범 플레이어로 이동]----------------------------------------------------------
+	$(".movePlayAlbum").click(function(){
+		var albumId = $(this).find(".albumId").val();
+		$(this).addClass("active");
+		$(".hide-back-section").addClass("active");
+		setTimeout(function() {
+			location.href="/tts/player/playlist";
+		}, 900);
+	});
+	
+
+	// [롱클릭 시 수정 모드 전환 (헤더 edit 클릭)]-------------------------------------------
+	var longtouchTimer;
+	$(document).on('touchstart','#myAlbumPlayListDiv .list-player-sentence div:not(.move-button-section)', function(e){
+		if($(this).closest('.deleteMode,.orderMode').length == 0){
+			e.stopPropagation();
+			var $checkbox = $(this).closest('.list-player-sentence').find(':checkbox');
+			longtouchTimer = setTimeout(function(){
+				changeEditMode(true);
+			}, 300);
+		}
+	})
+	
+	// [앨범 수정 모드로 전환 (헤더 edit 클릭)]--------------------------------------------
+	$("#editAlumModeBtn").click(function(){
+		changeEditMode(true);
+		
+	});
+	// [헤더 영역 클릭 시 수정 모드 헤제]---------------------------------------------------
+	$(".mobile-index-background-section, #cancelEditAlumModeBtn").click(function(){
+		changeEditMode(false);
+	});
+	// [삭제할 앨범 선택 클릭]----------------------------------------------------------
+	$(".deleteAlbumBtn").click(function(){
+		var albumTitle = $(this).closest(".tts-my-album-list").find(".album-title-section").text();
+		
+		var $msg = "<div class=\"title\">'" + albumTitle + "'을(를) 제거하겠습니까?</div>"
+				+ "<div class=\"sub-detail\">앨범을 제거하면 앨범 안의 모든 파일들이 삭제됩니다.</div>"
+		displayAlertModal($msg, 1);
+	});
+	// [모달 닫기]-----------------------------------------------------------------
+	$(".closeAlertModal").click(function(){
+		$("#ttsAlertModal").hide();
+	});
+	// [앨범 삭제]-----------------------------------------------------------------
+	$("#deleteAlbumBtn").click(function(){
+		
+	});
+	
+	
+	
+	// [수정할 앨범 선택]-------------------------------------------------------------
+	$(".editThisAlbum").click(function(){
+		// 앨범 정보
+		var parentDiv = $(this).closest(".tts-my-album-list");
+		$(".tts-my-album-list").removeClass("editTarget");
+		parentDiv.addClass("editTarget");
+		
+		var albumTitle = parentDiv.find(".album-title-section").text();
+		var albumDescription = parentDiv.find(".description").val();
+		var albumId = parentDiv.find(".albumId").val();
+		var imagePath = parentDiv.find(".imagePath").val();
+		
+		// 모달에 앨범 정보를 넣을 위치
+		var viewAlbumModal = $("#viewAlbumModal");
+		var albumIdForm = viewAlbumModal.find("#albumId");
+		var titleDiv = viewAlbumModal.find(".folder-title");
+		var imagePathDiv = viewAlbumModal.find(".folder-image");
+		var imagePathForm = viewAlbumModal.find(".image-path");
+		var descriptionDiv = viewAlbumModal.find(".folder-intro-section");
+		var descriptionForm = viewAlbumModal.find(".description");
+		var regDateDiv = viewAlbumModal.find(".folder-date");
+		
+		albumIdForm.val(albumId);
+		titleDiv.text(albumTitle);
+							
+		if(imagePath != null && imagePath.length > 0) {
+			imagePathDiv.removeClass("default").css("background-image", "url(/images/common/characters/" 
+					+ imagePath + ")");
+			imagePathForm.val(imagePath);
+		} else {
+			imagePathDiv.addClass("default").css("background-image", "");
+			imagePathForm.val("");
+		}
+		
+		if(albumDescription != null && albumDescription.length > 0) {
+			descriptionDiv.removeClass("empty").text(albumDescription);
+			descriptionForm.val(albumDescription);
+		} else {
+			descriptionDiv.addClass("empty").text("");
+			descriptionForm.val("");
+		}
+		$("#viewAlbumModal").show();
+	});
+	// [앨범 미리보기 모달 닫기]--------------------------------------------------------
+	$(".closeAlbumModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#viewAlbumModal").hide();
+		$(".tts-my-album-list").removeClass("editTarget");
+	});
+	
+	
+	
+	// [앨범명 수정 모달 열기]---------------------------------------------------------
+	$("#viewAlbumModal .folder-title").click(function(){
+		var albumTitle = $(this).text();
+		var editAlbumId = $("#viewAlbumModal").find("#albumId").val();
+		
+		$("#editAlbumTitleModal").find("#albumTitle").val(albumTitle);
+		$("#editAlbumImageModal").find("#editAlbumId").val(editAlbumId);
+		
+		$("#viewAlbumModal").css("opacity", "0");
+		$("#editAlbumTitleModal").show();
+	});
+	// [앨범 자켓 이미지 수정 모달 닫기]---------------------------------------------------
+	$(".closeEditAlbumTitleModal").click(function(){
+		$("#viewAlbumModal").css("opacity", "1");
+		$("#editAlbumTitleModal").hide();
+	});
+	// [앨범명 수정하기]-------------------------------------------------------------
+	$("#editAlbumTitleBtn").click(function(){
+		var albumTitle = $("#editAlbumTitleModal").find("#albumTitle").val();
+		if(albumTitle == null || albumTitle.length < 1) {
+			alert("앨범 타이틀을 50자 이내로 입력해 주세요.");
+		} else {
+			var msg = "앨범명이 수정되었습니다.";
+			displayAlertModal(msg, 0);
+			$(".closeEditAlbumTitleModal").click();
+		}
+	});
+	
+	
+	
+	
+	// [앨범 자켓 사진 수정 모달 열기]-----------------------------------------------------
+	$("#viewAlbumModal .folder-image").click(function(){
+		var imagePath = $(this).find(".image-path").val();
+		var editAlbumId = $("#viewAlbumModal").find("#albumId").val();
+		
+		var editImageModal = $("#editAlbumImageModal");
+		var imageFileLabel = editImageModal.find(".image-file-cover");
+		
+		if(imagePath != null && imagePath.length > 0) {
+			imageFileLabel.css("background-image", "url(/images/common/characters/" + imagePath + ")");
+			editImageModal.find(".originImagePath").val(imagePath);
+		} else {
+			imageFileLabel.css("background-image", "none");
+			editImageModal.find(".originImagePath").val("");
+		}
+		$("#editAlbumImageModal").find("#editAlbumId").val(editAlbumId);
+		
+		$("#viewAlbumModal").css("opacity", "0");
+		$("#editAlbumImageModal").show();
+	});
+	// [앨범 자켓 이미지 수정 모달 닫기]---------------------------------------------------
+	$(".closeEditAlbumImageModal").click(function(){
+		$("#viewAlbumModal").css("opacity", "1");
+		$("#editAlbumImageModal").hide();
+	});
+	// [앨범 자켓 이미지 수정하기]-------------------------------------------------------
+	$("#editAlbumImageBtn").click(function(){
+		var imagePath = $("#editAlbumImageModal").find("#imagePath").val();
+		var AlbumId = $("#editAlbumImageModal").find("#editAlbumId").val();
+		
+		if(imagePath == null || imagePath.length < 1) {
+			alert("이미지를 선택해 주세요.");
+			return;
+		} else {
+
+			var msg = "앨범 자켓이 수정되었습니다.";
+			displayAlertModal(msg, 0);
+			$(".closeEditAlbumImageModal").click();
+		}
+	});
+	
+	
+	
+	// [앨범 설명 수정 모달 열기]--------------------------------------------------------
+	$("#viewAlbumModal .folder-intro-section").click(function(){
+		var description = $("#viewAlbumModal").find(".description").val();
+		var editAlbumId = $("#viewAlbumModal").find("#albumId").val();
+		var target = $("#editAlbumDescriptionSection").find(".textSize");
+		
+		if(description != null && description.length > 0) {
+			$("#albumDescriptionFormDiv").find(".albumDescription").val(description);
+		} else {
+			$("#albumDescriptionFormDiv").find(".albumDescription").val("");
+		}
+		$("#editAlbumDescriptionSection").find("#editAlbumId").val(editAlbumId);
+		
+		getSizeOfText(description, target);
+		
+		$("#viewAlbumModal").css("opacity", "0");
+		$("#editAlbumDescriptionSection").show();
+		location.hash = "#editDescription";
+	});
+	// [앨범 설명 수정 모달 닫기]--------------------------------------------------------
+	$(window).on("hashchange", function(){
+		if (location.hash != "#editDescription") {  
+			$("#viewAlbumModal").css("opacity", "1");
+			$("#editAlbumDescriptionSection").hide();
+		}
+	});
+	// [앨범 설명 입력 시 글자 수 세기]----------------------------------------------------
+	$("#albumDescriptionFormDiv").on("input", ".albumDescription", function(){
+		var text = $(this).val();
+		var target = $("#editAlbumDescriptionSection").find(".textSize");
+		getSizeOfText(text, target);
+	});
+	// [앨범 설명 수정하기]-----------------------------------------------------------
+	$("#editAlbumDescriptionBtn").click(function(){
+		var description = $("#editAlbumDescriptionSection").find(".albumDescription").val();
+		var AlbumId = $("#editAlbumDescriptionSection").find("#editAlbumId").val();
+
+		if(description == null || description.length < 1) {
+			alert("앨범 설명을 작성해 주세요.");
+			return;
+		} else if (description.length > 255) {
+			alert("앨범 설명을 255자 이내로 작성해 주세요.");
+		} else {
+
+			var msg = "앨범 설명이 수정되었습니다.";
+			displayAlertModal(msg, 0);
+			history.back(-1);
+		}
+	});
+	
+	
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*					editing sentence Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * header title settion
+ */
+function setHeaderTitle(title) {
+	var titleSection = $("#playvoiceMobileHeader").find(".tts-logo");
+	titleSection.text(title);
+}
+
+/**
+ * 수정 모드로 전환/ 비전환
+ */
+function changeEditMode(isEdit) {
+	if(isEdit) {
+		$("#editAlumModeBtn").hide();
+		$("#cancelEditAlumModeBtn").show();
+		$("#myAlbumListSection").addClass("editMode");
+	} else {
+		$("#editAlumModeBtn").show();
+		$("#cancelEditAlumModeBtn").hide();
+		$("#myAlbumListSection").removeClass("editMode");
+	}
+}
+
+/**
+ * 알림 모달 열기
+ */
+function displayAlertModal(msg, footerIndex) {
+	$("#ttsAlertModal #msgSection").html(msg);
+	$("#ttsAlertModal").show();
+	if (footerIndex == 0) {
+		$("#ttsAlertModal .alertFooter").show();
+		$("#ttsAlertModal .submitFooter").hide();
+	} else if (footerIndex == 1) {
+		$("#ttsAlertModal .alertFooter").hide();
+		$("#ttsAlertModal .submitFooter").show();
+	}
+}
+
+
+/**
+ * 글자 수 센 후 표시
+ */
+function getSizeOfText(textValue, target) {
+	var textSize;
+	if(textValue == null) {
+		textSize = 0;
+	} else {
+		textSize = textValue.length;
+	}
+	$(target).text("").text(textSize);
+	if(textSize > 255) {
+		$(target).closest(".sentenceCover").addClass("over");
+	} else {
+		$(target).closest(".sentenceCover").removeClass("over");
+	}
+}
+
+</script>
+
+</head>
+
+
+<section layout:fragment="content" class="edit-parcing-sentence-list-section mobile-container-mode"
+	th:with="memberType = ${session?.userContainer}? 
+	${session?.userContainer?.personacon?.memberType}:'G'">
+<!-- tts header -->
+<header id="playvoiceMobileHeader" class="playvocie-mobile-header-position"
+	th:with="headerFixed = 'fixedStatic'">
+	<div th:replace="~{/tts/incl/tts_header2::header}"></div>
+	<button id="editAlumModeBtn" type="button" class="btn btn-header">Edit</button>
+	<button id="cancelEditAlumModeBtn" type="button" class="btn btn-header"
+		style="display: none;">Cancel</button>
+</header>
+
+<!-- tts PC top menu -->
+<div th:replace="~{/tts/incl/tts_menu2::pcTopMenu}"></div>
+
+<!-- ----------------------------[1. 나의 앨범 리스트]---------------------------- -->
+<div id="myAlbumListSection" class="tts-my-album-list-section">
+	<div class="tts-title-section">
+		<h1>My Album</h1>
+	</div>
+	<!-- [1.1 앨범 리스트] -->
+	<div id="myAlbumListDiv" class="tts-my-album-list-cover row no-gutters">
+		<div th:each="ttsAlbum, iter : ${ttsAlbumList}" 
+			class="tts-my-album-list col-4 col-sm-3 col-md-2">
+			<div class="movePlayAlbum tts-my-album">
+				<div th:if="${imagePathList[iter.index]}" 
+					class="folder-image-section" th:style="'background-image:url(/images/common/characters/'+
+					${imagePathList[iter.index]}+');'"></div>
+				<div th:unless="${imagePathList[iter.index]}" 
+					class="folder-image-section default"></div>
+				<div class="album-title-section" th:text="${ttsAlbum}"></div>
+				<input type="hidden" class="albumId" value="1234"/>
+				<input th:if="${imagePathList[iter.index]}" type="hidden" class="imagePath" 
+					th:value="${imagePathList[iter.index]}"/>
+				<input type="hidden" class="description" th:value="${descriptionList[iter.index]}"/>
+			</div>
+			<div class="editThisAlbum edit-album-position"></div>
+			<button type="button" class="deleteAlbumBtn btn btn-delete">
+				<i class="fa fa-minus"></i>
+			</button>
+		</div>
+	</div><!-- end of myAlbumListDiv -->
+	
+	<!-- [1.3 페이지네이션] -->
+	<div id="defaultAlbumListPagination" class="tts-pagination-section row no-gutters">
+		<div class="button-cover col-6 text-left">
+			<a onclick="moveTo($(this).attr('data-page'))" 
+				class="btn btn-main2">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="button-cover col-6 text-right">
+			<a onclick="moveTo($(this).attr('data-page'))" 
+				class="btn btn-main2">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+</div><!-- end of myAlbumListSection -->
+
+
+
+<!-- ------------------------[2. 앨범 리스트 미리 보기 모달]-------------------------- -->
+<div id="viewAlbumModal" class="playvoice-open-folder-modal" style="display: none;">
+	<div class="closeAlbumModal playvoice-open-folder-back"></div>
+	<div class="playvoice-open-folder-content">
+		<input id="albumId" type="hidden"/>
+		<!-- 타이틀 -->
+		<div class="formEdit folder-title">뉴욕 타임지뉴욕 타임지뉴욕 타임지뉴욕 타임지</div>
+		<div class="folder-detail-section">
+			<!-- 이미지 -->
+			<div class="formEdit folder-image">
+				<input type="hidden" class="image-path"/>
+			</div>
+			<!-- 앨범 설명 -->
+			<div class="formEdit folder-intro-section empty"></div>
+			<input type="hidden" class="description"/>
+		</div>
+	</div>
+</div>
+
+
+
+<!-- ---------------------------[3. 앨범 타이틀 수정 모달]-------------------------- -->
+<div id="editAlbumTitleModal" class="playvoice-mobile-modal-section modal-alert 
+	album-image" style="display: none;">
+	<div class="closeEditAlbumTitleModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<input id="editAlbumId" type="hidden"/>
+		<div class="inform-modal-body">
+			<input type="text" id="albumTitle" name="albumTitle" 
+				class="form-control playvoice-form"/>
+		</div>
+		<div class="confirmFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button id="editAlbumTitleBtn" class="btn-mobile btn-main2" 
+					type="button">수정</button>
+			</div>
+			<div class="button-cover col">
+				<button class="closeEditAlbumTitleModal btn-mobile btn-main" 
+					type="button">취소</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of editAlbumImageModal -->
+
+
+<!-- -------------------------[4. 앨범 자켓 이미지 수정 모달]------------------------- -->
+<div id="editAlbumImageModal" class="playvoice-mobile-modal-section modal-alert 
+	album-image" style="display: none;">
+	<div class="closeEditAlbumImageModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<input id="editAlbumId" type="hidden"/>
+		<div class="inform-modal-body">
+			<label for="imagePath" class="image-file-cover">
+				<i class="fa fa-plus-circle"></i>
+			</label>
+			<input type="file" id="imagePath" name="imagePath" class="imagePath"
+				accept="image/*"/>
+			<input type="hidden" class="originImagePath"/>
+		</div>
+		<div class="confirmFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button id="editAlbumImageBtn" class="btn-mobile btn-main2" 
+					type="button">수정</button>
+			</div>
+			<div class="button-cover col">
+				<button class="closeEditAlbumImageModal btn-mobile btn-main" 
+					type="button">취소</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of editAlbumImageModal -->
+
+
+
+
+<!-- -------------------------[5. 앨범 상세 설명 수정 모달]-------------------------- -->
+<div id="editAlbumDescriptionSection" class="edit-sentence-page-section" 
+	style="display: none;">
+	<!-- [4.1 예문 수정 컨트롤] -->
+	<div class="edit-sentence-page-div">
+		<div class="edit-sentence-page-header row no-gutters">
+			<div class="back-button-cover col">
+				<button onclick="history.back(-1)" class="btn btn-trans" type="button">
+					<i class="fa fa-angle-left fa-fw"></i>
+				</button>
+			</div>
+			<div class="edit-title col-auto">Album Description</div>
+			<div class="col"></div>
+		</div>
+	</div>
+	<!-- [4.2 예문 수정 폼] -->
+	<div class="sentenceCover sentence-form-div">
+		<input id="editAlbumId" type="hidden"/>
+		<div class="text-size">
+			<span class="textSize">0</span> / 255
+		</div>
+		<div id="albumDescriptionFormDiv" class="sentence-form">
+			<textarea class="albumDescription form-control playvoice-form"
+				placeholder="앨범에 대한 설명을 간단히 작성해 주세요."></textarea>
+		</div>
+	</div>
+	<!-- [4.3 버튼] -->
+	<div class="edit-button-cover button-cover">
+		<button onclick="history.back(-1)" class="btn btn-main" 
+			type="button">취소</button>
+		<button id="editAlbumDescriptionBtn" class="btn btn-confirm" 
+			type="button">수정</button>
+	</div>
+</div><!-- end of editAlbumDescriptionSection -->
+
+
+<!-- -----------------------[6. TTS alert modal]---------------------------- -->
+<div id="ttsAlertModal" class="playvoice-mobile-modal-section modal-alert album" 
+	style="display: none;">
+	<div class="closeAlertModal inform-modal-back"></div>
+	<div class="bg-tts-main1 inform-modal-content">
+		<div id="msgSection" class="inform-modal-body"></div>
+		<div class="alertFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button class="closeAlertModal btn-mobile btn-main2" 
+					type="button">확인</button>
+			</div>
+		</div>
+		<div class="submitFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button id="deleteAlbumBtn" class="btn-mobile btn-main2" 
+					type="button">앨범 삭제</button>
+			</div>
+			<div class="button-cover col">
+				<button class="closeAlertModal btn-mobile btn-main2" 
+					type="button">취소</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+<!-- tts bottom menu -->
+<div th:replace="~{/tts/incl/tts_menu2::bottomMenu}"></div>	
+
+<div class="hide-back-section"></div>
+</section><!-- end of content -->
+</html>

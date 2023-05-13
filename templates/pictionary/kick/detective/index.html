@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playkick_layout}">
+
+<head>
+<title>탐정 줄리 (Detective Julie) - 플레이보이스 | Playvoice</title>
+  
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '탐정 줄리 (Detective Juile) - 플레이보이스 | Playvoice', 
+	metaDescription = '무작정 단어를 외우지 마!
+	우리말이 영어로 옮겨지는 방식도 함께 주목해야 해. 영어 학습의 목적은 단어를 기억하는 것이 아니라 말을 할 수 있어야 합니다.', 
+	metaImage = '/images/common/characters/pictionary.jpg'"></th:block>
+	
+<!-- schema org (bread) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/pictionary', #httpServletRequest.requestURI} },
+	breadName = ${ {'픽셔너리', '탐정 줄리'} }"></th:block>]
+</script>
+		  
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+
+	// [모바일 로고 섹션에 앱 이름 변경]---------------------------------------------------
+	$("#playvoiceMobileTextLogo").hide();
+	$("#playvoiceMobileAppName").text("Pictionary").show();
+	// [이용 방법 영역으로 스크롤 이동]----------------------------------------------------
+	$("#howToUseBtn").click(function(){
+		var howToUseSection = $("#kickPrecautionSection").offset().top - $("#headerNavbar").height() - 20;
+		$('html, body').animate({scrollTop : howToUseSection}, 300);
+	});
+
+	// [멤버 리뷰 영역에 리뷰 리스트 하나씩 나오게 하기]-----------------------------------------
+	$(window).on('scroll',function() {
+		var memberReactionSection = $("#memberReactionSection");
+		if(checkVisible($(memberReactionSection))) {
+			memberReactionSection.addClass("active");
+		}
+	});
+
+	// [테스트 타입 div 클릭으로 선택]---------------------------------------------------
+	$(".selectTypeDiv").click(function(){
+		if(!$(this).is(".noGold")) {
+			var input = $(this).find(".choiceTypeBtn input[name=type]");
+			input.prop("checked", true);
+			var type = input.val();
+			testTypeChecked(type);
+		}
+	});
+	
+	// [테스트 타입 선택 (스테이지 선택 시 스테이지 목록을 보여줌)]---------------------------------
+	$("input[name=type]").change(function(){
+		var type = $(this).val();
+		testTypeChecked(type);
+	});
+	
+	// [테스트 타입 랜덤 선택으로 초기화]---------------------------------------------------
+	$(".choiceTypeBtn input[value='r']").prop("checked", true);
+
+	// [(테스트 시작) 플레이 화면으로 이동]------------------------------------------------
+	$("#startBtn").click(function(){
+		var type = $(":radio[name='type']:checked").val();
+		var form = $("#submitPlay")[0];
+		form.action='/pictionary/kick/detective/play/' + type;
+		$("#submitPlay").submit();
+	});
+	
+});
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 테스트 타입 active
+ */
+function testTypeChecked(type){
+	$(".choiceTypeBtn").removeClass("active");
+	$("input[value=" + type + "]").closest(".choiceTypeBtn").addClass("active");
+}
+
+/**
+ * 스크롤 시 화면 영역에 div가 보이는지 감지
+ */
+function checkVisible(elm, eval) {
+    eval = eval || "object visible";
+    var viewportHeight = $(window).height(), // Viewport Height
+        scrolltop = $(window).scrollTop(), // Scroll Top
+        y = $(elm).offset().top,
+        elementHeight = $(elm).height();   
+    
+    if (eval == "object visible") {
+    	return ((y < (viewportHeight + scrolltop)) && (y > (scrolltop - elementHeight)));
+    }
+    if (eval == "above") {
+    	return ((y < (viewportHeight + scrolltop)));
+    }
+}
+
+</script>
+<style type="text/css">
+@font-face {
+	font-family: 'Cafe24Simplehae'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Simplehae.woff') format('woff'); 
+	font-weight: normal; font-style: normal; 
+}
+</style>
+
+</head>
+
+<section layout:fragment="content" class="playkick-index detective-julie">
+<div class="container">
+<div class="index-circle circle1"></div>
+<div class="index-circle circle2"></div>
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu::menu}"></div>
+
+
+<!-- ---------------------------[1. 플레이킥 소개]------------------------------ -->
+<div id="playKickCharacterSection" class="play-kick-index-section">
+	<!-- [1.1 타이틀/ 플레이킥 소개] -->
+	<div class="title-section">
+		<h1>
+			Detective Julie
+			<label class="title-dot"></label>
+		</h1>
+		<div class="word-meaning">
+			<span class="word">* detective :</span>
+			<span class="meaning">탐정, 형사</span>
+		</div>
+		<div class="introduction-section">
+			아는 단어라도 표현할 수 있어야 의미를 갖는다.
+		</div>
+	</div>
+	
+	<!-- [1.2 캐릭터, 플레이킥 소개] -->
+	<div class="playkick-character-ment-section row no-gutters">
+		<div class="playkick-character-section2 col-lg-auto align-self-center">
+			<div class="character-cover">
+				<img class="julie" src="/images/app/member/profile_paper.png">
+			</div>
+		</div>
+		<div class="playkick-ment-section col-lg align-self-center">
+			<div class="title-ment-cover">
+				<i class="fa fa-quote-left"></i>
+				무작정 <span class="emp-text">단어</span>를 외우지 마!<br>
+				<span class="emp-text">우리말</span>이 
+				<span class="emp-text">영어</span>로 옮겨지는 방식도 함께 주목해야 해.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="ment-cover">
+				단서를 보고 Julie와 함께 정답을 추리해 보세요.<br><br>
+				단어를 무작정 외우는 학습을 하였다면 '탐정 줄리'의 문제가 어렵게 느껴질 거예요.<br>
+				영어 학습의 목적은 단어를 기억하는 것이 아니라 <b>말을 할 수 있어야 합니다</b>.
+			</div>
+			<div class="button-cover">
+				<button id="howToUseBtn" class="btn btn-how" type="button">
+					이용 방법 <i class="fa fa-caret-down"></i>
+				</button>
+			</div>
+		</div>
+	</div><!-- end of playKickCharacterSection -->
+	
+</div><!-- end of playKickCharacterSection -->
+
+
+
+<!-- -----------------------------[2. 셔플 선택]------------------------------- -->
+<div id="choiceTypeSection" class="choice-type-section">
+
+<!-- [1.1 셔플 타입 선택] -->
+<div id="choiceTypeDiv" class="choice-type-div row no-gutters"
+	th:with="memberType = ${session?.userContainer}?
+	${session?.userContainer?.personacon?.memberType} : 'M'">
+	<!-- 랜덤 케이스 -->
+	<div class="selectTypeDiv choice-type-list-section col-md-4 col-sm-6 col-4">
+		<div class="choice-type-list row no-gutters">
+			<div class="col-12">
+				<div class="choice-title-section">
+					<i class="fa fa-clipboard-check fa-fw"></i>
+					실력을 확인하려면
+				</div>
+			</div>
+			<div class="type-image-section col-auto">
+				<img class="image1" src="/images/common/icon/icon_paper.png" alt="탐정 줄리">
+			</div>
+			<div class="type-exp-section col">
+				<div class="eng-name">Random Case</div>
+				<div class="type-explain">단어가 랜덤으로 출제됩니다.</div>
+			</div>
+			<div class="choice-button-section col-12">
+				<label class="choiceTypeBtn btn btn-choice-type active">
+					선택하기 <input type="radio" name="type" checked="checked" value="r"
+						class="option-input radio"/>
+				</label>
+			</div>
+		</div>
+	</div>
+	<!-- 마이 컨텐츠 케이스 -->
+	<div class="selectTypeDiv choice-type-list-section col-md-4 col-sm-6 col-4">
+		<div class="choice-type-list row no-gutters">
+			<div class="col-12">
+				<div class="choice-title-section">
+					<i class="fa fa-magic fa-fw"></i>
+					검거율을 높이려면
+				</div>
+			</div>
+			<div class="type-image-section col-auto">
+				<img class="image2" src="/images/common/icon/icon_paper.png" alt="탐정 줄리">
+			</div>
+			<div class="type-exp-section col">
+				<div class="eng-name">My Case</div>
+				<div class="type-explain">직접 작성한 예문과 관련된 단어가 출제됩니다.</div>
+			</div>
+			<div class="choice-button-section col-12">
+				<label class="choiceTypeBtn btn btn-choice-type">
+					선택하기 <input type="radio" name="type" value="m" 
+						class="option-input radio"/>
+				</label>
+			</div>
+		</div>
+	</div>
+	<!-- 리뷰  케이스 (gold) -->
+	<div th:if="${#strings.contains('PG',(memberType))}" 
+		class="selectTypeDiv choice-type-list-section col-md-4 col-sm-6 col-4">
+		<div class="choice-type-list row no-gutters">
+			<div class="col-12">
+				<div class="choice-title-section">
+					<i class="fa fa-memory fa-fw"></i>
+					기억 효과를 높이려면
+				</div>
+			</div>
+			<div class="type-image-section col-auto">
+				<img class="image3" src="/images/common/icon/icon_paper.png" alt="탐정 줄리">
+			</div>
+			<div class="type-exp-section col">
+				<div class="eng-name">Review Case <i class="forGold fa fa-crown"></i></div>
+				<div class="type-explain">픽셔너리에서 학습한 단어가 출제됩니다.</div>
+			</div>
+			<div class="choice-button-section col-12">
+				<label class="choiceTypeBtn btn btn-choice-type">
+					선택하기 <input type="radio" name="type" value="t" 
+						class="option-input radio"/>
+				</label>
+			</div>
+		</div>
+	</div>
+	<!-- 리뷰  케이스 (no gold) -->
+	<div th:unless="${#strings.contains('PG',(memberType))}" 
+		class="choice-type-list-section col-md-4 col-sm-6 col-4">
+		<div class="choice-type-list row no-gutters">
+			<div class="col-12">
+				<div class="choice-title-section">
+					<i class="fa fa-memory fa-fw"></i>
+					기억 효과를 높이려면
+				</div>
+			</div>
+			<div class="type-image-section col-auto">
+				<img class="image3" src="/images/common/icon/icon_paper.png" alt="탐정 줄리">
+			</div>
+			<div class="type-exp-section col">
+				<div class="eng-name">Review Case <i class="forGold fa fa-crown"></i></div>
+				<div class="type-explain">픽셔너리에서 학습한 단어가 출제됩니다.</div>
+			</div>
+			<div class="choice-button-section col-12">
+				<label class="choiceTypeBtn btn btn-choice-type">
+					선택하기 <span class="option-input radio"></span>
+					<span class="forgold-text">
+						Review Case는<br class="d-lg-none">
+						골드 멤버십 서비스입니다
+					</span>
+				</label>
+			</div>
+		</div>
+	</div>
+</div><!-- end of choiceTypeDiv -->
+
+<!-- [1.3 시작하기] -->
+<form id="submitPlay" th:action="@{/pictionary/kick/detective/play}" method="post">
+	<div class="button-section-div text-center">
+		<button id="startBtn" class="btn play-kick-start-btn active loginRequired" 
+			type="button">start</button>
+	</div>
+</form>
+</div><!-- end of choiceTypeSection -->
+
+
+<!-- -------------------------[3. 탐정 줄리 top 랭커]---------------------------- -->
+<div id="detectiveJulieTopRankerSection" class="play-kick-top-ranker-section">
+	<h3>
+		Detective Julie Top Ranker
+		<i class="fa fa-trophy fa-fw" style="color: #ffc107;"></i><br>
+		<small>탐정 줄리 검거 지수가 높은 Top 랭커 입니다.</small>
+	</h3>
+	<div class="kick-ranking-list-section">
+		<th:block th:if="${julieTopRankers != null AND julieTopRankers.size() > 0}" 
+			th:with="julieTopRankersSize = ${julieTopRankers.size()},
+			rankerSetSize = ${T(Math).ceil(julieTopRankersSize/3.0)}">
+			<div th:each="setIndex : ${#numbers.sequence(0,rankerSetSize-1)}" 
+				class="ranking-cover row no-gutters">
+				<th:block th:each="rankerIndex : ${#numbers.sequence(setIndex*3,setIndex*3+2)}">
+				<div th:if="${rankerIndex < julieTopRankersSize}" 
+					th:with="topRanker = ${julieTopRankers[rankerIndex]}" 
+					class="ranking-body col-lg-4">
+					<div class="index-ranker-cover row no-gutters"
+						th:with="personacon = ${topRanker.personacon}">
+						<div class="ranking-num col-auto align-self-center">
+							<div class="num">[[${rankerIndex + 1}]]</div>
+							<div class="medal">
+								<i class="fa" th:classappend="${rankerIndex < 3}?
+									'fa-trophy':'fa-star'"></i>
+							</div>
+						</div>
+						<div class="ranker-personacon col-auto align-self-center">
+							<div th:if="${personacon.iconPath}" th:data-mid="${personacon.id56}" 
+								class="openProfile r-personacon" 
+								style="background-repeat:no-repeat; background-position: center; background-size: cover;"
+								th:styleappend="'background-image: url(\'/resource/profile/'+ ${personacon.iconPath} +'\')'"></div>
+							<div th:unless="${personacon.iconPath}" th:data-mid="${personacon.id56}" 
+								class="openProfile r-personacon" 
+								style="background: url('/images/app/member/profile_default.png') no-repeat;
+								background-size: cover; background-position: center;"></div>
+						</div>
+						<div class="index-ranker-info col align-self-center">
+							<div class="alias">[[${personacon.alias}]]</div>
+							<div th:if="${#strings.equals(personacon.memberType, 'M')}"
+								class="membership">Play</div>
+							<div th:if="${#strings.equals(personacon.memberType, 'S')}"
+								class="membership">Silver</div>
+							<div th:if="${#strings.equals(personacon.memberType, 'G')}" 
+								class="membership">Gold</div>
+							<div th:if="${#strings.equals(personacon.memberType, 'P')}"
+								class="membership">Platinum</div>
+						</div>
+						<div class="data-num col-auto align-self-center">
+							<div class="round" title="검거 지수">
+								AP <span class="num arrest">[[${topRanker.detectionIndex}]]</span>
+							</div>
+							<div class="round" title="탐정줄리 랭킹포인트">
+								RP <span class="num">[[${topRanker.totalRp}]]</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				</th:block>
+			</div>
+		</th:block>
+	</div>
+</div><!-- end of detectiveJulieTopRankerSection -->
+
+
+
+<!-- -------------------------[4. 플레이킥 회원 반응 모음]-------------------------- -->
+<div id="memberReactionSection" class="playkick-member-reaction-section">
+	<div class="background-section"></div>
+	<div class="index-circle circle4"></div>
+	<div class="index-circle circle5"></div>
+	<div class="playkick-member-reaction-cover"
+		th:with="reviewList = ${ {'지금까지 한 단어 공부는 헛방이라는 걸 깨달았다.', 
+		'그저 단어 뜻을 외운 사람한텐 어렵고 실제로 사용하기 위해 외운 사람한텐 쉬울거임 그래서 난 어렵다',
+		'여기서 권하는 학습 법은 다 따라하는게 좋다. 따라 읽으라면 따라 읽어야한다. 단어 퀴즈인데도 실력이 엄청나게 오르는게 느껴진다.', 
+		'입시도 끝났겠다, 그냥 시험치기 위한용도가 아닌 영어회화하는 저같은 사람에겐 탐정줄리가 젤 맞는 거같아요.',
+		'단어 퀴즈 대충 풀고 랭킹포인트나 올리자 생각하고 들어갔다가 랭킹 포인트 다 까먹혔음.', 
+		'내가 진짜 회화 공부하겠다 하면 어렵다고 피하지 하지말고 여기서 이 걸로 단어 공부하는게 젤 좋음',
+		'단어 테스트이긴 한데, 회화 공부가 된다. 이 표현에 이 단어를 써? 내가 아는 이 단어?', 
+		'탐정 줄리 하려고 단어 등록 많이 했어요ㅎㅎ 아직은 많이 부족하지만 단어를 외워서 말로 표현하는 방법을 알겠어요.',
+		'아직도 회화 공부할 때 단어 뜻 그냥 암기하는 애들보면 한대 때리고 이거 건내주고싶다. 너희 다 헛 짓 하는거임ㅠㅠ', 
+		'단어 학습하면 Review Case로 반드시 복습해야해요ㅠㅠ', 
+		'틀리면 화가나고 오기가 생겨서 직접 그 단어 페이지에 들어가서 보다가 단어를 외우게 돼요ㅋㅋㅋㅋ'} },
+		aliasList = ${ {'멘티스', '이잉이이힝', 'Logan', 'signal 보내 찌릿', '스미골일', 
+		'리멤버타이탄', '아이린너다해', '로켓너구리영', 'YoungTonyStark', '플라타너스 심슨', '빠바빨간맛'} }">
+		<h3>
+			Members Word <label></label><label></label>
+			<i class="fa fa-comment-dots fa-fw"></i>
+		</h3>
+		<div class="member-ment-section">
+			<div class="member-ment-row">
+				<div th:each="reviewIndex : ${#numbers.sequence(0,5)}"
+					th:class="'member-ment-cover position-' + ${reviewIndex + 1}">
+					<div class="review-text" th:text="${reviewList[reviewIndex]}"></div>
+					<div class="alias-section">
+						[[${#strings.substring(aliasList[reviewIndex],0,3)}]]&#8727;&#8727;&#8727;
+					</div>
+					<div class="star-rating">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div>
+			</div>
+			<div class="member-ment-row">
+				<div th:each="reviewIndex : ${#numbers.sequence(6,reviewList.size()-1)}"
+					th:class="'member-ment-cover position-' + ${reviewIndex + 1}">
+					<div class="review-text" th:text="${reviewList[reviewIndex]}"></div>
+					<div class="alias-section">
+						[[${#strings.substring(aliasList[reviewIndex],0,3)}]]&#8727;&#8727;&#8727;
+					</div>
+					<div class="star-rating">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of memberReactionSection -->
+
+
+<!-- ------------------------[4. 테스트 방법 및 유의사항]--------------------------- -->
+<div id="kickPrecautionSection" class="playkick-learning-method-section">
+	<div class="index-circle circle6"></div>
+	<h3>
+		How To Play
+		<i class="fa fa-question-circle fa-fw" title="학습 방법과 유의 사항"></i>
+	</h3>
+	
+	<!-- [4.1 플레이킥 Demo] -->
+	<div class="image-section"><div class="canvas-section">
+		<div class="convas-inner-cover">
+			<div class="quiz-section row no-gutters">
+				<div class="piction-image-section col-lg-auto">
+					<div class="piction-image"></div>
+				</div>
+				<div class="kor-section col-lg">
+					<label></label><label class="answer"></label><label></label><label></label>
+				</div>
+				<div class="eng-section col-12">
+					The First BaseCamp for 
+					<label></label><label></label><label></label><label></label><!-- 
+					 --><label></label><label></label><label></label><label></label>
+					English.
+				</div>
+			</div>
+		</div>
+		<div class="photo-section">
+			<div class="back-photo"></div>
+			<div class="front-photo">
+				<div class="image-body">
+					<div class="image-legs">
+						<div class="hip-r"><div class="hip-r-leg-upper">
+							<div class="knee-r"><div class="knee-r-leg-lower">
+								<div class="sock-r"></div>
+								<div class="foot-r"></div>
+							</div></div>
+						</div></div>
+						<div class="hip-l"><div class="hip-l-leg-upper">
+							<div class="knee-l"><div class="knee-l-leg-lower">
+								<div class="sock-l"></div>
+								<div class="foot-l"></div>
+							</div></div>
+						</div></div>
+					</div>
+					<div class="image-cover">
+						<img class="questionImage piction-img" 
+							src="/images/app/pictionary/piction_paper.png"
+							style="background-image: url(/images/app/pictionary/france_piction_default.jpg);">
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="magnifier-section">
+			<div class="magnifier-head"></div>
+			<div class="magnifier-body"></div>
+		</div>
+	</div></div>
+	
+	<!-- [4.2 플레이킥 이용 방법] -->
+	<div class="playkick-learning-method-cover">
+		<div class="learning-method-cover row no-gutters">
+			<label class="num col-auto">1</label>
+			<span class="col">이미지 단서를 보고 <b>이미지에 적합한 문장</b>을 고르세요.</span>
+		</div>
+		<div class="learning-method-cover row no-gutters">
+			<label class="num col-auto">2</label>
+			<span class="col">고른 문장을 <b>영어로 말해보세요</b>.</span>
+		</div>
+		<div class="learning-method-cover row no-gutters">
+			<label class="num col-auto">3</label>
+			<span class="col">영어 문장의 빈칸에 들어갈 <b>단어</b>를 채워 넣어주세요.</span>
+		</div>
+		<div class="learning-method-cover row no-gutters">
+			<label class="num col-auto">4</label>
+			<span class="col">정답을 보며 <b>단어</b>가 문장에서 어떻게 쓰였는지 확인하고 따라 읽어보세요.</span>
+		</div>
+		<div class="precaution-cover d-sm-none">
+			단어를 무작정 외우는 학습을 하였다면 '탐정 줄리'의 문제가 어렵게 느껴질 거예요.<br>
+			영어 학습의 목적은 단어를 기억하는 것이 아니라 <b>말을 할 수 있어야 합니다</b>.
+		</div>
+		<div class="precaution-cover">
+			<ul>
+				<li>일반 &#8729; 실버 멤버십의 경우 'Review Case' 테스트 서비스를 제공하지 않습니다.</li>
+			</ul>
+		</div>
+	</div>
+	
+</div><!-- end of kickPrecautionSection -->
+
+
+</div>
+</section>
+
+
+</html>

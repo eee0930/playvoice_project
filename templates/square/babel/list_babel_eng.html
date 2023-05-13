@@ -1,0 +1,1953 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout}">
+<head>
+<title>잉글리시 스택 (English Stack) - 플레이보이스 | Playvoice</title>
+
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle='잉글리시 스택 (English Stack) - 플레이보이스 | Playvoice', 
+	metaDescription='Eng Stack은 대화나 문법에 도움이 될 만한 영어 문장들을 함께 해석하고 공유하는 공간입니다. 
+	흥미있고 관심이 가는 문장들을 보면서 문법과 대화 실력을 키워 보세요.', 
+	metaImage = '/images/app/playsquare/square_index3.jpg',
+	metaKeyword = '잉글리시 스택, English Stack, 해석, AI, AI 번역, 집단 지성'"></th:block>
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '잉글리시 스택'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/square/babel/list/eng/'} }"></th:block>]
+</script>	
+
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/app/basicchar-filter.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+const mid = /*[[${session.userContainer?.personacon?.pid}]]*/ 0;
+$(document).ready(function(){
+	// [미리 화면에 표시된 번역 담변의 코멘트의 url 파싱]---------------------------------------
+	$(".translate-cover .guide:visible").each(function(i, element) {
+		var linked = autolink($(element).find(".orgMsg").val());
+		$(element).find("span").html(linked);
+	});
+	
+	// [현재 URI 주소에 따라 탭 선택] --------------------------------------------------
+	var currentUri = location.pathname;
+	var queryString = location.search;
+	if(queryString.length > 0 && queryString.indexOf("pageNum") > -1){
+		queryString = queryString.substring(0,queryString.indexOf("pageNum") - 1);
+	}
+	// [현재 URI 주소에 따라 탭 선택 (Mobile.ver)] --------------------------------------
+	$("#babelDropdownMenu a").each(function(index, anchor) {
+		if($(anchor).attr("href") == (currentUri + queryString)){
+			$(anchor).addClass("active");
+			$(".select-trans-list .btn-secondary span").text($(anchor).text().trim());
+		}
+	});
+	if(queryString.indexOf("option=stack") > -1){
+		$(".select-trans-list a:eq(0)").addClass("active");
+		$(".select-trans-list .btn-secondary span").text("전체 보기");
+	}
+	
+	$("#defaultStackPagination a").click(function(e){
+		e.preventDefault();
+		var pageNum = Number($(this).attr("href").substring($(this).attr("href").indexOf("pageNum=") + 8));
+		if(/*[[${#strings.contains(#request.requestURI,'suspend') AND session.userContainer != null
+			AND #strings.substringAfter(#request.requestURI,'suspend/list/eng/') != ''
+			AND NOT #strings.contains("PG", (session?.userContainer?.personacon?.memberType?:'NONE'))}]]*/ false
+			&& (pageNum > 1)){
+			$("#defaultStackPagination a").attr("href", "javascript:void(0)");
+			$("#modalMsg").text("플레이 멤버와 실버 멤버에게는 Follow Up 목록을 15개까지 제공합니다.");
+			$("#successAdd_modal").modal({
+				show: true
+			});
+		}else{
+			location.href= $(this).attr("href");
+		}
+	});
+	
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	
+	// [예문 등록 폼 열기]------------------------------------------------------------
+	$(".openSentenceBtn").click(function(){
+		$("#addSentence_div").toggle(100);
+	});
+	// [예문 등록 입력 칸 높이 조정]------------------------------------------------------
+	$(document).on("change keyup keydown",".squareSentenceForm", function(){
+		if($(this).val().length > 0){
+			$(this).height(0).height($(this).prop('scrollHeight')-6);
+		} else {
+			$(this).css("height", "36px");
+		}
+	});
+	// [예문 입력시 제시어 표시 및 예문 등록버튼 활성화]-----------------------------------------
+	var suggestionTimer;
+	$(document).on("input",".requireSentenceForm", function(){
+		var input = $(this);
+		clearTimeout(suggestionTimer);
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		
+		$(this).siblings(".suggest-list-cover").empty();
+		$(this).siblings(".warning-msg-section").hide();
+		$("#duplicatedMsg").hide();
+
+		if($(this).val().length > 0){
+				
+			if(input.closest("#searchSentence_div").length > 0){
+				if($("#searchType").val() == "eng"){
+					suggestionTimer = setTimeout(function() {
+						//----------------------------------------------
+						getSuggestionList($(input).val(), input, 'eng');
+						//----------------------------------------------
+					}, 500);
+				}else if($("#searchType").val() == "kor"){
+					suggestionTimer = setTimeout(function() {
+						//----------------------------------------------
+						getSuggestionList($(input).val(), input, 'kor');
+						//----------------------------------------------
+					}, 500);
+				}else{
+					$("#searchSentence_div .suggest-list-cover").hide();
+				}
+				add_btn.prop("disabled", false);
+			}else{
+				//------------------------
+				if(isAllEng($(this).val())){
+				//------------------------
+					suggestionTimer = setTimeout(function() {
+						//----------------------------------------------
+						getSuggestionList($(input).val(), input, 'eng');
+						//----------------------------------------------
+					}, 500);
+					$(this).siblings(".warning-msg-section").hide();
+					add_btn.prop("disabled", false);
+				}else{
+					$(this).siblings(".warning-msg-section").show();
+					add_btn.prop("disabled", true);
+				}
+			}
+		}else{
+			$(this).siblings(".suggest-list-cover").hide();
+			$(this).siblings(".warning-msg-section").hide();
+			add_btn.prop("disabled", true);
+		}
+	});
+	
+
+	//[예문 등록 실행]---------------------------------------------------------------
+	$("#addSentence_btn").click(function(){
+		$(this).closest("form").find("textarea").each(function(index, element) {
+							//----------------------------------
+			element.value = replaceQuotes(element.value.trim());
+							//----------------------------------
+		});
+		$(this).closest("form").submit();
+		
+	});
+	
+	// [예문 등록 취소]--------------------------------------------------------------
+	$("#cancelAddSentence_btn").click(function(e){
+		$("#addSentence_div").hide();
+		resetForm($(this));
+	});
+	// [예문 수정 폼 열기]------------------------------------------------------------
+	$(document).on("click",".editSentenceBtn", function(){
+		var pasteArea = $(this).closest(".trans-list");
+		var sentence = $(this).closest(".translation-cover").find(".eng-sent span").text();
+		var commentSpan = $(this).closest(".translation-cover").find(".toggleTransCover .commentContent");
+		var comment;
+		if(commentSpan.is(".placeholder")){
+			comment = "";
+		}else{
+			comment = commentSpan.text();
+		}
+		pasteEditForm($("#editSentence_div"), pasteArea, sentence, comment);
+		$(this).closest(".translation-cover").hide();
+	});
+	//[예문 수정 실행]---------------------------------------------------------------
+	$(document).on("click","#editSentence_div .squareAddBtn", function(){
+		$(this).closest("form").find("textarea").each(function(index, element) {
+					//----------------------------------
+		element.value = replaceQuotes(element.value.trim());
+					//----------------------------------
+		});
+		$(this).closest("form").submit();
+		
+	});	
+	// [예문 수정 취소]--------------------------------------------------------------
+	$(document).on("click", ".cancelEditBtn", function(){
+		$(this).closest("#editSentence_div").siblings(".translation-cover").show();
+		$(this).closest("#editSentence_div").remove();
+	});	
+	
+	// [예문 신고]-----------------------------------------------------------------
+	$(document).on('click', '.babelReport', function(){
+		var babelStackId = $(this).closest(".trans-list").find(".bid").val();
+		var babelWriter = $(this).closest(".trans-list")
+							.find(".translation-cover .personal-cover .alias:eq(0)").text().trim();
+		var reportReadyResource = {
+				appResourceId: Number(babelStackId),
+				appCodeName: 'BabelStack_Question',
+				reporterId: mid,
+				repAlias: /*[[${session.userContainer?.personacon?.alias}]]*/ null,
+				posAlias: babelWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+		//--------------------------------------
+	});
+	// [제시어 클릭하면 검색어로 입력 후 검색 폼 열기]------------------------------------------
+	$(document).on("click", ".suggest-list-cover li", function(){
+		if($(this).closest("#addSentence_div").length > 0){
+			$("#searchType").val("eng");
+		}
+		$("#searchSentence_div .requireSentenceForm").val($(this).text());
+		$("#searchSentence_div .squareAddBtn").prop("disabled",false);
+		$("#searchSentence_div ").show(100);
+		$("#searchSentence_div .suggest-list-cover").empty();
+	});
+	
+	// [텍스트 입력폼 클릭시 제시어 목록 다시 보이기 & 닫기]--------------------------------------
+	$(".requireSentenceForm").on("click", function(){
+		if($(this).siblings(".suggest-list-cover").children("li").length > 0){
+			$(this).siblings(".suggest-list-cover").toggle();
+		}
+	});
+	
+	// [텍스트 입력폼 외 클릭시 제시어 목록 닫기]---------------------------------------------
+	$(document).on("click", function(e){
+		var target = $(e.target);
+		e.stopPropagation();
+		if($(target).is(".requireSentenceForm")){
+			if($(target).closest(".trans-list").attr("id") == "addSentence_div"){
+				$("#searchSentence_div .suggest-list-cover,  .warning-msg-section").hide();
+			}else{
+				$("#addSentence_div .suggest-list-cover, .warning-msg-section").hide();
+			}
+			return;
+		}else{
+			$(".suggest-list-cover,.warning-msg-section").hide();
+		}
+	});
+	
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn, #cancelSearch_icon").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [예문 검색]-----------------------------------------------------------------
+	$("#searchForm").submit(function(e){
+		e.preventDefault();
+		//------------------------------------------------------------------
+		searchSentence($("#searchSentence_div #searchType").val(), 
+					   $("#searchSentence_div .requireSentenceForm").val(), 1);
+		//------------------------------------------------------------------
+	});
+	$("#searchType").change(function(){
+		$("#searchSentence_div .suggest-list-cover").empty()
+													.hide();
+	});
+	
+	// [검색 결과 리스트 숨기기]--------------------------------------------------------
+	$("#closeResultSearchSentence_btn").click(function(){
+		$(this).closest(".result-search-section").hide();
+		$("#defaultStackList, #defaultStackPagination").show();
+	});
+	
+	// [번역 리스트 조회하기 & 접기]-----------------------------------------------------
+	var orgUrl = location.href.replace(/\/square\/babel\/list\/eng\/.+/, "/square/babel/list/eng");
+	$(document).on("click", ".toggleTransCover", function(){
+		var $transList = $(this).closest(".trans-list");
+		var $transListDiv = $transList.find(".member-trans-cover");
+		var $adfit = $('#babelAd'); 
+	    
+		// 다른 질문들은 상세보기화면을 닫는다.
+		$(".member-trans-cover:visible").each(function(index,transCover){
+			if(!$transListDiv.is(transCover)){
+				$(transCover).closest(".trans-list").removeClass("open");
+				$(transCover).hide(100);
+			}
+		});
+		
+		if($transListDiv != null && $transListDiv.is(":visible")) {
+			$transListDiv.hide(100);
+			$transList.removeClass("open");
+			$('#babelAnswerAdSection').append($adfit);
+			history.replaceState(null,null, orgUrl);
+		} else if (!$(this).is(".transLoaded")){
+			if($(this).closest(".trans-list").find(".bid").length > 0){
+				var bid = $(this).closest(".trans-list").find(".bid").val();
+				var bid56 = $(this).closest(".trans-list").find(".bid56").val();
+				//-----------------------------------------------
+				getAnswerList('eng','babel', bid, $transListDiv);
+				//-----------------------------------------------
+				history.replaceState(null,null, '/square/babel/list/eng/' + bid56);
+			}else{
+				var jid = $(this).closest(".trans-list").find(".jid").val();
+				//-----------------------------------------------
+				getAnswerList('eng','jungle', jid, $transListDiv);
+				//-----------------------------------------------
+			}
+			$(this).addClass("transLoaded");
+			$transList.addClass("open")
+					  .find('.babel-answer-ad-section').append($adfit);
+			$transListDiv.show(100, function(){
+				window.scrollTo(0, $transList.offset().top - $("#headerNavbar").height());
+			});
+		} else {
+			if($(this).closest(".trans-list").find(".bid56").length > 0){
+				var bid56 = $(this).closest(".trans-list").find(".bid56").val();
+				history.replaceState(null,null, '/square/babel/list/eng/' + bid56);
+			}else{
+				var jid = $(this).closest(".trans-list").find(".jid").val();
+			}
+			
+			$transList.addClass("open")
+					  .find('.babel-answer-ad-section').append($adfit);
+			$transListDiv.show(100, function(){
+				window.scrollTo(0, $transList.offset().top - $("#headerNavbar").height());
+			});
+		}
+	});
+	// [번역 폼 활성화]--------------------------------------------------------------
+	$(document).on("click", ".openAddTransForm", function(){
+		if($(this).closest(".trans-list").find(".bid").length > 0){
+			var addForm = $(this).closest(".trans-button-cover").siblings(".member-my-trans-form");
+			addForm.toggle();
+			addForm.find(".memberTrans-form").focus();
+		}else{
+			$("#modalMsg").text("해당 문장은 번역을 등록하실 수 없습니다.");
+			$("#successAdd_modal").modal({
+				show: true
+			});
+		}
+	});
+	// [번역 입력란 한글로 제한]--------------------------------------------------------
+	$(document).on("input",".memberTrans-form", function(e){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			if(isAllKor($(this).val())){
+				$(this).siblings(".warning-msg-section").hide();
+				add_btn.prop("disabled", false);
+			}else{
+				$(this).siblings(".warning-msg-section").show();
+				add_btn.prop("disabled", true);
+			}
+		}else{
+			$(this).siblings(".warning-msg-section").hide();
+			add_btn.prop("disabled", true);
+		}
+	});
+	// [번역 수정 폼 열기]------------------------------------------------------------
+	$(document).on("click", ".editCommentBtn", function(){
+		$(this).closest(".member-trans-list").find(".estimate-section").children().hide();
+		var pasteArea = $(this).closest(".trans-sentence-cover");
+		var sentence = pasteArea.find(".kor").text();
+		var comment = pasteArea.find(".guide .orgMsg").val();
+		pasteArea.children().hide();
+		pasteEditForm($("#editComment_div"), pasteArea, sentence, comment);
+	});
+	// [번역 수정 취소]--------------------------------------------------------------
+	$(document).on("click", ".cancelEditComment", function(){
+		$(this).closest(".member-trans-list").find(".estimate-section").children().show();
+		$(this).closest(".trans-sentence-cover").children().show();
+		$(this).closest("#editComment_div").remove();
+	});	
+
+
+	// [번역 등록 실행]--------------------------------------------------------------
+	$(document).on("click", ".answerAddBtn", function(){
+		$(this).closest("form").find("textarea").each(function(index, element) {
+							//----------------------------------
+			element.value = replaceQuotes(element.value.trim());
+							//----------------------------------
+			element.disabled = (element.value.length == 0);
+		});		
+		//-----------------------------------------
+		addStackAnswer($(this).closest("form"), $(this).closest(".member-trans-cover"));
+		//-----------------------------------------
+		$(this).closest(".trans-list").find(".translation-cover").addClass("active");
+	});
+	
+	// [번역 수정 실행]--------------------------------------------------------------
+	$(document).on("click", ".answerEditBtn", function(){
+		$(this).closest("form").find("textarea").each(function(index, element) {
+							//----------------------------------
+			element.value = replaceQuotes(element.value.trim());
+							//----------------------------------
+			element.disabled = (element.value.length == 0);
+		});		
+		//-----------------------------------------
+		editStackAnswer($(this).closest("form"), $(this).closest(".trans-sentence-cover"));
+		//-----------------------------------------
+	});
+	
+	// [번역 등록 취소]--------------------------------------------------------------
+	$(".cancelMemberTransBtn").click(function(){
+		$(this).closest(".member-my-trans-form").hide();
+		resetForm($(this));
+	});
+	
+	// [번역 선택 실행]--------------------------------------------------------------
+	$(document).on('click', '.estimate-section', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		if($("#loginStatus").text() != 'true'){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = '/auth/login?destPage=' + location.href;
+			}
+			return;
+		}
+		var contentId = $(this).closest(".member-trans-list").find(".answerId").val();
+		var likeCount = $(this).find('.num').text().trim();
+		var obj = {
+			contentId : Number(contentId),
+			memberId : Number(mid),
+			likeCount : Number(likeCount),
+			recommend : true
+		}
+		//-----------------------------
+		handleAnswerLike(obj, $(this));
+		//-----------------------------
+	});
+	
+	// [번역 신고]-----------------------------------------------------------------
+	$(document).on('click', '.answerReport', function(){
+		var babelStackId = $(this).closest(".trans-list").find(".bid").val();
+		var answerId = $(this).closest(".member-trans-list").find(".answerId").val();
+		var answerWriter = $(this).closest(".member-trans-list")
+							.find(".alias:eq(0)").text().trim();
+		var reportReadyResource = {
+				appResourceId: Number(babelStackId),
+				appContentId: Number(answerId),
+				appCodeName: 'BabelStack_Answer',
+				reporterId: mid,
+				repAlias: /*[[${session.userContainer?.personacon?.alias}]]*/ null,
+				posAlias: answerWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+		//--------------------------------------
+	});
+	
+	// [질문 팔로우 실행]-------------------------------------------------------------
+	$(document).on('click', '.followBtn:not(.active)', function(e) {
+		e.preventDefault();
+		e.stopPropagation();
+		
+		if($("#loginStatus").text() != 'true'){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = '/auth/login?destPage=' + location.href;
+			}
+			return;
+		}
+		var contentId = $(this).closest(".trans-list").find(".bid").val();
+		var obj = {
+			contentId : Number(contentId),
+			memberId : Number(mid)
+		}
+		//------------------------
+		followStack(obj, $(this));
+		//------------------------
+	});
+
+	
+	
+	//--------------------------[댓글 서비스 처리 부분]---------------------------------
+	// [댓글 목록 펼치기 클릭]----------------------------------------------------------
+	$(".openCommentList").click(function(){
+		var $commentListSection = $(this).closest(".trans-list").find(".community-comment");
+		//
+		if($(this).is('.replyLoaded')){
+			$commentListSection.toggle(100, function(){
+				if($commentListSection.is(":visible")){
+					window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+				}
+			});
+		}else{
+			// 댓글 데이터(list_replies.html)를 가져오기 전에 comment.html을 두 개 셋팅 해둔다.
+			$commentListSection.find(".patternCommentDiv,.qnaCommentDiv")
+							  .append($("#divForCopy #commentDivforCopy").clone().removeAttr('id'));
+			// 댓글 입력용 인자값 설정
+			var babelStackId = $commentListSection.closest(".trans-list").find(".bid").val();
+			var babelWriter = $commentListSection.closest(".trans-list")
+								.find(".translation-cover .personal-cover .alias:eq(0)").text().trim();
+			//---------------------------------
+			fillRequiredInfo({
+				appContentWriter: babelWriter,
+				appDomain: 'babel',
+				appContentId: Number(babelStackId)
+			}, $commentListSection);
+			//---------------------------------
+			
+			//댓글 목록을 펼칠 경우 Practice댓글 목록이 먼저 보여야 함.
+			$commentListSection.find(".practiceCommentTab").click();
+		   
+			$commentListSection.show(100, function(){
+				window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+			});
+			$(this).addClass('replyLoaded');
+		}
+	});
+	
+	
+	// [댓글 탭 클릭 시 해당 댓글 탭 보여주기]------------------------------------------------
+	$(".practiceCommentTab,.qnaCommentTab").click(function(){
+		var commentType = $(this).is(".practiceCommentTab") ? "pattern" : "qna";
+		var $commentDiv = (commentType == "pattern") 
+			? $(this).closest(".community-comment").find(".patternCommentDiv")
+			: $(this).closest(".community-comment").find(".qnaCommentDiv");
+		if(!$commentDiv.is(".replyLoaded")){
+			//placeholder의 내용 교체
+			var $commentPlaceHolder = $(this).closest(".member-trans-cover")
+											.find(".patternCommentDiv .comment-textarea");
+			var placeHolderMent = (commentType == "pattern")
+					? "해당 질문의 해석이나 문법적 이해에 도움이 될 예문들을 작성해 보세요."
+					: "질문이나 답변에 대한 추가 질문이나 의견을 남겨봅시다.";
+			$commentPlaceHolder.attr("placeholder", placeHolderMent);
+			// 댓글 리스트 조회하기
+			var babelStackId = $commentDiv.closest(".trans-list").find(".bid").val();
+			var url = "/reply/babel/list/" + babelStackId +"?replyType=" + commentType.charAt(0);
+			var $selector = $commentDiv.find('.commentPage');
+			$commentDiv.addClass("replyLoaded");
+			//------------------------
+			reloadAll(url, $selector);
+			//------------------------
+		}else{
+			//--------------------------
+			moveCommentTab($commentDiv);
+			//--------------------------
+		}
+	});
+	
+	// [모달창의 패턴 댓글 등록]--------------------------------------------------------
+	$("#patternForm_modal form").on("submit", function(e){
+		e.preventDefault();
+        var pattern_comment_kor = replaceQuotes($("#patternForm_modal #pattern_comment_kor").val());
+        var pattern_comment_eng = replaceQuotes($("#patternForm_modal #pattern_comment_eng").text());//강조 태그x, pure text
+        var empEng = replaceQuotes($("#patternForm_modal #pattern_comment_eng").html());//강조태그 들어간 영어문장
+        
+        //모달 창의 입력값 비워줌
+        $("#patternForm_modal #pattern_comment_kor").val('');
+        $("#patternForm_modal #pattern_comment_eng").text('');
+        
+        var commentArr = JSON.stringify([pattern_comment_kor , pattern_comment_eng, empEng]);
+
+        
+        var personaconAlias = /*[[${session?.userContainer?.personacon?.alias}]]*/ null;
+        //모달창을 띄울때 호출하는 곳에서 넣어준 필요 데이터(babelStackId, commentArea위치)
+        var babelStackId = $("#patternForm_modal [name='babelStackId']").val();
+        var commentAreaId = $("#patternForm_modal [name='commentArea']").val();
+        var recipient = $("#patternForm_modal [name='recipient']").val();
+        
+		var selector = $('#'+commentAreaId+' .patternCommentDiv .commentPage');
+		
+		var replyResource = {
+			appContentId : Number(babelStackId),
+			comment : commentArr, 
+			personaconId : Number(mid), 
+			personaconAlias : personaconAlias,
+			replyType : 'p',
+			recipient : recipient
+		};
+        $('#patternForm_modal').modal("hide"); //닫기
+		
+		if(! isEmpty(pattern_comment_kor)){
+			//------------------------------------------
+			addComment(selector, replyResource, 'babel');
+			//------------------------------------------
+		}
+	});
+
+	// [패턴 댓글 (모달)폼 띄우기]------------------------------------------------------
+	var patternCommentTop;
+	$(document).on("click",".patternCommentDiv .comment-textarea",function(){
+		var $babel = $(this).closest(".trans-list");
+		if(navigator.userAgent.indexOf("Mobi") == -1){
+			window.scrollTo(0, $babel.offset().top - $("#headerNavbar").height());
+		}
+		
+		var babelStackId = $(this).closest(".trans-list").find(".bid").val();
+		// id="commentArea" + iter.index 로 메겨짐
+		var commentArea = $(this).closest(".tab-content").attr("id");
+		
+		var alias = $(this).closest(".trans-list").find(".translation-cover .alias").get(0);
+		var recipient = $(alias).text().trim();
+		
+		//모달 폼에 등록시 필요한 데이터(babelStackId, commentArea 위치)를 넘겨줌
+		createHidden($("#patternForm_modal form")[0], "babelStackId", babelStackId);
+		createHidden($("#patternForm_modal form")[0], "commentArea", commentArea);
+		createHidden($("#patternForm_modal form")[0], "recipient", recipient);
+		
+		patternCommentTop = $babel.find(".translation-cover").height() + $("#headerNavbar").height() + 32;
+		$("#patternForm_modal").modal("show");
+	});
+	
+	// [패턴 댓글 모달창이 띄워질 때 PC화면에선 질문 위치로 스크롤 이동, 모달창은 그 밑으로.]----------------
+	$("#patternForm_modal")
+	.on("shown.bs.modal",function(){
+		if(navigator.userAgent.indexOf("Mobi") == -1){
+			$(".modal-dialog:visible").css("margin-top", patternCommentTop);
+		}
+		$("#pattern_comment_eng").focus();
+	})	// [패턴 댓글 모달창이 꺼질 때 생성했던 hidden 요소를 지운다.]----------------------------
+	.on("hidden.bs.modal", function(){
+		$("#patternForm_modal form :input[type='hidden']").remove();
+	})	
+	
+	// [패턴 댓글 (모달)입력 취소, 등록버튼 비활성화]-----------------------------------------
+	$(".cancelCommentBtn").click(function(){ 
+		$(".comment-form").find(".comment-textarea").css("height", "36px");
+		$(".comment_button_section").hide();
+		$(".addCommentBtn").prop("disabled", true);
+	});
+	
+	// [패턴 댓글 클립보드에서 태그를 제거하고 붙여넣기]-----------------------------------------
+	$("#pattern_comment_eng").on('paste', function(e){
+		e.preventDefault();//붙여넣기를 취소
+		var nod = document.createTextNode(e.originalEvent.clipboardData.getData('Text'));//클립보드 내용을 저장
+		window.getSelection().getRangeAt(0).deleteContents();//커서위치 내용을 지움.(블록지정했을 경우)
+		window.getSelection().getRangeAt(0).insertNode(nod);//클립보드 내용 붙여넣기
+		$(this).trigger("input");
+	});
+	
+	// [패턴 댓글 영어 입력 부분에는 영어만, 한글 입력 부분에는 한글만 입력되게]-------------------------
+	$("#pattern_comment_kor,#pattern_comment_eng").on("input",function(e){
+		var engText = $("#pattern_comment_eng").html().replace(/&nbsp;/gi,' ');
+		var korText = $("#pattern_comment_kor").val();
+		var warnKor = $("#pattern_comment_kor ~ .warning-msg-section");
+		var warnEng = $("#pattern_comment_eng ~ .warning-msg-section");
+		var verified = true;
+		if(korText.length > 0){
+			if(!isAllKor(korText)){
+				verified = false;
+				warnKor.show();
+			}else{
+				warnKor.hide();
+			}
+		}else{
+			warnKor.hide();
+			verified = false;
+		}
+		if(engText.length > 0){
+			if(!isAllEng(engText)){
+			   verified = false;
+			   warnEng.show();
+			}else{
+			   warnEng.hide();
+			}
+		}else{
+			warnEng.hide();
+			verified = false;
+		}
+		if(verified){
+		   $("#addCommentBtn").prop("disabled", false);
+		}else{
+		   $("#addCommentBtn").prop("disabled", true);
+		}
+	});
+
+	//[블록지정한 부분에 bold 효과를 적용]------------------------------------------------
+	$('.emPen').click(function(){
+		document.execCommand('bold');
+	});
+	
+	// [미리 화면에서 펼쳐진 바벨스택 포커싱]------------------------------------------------
+	// window.scrollTo는 페이지 로딩 직후엔 잘 적용 안됨.
+	// $(document).ready의 가장 아래에 위치해야 함.
+	if($("#defaultStackList .trans-list.open").length > 0){
+		$('html,body').animate({
+			scrollTop: $("#defaultStackList .trans-list.open").offset().top - $("#headerNavbar").height()
+		});
+	}
+}); //end of ready
+
+//--------------------------[커뮤니티 서비스 처리 부분]--------------------------------
+
+/** 예문 등록필드에 div 생성 못하게 */
+function enkeyup(obj){
+	$(obj).children('div').replaceWith('');
+}
+//-----------------------[End of 커뮤니티 서비스 처리 부분]------------------------------
+
+/**
+ * form 리셋
+ */
+function resetForm(obj){
+	$(obj).closest("form").find(".squareSentenceForm").css("height", "36px");
+	$(obj).closest("form").find(".squareAddBtn").attr("disabled", "disabled");
+}
+
+/**
+ * 제시어 목록을 표시
+ */
+function displayGetSuggestionList(sentenceList, element, stackType) {
+	var suggestUl = $(element).siblings(".suggest-list-cover");
+	var exist = false;
+	suggestUl.empty();
+	sentenceList.forEach(function(sentence, index) {
+		var li = "<li class='dropdown-item";
+		if($(element).closest("#addSentence_div").length > 0 
+				&& $(element).val().trim() == sentence.eng){
+			li += " same";
+			exist = true;
+		}
+		if(stackType == 'eng'){
+			li += "'><a>" + sentence.eng + "</a></li>";
+		}else{
+			li += "'><a>" + sentence.kor + "</a></li>";
+		}
+		suggestUl.append(li);
+	});
+	if(exist){
+		$("#duplicatedMsg").show();
+		$("#addSentence_btn").prop("disabled", true);
+	}else{
+		$("#duplicatedMsg").hide();
+		$("#addSentence_btn").prop("disabled", false);
+	}
+	suggestUl.show();
+} 
+ 
+ 
+/**
+ * 수정 폼을 수정 클릭한 영역에 붙여넣기
+ */ 
+function pasteEditForm(inputDiv, pasteArea, sentence, comment) {
+	var input = inputDiv.clone();
+	var sentenceForm = input.find(".requireSentenceForm,.memberTrans-form");
+	var commentForm = input.find(".commentForm");
+	input.prependTo(pasteArea);
+	input.find("[name='babelStackId']").val(pasteArea.closest(".trans-list").find(".bid").val());
+	input.find("[name='babelStackTitle']").val(pasteArea.closest(".trans-list").find('.eng-sent:eq(0) span').text());
+	input.find("[name='babelStackWriter']").val(pasteArea.closest(".trans-list").find('.alias:eq(0)').text());
+	input.find("[name='jungleSentence.jid']").val(pasteArea.closest(".trans-list").find(".jid").val());
+	
+	var kor = pasteArea.find(".sentenceKor");
+	if(kor.length > 0 ){
+		input.find("[name='jungleSentence.kor']").val(kor.val());
+		input.find("[name='jungleSentence.kor']").prop('disabled', false);
+	}else{
+		input.find("[name='jungleSentence.kor']").prop('disabled', true);
+	}
+	
+	input.find("[name='bid']").val(pasteArea.find(".bid").val());
+	input.find("[name='aid']").val(pasteArea.find(".answerId").val());
+	input.show();
+	sentenceForm.val(sentence);
+	sentenceForm.height(0).height(sentenceForm.prop('scrollHeight')-6);
+	sentenceForm.focus();
+	commentForm.val(comment);
+	commentForm.height(0).height(commentForm.prop('scrollHeight')-6);
+}
+
+/**
+ * 가져온 번역 답변 목록을 표시
+ */
+function displayGetAnswerList(answerList, element) {
+	element.find(".member-trans-list").remove();
+	var cannotEdit = (element.closest(".result-search-section").length > 0);
+	var prependPlace = element.find(".memberTransCopyPlace");
+	answerList.forEach(function(answer, index) {
+		var row = $("#divForCopy .member-trans-list").clone();
+		// 예문 검색결과로 조회한 목록에서 답변을 여는 경우에는 답변 선택과 답변 신고기능은 없앰 
+		if($(element).closest('#crewSentence').length > 0){
+			row.find('.estimate-section, .answerControlBox').remove();
+		}
+		row.find(".answerId").val(answer.aid);
+		row.find(".alias").text(answer.personacon.alias);
+		if(answer.personacon.memberType == 'C'){
+			row.find('.openProfile').removeClass('openProfile jsAction');
+			row.find('.answerControlBox').remove();
+		}else{
+			row.find(".openProfile").attr("data-mid",answer.personacon.id56);
+		}
+		if(answer.personacon.iconPath !=null && answer.personacon.iconPath != ""){
+			row.find(".personacon-profile")
+			   .css("background","url('/resource/profile/" + answer.personacon.iconPath +"') no-repeat")
+			   .css("background-position","center")
+			   .css("background-size","cover");
+		}else{
+			row.find(".personacon-profile").addClass("profile-default");
+		}
+		row.find(".personacon-frame").addClass("frame-" + answer.personacon.memberType);
+		
+		row.find(".answer").text(answer.answer);
+		if(answer.answerComment != null && answer.answerComment.length > 0){
+			row.find(".guide .orgMsg").val(answer.answerComment);
+			row.find(".guide span").html(autolink(answer.answerComment));
+		}else{
+			row.find(".guide").hide();
+		}
+		row.find(".date").text(new Date(answer.regDate).format("yyyy-MM-dd"));
+		
+		row.find(".estimate-section .num").text(answer.likeCount + " ");
+		
+		if(answer.personacon.pid != mid && (/*[[${session?.userContainer?.personacon?.memberType}]]*/ 'M') != 'A'){
+			row.find(".editCommentBtn,.deleteCommentBtn").remove();	
+		}
+		if(cannotEdit){
+			row.find(".editCommentBtn").remove();
+		}
+		prependPlace.before(row);
+	});
+}
+
+/**
+ * 답글에 대한 '선택' 화면 처리
+ */
+function successHandleAnswerLike(count, thisObj) {
+	if(count == -1){
+		alert("이미 처리 되었습니다.");
+		$(thisObj).find('i').addClass("active");
+		return;
+	}
+	$(thisObj).find('.num').text(count);
+	$(thisObj).find('i').addClass("active");
+} 
+
+
+/**
+ * 질문에 대한 '팔로업' 화면 처리
+ */
+function successFollowStack(count, thisObj) {
+	if(count == -1){
+		alert("이미 처리 되었습니다.");
+		$(thisObj).addClass("active");
+		return;
+	}
+	// 갱신
+	$(thisObj).addClass("active");
+	$(thisObj).find('span.difficultyNum').text(count);
+	alert('팔로업 목록에 추가되었습니다.');
+} 
+
+
+/**
+ * 댓글 탭 클릭 시 클릭한 탭의 탯글 리스트 보이기 및 이전에 열려 있던 탭의 댓글 리스트 숨기기
+ */
+function moveCommentTab($commentDiv) {
+	$commentDiv.siblings().removeClass("show active");
+	$commentDiv.addClass("show active");
+} 
+
+/**
+ * 댓글 수 갱신하기
+ */
+function updateReplyCount(selector, quantity) {
+	var replyCount = $(selector).closest(".member-trans-cover").find(".openCommentList span");
+	replyCount.text(parseInt(replyCount.text()) + quantity);
+} 
+
+
+/**
+ * (Mobile) 드롭다운 메뉴 active
+ */
+function activePVDropdownMenu(obj, open) {
+	if(open) {
+		var menu = $(obj).closest(".playvoice-dropdown-group").find(".playvoice-dropdown-menu");
+		menu.addClass("active");
+		$("html").addClass("modalOpen");
+	} else {
+		var menu = $(obj).closest(".playvoice-dropdown-menu");
+		menu.removeClass("active");
+		$("html").removeClass("modalOpen");
+	}
+} 
+
+
+</script>
+</head>
+
+<section layout:fragment="content" 
+	th:with="yourPersonacon = ${session?.userContainer?.personacon},
+	yourAlias = ${yourPersonacon?.alias}, yourPid = ${yourPersonacon?.pid},
+	yourId56 = ${yourPersonacon?.id56}, yourMeberType = ${yourPersonacon?.memberType}">
+
+<!-- ----------------------[Add success message modal]---------------------- -->
+<div id="successAdd_modal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<span id='modalMsg'>등록에 성공하였습니다.</span> 
+				<i class="far fa-grin-alt fa-lg fa-fw"></i>
+			</div>
+			<div class="modal-footer align-self-center">
+				<button class="btn-playsquare btn btn-sm" 
+					data-dismiss="modal">확인</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of successAdd_modal -->
+
+<!-- ---------------------------[Comment Modal]----------------------------- -->
+<div id="patternForm_modal" class="modal patternForm-modal" tabindex="-1" role="dialog">
+<div class="modal-dialog" role="document"><div class="modal-content content-container">
+	<div class="modal-head text-center">
+		<h3>Comment 작성하기 <i class="far fa-grin-alt"></i></h3>
+		<div class="expain pt-2" style="width: 100%;">
+			해당 질문의 <span class="point-added2">해석</span>이나 
+			<span class="point-added2">문법적 이해</span>에<br> 
+			  도움이 될 예문들을 작성해 보세요.
+		</div>
+	</div>
+	<div class="modal-body py-3"><form>
+		<div class="form-group row no-gutters">
+			<label class="col-2 align-self-center pl-lg-2">영어</label>
+			<div class="col-10">
+				<div id="pattern_comment_eng" class="form-control" 
+					data-placeholder="영어로는 어떻게?"
+					contenteditable="true" onkeyup="enkeyup(this)"   
+					style="height: auto; min-height: 1em;"></div>
+				<div class="warning-msg-section" style="display: none;">
+					<div class="text-warning-msg">영어만 입력해 주세요.</div>
+				</div>
+			</div>
+		</div>
+		<div class="form-group row no-gutters">
+			<label class="col-2 align-self-center pl-lg-2">한국어</label>
+			<div class="col-10">
+				<input id="pattern_comment_kor" type="text" 
+					class="form-control" placeholder="해석과 이해에 도움이 될 문장"/>
+				<div class="warning-msg-section" style="display: none;">
+					<div class="text-warning-msg">한국어만 입력해 주세요.</div>
+				</div>					
+			</div>
+		</div>
+		<div class="form-group row no-gutters">
+			<div class="expain col-10 ml-auto p-1 d-md-none">
+				강조하고 싶은 영어 영역을 드래그하여 펜버튼을 눌러주세요.
+			</div>
+			<div class="w-100"></div>
+			<div class="col-2"></div>
+			<div class="col-auto align-self-center">
+				<button type="button" class="emPen btn btn-sm btn-outline-info jsAction" >
+					<i class="fas fa-pen" style="color: #5bc0de;" ></i>
+				</button>
+			</div>
+			<div class="expain col px-1 align-self-center d-none d-md-inline">
+				강조하고 싶은 영역을 드래그하여 펜버튼을 눌러주세요.
+			</div>
+			<div class="comment-button-section ml-auto col-auto text-right">
+				<button type="reset" class="btn btn-sm btn-light jsAction"
+					 data-dismiss="modal">CANCEL</button>
+				<button type="submit" id="addCommentBtn" 
+					class="btn btn-sm btn-primary jsAction" >COMMENT</button>
+			</div>
+		</div><!-- end of submitDiv -->
+	</form></div>
+</div></div>
+</div><!-- end of patternForm_modal -->
+
+
+<div id="introductionSection" class="introduction-section eng mt-4">
+	<h3 class="row no-gutters">
+		<label class="pv-tm col-auto">English Stack</label>
+		<label class="search-button-section col text-right d-md-none">
+			<a class="openSentenceBtn"><i class="fa fa-pen fa-flip-horizontal fa-fw"></i></a>
+			<a class="squareSearchBtn"><i class="fa fa-search"></i></a>
+		</label>
+	</h3>
+	<div class="sub">It would be better to read a lot of short sentences than to wander in incomprehensible, interminable articles</div>
+</div><!-- end of introductionSection -->
+
+<div id="translationSection" class="translation-section stack-eng">
+<!-- ------------------------------[앱 컨셉 바]--------------------------------- -->
+<div class="trans-list only-PC"><div class="translation-cover 
+	gold-membership row no-gutters">
+	<div class="logo col-md-auto align-self-center">
+		<i class="fa fa-crown fa-3x"></i> 
+	</div>
+	<div class="guide col-md px-md-3 align-self-center">
+		<div class="membership">
+			Reading a Sentence in 3 seconds.
+		</div>
+		<div>
+			Eng Stack은 대화나 문법에 도움이 될 만한 영어 문장들을 함께 해석하고 공유하는 공간입니다.<br>
+			흥미있고 관심이 가는 문장들을 보면서 문법과 대화 실력을 키워 보세요.<br>
+			플레이보이스는 영어로 인한 불필요한 노력과 비용을 줄이고 함께
+			학습할 수 있는 공간을 제공합니다.
+			<i class="far fa-grin-squint fa-lg"></i>
+		</div>
+	</div>
+	<div class="star col-md-auto col-12 align-self-center">
+		<i class="fa fa-star"></i>
+		<i class="fa fa-star"></i>
+		<i class="fa fa-star"></i>
+		<i class="fa fa-star"></i>
+		<i class="fa fa-star"></i>
+	</div>
+</div></div>
+	
+<div class="translation-bg">
+	<!-- -------------------------[wise saying]----------------------------- -->
+	<div class="trans-list only-PC" style="box-shadow: none; 
+		background-color: transparent;"><div class="translation-cover wise-saying">
+		<div class="wise-saying-cover text-center">
+			<i class="fa fa-quote-left"></i>
+			<div class="saying">
+				언어를 이해할 수 있는 이유가 우리가 완전한 문법을 알고 있어서가 아니다.<br class="d-none d-sm-block">
+				<b>의미를 이해하는 단위</b>와 그것을 <b>연결하는 능력</b>이 확대되기 때문이다.
+			</div>
+			<div class="who">
+				- Professor <b>Stephen Krashen</b>,<br class="d-sm-none"> 
+				Linguistics Southern California Univ.-
+			</div>
+			<i class="fa fa-quote-right"></i>
+		</div>
+	</div></div>
+	
+	<!-- -------------------[예문 등록 버튼/ 검색 버튼 (PC ver.)]-------------------- -->
+	<div class="d-none d-md-block"><div class="translation-guide row no-gutters">
+		<div class="col-auto align-self-center">
+			<button type="button" class="openSentenceBtn btn btn-outline-playsquare2">
+				<span class="d-none d-md-inline-block">영어 예문 등록</span>
+				<i class="fa fa-pen fa-fw"></i>
+			</button>
+		</div>
+		<div class="add-babel-guide col px-2 align-self-center py-1 only-PC">
+			긴 문장은 아무도 안읽어 150자 이내에서 작성해 보는게 어떨까?
+		</div>
+		<div class="search-button-section col-auto align-self-center">
+			<a class="squareSearchBtn" title="예문 검색">
+				<i class="fa fa-search"></i></a>
+		</div>
+	</div></div>
+	
+	
+	<!-- ------------------------[예문 등록 form]--------------------------- -->
+	<div id="addSentence_div" class="trans-list add" style="display: none;">
+		<div th:if="${session.userContainer}" class="translation-cover row no-gutters">
+			<div class="personal-cover col-md-auto d-none d-md-inline" align="center">
+				<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+			</div>
+			<div class="sentence col-md pl-md-3 align-self-center">
+			<div id="duplicatedMsg" class="form-guide text-danger" style="display: none;">
+				<i class="fa fa-exclamation-circle text-danger"></i>
+				이미 등록된 예문입니다. 검색을 통해 해석을 확인해 보세요.
+			</div>
+			<form th:action="@{/square/babel/add}" method="post">
+				<input name="jungleSentence.memberId" type="hidden" th:value="${yourPid}">
+				<input name="stackType" type="hidden" th:value="${stackType}">
+				<input name="jungleSentence.appCode" type="hidden" th:value="${appCode}">
+				<input name="jungleSentence.kor" type="hidden" value="">
+				<!-- 예문, 코멘트 폼  -->
+				<div class="squareSentenceForm-div py-2">
+					<textarea name="jungleSentence.eng" 
+						class="squareSentenceForm requireSentenceForm form-control" 
+						placeholder="영어 예문을 적어주세요 (최대 150자)"></textarea>
+					<!-- 제시어 기능 -->
+					<ul class="suggest-list-cover" style="display: none;"></ul>
+					<div class="warning-msg-section" style="display: none;">
+						<div class="warning-msg">영어만 입력해 주세요.</div>
+					</div>
+				</div>	
+				<div class="py-2">
+					<textarea name="contextComment" 
+						class="squareSentenceForm form-control height-control-textarea" 
+						placeholder="번역에 필요한 문맥이나 도움이 될 정보를 입력해 주세요 (선택사항)"></textarea>
+				</div>
+				<!-- 가이드 / 등록 버튼 -->
+				<div class="squareSentenceDiv mt-2 row no-gutters">
+					<div class="form-guide col-sm align-self-center pb-2 pb-sm-0">
+						<i class="fas fa-exclamation fa-fw"></i>
+						많은 회원들의 참여를 원한다면 간단하고 짧은 문장이 좋아요.
+						(문장 최대 길이 150자)
+					</div>
+					<div class="col-sm-auto pl-1 text-right">
+						<button id="cancelAddSentence_btn" type="reset" 
+							class="btn btn-main3 btn-sm" 
+							style="width: 80px; margin-right: 5px;">취 소</button>
+						<button id="addSentence_btn" type="button" 
+							class="squareAddBtn btn btn-main2 btn-sm" 
+							disabled="disabled" style="width: 80px;">등 록</button>
+					</div>
+				</div>
+			</form>
+			</div>
+		</div>
+		<div th:unless="${session.userContainer}" class="translation-cover">
+			<div class="loginRequired form-control jsAction" 
+				th:href="${#request.requestURI}">로그인 후 이용 가능합니다.</div>
+		</div>
+	</div><!-- end of addSentence_div -->
+	
+	<!-- ----------------------------[예문 검색]------------------------------- -->
+	<div id="searchResult" th:insert="~{/square/incl/search_sentences::search}"></div>
+	<script th:inline="javascript">
+		$("#searchType").val("eng");
+		$("#searchType option[value='kor']").remove();
+	</script>
+	
+	<!-- --------------[앱 컨셉 바, 바벨 리스트 sort 버튼 (Mobile ver.)]-------------- -->
+	<div class="mobile-concept-bar-section box-cover-mobile box-main d-md-none">
+		<!-- 앱 컨셉 바 -->
+		<div class="trans-list only-mobile"><div class="toggleAppConceptBar
+			translation-cover gold-membership">
+			<div class="logo"><label><i class="fa fa-coffee"></i></label></div>
+			<div class="guide">
+				<div class="detail-cover">
+					<div class="point"><b>우리말로 해석해 주세요</b></div>
+					<div class="detail">
+						독해의 시작을 일상적 표현에서 출발해 보는 것이 어떨까요?
+						하나의 영어 문장에 대해 다양한 우리말 표현을 알고 있을 때 영어 표현을 보다 쉽게 사용할 수 있습니다.
+						플보크루들의 다양한 해석을 통해 표현의 풍부성도 함께 학습해 보세요.
+					</div>
+				</div>
+			</div>
+		</div></div>
+		<!-- 바벨 리스트 sort 버튼 -->
+		<div class="translation-guide">
+			<div class="select-trans-list playvoice-dropdown-group">
+				<button class="btn btn-secondary w-100" type="button" 
+					onclick="activePVDropdownMenu(this, true)">
+					<span>전체보기</span>
+					<i class="fa fa-caret-down fa-fw float-right"></i>
+				</button>
+				<div id="babelDropdownMenu" class="playvoice-dropdown-menu">
+					<div class="playvoice-dropdown-back"
+						onclick="activePVDropdownMenu(this, false)"></div>
+					<div class="playvoice-dropdown-content">
+						<div class="dropdown-menu-list-cover">
+							<a th:href="@{/square/babel/list/eng}" 
+								class="menu-item">전체보기</a>
+							<a th:href="@{/square/babel/list/eng?option=pend}" 
+								class="menu-item">답변을 기다리는 예문</a>
+							<a th:href="@{/square/babel/suspend/list/eng}" 
+								class="menu-item">최다 Follow Up</a>
+							<a th:if="${session?.userContainer}" 
+								th:href="@{/square/babel/list/eng?option=} + ${yourId56}" 
+								class="menu-item">나의 질문</a>
+							<a th:if="${session?.userContainer}" 
+								th:href="@{/square/babel/myanswer/list/eng?option=} + ${yourId56}" 
+								class="menu-item">나의 답글</a>
+							<a th:if="${session?.userContainer}" 
+								th:href="@{/square/babel/suspend/list/eng/} +  ${yourId56}" 
+								class="menu-item">나의 Follow Up</a>
+						</div>
+						<div class="playvoice-dropdown-close-section"
+							onclick="activePVDropdownMenu(this, false)">close</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div id="defaultStackList">
+		<!-- ----------------[바벨 리스트 sort 버튼 (PC ver.)]---------------- -->
+		<div class="d-none d-md-block">
+			<div class="select-trans-list list-pc text-center">
+				<a th:href="@{/square/babel/list/eng}">
+				   <i class="fa fa-list fa-fw mr-1"></i> 
+				   <span>전체보기</span>
+				</a>
+				<a th:href="@{/square/babel/list/eng?option=pend}">
+				   <i class="fa fa-pray fa-fw mr-1"></i> 
+				   <span>답변을 기다리는 예문</span>
+				</a>
+				<a th:href="@{/square/babel/suspend/list/eng}">
+				   <i class="fa fa-plane-departure fa-fw mr-1"></i> 
+				   <span>최다 Follow Up</span>
+				</a>
+				<a class="my" th:if="${session?.userContainer}" 
+				   th:href="@{/square/babel/list/eng?option=} + ${yourId56}">
+				   <i class="fa fa-lightbulb fa-fw mr-1"></i> 
+				   <span>나의 질문</span>
+				</a>
+				<a class="my" th:if="${session?.userContainer}" 
+				   th:href="@{/square/babel/myanswer/list/eng?option=} + ${yourId56}">
+				   <i class="fa fa-brain fa-fw mr-1"></i> 
+				   <span>나의 답글</span>
+				</a>
+				<a class="my" th:if="${session?.userContainer}" 
+				   th:href="@{/square/babel/suspend/list/eng/} + ${yourId56}">
+				   <i class="fa fa-paper-plane fa-fw mr-1"></i> 
+				   <span>나의 Follow Up</span>
+				</a>
+			</div>				
+		
+			<!-- 질문 목록 메세지 (전체보기/답변을 기다리는 예문/최다 Follow Up) -->
+			<div th:if="${!(#strings.contains(#request.requestURI,'suspend'))&&
+				(param.option==null || 
+				#strings.equals(param.option,'stack') ||
+				#strings.equals(param.option,'pend')) &&
+				!(stackPageMaker?.result?.empty)}" class="question-list-false mb-2">
+				<div class="msg-div text-center">
+					<span class="point">각 예문들은 3초 이내로 해석될 수 있어야 한다.
+					<i class="fa fa-exclamation"></i></span>
+					<br><br>얼마나 빨리 해석할 수 있느냐가 관건이다. 
+					<br>실제 대화는 독해보다 더 빠른 해석을 요구한다.
+				</div>
+			</div> 
+			
+			<!-- 질문,답변이 없을 경우 메세지 (나의 질문/나의 답글) -->
+			<div th:if="${param.option != null AND #strings.length(param.option) GT 0 
+				AND NOT #strings.equals(param.option,'pend') AND stackPageMaker?.result?.empty}" 
+				class="question-list-false mb-2">
+				<div class="msg-div text-center">
+					<span class="point">Study Tip 
+					<i class="fa fa-utensils fa-fw"></i></span><br>
+					질문과 답변을 통해 자신의 <b>질문과 답변 리스트</b>를 만들어 보세요.<br class="d-none d-md-block">
+					자신의 리스트에 올라온 질문과 답변은 좀 더 자주 보게 될 것이고<br class="d-none d-md-block">
+					그것은 <b>좀 더 많은 복습 기회를 가지는 것</b>과 같습니다.
+				</div>
+			</div>
+			
+			<!-- 나의 follow up 메세지 -->
+			<div th:if="${#strings.contains(#request.requestURI,'suspend/list/eng/')}" 
+				class="question-list-false mb-2">
+				<div class="msg-div text-center">
+					선택 결정을 내리지 못한 질문 목록입니다.<br>
+					틀린 문제를 또 틀릴 확률이 높듯이 잘 말할 수 없는 문장들 혹은 해석이 안되는 문장들은
+					<br class="d-none d-md-block">
+					<b>또 다시 모르게 될 확률</b>이 높습니다.<br class="d-none d-md-block">
+					질문 목록을 다시 확인하면서 직접 번역해 보거나<br class="d-none d-md-block">
+					공감되는 답변을 선택해 주세요.<br>
+					지속적인 <b>follow up을 통해 반복</b>하면서 실력을 쌓아보세요.
+				</div>
+			</div>
+			
+			<!-- 최다 follow up 메세지 -->
+			<div th:if="${#strings.contains(#request.requestURI,'suspend') && 
+				!(#strings.contains(#request.requestURI,'/eng/'))}" 
+				class="question-list-false mb-2">
+				<div class="msg-div text-center">
+					많은 플보 멤버들이 선택 결정을 내리지 못한 질문 목록입니다.<br>
+					공감되는 답변을 선택하거나 답변을 등록해 보세요.
+				</div>
+			</div>
+		</div>
+		
+		
+		<!-- ------------------------[예문 list]-------------------------- -->
+		<div id="babelListDiv" class="babel-list-section">
+		<th:block th:each="babelStack, iter:${stackPageMaker?.result?.content}">
+		<div class="trans-list" 
+			th:classappend="${babelStack.stackAnswerList !=null?'open':''}">
+			<div class="translation-cover row no-gutters" 
+				th:classappend="${babelStack.hasAnswer}?'active'">
+				<input class="bid" type="hidden" th:value="${babelStack.bid}">
+				<input class="bid56" type="hidden" th:value="${babelStack.id56}">
+				<input class="sentenceKor" type="hidden" th:value="${babelStack.jungleSentence.kor}">
+				<input class="jid" type="hidden" th:value="${babelStack.jungleSentence.jid}">
+				<!-- 예문 작성자 정보 -->
+				<div class="personal-cover col-auto align-self-center 
+					pb-md-0 pb-2"><div align="center">
+					<th:block th:with="personacon=${babelStack.jungleSentence.personacon}">
+						<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+					</th:block>
+					<div class="alias d-none d-md-block">
+						[[${babelStack.jungleSentence.personacon.alias}]]
+					</div>
+				</div></div>
+				<!-- 작성자 별명(mobile)/ 등록 날짜 -->
+				<div class="toggleTransCover col pl-2 d-md-none align-self-center pb-2">
+					<div class="alias-xs alias">
+						[[${babelStack.jungleSentence.personacon.alias}]]
+					</div>
+					<div th:text="${#dates.format(babelStack.regDate, 'yyyy-MM-dd')}"
+						class="date"></div>
+				</div>
+				<!-- 삭제 수정 신고 버튼 (PC ver.) -->
+				<div th:if="${session?.userContainer}" 
+					class="etc btn-group col-auto d-md-none align-self-center pb-2">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-v fa-lg fa-fw"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						<li th:if="${babelStack.jungleSentence.personacon.pid 
+							== yourPid} OR ${yourMeberType} == 'A'" 
+							class="editSentenceBtn dropdown-item text-center">
+							<a>수정</a></li>
+						<li th:if="${babelStack.jungleSentence.personacon.pid != yourPid}"
+							class="babelReport dropdown-item text-center">
+							<a>신고</a></li>
+					</ul>
+				</div>
+				<!-- 작성자 별명(mobile)/ 예문/ 코멘트 -->
+				<div class="toggleTransCover sentence col-md col-12 pl-md-3 
+					pl-2 align-self-center" 
+					th:classappend="${babelStack.stackAnswerList!=null?'transLoaded':''}">
+					<div class="eng-sent">
+						<i class="fas fa-quote-left fa-fw"></i>
+						<span>[[${babelStack.jungleSentence.eng}]]</span>
+						<i class="fas fa-quote-right fa-fw"></i>
+					</div>
+					<div class="kor row no-gutters">
+						<span class="col-auto pr-2">
+							<i class="fa fa-comment-dots fa-fw fa-flip-horizontal"></i>
+						</span>
+						<span class="col commentContent" 
+							th:classappend="${#strings.isEmpty(babelStack.contextComment)}?'placeholder'" 
+							th:utext="${#strings.isEmpty(babelStack.contextComment)?
+							'자신의 생각을 표현해 보고 다른 답변과 비교해 보세요.':babelStack.contextComment}"></span>
+					</div>
+				</div>
+				<!-- 삭제 수정 신고 버튼 (Mobile ver.) -->
+				<div class="col-md-auto d-none d-md-inline py-2 text-right align-self-center">
+					<div th:text="${#dates.format(babelStack.regDate, 'yyyy-MM-dd')}" 
+						class="date"></div>
+					<div th:if="${session.userContainer}" class="etc btn-group">
+						<a class="dropdown-toggle" data-toggle="dropdown">
+							<i class="fa fa-ellipsis-h fa-lg"></i>
+						</a>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+							<li th:if="${babelStack.jungleSentence.personacon.pid 
+								== yourPid} OR ${yourMeberType} == 'A'" 
+								class="editSentenceBtn dropdown-item text-center">
+								<a>수정</a></li>
+							<li th:if="${babelStack.jungleSentence.personacon.pid != yourPid}" 
+								class="babelReport dropdown-item text-center">
+								<a>신고</a></li>
+						</ul>
+					</div>
+				</div>
+			</div>
+			<!-- --------------------- [번역 답변 리스트 영역] --------------------- -->
+			<div class="member-trans-cover" 
+				th:style="${babelStack.stackAnswerList !=null}? '':'display: none;'">
+			<div class="trans-button-cover row no-gutters">
+				<!-- Follow Up 버튼 -->
+				<div class="member-trans-guide col-md col-7 text-left">
+					<button class="followBtn add-trans-btn btn 
+						btn-playsquare btn-sm" type="button"
+						th:classappend="${#strings.contains(#request.requestURI,
+						'suspend/list/eng/')}?'active':''">
+						<i class="fa fa-paper-plane fa-fw"></i>
+						<span class="d-none d-md-inline-block">선택 못하겠어!</span>
+						<span class="difficultyNum badge badge-pill badge-light">
+							[[${babelStack.difficulty}]]
+						</span>
+						<span th:if="${babelStack.hasAnswer}" 
+							class="add-trans-msg">
+							해석할 수 없어 선택할 수 없다면<br>
+							아래 버튼을 눌러 추후 학습으로 저장하세요.
+						</span>
+						<span th:unless="${babelStack.hasAnswer}" 
+							class="add-trans-msg">
+							추후에라도 답변을 확인하고 싶다면 <br>
+							아래 버튼을 눌러 저장하세요.					
+						</span>
+					</button>
+				</div>
+				<div class="member-trans-guide col-auto d-none 
+					d-xl-inline text-center align-self-center">
+					<span>스스로 해석한 것을 회원들과 비교해 보세요.</span><br>
+					<span>공감되는 답변을 선택하거나 결정을 미루거나 직접 번역해 보세요.</span>
+				</div>
+				<!-- 번역하기 버튼 (번역 리스트가 있을 경우) -->
+				<div class="member-trans-guide col-md col-5 text-right">
+					<button th:if="${session.userContainer}"
+						class="openAddTransForm add-trans-btn btn 
+						btn-playsquare btn-sm" type="button">
+						<i class="fa fa-pen fa-fw"></i>
+						<span class="d-none d-md-inline-block">내 해석은 이거야</span>
+						<span th:if="${babelStack.hasAnswer}" 
+							class="add-trans-msg">
+							다른 의견이 있다면<br>[[${yourAlias}]] 님도 해석해 보세요
+						</span>
+						<span th:unless="${babelStack.hasAnswer}" 
+							class="add-trans-msg">
+							[[${yourAlias}]] 님이 <br>해석의 첫 주인공이 되는 건 어떤가요?
+						</span>
+					</button>
+					<a th:unless="${session.userContainer}" 
+						th:href="@{/auth/login?destPage=} + 
+						${#request.requestURI}"
+						class="add-trans-btn btn btn-playsquare btn-sm">
+						<i class="fa fa-pen fa-fw"></i> 해석하기
+						<span class="add-trans-msg">
+							다른 의견이 있다면<br>로그인 후 해석해 보세요
+						</span>
+					</a>
+				</div>
+			</div>
+				
+			<!-- 번역 답변 등록 폼 -->
+			<div th:if="${session.userContainer}" 
+				class="member-my-trans-form row no-gutters"
+				th:style="${babelStack.hasAnswer}? 'display:none': ''"
+				th:classappend="${babelStack.hasAnswer}? '': 'none'">
+				<div th:unless="${babelStack.hasAnswer}" 
+					class="trans-guide col-12 text-center">
+					<span class="alias">[[${yourAlias}]]</span>
+					님이 해석의 첫 주인공이 되는 건 어떤가요?
+					<i class="far fa-smile-wink"></i>
+				</div>
+				<div class="personal-cover col-md-auto d-none 
+					d-md-inline-block" align="center">
+					<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+				</div>
+				<div class="sentence col-md col-12 pl-md-3">
+					<!-- ------------- 번역 등록 폼------------------ -->
+					<form th:action="@{/square/babel/answer/add}" method="post">
+						<input name="babelStackId" type="hidden" 
+							th:value="${babelStack.bid}">
+						<input name="babelStackTitle" type="hidden" 
+							th:value="${babelStack?.jungleSentence?.eng}">
+						<input name="babelStackWriter" type="hidden" 
+							th:value="${babelStack?.jungleSentence?.personacon?.alias}">
+						<input name="stackType" type="hidden" th:value="${stackType}">
+						<input name="answerWriterId" type="hidden" th:value="${yourPid}">
+						<input name="answerWriter" type="hidden" th:value="${yourAlias}">
+						<div style="position: relative;">
+							<textarea class="openMemberTrans-form memberTrans-form 
+								squareSentenceForm form-control" name="answer" 
+								placeholder="위의 예문을 우리말로 번역해 주세요."></textarea>
+							<div class="warning-msg-section" style="display: none;">
+								<div class="warning-msg">한국어만 입력해 주세요.</div>
+							</div>
+						</div>
+						<div class="mt-2">
+							<textarea name="answerComment" 
+								class="openMemberTrans-form squareSentenceForm 
+								form-control height-control-textarea" 
+								placeholder="추가 설명을 작성해 주세요. (선택사항)"></textarea>
+						</div>
+						<div class="squareSentenceDiv 
+							form-button-section text-right">
+							<button class="cancelMemberTransBtn btn 
+								btn-outline-playsquare btn-sm" type="reset" 
+								style="width: 80px; margin-right: 5px;">취 소</button>
+							<button class="answerAddBtn squareAddBtn btn 
+								btn-playsquare btn-sm" type="button" 
+								disabled="disabled" style="width: 80px;">등 록</button>
+						</div>
+					</form>
+				</div>
+			</div>
+			<div th:unless="${session.userContainer}" 
+				class="member-my-trans-form row no-gutters none"
+				th:style="${babelStack.hasAnswer}? 'display:none': ''">
+				<div th:unless="${babelStack.hasAnswer}" 
+					class="trans-guide col-12 text-center">
+					<a th:href="@{/auth/login?destPage=} + 
+						${#request.requestURI}">
+						번역을 기다리는 문장입니다.
+						로그인 후 직접 해석해 보시겠어요?
+						<i class="far fa-smile-wink"></i>
+					</a>
+				</div>
+			</div>
+				
+			<!-- ------------------[번역 답변 리스트]--------------------- -->
+			<div class="member-trans-list-cover">
+				<div th:each="stackAnswer:${babelStack.stackAnswerList}" 
+					class="member-trans-list row no-gutters" 
+					th:with="personacon = ${stackAnswer.personacon}">
+				<!-- 답변 작성자 정보 (PC ver.) -->
+				<div class="personal-cover col-md-auto d-none 
+					d-md-inline-block" align="center">
+					<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+					<div class="alias mt-1">[[${personacon.alias}]]</div>
+				</div>
+				<div class="trans-sentence-cover col-md col-12 pl-md-3">
+					<div class="translate-cover">
+						<!-- 작성자 퍼스나콘 별명(Mobile ver.) -->
+						<div class="d-md-none"><div class="row no-gutters mb-3">
+							<div class="personal-cover col-auto align-self-center">
+								<img th:if="${personacon.iconPath}" class="openProfile"
+									th:data-mid="${personacon.id56}"
+									src="/images/app/member/profile_paper.png"
+									th:style="'background: url(\'/resource/profile/' 
+									+${personacon.iconPath} +'\') no-repeat;
+									background-position: center; background-size: cover;'">
+								<img th:unless="${personacon.iconPath}" 
+									th:data-mid="${personacon.id56}"
+									src="/images/app/member/profile_paper.png" 
+									class="openProfile profile-default">
+							</div>
+							<div class="alias-cover col align-self-center">
+								<div class="alias">[[${personacon.alias}]]</div>
+								<div class="date">
+									[[${#dates.format(stackAnswer.regDate,'yyyy-MM-dd')}]]
+								</div>
+							</div>
+							<div th:if="${#strings.toString(personacon.memberType) NE 'C'}" 
+								class="etc col-auto text-right btn-group 
+								dropup align-self-center">
+								<a class="dropdown-toggle" data-toggle="dropdown">
+									<i class="fa fa-ellipsis-v fa-lg fa-fw"></i>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+								<li th:if="${personacon.pid==yourPid} OR ${yourMeberType} == 'A'" 
+									class="editCommentBtn dropdown-item text-center">
+									<a>수정</a></li>
+							    <li th:if="${personacon.pid!=yourPid}" 
+									class="answerReport dropdown-item text-center">
+									<a>신고</a></li>
+								</ul>
+							</div>
+						</div></div>
+						<input class="answerId" type="hidden" 
+							th:value="${stackAnswer.aid}">
+						<!-- 답변, 코멘트 -->
+						<div class="translate-kor">
+							<div class="kor" th:text="${stackAnswer.answer}"></div>
+							<div class="guide mt-2" 
+								th:style="${#strings.isEmpty(stackAnswer.answerComment)?
+								'display:none;':''}">
+								<label class="badge d-none d-md-inline-block">코멘트</label>
+								<i class="far fa-comment-dots fa-flip-horizontal d-md-none"></i>
+								<span></span>
+								<input type="hidden" class="orgMsg" 
+									th:value="${stackAnswer.answerComment}">
+							</div>
+						</div>
+						<!-- 날짜/ 수정,삭제,신고 버튼 -->
+						<div class="d-none d-md-block"><div class="info row no-gutters">
+							<div class="date col-auto align-self-center">
+								[[${#dates.format(stackAnswer.regDate,'yyyy-MM-dd')}]]
+							</div>
+							<div class="col"></div>
+							<div th:if="${#strings.toString(personacon.memberType) NE 'C'}" 
+								class="etc col-auto text-right btn-group 
+								dropup align-self-center">
+								<a class="dropdown-toggle" data-toggle="dropdown">
+									<i class="fa fa-ellipsis-h fa-lg"></i>
+								</a>
+								<ul class="dropdown-menu dropdown-menu-right" role="menu">
+								<li th:if="${personacon.pid==yourPid} OR ${yourMeberType} == 'A'" 
+									class="editCommentBtn dropdown-item text-center">
+									<a>수정</a></li>
+							    <li th:if="${personacon.pid!=yourPid}" 
+									class="answerReport dropdown-item text-center">
+									<a>신고</a></li>
+								</ul>
+							</div>
+						</div></div>
+						<!-- 답변 추천 (Mobile ver.) -->
+						<div class="estimate-section d-md-none">
+							<label class="follow-up">
+								<i class="fa fa-arrow-circle-up"></i><br>선택 
+								<span class="num">[[${stackAnswer.likeCount}]]</span>
+							</label>
+						</div>
+					</div>
+				</div>
+				<!-- 추천 버튼 (PC ver.) -->
+				<div class="estimate-section col-auto text-center pl-3 pt-2
+					d-none d-md-inline-block">
+					<div><i class="fa fa-arrow-circle-up"></i></div>
+					<div>선택</div>
+					<div class="num">[[${stackAnswer.likeCount}]]</div>
+				</div>
+			</div>
+						
+			<!------------------- 번역 리스트 copy place----------------------->
+			<div class="memberTransCopyPlace" style="display: none;"></div>
+			</div>
+			
+			<!-- 광고 -->
+			<div class="babel-answer-ad-section"></div>
+			
+			<!-- 댓글 펼치기 버튼 -->
+			<div class="member-trans-guide text-center">
+				<div class="d-none d-md-block">
+					질문과 답변의 문법적 이해에 도움이 될만한 예문을 작성해 보세요.<br>
+					또는 궁금한 점을 댓글을 남겨주세요.
+				</div>
+				<div>
+					<button class="openCommentList comment-btn btn btn-playsquare 
+						btn-sm mt-2" type="button">
+						<i class="fa fa-comment-dots fa-fw"></i> 댓글
+						<span class="badge badge-pill badge-light" 
+							th:text="${replyCount}">0</span>
+					</button>
+				</div>
+			</div>
+			
+			<!-- 댓글 -->
+			<div class="community-comment px-md-3 pb-4" style="display: none;">
+				<ul class="nav nav-tabs">
+					<li class="nav-item">
+						<a class="practiceCommentTab nav-link" 
+							data-toggle="tab">Practice</a>
+					</li>
+					<li class="nav-item">
+						<a class="qnaCommentTab nav-link" 
+							data-toggle="tab">QnA</a>
+					</li>
+				</ul>
+				<div th:id="'commentArea' + ${iter.index}" class="tab-content">
+					<div class="patternCommentDiv tab-pane fade"></div>
+					<div class="qnaCommentDiv tab-pane fade"></div>
+				</div>
+			</div>
+		</div></div>
+		
+		<div th:if="${iter.count%4 == 0}" class="trans-list sponsor">
+			<!-- -----------------------[리스트 광고 (Mobile)]------------------ -->
+			<div th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+				class="translation-cover">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- (Mobile) English Stack list -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="8984752622"
+				     data-ad-format="horizontal"
+				     data-full-width-responsive="false"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+			<!-- -----------------------[리스트 광고 (PC)]---------------------- -->
+			<div th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+				class="translation-cover">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- (PC) English Stack list -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-format="fluid"
+				     data-ad-layout-key="-hh+9+3w-dt+9r"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="3523961828"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+		</div>	
+			
+		</th:block>
+		
+		
+		<div id="babelAnswerAdSection" class="babel-answer-bottom-ad-section">
+			<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+			<!-- English Stack Answer -->
+			<ins id="babelAd" class="adsbygoogle babel-answer-ad"
+				style="display:block"
+				data-ad-client="ca-pub-7152306695077047"
+				data-ad-slot="8843661135"
+				data-ad-format="horizontal"
+				data-full-width-responsive="false"></ins>
+			<script>
+				(adsbygoogle = window.adsbygoogle || []).push({});
+			</script>
+		</div>
+		</div><!-- end of babelListDiv -->
+	</div><!-- end of defaultStackList -->
+</div>
+	
+<!-- pagination (PC ver.) -->
+<div id="defaultStackPagination" th:if="${stackPageMaker}" 
+	th:with="query=${#strings.contains(#request.requestURI,'suspend')}?
+	'':('option=' + (${param.option}?:'stack') + '&')">
+	<div class="d-none d-md-block"><div class="trans-list-page row no-gutters my-3">
+		<div class="col-md-3 text-center text-left align-self-center">
+			<a th:if="${stackPageMaker?.prevPage}" 
+				th:href="${#request.requestURI + '?' + query + 
+				'pageNum=' + (stackPageMaker?.prevPage?.pageNumber + 1)}" 
+				class="btn btn-playsquare2">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-md-6 text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item" th:each="page:${stackPageMaker?.pageList}"
+					th:classappend="${page.pageNumber == 
+					stackPageMaker?.currentPageNum -1} ? active: '' ">
+					<a class="page-link" th:href="${#request.requestURI + 
+					'?' + query + 'pageNum=' + (page.pageNumber + 1)}">
+					[[${page.pageNumber}+1]]</a>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-3 text-center text-right align-self-center">
+			<a th:if="${stackPageMaker?.nextPage}" 
+			   th:href="${#request.requestURI + '?' + query + 
+			   'pageNum=' + (stackPageMaker?.nextPage?.pageNumber + 1)}" 
+				class="btn btn-playsquare2">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div></div>
+	<!-- pagination (Mobile ver.) -->
+	<div class="d-md-none"><div class="trans-list-page row no-gutters my-3">
+		<div class="col-6 text-left">
+			<a th:if="${stackPageMaker?.currentPageNum != 1}" 
+				th:href="${#request.requestURI + '?' + query + 
+				'pageNum=' + (stackPageMaker?.currentPageNum -1)}" 
+				class="btn btn-playsquare2">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-6 text-right">
+			<a th:if="${stackPageMaker?.currentPageNum != 
+				stackPageMaker?.totalPageNum}" 
+				th:href="${#request.requestURI + '?' + query + 
+				'pageNum=' + (stackPageMaker?.currentPageNum +1)}" 
+				class="btn btn-playsquare2">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div></div>
+</div><!-- end of defaultStackPagination -->
+</div><!-- end of translationSection -->
+
+
+
+<div id="divForCopy" style="display: none;">
+<!-- ----------------------- [1. 바벨 예문 리스트 for Copy] ---------------------- -->
+<div class="unregisteredSentence trans-list">
+	<div class="translation-cover row no-gutters">
+		<input class="jid" type="hidden"/>
+		<input class="jid56" type="hidden"/>
+		<div class="personal-cover col-auto align-self-center pb-md-0 pb-2">
+			<div align="center">
+				<div class="member-personacon openProfile jsAction" data-mid="">
+					<!-- 프로필 -->
+					<img src="/images/app/member/profile_paper.png"
+						class="personacon-profile">
+					<!-- 프레임 -->
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-frame">
+				</div>
+				<div class="alias d-none d-md-block"></div>
+			</div>
+		</div>
+		<!-- 작성자 별명(mobile)/ 등록 날짜 -->
+		<div class="toggleTransCover col pl-2 d-md-none align-self-center pb-2">
+			<div class="alias-xs alias"></div>
+			<div class="date"></div>
+		</div>
+		<!-- 예문/ 코멘트 -->
+		<div class="toggleTransCover sentence col-md col-12 pl-md-3 pl-2 align-self-center">
+			<div class="eng-sent">
+				<i class="fas fa-quote-left fa-fw"></i>
+				<span></span>
+				<i class="fas fa-quote-right fa-fw"></i>
+			</div>
+			<div class="kor row no-gutters">
+				<span class="col-auto pr-2">
+					<i class="fa fa-comment-dots fa-fw fa-flip-horizontal"></i>
+				</span>
+				<!-- 추가 코멘트 -->
+				<span class="commentContent col">자신의 생각을 표현해 보고 다른 답변과 비교해 보세요.</span>
+			</div>
+		</div>
+		<!-- 삭제 수정 신고 버튼 (Mobile ver.) -->
+		<div class="col-md-auto d-none d-md-inline py-2 text-right align-self-center">
+			<div class="date"></div>
+		</div>
+	</div>
+	<!-- -------------------------[답변 리스트 영역]------------------------------ -->
+	<div class="member-trans-cover" style="display: none;">
+		<!-------------------- 댓글 리스트 copy place--------------------->
+		<div class="memberTransCopyPlace" style="display: none;"></div>
+		<div class="member-trans-form">
+			<div th:if="${session.userContainer}" class="loginTrans-form text-center">
+				<i class="fa fa-bullhorn fa-fw mr-1" style="color: #ff643b;"></i>
+				<span class="alias">[[${yourAlias}]]</span> 
+				님이<br class="d-sm-none"> 공감하는 답변을 선택해 주세요
+			</div>
+			<div th:unless="${session.userContainer}" class="loginTrans-form text-center">
+				<i class="fa fa-bullhorn fa-fw mr-1" style="color: #ff643b;"></i>
+				공감하는 답변을 선택해 주세요
+			</div>
+		</div>
+		
+		<!-- 광고 -->
+		<div class="ad-section"></div>
+	</div>
+</div>
+	
+<!-- ---------------- [2. 등록 된 sentence list (for search)] ----------------- -->
+<div class="registeredSentence trans-list">
+	<div class="translation-cover row no-gutters">
+		<input class="jid" type="hidden">
+		<div class="personal-cover col-auto align-self-center pb-md-0 pb-2">
+			<i class="fa fa-check-circle fa-2x"></i>
+		</div>
+		<div class="toggleTransCover sentence col pl-md-3 pl-2 align-self-center">
+			<div class="eng-sent">
+				<i class="fas fa-quote-left fa-fw"></i>
+				<!-- 영어 예문 -->
+				<i class="fas fa-quote-right fa-fw"></i>
+			</div>
+			<div class="kor">
+				<!-- 한국어 해석 -->
+			</div>
+		</div>
+	</div>
+</div>	
+
+<!-- ---------------------- [3. 번역 답글 리스트 for Copy] ----------------------- -->
+<div class="member-trans-list row no-gutters">
+	<!-- 답변 작성자 정보 / 선택 버튼 (Mobile ver.) -->
+	<div class="personal-cover col-md-auto d-none d-md-inline-block" align="center">
+		<div class="member-personacon openProfile jsAction" data-mid="">
+			<img src="/images/app/member/profile_paper.png" 
+				class="personacon-profile profile-default">
+			<img src="/images/app/member/profile_paper.png" 
+				class="personacon-frame">
+		</div>
+		<div class="alias mt-1">별명 PC</div>
+	</div>
+	<div class="trans-sentence-cover col-md col-12 pl-md-3">
+		<input class="answerId" type="hidden">
+		<div class="translate-cover">
+			<!-- 작성자 퍼스나콘 별명(Mobile ver.) -->
+			<div class="d-md-none"><div class="row no-gutters mb-3">
+				<div class="personal-cover col-auto align-self-center">
+					<img src="/images/app/member/profile_paper.png" 
+						class="personacon-profile openProfile" data-mid="">
+				</div>
+				<div class="alias-cover col align-self-center">
+					<div class="alias">별명 Mobile</div>
+					<div class="date">작성날짜</div>
+				</div>
+				<div th:if="${session.userContainer}" 
+					class="etc col-auto text-right btn-group dropup align-self-center">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-v fa-lg fa-fw"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right" role="menu">
+					    <li class="editCommentBtn dropdown-item text-center"><a>수정</a></li>
+					    <li class="answerReport dropdown-item text-center"><a>신고</a></li>
+					</ul>
+				</div>
+			</div></div>
+			<!-- 작성자 별명(Mobile ver.)/ 답변, 코멘트 -->
+			<div class="translate-kor">
+				<div class="answer kor">당신은 한국어로 해석함으로써 공부할 수 있다.</div>
+				<div class="guide mt-2">
+					<label class="badge d-none d-md-inline-block">코멘트</label>
+					<i class="far fa-comment-dots fa-flip-horizontal d-md-none"></i>
+					<span></span>
+					<input type="hidden" class="orgMsg">
+				</div>
+			</div>
+			<!-- 날짜/ 수정,삭제,신고 버튼 -->
+			<div class="d-none d-md-block"><div class="info row no-gutters">
+				<div class="date col-auto align-self-center">작성날짜</div>
+				<div class="col"></div>
+				<div th:if="${session.userContainer}" 
+					class="answerControlBox etc col-auto text-right 
+					btn-group dropup align-self-center">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-h fa-lg"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						<li class="editCommentBtn dropdown-item text-center"><a>수정</a></li>
+						<li class="answerReport dropdown-item text-center">신고</li>
+					</ul>
+				</div>
+			</div></div>
+			<!-- 답변 추천 (Mobile ver.) -->
+			<div class="estimate-section d-md-none">
+				<label class="follow-up">
+					<i class="fa fa-arrow-circle-up"></i>
+					<br>선택 <span class="num">22</span>
+				</label>
+			</div>
+		</div>
+	</div>
+	<!-- 추천 버튼 (PC ver.) -->
+	<div class="estimate-section col-auto text-center pl-3 pt-2
+		d-none d-md-inline-block">
+		<div><i class="fa fa-arrow-circle-up"></i></div>
+		<div>선택</div>
+		<div class="num">22</div>
+	</div>
+</div>	
+	
+<!-- ------------------------ [4. 예문 수정 폼 for copy] ------------------------ -->
+<div id="editSentence_div" class="trans-list add" 
+	style="display: none; margin: 0; box-shadow: none;">
+	<div th:if="${session.userContainer}" class="translation-cover row no-gutters">
+		<div class="personal-cover col-md-auto d-none d-md-inline" align="center">
+			<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+		</div>
+		<div class="sentence col-md pl-md-3 align-self-center">
+			<form th:action="@{/square/babel/edit}" method="post">
+				<input name="bid" type="hidden">
+				<input name="jungleSentence.memberId" type="hidden" th:value="${yourPid}">
+				<input name="stackType" type="hidden" th:value="${stackType}">
+				<input name="jungleSentence.jid" type="hidden">
+				<input name="jungleSentence.kor" type="hidden" value="">
+				<div class="squareSentenceForm-div">
+					<textarea name="jungleSentence.eng" 
+						class="squareSentenceForm requireSentenceForm form-control" 
+						placeholder="영어 예문을 적어주세요 (최대 150자)"></textarea>
+					<!-- 제시어 기능 -->
+					<ul class="suggest-list-cover" style="display: none;">
+						<li class="dropdown-item"><a>제시어1</a></li>
+					</ul>
+					<div class="warning-msg-section" style="display: none;">
+						<div class="warning-msg">영어만 입력해 주세요.</div>
+					</div>
+				</div>	
+				<div class="mt-2">
+					<textarea class="commentForm squareSentenceForm 
+						form-control height-control-textarea" name="contextComment" 
+						placeholder="번역에 필요한 문맥이나 도움이 될 정보를 입력해 주세요 (선택사항)"></textarea>
+				</div>
+				<div class="squareSentenceDiv mt-2 text-right">
+					<button type="reset" class="cancelEditBtn btn btn-outline-playsquare2 btn-sm" 
+						style="width: 80px; margin-right: 5px;">취 소</button>
+					<button type="button" class="squareAddBtn btn btn-playsquare2 btn-sm" 
+						style="width: 80px;">수 정</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+	
+<!-- ----------------------- [5. 댓글 수정 폼 for copy] ------------------------- -->
+<div id="editComment_div" th:if="${session.userContainer}" style="display: none;">
+<div class="sentence">
+	<form th:action="@{/square/babel/answer/edit}">
+		<input type="hidden" name="aid">
+		<input type="hidden" name="babelStackId">
+		<input type="hidden" name="babelStackTitle">
+		<input type="hidden" name="babelStackWriter">
+		<input type="hidden" name="stackType" th:value="${stackType}">
+		<input type="hidden" name="answerWriterId" th:value="${yourPid}">
+		<input type="hidden" name="answerWriter" th:value="${yourAlias}">
+		
+		<div style="position: relative;">
+			<textarea class="memberTrans-form squareSentenceForm 
+				form-control" name="answer" 
+				placeholder="위의 예문을 우리말로 번역해 주세요"></textarea>
+			<div class="warning-msg-section" style="display: none;">
+				<div class="warning-msg">한국어만 입력해 주세요.</div>
+			</div>
+		</div>
+		<div class="mt-2">
+			<textarea class="commentForm squareSentenceForm 
+				form-control height-control-textarea" name="answerComment" 
+				placeholder="회원들의 선택에 도움이 될 추가 설명을 작성해 주세요. (선택사항)"></textarea>
+		</div>
+		<div class="form-button-section text-right">
+			<button class="cancelEditComment btn btn-outline-playsquare btn-sm" 
+				type="reset" style="width: 80px; margin-right: 5px;">취 소</button>
+			<button class="answerEditBtn squareAddBtn btn btn-playsquare btn-sm" 
+				type="button" style="width: 80px;">수 정</button>
+		</div>
+	</form>
+</div>
+</div>
+<!-- 댓글 폼 & 리스트 for copy -->
+<div id="commentDivforCopy" class="py-3 px-1 px-lg-4" 
+	th:insert="~{/common/comment::comment}"></div>
+	
+</div>
+<!-- ----------------------/번역 답글 리스트 for Copy----------------------------- -->
+</section>
+</html>

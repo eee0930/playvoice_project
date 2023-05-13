@@ -1,0 +1,480 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- [QnA Board]============================================================ -->
+<div th:fragment="menu_qna">
+	<div th:switch="${boardName}" 
+		class="toggleAppConceptBar membership-guide-cover qna row no-gutters">
+		<!-- [앱 서비스 문의] -->
+		<th:block th:case="'App'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-mobile-alt"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				앱 서비스 문의
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>앱 서비스 문의</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				각 학습 앱을 이용하면서 궁금한 점이 있다면 문의해 주세요.<br class="d-none d-md-block"> 
+				또는 불편한 점이나 원하는 기능이 있다면 알려 주세요.<br>
+				플레이보이스는 여러분의 소중한 의견을 귀담아듣겠습니다
+				<i class="far fa-grin-alt fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [주문, 결제 문의] -->
+		<th:block th:case="'Order'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-credit-card"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				주문, 결제 문의
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>주문, 결제 문의</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				멤버십과 상품의 주문 및 결제에 대해 궁금한 점이 있다면 문의해 주세요
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [배송 문의] -->
+		<th:block th:case="'Delivery'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-truck"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				배송 문의
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>배송 문의</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				골드 멤버십 리워드 배송 또는 상품 배송에 대해 궁금한 점이 있다면 문의해 주세요
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [취소, 환불 문의] -->
+		<th:block th:case="'Refund'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fas fa-receipt"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				취소, 환불 문의
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>취소, 환불 문의</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				유료 멤버십의 환불 신청은 멤버십 구매 내역 페이지에서 '환불 신청' 버튼을 클릭하여 신청할 수 있습니다.<br>
+				환불 신청은 멤버십 구매 이후 7일 이내,
+				'골드 멤버십 무료 체험'을 이용하지 않았을 경우 신청 가능합니다.<br>
+				취소, 환불에 대한 자세한 내용은 플레이보이스 이용약관에서 확인할 수 있습니다.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [신고 문의] -->
+		<th:block th:case="'Report'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-flag-checkered"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				신고 문의
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>신고 문의</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				학습앱과 커뮤니티를 이용하면서 눈살이 찌푸려지는 게시물이나 불법 행동을 하는 회원이 있다면 신고해 주세요.<br>
+				신고는 현재 페이지 또는 각 학습 앱의 아티클, 댓글에서 접수할 수 있습니다.
+				단, 저작권 신고의 경우 라이센스를 가지고 있는 본인의 신고만 가능하므로 당사자에게 이 사실을 알려주시기 바랍니다.
+				</div>
+			</div>
+		</div>
+		</th:block>
+		<th:block th:case="*">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-bell"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				문의 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>문의 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				플레이보이스 문의게시판입니다. 궁금한 것이 있다면 문의글을 남겨주세요.
+				</div>
+			</div>
+		</div>
+		</th:block>
+	</div>
+</div>
+
+
+
+
+<div th:fragment="menu_board">
+	<div th:switch="${boardName}" 
+		class="toggleAppConceptBar membership-guide-cover row no-gutters">
+<!-- [App notice]=========================================================== -->
+		<!-- [Pictionary] -->
+		<th:block th:case="'PictionaryNotice'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-image"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				픽셔너리 공지
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>픽셔너리 공지</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				픽셔너리의 새로운 소식을 놓치지 마세요.<br>
+				플레이보이스 여정에서 반드시 지켜야 할 사항, 반가운 소식들을 알려드립니다.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [PlayvoiceBook] -->
+		<th:block th:case="'PlayvoiceBookNotice'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-headphones"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				플레이보이스북 공지
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>플레이보이스북 공지</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				플레이보이스북의 새로운 소식을 놓치지 마세요.<br>
+				플레이보이스 여정에서 반드시 지켜야 할 사항, 반가운 소식들을 알려드립니다.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [DictationBook] -->
+		<th:block th:case="'DictationBookNotice'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="far fa-assistive-listening-systems"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				딕테이션북 공지
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>딕테이션북 공지</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				딕테이션북의 새로운 소식을 놓치지 마세요.<br>
+				플레이보이스 여정에서 반드시 지켜야 할 사항, 반가운 소식들을 알려드립니다.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		
+
+<!-- [PlayBoard]=========================================================== -->		
+		<!-- [일상의 관찰 / 자유게시판] -->
+		<th:block th:case="'Free'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-hamburger"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				일상의 관찰 - 자유 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>일상의 관찰 - 자유 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				<!-- '일살의 관찰'은 다양한 주제를 자유롭게 작성하는 곳입니다.<br>
+				오늘은 어떤 일이 있었나요? 특별한 기억 또는 매일 똑같은 일상을 기록해도 좋고, 
+				멤버들과 하나의 주제를 가지고 의견을 주고받아 보세요. 
+				여러 멤버들의 자유로운 글을 보며 서로 정다운 댓글을 작성해 보세요. -->
+				'일상의 관찰'은 다양한 주제를 자유롭게 작성하는 곳입니다.<br>
+				오늘은 어떤 일이 있었나요?<br>
+				회원들과 다양한 주제를 가지고 의견을 나눠보세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [웃음과 유머 / 유머게시판] -->
+		<th:block th:case="'Humor'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="far fa-grin-squint-tears"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				웃음과 유머 - 유머 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>웃음과 유머 - 유머 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				<!-- '웃음과 유머'는 웃음을 유발하는 게시글을 작성하는 곳입니다.<br>
+				재미있는 것을 발견하거나 웃긴 생각이 떠오르면 사진과 영상을 활용하여 센스 있는 게시글을 남겨주세요. 
+				일상과 학습에 지친 멤버들과 웃음을 주고받아 보세요. -->
+				'웃음과 유머'는 일상에 발견되는 재미와 웃음을 작성하는 곳입니다.<br>
+				하루 한번쯤 시간을 갖고 크게 웃어봅시다.<br> 
+				오늘 새로운 즐거움을 발견하였다면 회원들과 나눠 보세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [피플인사이드 / 인물게시판] -->
+		<th:block th:case="'PeopleInside'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="far fa-grin-stars"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				피플 인사이드 - 인물 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>피플 인사이드 - 인물 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				<!-- '피플 인사이드'는 특정 인물에 대한 설명이나 이미지들을 올리는 곳입니다.<br>
+				평소 좋아하는 위인, 연예인, 다양한 인물에 대해 작성해 보세요. -->
+				'피플 인사이드'는 사람이 주제가 되는 공간입니다.<br>
+				잡담에는 이슈가 되는 사람만한게 없죠?<br>
+				평소 좋아하는 위인, 연예인, 다양한 인물에 대해 작성해 보세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [컬쳐로드 / 여행문화게시판] -->
+		<th:block th:case="'CultureRoad'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fas fa-globe-americas"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				컬쳐 로드 - 여행 문화 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>컬쳐 로드 - 여행 문화 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				<!-- '컬쳐 로드'는 세계 여러 나라의 문화와 여행에 대한 글을 작성하는 곳입니다.<br>
+				자신이 알고 있는 다양한 나라의 문화 이야기나 여행 경험에 대해 작성해 주세요.  -->
+				'컬쳐 로드'는 세계 여러 나라의 문화와 여행에 대한 글을 작성하는 곳입니다.<br>
+				우물 안에서 뛰쳐 나와 세상을 마주해 보세요.<br>
+				자신이 알고 있는 다양한 나라의 문화 이야기나 여행 경험에 대해 작성해 주세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [상상력 사전 / 관점게시판] -->
+		<th:block th:case="'CreativeWorks'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fas fa-parachute-box"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				상상력 사전 - 관점 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>상상력 사전 - 관점 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				<!-- '상상력 사전'은 상상력을 자극하는 예술 작품, 이미지, 글 등을 작성하는 곳입니다.<br>
+				기발한 아이디어가 떠올랐거나 멋진 것을 발견했다면 상상력 사전에서 멤버들과 공유해 보세요. -->
+				'상상력 사전'은 상상력을 자극하는 예술 작품, 이미지, 글 등을 작성하는 곳입니다.<br>
+				상상은 지식보다 위대하다고 하잖아요?<br>
+				상상력 사전을 통해 여러분의 흥미와 관찰력을 회원들과 공유해 보세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [소크라테스 어페어 / 질문게시판] -->
+		<th:block th:case="'SocratesAffair'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-brain"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				소크라테스 어페어 - 질문 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>소크라테스 어페어 - 질문 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				'소크라테스 어페어'는 멤버들과 평소 궁금했던 이야기들을 주고받는 곳입니다.<br>
+				플레이보이스를 이용하면서 궁금했던 점, 일상생활을 하면서 궁금했던 일들 등 
+				다양한 질문을 남기고 답변을 남겨보세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [어학 정보 / 어학 정보 게시판] -->
+		<th:block th:case="'AllAboutEnglish'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-globe"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				어학 정보 - 어학 정보 게시판
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>어학 정보 - 어학 정보 게시판</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				'어학 정보'는 영어를 포함하여 다양한 언어의 정보를 주고받는 곳입니다.<br>
+				다양한 언어 학습방법, 유학, 연수 정보를 공유해 주세요.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		
+<!-- [Board notice]========================================================= -->
+		<!-- [공지사항] -->
+		<th:block th:case="'Notice'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-user-ninja"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				플레이보이스 공지사항
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>플레이보이스 공지사항</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				공지사항에서 플레이보이스의 다양한 뉴스를 접해 보세요.<br>
+				플레이보이스 여정에서 반드시 지켜야 할 사항, 반가운 소식들을 알려드립니다.
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<!-- [이벤트 게시판] -->
+		<th:block th:case="'Event'">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-snowflake"></i></label> 
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				플레이보이스 이벤트
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>플레이보이스 이벤트</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				플레이보이스의 이벤트 소식을 알려드립니다!<br>
+				다양한 이벤트에 참여하여 여정에서의 소소한 즐거움을 경험해 보세요. 
+				<i class="far fa-grin-squint fa-lg"></i></div>
+			</div>
+		</div>
+		</th:block>
+		<th:block th:case="*">
+		<div class="logo col-md-auto col-12 align-self-center">
+			<label><i class="fa fa-shapes"></i></label>
+		</div>
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="membership detail-cover d-none d-md-block">
+				플레이보드
+			</div>
+			<div class="detail-cover">
+				<div class="point mt-2 d-md-none">
+					<b>플레이보드</b>
+					<i class="fa fa-caret-down fa-fw"></i>
+				</div>
+				<div class="detail">
+				해당 게시판은 준비 중입니다.<br>게시글을 올리더라도 추후 삭제될 수 있습니다.
+				</div>
+			</div>
+		</div>
+		</th:block>
+		<div class="star col-md-auto col-12 align-self-center">
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+			<i class="fa fa-star"></i>
+		</div>
+	</div>
+</div><!-- end of playboardMenu -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

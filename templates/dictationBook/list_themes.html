@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout}">
+<head>
+<title>딕테이션북 테마 목록 (DictationBook) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '딕테이션북 테마 목록 (DictationBook) - 플레이보이스 (playvoice)', 
+	metaDescription = '플레이보이스 딕테이션북에서는 일상 생활에서 자주 접할 수 있는 영어 문장들을 받아쓰기로 연습할 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = '딕테이션북, Dictation Book, 딕테이션, 받아쓰기, 쉐도잉, 멀티 보이스, 영어 내기 '"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/dictationBook', #httpServletRequest.requestURI} },
+	breadName = ${ {'딕테이션북', '딕테이션북 테마 목록'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/dictationBook/theme/view/'} }"></th:block>]
+</script>
+
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page move event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 해당 테마의 딕테이션 테스트 페이지로 이동
+ */
+function moveToTest(themeId) {
+	location.href="/dictationBook/theme/view/" + themeId;
+}
+
+</script>	
+</head>
+<body>
+<section layout:fragment="content">
+
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/dictationBook/incl/dictationbook_menu::menu}"></div>
+
+
+<div id="themeListSection" class="list-themes-section row mt-4">
+<div class="col-12 px-lg-3">
+	<h3>
+		<span class="pv-tm">DictationBook</span> Themes<br>
+		<small>Choose one of the themes and take a test.</small>
+	</h3>
+	<div id="themeListDiv" class="theme-list-cover row no-gutters">
+		<th:block th:each="theme, iter : ${pageMaker.result.content}">
+			<div class="theme-list col-md-4 col-sm-6 col-12">
+				<div onclick="moveToTest(this.getAttribute('data'))" th:data="${theme.id56}" 
+					class="theme-cover d-flex align-content-between flex-wrap">
+					<div th:with="imgStartNum = ${(pageMaker.currentPageNum - 1)*iter.size + iter.index}" 
+						class="theme-img-cover">
+						<img src="/images/app/dictationbook/theme_paper3.png" class="theme-img" 
+							th:style="'background: url(\'/images/app/dictationbook/theme_' + ${imgStartNum} + '.jpg\') no-repeat;
+							background-size: 100% auto; background-position: center;'">
+						<div class="go-test">
+							<div class="mb-2">Practice is Fun</div>
+							<div><i class="far fa-smile"></i></div>
+						</div>
+						<div class="stars"><i class="fa fa-star"></i></div>
+					</div>
+					<div class="theme-info-cover" th:title="${theme.title}">
+						<div class="title">
+							[[${theme.title}]]
+						</div>
+					</div>
+					<div class="q-num">
+						<span class="name">Number of Questions</span>
+						<span class="num">[[${theme.numOfQuestions}]]</span>
+					</div>
+				</div>
+			</div>
+			
+			<div th:if="${iter.count%3 == 0}" class="theme-list sponsor col-md-4 col-sm-6 col-12">
+				<div class="theme-cover">
+					<!-- 딕테이션북 list 광고 Mobile -->
+					<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+						<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-7a+du+2z-x-48"
+						     data-ad-client="ca-pub-7152306695077047"
+						     data-ad-slot="3608065188"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</th:block>
+					<!-- 딕테이션북 list 광고 PC -->
+					<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+						<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+						<ins class="adsbygoogle"
+						     style="display:block"
+						     data-ad-format="fluid"
+						     data-ad-layout-key="-7d+dq+2t-g-3p"
+						     data-ad-client="ca-pub-7152306695077047"
+						     data-ad-slot="5811391424"></ins>
+						<script>
+						     (adsbygoogle = window.adsbygoogle || []).push({});
+						</script>
+					</th:block>
+				</div>
+			</div>
+		</th:block>
+	</div><!-- end of themeListDiv -->
+	
+	<!-- pagination -->
+	<div class="d-none d-md-block">
+		<div class="theme-list-page row no-gutters my-3">
+			<div class="col-md-3 text-center text-left align-self-center">
+				<a th:if="${pageMaker?.prevPage}" class="btn btn-dictation"
+					th:href="${#request.requestURI + '?' + 'pageNum=' + (pageMaker.prevPage.pageNumber + 1)}">
+					<i lang="fa" class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-md-6 text-center align-self-center">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:each="page:${pageMaker?.pageList}"
+						th:classappend="${page.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a th:href="${#request.requestURI + '?' + 'pageNum=' + (page.pageNumber + 1)}"
+							class="page-link">[[${page.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-md-3 text-center text-right align-self-center">
+				<a th:if="${pageMaker?.nextPage}" class="btn btn-dictation"
+					th:href="${#request.requestURI + '?' + 'pageNum=' + (pageMaker.nextPage.pageNumber + 1)}">
+					next <i lang="fa" class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	<div class="d-md-none">
+		<div class="theme-list-page row no-gutters my-3">
+			<div class="col-6 text-center">
+				<a th:if="${pageMaker.currentPageNum != 1}"
+					th:href="${#request.requestURI + '?' + 'pageNum=' + (pageMaker.currentPageNum -1)}" 
+					class="btn btn-dictation">
+					<i lang="fa" class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-6 text-center">
+				<a th:if="${pageMaker.currentPageNum != pageMaker.totalPageNum}" 
+					th:href="${#request.requestURI + '?' + 'pageNum=' + (pageMaker.currentPageNum +1)}" 
+					class="btn btn-dictation">
+					next <i lang="fa" class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+</div><!-- end of themeListSection -->
+
+
+
+</section>
+</body>
+</html>

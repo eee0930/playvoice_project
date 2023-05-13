@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/pictionary_layout2}">
+<head>
+<title>List Pictionary - playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, metaTitle = '픽셔너리 (Pictionary) - 플레이보이스 (playvoice)', 
+	metaDescription = '픽셔너리는 픽처(Picture)와 사전(Dictionary)의 합성어로써 동사(verb)와 
+	동사구(phrasal verb) 중심으로 구성된 이미지 기반 오픈 사전입니다.
+	어릴 적 그림책을 보며 새로운 단어를 배웠듯이 회화에서 가장 중요한 동사 위주로 이미지와 보이스 기반의 단어 암기 서비스를 제공합니다.', 
+	metaImage = '/images/common/characters/pictionary.jpg', metaRegDate = null"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	
+	// [선택한 알파벳 메뉴로 스크롤 자동 이동]-----------------------------------------------
+	var alphabetOffset = $(".alphabets .menu-active").offset();
+	$(".alphabets").scrollLeft($(".alphabets").scrollLeft() + alphabetOffset.left - 50);
+	
+	// [픽셔너리 등록 page이동]-------------------------------------------------------
+	$("#moveAddPictionary").click(function(){
+		location.href='/pictionary/word/add';
+	});
+   
+	
+}); // end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+/* 	페이지번호(pageNum)을 입력 받아서
+	해당 페이지로 이동한다.
+	함수로 따로 뺀 이유는 참조하는 url이 세션에 있는데
+	/list와 /search url 모두 한 화면을 쓰기 때문이다.
+*/
+function movePage(pageNum){
+	// var requestURI = [[${#request.requestURI}]];	//	이동할 uri 주소
+	// var queryString = [[${#request.queryString}]];	//	현재 주소에 포함된 쿼리문자열
+	
+	// 현재 요청 url에 파라미터가 포함되었다면
+	if(queryString != null){
+		if(queryString.indexOf('page=') > -1){
+			//'page='가 있을 경우 page 값만 바꿔주고 
+			requestURI += '?' + queryString.replace(/page=[0-9]+/, 'page=' + pageNum);
+		}else{
+			//'page='가 없을 경우 url에 page 파라미터를 덧붙여준다.
+			requestURI += '?' + queryString + '&page=' + pageNum;
+		}
+	}else{
+		//파라미터가 하나도 없을 경우 page 파라미터를 쿼리문자열로 덧붙여준다.
+		requestURI += '?page=' + pageNum;
+	}
+	location.href = requestURI;
+};
+
+function movePictionary() {
+	location.href="/pictionary/word/view";
+}
+
+
+</script> 
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::menu}"></div>
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::alphabetMenu}"></div>
+
+<div id="pictionaryListSection" class="pictionarylist-container">
+	<h3 class="title mx-md-3 d-none d-md-block">
+		<span class="pv-tm-around">words in</span>
+		<span class="pv-tm">Pictionary</span>
+		<span class="pv-tm-around">starting with</span>
+		<span class="listTitle alphabet-point">S</span><br>
+		<small>Learn a variety of words and register your own</small>
+	</h3>
+	<div class="text-center py-4" style="display: none;">
+		<h5>'S' (으)로 시작하는 단어가 아직 없습니다 <i class="far fa-sad-cry fa-lg fa-fw"></i></h5>
+	</div>
+	
+	
+	<div class="row no-gutters">
+	
+	<!--/* --------------------[1. 픽셔너리 최다 등록자 랭킹]---------------------- */-->
+	<div id="pictionaryRankingDiv" class="pictionary-alphbet-ranking-section col-12">
+		<div class="ranking-title px-3">
+			Top 10 Pictionary Poster of <span class="alphabet">S</span>
+			<i class="fa fa-trophy fa-fw" style="color: gold;"></i><br>
+			<small>those who are posting most this month</small>
+		</div>
+		<div th:if="${#lists.size(playPoints)} > 0" 
+			class="alphbet-ranking-section"><ul>
+			<li th:each="playPoint, iter : ${playPoints}">
+				<div th:class="'ranking-cover style'+${iter.count}" align="center">
+					<div class="member-personacon"
+						th:classappend="(${memberTypes[iter.index]} == 'P') ? 'membership-P' : ''">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							class="personacon-profile"
+							th:style="'background: url(\'/images/app/profile/'+${iter.count}+'.jpg\') no-repeat;
+							background-position: center; background-size: cover;'">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							th:class="'personacon-frame frame-' + ${memberTypes[iter.index]}">
+					</div>
+					<div class="alias">[[${aliasList[iter.index]}]]</div>
+					<div class="point" title="Play Point">[[${playPoint}]]</div>
+				</div>
+			</li>
+		</ul></div>
+		<div th:unless="${#lists.size(playPoints)} > 0" 
+			class="alphbet-ranking-section"><ul>
+			<li>
+				<div class="ranking-cover style1" align="center">
+					<div class="member-personacon">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							class="personacon-profile"
+							style="background: url('/images/common/characters/profile/france.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							class="personacon-frame frame-G">
+					</div>
+					<div class="alias">줄리 베르티</div>
+				</div>
+			</li>
+			<li class="guide-section">
+				<div class="guide-cover jsAction" th:href="@{/pictionary/word/add}"
+					onclick="location.href=$(this).attr('href')">
+					<div class="guide">먼저 등록해서<br>랭커 자리를 차지하자!</div>
+				</div>
+			</li>
+		</ul></div>
+	</div><!-- end of pictionaryRankingDiv -->
+	
+	
+	<!--/* ------------[2. 픽셔너리 왼쪽 영역 (단어 등록, 랭킹, 스폰서 단어)]------------ */-->
+	<div id="pictionarySideDiv" class="pictionary-side-div col-lg-3 col-md-4 pl-md-1">
+		<!-- ---------------- [1.1 픽셔너리 단어 등록 (PC ver.)]------------------- -->
+		<div class="pictionary-card-p d-none d-md-block">
+			<div id="moveAddPictionary" class="pictionary-add-cover">
+				<a th:href="@{/pictionary/word/add}" class="btn btn-pictionary btn-block">
+					<label class="add-icon mb-3"><i class="fa fa-pen fa-fw"></i></label><br>
+					<span class="add-title">픽셔너리 새 단어 등록</span><br>
+					<span class="add-guide">
+						찾는 단어가 없다면 새 단어를 등록해 보세요.<br>
+						시간과 정성을 들여 기억하고자 하는 단어를 직접 등록하면
+						단어를 더 오래 기억할 수 있습니다.
+					</span><br>
+					<label class="add-now">Add Now <i class="fa fa-angle-double-right fa-fw"></i></label>
+				</a>
+			</div>
+		</div>
+		
+		<!-- ------------------------ [1.2 스폰서 단어]------------------------- -->
+		<div></div>
+		
+	</div><!-- end of pictionarySideDiv -->
+	
+	
+	<!--/* --------------------[3. 픽셔너리 단어 리스트]------------------------- */-->
+	<div id="pictionaryListDiv" class="col-lg-9 col-md-8"><div class="pictionary-list-back">
+		<div class="pictionary-card-list-section row no-gutters">
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img"
+						style="background: url(/images/app/pictionary/contents/1.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>separate</a>  
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left">
+					<span title="조회 수">12325</span>
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<th:block th:replace="~{/incl/user_personacon::md_test}"></th:block>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<a title="단어 음성 듣기"><i class="fa fa-headphones-alt fa-lg"></i></a>
+				</div>
+			</div>
+		</div></div>
+		
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img default"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>spill out</a>  
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left">
+					<span title="조회 수">12325</span>
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex6.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<a title="단어 음성 듣기"><i class="fa fa-headphones-alt fa-lg"></i></a>
+				</div>
+			</div>
+		</div></div>
+		
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img" 
+						style="background: url(/images/app/pictionary/contents/111.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>  
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left">
+					<span title="조회 수">12325</span>
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex4.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S">
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<a title="단어 음성 듣기"><i class="fa fa-headphones-alt fa-lg"></i></a>
+				</div>
+			</div>
+		</div></div>
+		
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/1.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon membership-P">
+					<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile profile-default">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-P"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/12.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex6.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+					style="background: url(/images/app/pictionary/contents/3.jpg) no-repeat;
+					background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/ho.png') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-G"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/1.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon membership-P">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/ho.png') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-P"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/1111.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex6.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/111.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex4.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/1.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex4.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/3.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex4.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="pictionary-card-p col-lg-4 col-6"><div class="pictionary-card-cover">
+			<div onclick="movePictionary()" class=" jsAction">
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<div class="piction-img " 
+						style="background: url(/images/app/pictionary/contents/111.jpg) no-repeat;
+						background-size: cover; background-position: center;"></div>
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>sprite</a>   
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- hits -->
+				<div class="hits col align-self-center text-left" style="color: #757575;">
+					12325
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1"><div align="center">
+					<div class="member-personacon">
+						<a><img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/member/profile_ex4.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S"></a>
+					</div>
+					<div class="star-section">
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+						<i class="fa fa-star"></i>
+					</div>
+				</div></div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<i class="fa fa-headphones-alt fa-lg"></i>						
+				</div>
+			</div>
+		</div></div>
+		
+		</div>
+	
+		
+		<div class="pictionary-list-page row no-gutters my-3">
+			<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+				<a class="btn btn-pictionary">
+					<i class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item active">
+						<a class="page-link">1</a>
+					</li>
+					<li class="page-item">
+						<a class="page-link">2</a>
+					</li>
+					<li class="page-item">
+						<a class="page-link">3</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+				<a class="btn btn-pictionary">
+					next <i class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+		
+	</div></div><!-- end of pictionaryListDiv  -->		
+	
+	
+	</div><!-- end of pictionaryListSection's boundary -->
+
+
+</div><!-- end of pictionaryListSection -->
+
+<div class="text-right" style="color:red;">
+   source :: pitctionary/list_pictionary2.html
+</div>  
+		
+
+</section>
+

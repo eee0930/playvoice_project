@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoicebook_layout}">
+
+<head>
+<title>플레이보이스북 레벨 목록 (PlayvoiceBook) - 플레이보이스 | Playvoice</title>
+  
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '플레이보이스북 레벨 목록 - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스북은 영어 문장의 패턴과 구조 이해를 위한 체계화된 예문을 
+	전 세계인의 멀티 보이스 (Multi voice)로 제공합니다.', 
+	metaImage = '/images/common/characters/playvoicebook.jpg'"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/playvoiceBook', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이보이스북', '플레이보이스북 레벨 목록'} }"></th:block>]
+</script>	
+	 	
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/app/playvoicebook.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	//$('#levelNextBtn').attr('disabled', ![[${activeNext}]]);
+	
+	// [레벨 목록에서 레벨 선택 시 stage 목록을 한번 불러온다]-----------------------------------
+	$('#levelListPanel .levelDiv').click(function(e) {
+		e.preventDefault();
+		
+		var selected = $(this);
+		var isLoaded = selected.attr("load");
+		var description = selected.find(".level-description");
+		
+		
+		if (isLoaded == 'false') {
+			//--------------------------------------------
+			getStageList(selected.attr("lid"), selected);
+			//--------------------------------------------
+			description.removeClass("level-gap");
+		} else {
+			if($(selected).next().is(":visible")) {
+				description.addClass("level-gap");
+				$(this).removeClass("active");
+			} else {
+				description.removeClass("level-gap");
+				$(this).addClass("active");
+			}
+			//toString($(selected).next());
+			$(selected).next().toggle(100);
+		}
+	});
+	
+	// [다음 페이지 버튼을 누를 시 ]
+	$('#levelNextBtn').click(function(e) {
+		if($('#loginStatus').text() == 'true'){
+			return;
+		}else{
+			e.preventDefault();
+			if(confirm("로그인 페이지로 이동합니다.")){
+				location.href="/auth/login?destPage=/playvoiceBook/level";
+			}
+		}
+	});
+	
+	// [선택한 스테이지의 학습 종료한 후 레벨목록으로 복귀했을 때 학습한 레벨의 스테이지를 open]--------------
+	var lseq = getParameter('lseq');
+	if(lseq != null) {
+		$('#levelListPanel .levelDiv').each(function(i, elt) {
+			if($(this).attr('levelseq')==lseq){
+				$(this).click();
+			}
+		});
+	}
+	
+	// [hidden인 스테이지 클릭 시 캐릭터 보여주기]-------------------------------------------
+	$(document).on("click", ".tag.hidden-card", function(){
+		$(this).addClass("active");
+		setTimeout(function() {
+			$(".tag.hidden-card").removeClass("active");
+		}, 1000);
+	});
+	
+});
+
+/**
+ * stage목록을 출력 : <div class="stageDiv>
+ */
+var cardIndex = Math.floor(Math.random() * 4);
+function displayStageList(stageList, selector) {
+	var basis = /*[[${session.userContainer?.sessionStorage?.get('myOpenStageOrder')?:T(com.varxyz.playvoice.playvoicebook.PlayvoiceBookConstants).DEFAULT_STAGE_ORDER}]]*/ 10100000;
+	var levelSeq = $(selector).attr("levelSeq");
+	cardIndex = cardIndex%4;
+	
+	stageList.forEach(function(stage, index) {
+		var isSpecial = (stage.stageType == 'S');
+		
+		var stageCover = document.createElement("div");
+		stageCover.setAttribute("class", "stage-cover col-lg-3 col-sm-4 col-6 p-sm-3 p-2 loginRequired")
+		
+		var stageDiv = document.createElement("div");
+		if(isSpecial){
+			stageDiv.setAttribute("class", "stage-style"+cardIndex+" stage-special-style tag-container");
+		}else{
+			stageDiv.setAttribute("class", "stage-style"+cardIndex+" tag-container");
+		}
+			
+			
+		var tagDiv = document.createElement("div");
+		if(basis >= stage.stageOrder){
+			tagDiv.setAttribute("class", "tag");
+			stage.rep = emphasizeEng(stage.rep, stage.emLoc);
+			// 진입 제한 스테이지 미안의 스테이지는 표시
+			tagDiv.innerHTML = '<div class="stage-pattern tag-side"><table>'
+				+ '<tr><td class="stage-seq text-left p-1">'
+				+ '<span>' + (index+1) + '</span><br><i></i></td>'
+				+ '<td></td></tr>'
+				+ '<tr><td colspan="2" class="stage-rep text-center">'
+				+ '<span>' + stage.repKor + '</span>'
+				+ '</td></tr>'
+				+ '<tr><td></td><td class="stage-hits text-right p-1">'
+				+ '<i></i><br><span>' + (stage.hits) + '</span></td></tr></table></div>'//앞면끝
+				+ '<div class="stage-card-back tag-side is-back">'
+				+ '<div class="py-2 text-center">'
+				+ '<span class="subtitle">' + stage.rep + '</span><div>'
+				+ '<div class="stage-objective text-center">'
+				+ stage.objective + '</div></div>';
+				
+			//특정스테이지div를 클릭할 경우 플레이어로 연결한다.
+			//플레이어에서 레벨과 스테이지 정보 표시를 위해 levelSeq와 stageSeq를 추가 전송한다.
+			stageDiv.addEventListener("click", function(e) {
+				var stageSeq = index+1;
+				//---------------------------------------------------
+				forwardPlayerPage(stage.id56, levelSeq, stageSeq);
+				//---------------------------------------------------
+			});	
+		} else {
+			tagDiv.setAttribute("class", "tag hidden-card");
+			// 진입제한 스테이지보다 뒤의 스테이지는 비활성화
+			tagDiv.innerHTML = '<div class="stage-pattern tag-side"><table>'
+				+ '<tr><td class="stage-seq text-left p-1">'
+				+ '<span>' + (index+1) + '</span><br><i></i></td>'
+				+ '<td></td></tr>'
+				+ '<tr><td colspan="2" class="stage-rep text-center"> </td></tr>'
+				+ '<tr><td></td><td class="stage-hits text-right p-1">'
+				+ '<i></i><br><span> </span></td></tr></table>'
+				+ '<i class="fa fa-lock"></i><div class="hidden-character">LOCKED</div></div>';
+		}
+			
+		stageDiv.appendChild(tagDiv);
+		stageCover.appendChild(stageDiv);
+		
+		//$(selector).append(stageCover);
+		$(selector).next().append(stageCover);		
+	});
+	 
+	$(selector).next().show();
+	$(selector).attr("load", "true");
+	cardIndex++;
+}
+ 
+ /**
+  * 스테이지 대표 문장의 강조 부분 스타일 입히기
+  */
+function emphasizeEng(eng, emLoc){
+ 	var tag = '<span style="color:red;" ></span>';
+ 	return emphasizeText(eng, emLoc, tag);
+}
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}" class="col-lg-10"></div>
+</div>
+
+<div id="levelContentSection" class="row no-gutters my-4">
+	<div class="col-lg-1"></div>
+	<div class="col-lg-10 px-lg-2">
+		<!-- -----------------------[gold membership]--------------------------- -->
+		<div class="d-none d-md-block"><div class="membership-guide-cover row no-gutters">
+			<div class="logo col-md-auto col-12 align-self-center">
+				<i class="fa fa-crown fa-3x"></i> 
+			</div>
+			<div class="guide col-md px-md-3 align-self-center">
+				<div class="membership">
+					Join in <span class="pv-tm">Playvoice</span> Membership
+				</div>
+				<div>
+					플레이보이스는 영어로 인한 불필요한 노력과 비용을 줄이고 게임을 하듯 다른 회원들과 함께 학습할 수 있도록 합니다. 
+					그 학습 활동들을 통해 도움이 필요한 이웃들을 연결해 주는 소셜 벤처 기업입니다.<br>
+					지금 플레이보이스 계정을 만들어보세요
+					<i class="fa fa-comment-dollar fa-lg"></i>
+					재미있고 흥미로운 일들을 만나실 수 있습니다  
+					<i class="far fa-grin-squint fa-lg"></i>
+				</div>
+			</div>
+			<div class="star col-md-auto col-12 align-self-center">
+				<i class="fa fa-star"></i>
+				<i class="fa fa-star"></i>
+				<i class="fa fa-star"></i>
+				<i class="fa fa-star"></i>
+				<i class="fa fa-star"></i>
+			</div>
+		</div></div>
+		
+		<div class="playvoicebook-list-title-section d-md-none">
+			<h3>
+				<span class="pv-tm">PlayvoiceBook</span> Levels<br>
+				<small>Choose one of the themes and take a test.</small>
+			</h3>
+		</div>	
+		
+		<div id="levelListPanel">
+			<th:block th:each="level, iter: ${myLevels}">
+				<div th:lid="${level.lid}" th:load="false" th:levelSeq="${startLevelSeq + iter.index}"
+					class="levelDiv level-style jsAction mt-sm-5 mt-4 p-2"><div class="row no-gutters">
+					<div class="col-sm-2 col-3 p-0">
+						<!-- level image -->
+						<img th:src="@{'/images/app/playvoicebook/stage/'+${startLevelSeq + iter.index}+'.jpg'}"
+							class="rounded-circle">
+						<div class="level-name d-lg-none text-center">
+							Level [[${startLevelSeq + iter.index}]]
+						</div>
+					</div>
+					<div class="level-info-cover col-sm-10 col-9"><div class="row no-gutters">
+						<div th:utext="${#strings.replace(level.description, newLineChar, '<br />')}"
+							class="level-description level-gap col pr-lg-2"></div>
+						<div class="level-name col-auto text-right d-none d-lg-inline">
+							Level [[${startLevelSeq + iter.index}]]
+						</div>
+					</div></div>
+				</div></div>
+	
+				<!-- stage 영역 -->
+				<div class="stageDiv row no-gutters mt-1 mb-5 stage-row-margin">
+					<!-- 스테이지 목록 -->
+				</div>
+			</th:block>
+			
+			
+			<!-- list sponsor section -->
+			<div class="playvoicebook-list-sponsor-section text-center">
+				<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- PC ver. -->
+				<ins class="adsbygoogle"
+					style="display:block"
+					data-ad-format="fluid"
+					data-ad-layout-key="-h9+n+j-el+nu"
+					data-ad-client="ca-pub-7152306695077047"
+					data-ad-slot="4797147483"></ins>
+				<script>
+					(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+				</th:block>
+				<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- Mobile ver. -->
+				<ins class="adsbygoogle"
+					style="display:block"
+					data-ad-client="ca-pub-7152306695077047"
+					data-ad-slot="3303747194"
+					data-ad-format="horizontal"
+					data-full-width-responsive="false"></ins>
+				<script>
+					(adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+				</th:block>
+			</div>
+			
+		</div><!-- end of levelListPanel -->
+	
+	
+		<div id="playvoiceBookPageDiv"><div class="level-list-page row no-gutters my-5"
+			th:with="stageOrder = ${session.userContainer?.sessionStorage?.get('myOpenStageOrder')?:
+			T(com.varxyz.playvoice.playvoicebook.PlayvoiceBookConstants).DEFAULT_STAGE_ORDER}">
+			<div class="col-md-3 col-6 text-left align-self-center">
+				<a th:if="${current != 1}" th:href="@{/playvoiceBook/level/{setPage}(setPage=${prev})}">
+				<button class="btn btn-pvb" type="button">
+					<i class="fa fa-angle-left"></i> prev
+				</button>
+				</a>
+			</div>
+			<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item">
+						<span class="page-link" th:text="${current}">1</span></li>
+				</ul>
+			</div>
+			<div th:if="${stageOrder > nextStageOrder}" 
+				class="col-md-3 col-6 text-right align-self-center">
+				<a th:href="@{/playvoiceBook/level/{setPage}(setPage=${next})}">
+				<button id="levelNextBtn" class="btn btn-pvb" type="button">
+					next <i class="fa fa-angle-right"></i>
+				</button>
+				</a>
+			</div>
+			<div th:unless="${stageOrder > nextStageOrder}" 
+				class="col-md-3 col-6 text-right align-self-center">
+				<button class="btn btn-pvb" type="button" disabled="disabled">
+					next <i class="fa fa-angle-right"></i>
+				</button>
+			</div>
+		</div></div>
+		
+	</div>
+
+	
+</div><!-- end of levelContentSection -->
+
+</section>

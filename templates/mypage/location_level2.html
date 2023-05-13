@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+<head>
+<title>My Location Info - 플레이보이스(playvoice)</title>
+  
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+ 
+</script>
+</head>
+
+<section layout:fragment="content" class="normal">
+
+<div th:insert="~{/mypage/incl/mypage_top_menu2::menuJourney}"></div>
+
+<div class="profile-top-cover mt-4">
+	<h3>
+		My Location Level Info
+		<i class="far fa-compass"></i>
+	</h3>
+	<div class="sub-title"><span class="kor">
+		<i class="fa fa-quote-left relative-font"></i>
+		세계는 한 권의 책이며, 미션을 수행하지 않는 자는 책의 한 페이지만을 읽을 뿐이다.
+		<i class="fa fa-quote-right relative-font"></i>
+	</span></div>
+</div>
+
+<!-- profile top contents -->
+<div class="profile-top-content row no-gutters">
+	<div class="title-icon col-auto text-center">
+		<i class="far fa-compass fa-lg fa-fw"></i>
+	</div>
+	<div class="title-body col align-self-center">
+		<span class="title">Location</span>
+		<span class="body">이스탄불, Istanbul</span>
+	</div>
+</div>
+<div class="d-md-none">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="far fa-compass"></i></label>
+		</div>
+		<div class="detail col">
+			<div class="guide-cover">Location</div>
+			<div>
+				<span class="num"
+					th:classappend="${#strings.contains('CILMR', (level))}? 'small':''">
+					이스탄불, Istanbul
+				</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- --------------------------[1. city mission]---------------------------- -->
+<div id="myCityMissionsSection" class="my-city-mission-section"
+	th:with="tribeType='G', tribe='Gang'">
+	<!-- ------------------------[1.1 미션]----------------------------------- -->
+	<div id="cityMissionDiv" class="my-mission-cover">
+		<div class="mypage-sub-title-section">
+			<h5>
+				<i class="fa fa-square"></i> 
+				City Missions 
+				<i class="fa fa-caret-down d-md-none"></i>
+			</h5>
+		</div>
+		<div class="city-mission-list row no-gutters">
+			<div th:each="index, iter: ${#numbers.sequence(0,2)}" 
+				class="mission-card-section col-md-4">
+				<div th:switch="${level}" class="mission-card d-flex align-content-between flex-wrap">
+					<!-- [city image] -->
+					<div class="image-section">
+						<th:block th:with="upperLevel=${#strings.toUpperCase(level)}">
+							<img th:if="${#strings.equals(upperLevel, level)}" 
+								th:src="'/images/app/mypage/cities/group' 
+								+ ${level} + ${iter.count} + '_index.jpg'" alt="플레이보이스">
+							<img th:unless="${#strings.equals(upperLevel, level)}" 
+								th:src="'/images/app/mypage/airport' 
+								+ ${iter.index} + '.jpg'" alt="플레이보이스">
+						</th:block>
+						<img th:class="'cha-' + ${tribeType} + ${index} + ' cha-position'" 
+							src="/images/app/member/profile_paper.png" alt="플레이보이스">
+					</div>
+					<!-- z 서울 -->
+					<div th:case="'Z'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">플레이보이스에서 높은 차원의 커뮤니티 활동을 경험하면서 
+						모든 서비스를 이용할 수 있는 방법이 있대!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/membership}">
+							<b>무료 체험권</b>으로 골드 멤버십 서비스를 무료로 이용해보기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">발급된 여권에 채워질 스탬프를 생각하며 프로필을 꾸며봐야지!</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage/profile/edit}">
+							<b>프로필</b> 이미지, 별명 변경하고 시그니쳐 텍스트 작성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">내가 좋아하는 사람, 갖고싶은 물건들... 이게 아닌데..?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage/profile/view}">
+							<b>Favorite Pictures</b>에 내가 좋아하는 사진들로 채우기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- y 도쿄 -->
+					<div th:case="'Y'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">축제 기간이 되니 다양한 외국인들이 많아. 모두 다양한 개성을 가지고 있어!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/playvoiceBook}">
+							<b>플레이보이스북</b> 레벨3까지 학습 후 레벨 테스트 통과하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">음식을 주문하는데 현지 종업원의 영어 발음을 알아듣지 못하겠어. 듣기 연습을 해야겠다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/dictationBook}">
+							<b>딕테이션북</b>으로 Ranking Point 500 달성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">마츠리에 참여하려고 하는데, 함께 즐길 친구들을 모아야겠어.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							<b>마이팀</b> home에 있는 링크를 복사해 친구 5명 초대하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- x 상하이 -->
+					<div th:case="'X'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">상하이에는 우리 [[${tribe}]]부족 사람들이 얼마나 있을까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+							<b>EngStack</b>에 같은 부족 멤버가 올린 질문에 답변 30개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">중국 사람들은 화려한 걸 좋아한다고 해. 센스있고 멋진 이미지를 보여줘서 관심을 받아봐야겠어.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/pictionary/word/mylist}">
+							<b>픽셔너리</b> 마이 컨텐츠의 이미지 조회수 100 이상 만들기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">상하이에 왔으면 여권에 스탬프가 10개정도는 찍혀있겠지?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage/passport}">
+							<b>스탬프</b> 10개 획득하기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- w 타이베이 -->
+					<div th:case="'W'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">맛있는 버블티를 마셨어. 타이베이 사람들이 친절하게 대해줘서 고마웠어. 
+						모두 학습한 영어 패턴으로 표현할 수 있을 거 같은데?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/playvoiceBook}">
+							<b>플레이보이스북</b> Practice 댓글 50개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">여긴 볼 것, 먹을 것, 즐길 것들이 많아. 
+						사람들 모두 다양한 이야기를 지니고 있을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에 번역 30개 올리기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">타이베이의 시끌벅적한 야시장의 모습은 다양한 단어로 표현할 수 있을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 모든 알파벳에 컨텐츠 등록하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- v 홍콩 -->
+					<div th:case="'V'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">거리마다 사람들로 북적북적한 홍콩. 여기서 같은 부족 멤버들을 찾을 수 있을까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b>에 같은 부족이 올린 질문에 답변 35개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">홍콩 타임스퀘어. 사진을 막 찍어도 멋지게 나오는 거 같아!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b>에서 이미지 (예문 포함) 20개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">혼잡하지만 곳곳에 규칙과 질서가 숨어 있어!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/grammarBook/list}">
+							<b>그래머북</b>에서 Ranking Point 400 달성하기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- u 시드니 -->
+					<div th:case="'U'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">신기하고 거대한 것이 많은 호주. 사진으로 남기고 싶은 것이 많아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 컨텐츠 (이미지, 예문) 40개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">영어를 사용하는 국가는 모두 문화가 비슷할 줄 알았는데 호주를 보니 아닌 거 같다. 
+						모두에게 영어권 문화의 다양한 이야기를 전해 주고 싶다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/digest/list}">
+							<b>다이제스트</b> article 15개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">Pub에서 새로운 친구들을 만났는데 어디선가 들었던 재미있는 이야기를 해주고 싶어!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에서 Ranking Point 600 달성하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- t 하노이 -->
+					<div th:case="'T'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">하노이에서 스쿠터를 타보고 싶은데 지켜야 될 규칙은 어떤 게 있을까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/grammarBook/list}">
+							<b>그래머북</b> article 10개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">하노이에는 쇼핑센터가 많대! 같은 부족 멤버들을 위해 선물을 사야겠다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b>에서 같은 부족 사람이 등록한 질문에 답변 40개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">아침으로 쌀국수를 먹었는데, 나도 만들어 보고 싶어. 
+						무엇이든 연습하는 게 중요하겠지?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+							<b>Eng Stack</b>에서 각각 다른 질문에 Practice 댓글 50개 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- s 방콕 -->
+					<div th:case="'S'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">태국 인구의 90% 이상이 불교도래! 
+						종교도 하나의 문화라는데 다양한 문화에 대한 이야기를 나누어 보자.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/digest/list}">
+							<b>다이제스트</b> article 18개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">방콕은 세계적으로 유명한 관광 명소구나! 
+						호텔 방명록에 같은 부족 멤버가 쓴 글을 봤어. 기념으로 답변을 남겨야지.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+						 	같은 부족 사람이 올린 <b>Eng Stack</b>에 답변 25개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">각양각색의 물건들, 개성 있는 사람들, 맛있는 음식들로 가득한 
+						태국 시장에서 물건을 팔 기회가 생겼다. 무엇으로 사람들의 이목을 끌까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 모든 알파벳에 컨텐츠 등록하기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- r 쿠알라룸푸르 -->
+					<div th:case="'R'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">Petronas Twin Towers 는 한국과 일본의 회사가 공동으로 지은 타워래!
+						각각의 건물들엔 다양한 스토리가 녹아 있을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에서 Ranking Point 800 달성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">쿠알라룸푸르의 레이크 가든은 넓고 아름다운 장소야. 
+						많은 멤버들이 이곳에 반드시 방문하는 거 같아. 인사를 나눠봐야겠어.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 도시(Level)에 있는 사람 30명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">카지노를 즐기러 겐팅 하이랜드를 방문했는데, 
+						많은 볼거리와 먹을거리들이 있어! 학습한 내용들을 여기서 다 써볼 수 있을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/playvoiceBook}">
+							<b>플레이보이스북</b> Level 10~15 까지 Practice 댓글 50개 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- q 몰디브 -->
+					<div th:case="'Q'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">저녁에 해변을 걷고 있는데 어느 매력적인 외국인이 말을 걸어온다. 
+						뭐라고 말하는 지 모르겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+							<b>Eng Stack</b>에 질문 50개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">이곳 몰디브에서는 즐거운 소규모 축제를 자주 열어. 
+						휴식을 취하러 온 지금, 이성에게 말을 걸어보자.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							이성 멤버 15명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">몰디브에 왔으니 5성 호텔급의 리조트에 머물러 봐야지.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/}">
+							플레이보이스의 다양한 <b>랭킹</b> 중 1개 이상 내 이름 올리기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- p 뭄바이 -->
+					<div th:case="'P'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">엘레판타 동굴에서 본 일몰은 정말 멋졌어. 멤버들에게 이 소식을 전해줘야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b>에 댓글 100개 작성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">뭄바이는 세계에서 가장 많은 양의 영화를 제작하는 영화 산업의 본고장이래.
+						그만큼 이곳에는 다양한 이야깃거리들이 있겠지?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b> article 12개 작성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">크라우포드 마켓에 들렀다. 
+						무엇을 사야는 게 좋은지 뭄바이에 있는 멤버들에게 물어봐야겠다.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 도시(Level)에 있는 사람 50명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- o 두바이 -->
+					<div th:case="'O'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">두바이에서 사막 체험을 하는데 모르는 걸 대답해 줄 가이드가 필요할 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b> 같은 부족 멤버가 올린 질문에 답변 50개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">두바이는 바다, 모래, 도시 모두가 한대 어우러져 있다. 
+						이곳에서 만들어지는 일상은 색다를 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/board}">
+							<b>플레이보드</b> 모든 게시판에 주제에 맞는 글 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">나의 위시리스트는 두바이의 백사장에서 일광욕을 즐긴 후 사막 위를 타는 열기구를 타는 거야.
+						같은 부족 멤버들의 위시리스트에는 무엇이 있을까?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 부족 멤버 50명의 <b>프로필</b>에서 favorite pictures 구경 후 방명목 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- n 도하 -->
+					<div th:case="'N'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">도하의 전통 시장에는 볼거리가 정말 많아. 
+						아름다운 장식품을 구매해서 인기를 얻을 거야.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" onclick="displayMemberProfile()">
+							나의 <b>프로필</b> 조회수 5000 넘기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">카타르 월드컵의 유치 홍보 영상은 멋지기로 유명하지. 
+						도하에선 스포츠 관련 공부를 해야 될 것만 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							스포츠 주제 <b>픽셔너리</b> 단어 모두 학습하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">이슬람 예술 박물관에는 전시물들에 많은 설명이 적혀있어.
+						단어 뜻을 모르면 설명의 의미를 알 수 없을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에서 단어 뜻 100개 등록하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- m 예루살렘 -->
+					<div th:case="'M'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">유대인의 역사는 길고도 험난했어. 
+						여러 민족의 아픔이 다시는 없도록 다양한 문화를 공부하는 건 중요한 것 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/digest/list}">
+							<b>다이제스트</b>에 article 30개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">옛날 로마 군에 의해 성전을 잃은 유대인들이 남은 성전의 서쪽 벽에 모여 통곡한 곳이 통곡의 벽이래.
+						이곳엔 남녀가 따로 입장하도록 분리대가 설치되어 있대.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/grammarBook/list}">
+							같은 부족, 같은 성별 사람이 올린 <b>그래머북</b> 아티클에 좋아요 20개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">개개인의 관심사에 따라 보고 싶은 것이 다르겠지만 예루살렘 구 시가지는 
+						다양한 매력을 가진 주요 관광지야. 이곳에서 한 달간 멋진 경험들을 하고 싶어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> Alphbet Monthly Ranking Top 10에 들기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- l 이스탄불 -->
+					<div th:case="'L'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">이스탄불에서 잠깐 멀리 떠나서 온 카파도키아. 그곳에서 본 열기구들은 정말 잊을 수 없을 거 같아.
+						이 느낌을 멤버들에게도 알려줘야 겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b>에 댓글 100개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">이스탄불의 재래시장인 그랜드 바자르에선 팔지 않는 물건들이 
+						없다고 할 만큼 다양한 물건들이 있어.
+						친구들과 함께 기념이 될만한 걸 사면 좋을 거 같아.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							<b>My trunk</b>들과 나의 플레이 포인트 총 합 10000 point (1000 gold) 달성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">아시아와 유럽의 문화가 모두 살아 숨 쉬는 도시 이스탄불! 
+						동양과 서양의 문화가 조우하는 이곳은 많은 이야기가 살아 숨쉬는 것 같다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에 스토리 30개 등록하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- k 아테네 -->
+					<div th:case="'K'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">파르테논 신전 앞에서 새롭게 사귄 친구들에게 다양한 언어를 배웠다.
+						한번 써먹어봐야겠다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/playvoiceBook}">
+							<b>플레이보이스북</b> 프랙티스 댓글 100개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">아테네의 전통 건물들은 정말 멋져! 
+						이처럼 많은 전통 건물들에는 고유의 이야기와 해석을 가지고 있대!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에서 번역 80개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">아테네의 아기자기한 명소 플라카를 둘러보니 우리나라가 생각이 난다.
+						[[${tribe}]] 부족 멤버들의 이야기를 들으러 가야겠다.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							같은 부족 사람이 올린 <b>스몰톡</b> 아티클에 좋아요 100개 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- j 로마 -->
+					<div th:case="'J'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">여행에서 우연히 만난 두명의 사람과 밤새워 즐겁게 놀았다. 
+						다음에 또 만나자고 쪽지를 남겨야 겠다.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 도시 사람 2명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">이탈리아에서 요리를 배울 기회가 생겼다. 그 전에 기초 연습을 해둬야지.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 요리 테마 단어 모두 학습하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">로마의 스페인 광장에 모여있는 사람들을 보니 친구들과 만나서 이야기를 나누고 싶어졌어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/board/notice/list}">
+							<b>오프라인 모임</b> 참석하기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- i 부다페스트 -->
+					<div th:case="'I'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">유럽에 머문지 꽤 되니깐 부족 사람들이 보고싶다. 안부를 물어봐야겠다.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 부족 사람 50명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">부다페스트는 부다와 페스트의 두 지역으로 나뉘는데 각각의 지역의 성격과 경치가 완전히 다르대!
+						이처럼 같은 부족인 사람들도 각각의 성격과 좋아하는 것이 다르지!</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 부족 사람의 <b>프로필</b>에 'Favorite Pictures' 구경 후 방명록 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">헝가리 국회의사당에서 본 야경은 정말 잊을 수 없어.
+						그때의 감정을 영어로 표현해 보고 싶은데 어떻게 말하면 좋을까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b>에 질문과 답변 100개 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- h 비엔나 -->
+					<div th:case="'H'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">비엔나의 골목길을 걷다보니 분위기에 취해 옛날 추억이 떠오른다. 
+						옛 친구들에게 연락해봐야겠다.</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 부족, 같은 성별 멤버 50명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">비엔나엔 궁전처럼 아름다운 건물들이 많다.
+						건물을 보고 떠오르는 느낌은 말로 표현해봐야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b>에 100개에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">위너슈니첼과 자허토르테를 반드시 먹어봐야 된다는데
+						어디에서 먹어야 될까? 부족 사람들의 이야기를 들어봐야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							같은 부족 사람이 올린 <b>스몰톡</b>에 번역 50개 남기기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- g 프라하 -->
+					<div th:case="'G'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">체코의 관광명소는 대부분이 성당인데 
+						유네스코 문화유산으로 지정된 곳이 꽤 있다고 어느 아티클에서 본 것 같아</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b>에서 아티클 30개 작성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">'프라하의 봄 음악축제'에 참여하여 음악에 내 몸을 맡기고 싶다..</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+							<b>플레이보이스북</b>에 Practice 댓글 100개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">체코에는 과일소스에 적신 소고기 요리인 '스비치코바'라는게 유명하다는데... 
+						문화에 따라 전통음식이 다르구나.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/digest/list}">
+							<b>다이제스트</b>에서 아티클 30개 작성하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- f 뮌헨 -->
+					<div th:case="'F'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">옥토버페스트를 함께 즐길 멤버들을 모집해야겠어!</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							같은 부족 멤버 200명의 <b>프로필</b>에 댓글 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">슈바빙 구역엔 야간 운영이 허락된 곳이 많이 밀집되어 있대.
+						친구들과 이곳에서 다양한 활동을 하면 좋을 거 같아!</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							<b>My Trunk</b>들과 나의 플레이 포인트 총 합 20000 point (2000gold) 달성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">뮌헨의 길을 다니다 보면 소시지를 판매하는 곳이 많아.
+						침샘을 자극하는 뮌헨의 음식처럼 내 이야기도 멤버들의 관심을 받을 수 있을까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							내가 등록한 <b>픽셔너리</b> 센텐스에 좋아요 100개 받기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- e 취리히 -->
+					<div th:case="'E'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">취리히 호에서 바라보는 경치는 말로 표현하기 어려울 정도로 아름다워.
+						이 모든 아름다움을 단어로 표현할 수 있으면 얼마나 좋을까.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 이미지 50개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">반호프슈트라세는 유럽에서 가장 아름다운 쇼핑 거리 중 하나래!
+						이곳의 사진들은 모두 추천을 받아 마땅해.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							취리히에 있는 멤버가 등록한 <b>픽셔너리</b> 이미지에 댓글 50개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">라인 폭포 앞에서 친구들과 수다를 떨어보자!</div>
+						<div class="back"><i></i>
+							<a th:href="@{/dictationBook}">
+							<b>딕테이션북</b> ADSR 800점 1개 달성하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- d 파리 -->
+					<div th:case="'D'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">파리의 골목골목을 다니며 다양한 예술인과 음악인을 보았어.
+						파리에서 나의 예술혼을 불태울 기회를 잡아볼까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/pictionary}">
+							<b>픽셔너리</b> 컨텐츠 50개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">파리는'예술의 도시'라고 불리는 만큼 
+						그 문화적 영향을 세계에 뻗어가고 있어! 
+						파리의 문화뿐만 아니라 다양한 문화에 대해 소개해 보고 싶어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/digest/list}">
+							<b>다이제스트</b>에서 아티클 30개 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">나와 함께 여정을 출발한 멤버들도 유럽 어딘가에 있을까?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/myteam}">
+							<b>My Siblings</b> 플레이포인트 랭킹 top 10 안에 들기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- c 암스테르담 -->
+					<div th:case="'C'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">암스테르담의 담 광장엔 볼거리들이 많고 사람들도 많아.
+						다양한 활동을 위해 미리 말을 연습해야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b>에서 질문과 답변 150회 등록하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">큐겐호프 홀랜드에서 튤립 한 송이를 선물로 주었던 꽃집 사장님이 생각나.
+						감사 인사를 할 수 있도록 다양한 표현을 연습해야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/playvoiceBook}">
+							<b>플레이보이스북</b> Level 25 이상의 스테이지에서 Practice 댓글 50개 달기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">수많은 운하와 물길이 흐르는 아름다운 도시 암스테르담.
+						운하를 보고 있으면 과거의 많은 이야깃거리들이 떠오르는 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/smalltalk}">
+							<b>스몰톡</b> 월간 최다 스토리 작성자 Top 10 랭킹에 들기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- b 런던 -->
+					<div th:case="'B'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">템즈강 유람선에서 짧은 파티를 연대! 참석해 볼까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/board/notice/list}">
+							<b>오프라인 모임</b> 5회 참석하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">오랜만에 보는 영어 간판들, 박물관의 설명들..
+						영어로 쓰여 있는 모든 것들을 해석할 수 있을 거 같아.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/eng}">
+							<b>Eng Stack</b>에 답변 200개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">영국 발음은 역시 멋지다. 
+						하지만 가끔씩 알아듣기 어려운 발음들이 있어서 연습을 해야겠어.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/dictationBook}">
+							<b>딕테이션북</b>에서 랭킹포인트 1500 올리기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- a 뉴욕 -->
+					<div th:case="'A'" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">타임스퀘어에 오니 인싸가 된 기분이야. 실제 나의 인지도는 어떨까?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" onclick="displayMemberProfile()">
+							내 <b>프로필</b> 조회수 10000회 달성하기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">뉴욕까지 오니 친구들이 나한테 궁금한게 많은가봐.
+						모두 영어도 답해버리자.</div>
+						<div class="back"><i></i>
+							<a th:href="@{/square/babel/list/kor}">
+							<b>Kor Stack</b>에 답변 250개 남기기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">센트럴 파크를 걷고있는데 어떤 사람이 같이 피크닉을 하자고 말을 걸어왔다.
+						그의 손엔 와인 3병이 들려져 있는데 어떻게 할까?</div>
+						<div class="back"><i></i>
+							<a th:href="@{/board/notice/list}">
+							<b>오프라인 모임</b> 10회 참석하기</a>
+						</div>
+					</th:block>
+					</div>
+					<!-- 입국이 되지 않았을 경우 -->
+					<div th:case="*" class="mission-detail">
+					<th:block th:if="${index} == 0">
+						<div class="front">새로운 도시에 도착했어! 
+						입국 심사를 통과해야지 이 도시를 둘러볼 수 있겠지?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage}">
+							입국 심사 받으러 가기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 1">
+						<div class="front">빨리 입국장을 통과해야겠다!</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage}">
+							입국 심사 받으러 가기</a>
+						</div>
+					</th:block>
+					<th:block th:if="${index} == 2">
+						<div class="front">이 도시에는 얼마나 많은 사람들이 있을까?</div>
+						<div class="back"><i></i>
+							<a class="loginRequired" th:href="@{/mypage}">
+							입국 심사 받으러 가기</a>
+						</div>
+					</th:block>
+					</div>
+					
+					<!-- [character name] -->
+					<div th:class="'success-rate tribe-' + ${tribeType} + ${index}">
+						by <span class="rate"></span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of cityMissionDiv -->
+	
+	<!-- ------------------------[1.2 도시 정보]-------------------------------- -->
+	<div class="mypage-content-box-section my-city-section">
+		<div class="mypage-content-box-div box-cover-mobile group-div">
+			<div class="top-icon d-md-none">
+				<label><i class="fa fa-map-marker-alt"></i></label>
+			</div>
+			<div class="mb-3">
+				<img src="/images/app/mypage/my_location_map.jpg" width="100%">
+			</div>
+			
+			<!-- 도시 정보 PC ver. -->
+			<div class="d-none d-md-block"><div class="row no-gutters">
+				<div class="col-md-6"><div class="row no-gutters py-1">
+					<div class="point-icon col-auto">
+						<i class="far fa-compass fa-fw"></i>
+					</div>
+					<div class="col pl-md-4 pl-2">
+						<div class="title">Your Location</div>
+						<div class="detail">
+							<span class="kor">서울, Korea</span> 
+						</div>
+					</div>
+				</div></div>
+				
+				<div class="guide left-guide col-md-6 pl-md-3">
+					<div class="guide-detail eng">
+						<i class="fa fa-info-circle fa-fw"></i>
+						Let's go further, <span class="point">1000RP</span> 
+						left for the next city.
+					</div>
+					<img src="/images/common/icon/icon_paper.png" class="location-cha">
+				</div>
+			</div></div>
+			<!-- 도시 정보 Mobile ver. -->
+			<div class="d-md-none">
+				<div class="title-mobile">Your Location</div>
+				<div class="detail-mobile">
+					<div class="kor">서울, Korea</div>
+				</div>
+				<div class="empty1 empty-line"></div>
+				<div class="ment text-center">
+					Let's go further, <span class="point">1000RP</span> 
+					left for the next city.
+				</div>
+			</div>
+		</div>
+	</div>
+
+</div><!-- end of myCityMissionsSection -->
+
+</section>

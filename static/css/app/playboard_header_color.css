@@ -1,0 +1,38 @@
+.header-color {
+	background-color: #8a2be2;
+	background: -webkit-linear-gradient(bottom, #A569F0 , #8a2be2);
+	background: -o-linear-gradient(bottom, #A569F0, #8a2be2);
+	background: -moz-linear-gradient(bottom, #A569F0, #8a2be2);
+	background: linear-gradient(to bottom, #A569F0 , #8a2be2);
+}
+
+/* button & logo color */
+ul.menuli3 li, 
+#playvoice_menu, 
+#playvoice_menu_off, 
+.header-menulist .alias ,
+.primary-menu-cover {
+	color: #fff;
+}
+
+/* main Copy, point Menu, Gold Membership color */
+.main-header .main-copy-section {color: #df4557;} 
+.main-header .menu-point {color: #df4557;}
+.main-header .gold-membership {color: #292A2C;}
+
+.main-header .menu-cover .menu-hover.content {color: #ea808d;}
+.main-header .menu-cover:hover .menu-hover {
+	border-bottom: solid 1.5px #ea808d;
+	color: #fff;
+}
+
+/* user alias color */
+.main-header .alias , 
+.contentapp-header .alias {
+	color: #fff;
+}
+/* mobile open bar color */
+#menuOpenBtn, 
+.main-header .contentapp-title {
+	color: #8a2be2;
+}

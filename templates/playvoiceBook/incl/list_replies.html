@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+	
+<style>
+	.playvoiceBook-content{ padding-top: 0px;}
+	.playvoiceBook-table .t-date{width: 100px; padding:8px 0; border-left: solid 1px #d8d8d8;}
+</style>   
+<script th:inline="javascript">
+//csrf = JSON.parse('[[${_csrf}]]');
+
+$(document).ready(function() {
+	
+	//[댓글 텍스트폼 엔터처리]
+	$("#comment").on("change keyup keydown", function(){
+		if($(this).val().length > 0){
+			$("#addCommentBtn").prop("disabled", false); 
+			$(this).height(0).height($(this).prop('scrollHeight') + 1);
+		} else {
+			$("#addCommentBtn").prop("disabled", true);
+			$("#comment").css("height", "32px");
+		}
+	});
+	
+	//[등록버튼 활성화]
+	$("#comment").click(function(){
+		$("#comment_button_section").fadeIn(200);
+	});
+	
+	
+	//[댓글 취소, 등록버튼 비활성화]
+	$("#cancelCommentBtn").click(function(){
+		$("#comment").css("height", "32px");
+		$("#comment_button_section").css("display", "none");
+		$("#addCommentBtn").prop("disabled", true);
+	});
+	
+	//[대댓글 텍스트폼 엔터처리]
+	$(document).on("change keyup keydown", "#comment2", function(e){
+		if($(this).val().length > 0){
+			$("#addCommentBtn2").prop("disabled", false);
+			$(this).height(0).height( $(this).prop('scrollHeight') + 0);
+		} else {
+			$("#addCommentBtn").prop("disabled", false);
+			$("#comment2").css("height", "32px");
+		}
+	});
+	
+	//default : 대댓글 목록 감추기
+	$(".child-comment").parent().parent(".comment-area").css("display", "none");
+	
+	
+	//--------------------------------------------------------------------------------------
+	//부모댓글의 next page정보 지정
+	var nextPage = [[${nextPage}]];
+	if(nextPage > 1){
+		if([[${replyType}]] == 'p'){
+			changeNoneEngComment($('#patternCommentDiv #commentList').last());  
+			$('#patternCommentDiv #more_replies_btn').val([[${nextPage}]]);
+			if(nextPage == 2 ){
+				$('#patternCommentDiv #more_replies_btn').parent().show();
+			}
+		}
+		else if([[${replyType}]] == 'q'){
+			$('#qnaCommentDiv #more_replies_btn').val([[${nextPage}]]);
+			if(nextPage == 2 ){
+				$('#qnaCommentDiv #more_replies_btn').parent().show();
+			}
+		}
+		 
+	}else{
+		// 다음 페이지가 없는 경우, 더보기 버튼 없애기.
+		if([[${replyType}]] == 'p'){
+			$('#patternCommentDiv #more_replies_btn').parent().hide();
+			changeNoneEngComment($('#patternCommentDiv #commentList').last());  
+		}
+		else if([[${replyType}]] == 'q'){
+			$('#qnaCommentDiv #more_replies_btn').parent().hide();
+		}
+		
+		
+	}
+	//--------------------------------------------------------------------------------------
+	
+	
+	
+}); /* end of ready */
+
+/**
+ * handleCommentLike()메소드에서 호출
+ */
+function displayAfterLikeSubmit(thisObj, count){
+	//'좋아요' 갱신
+	thisObj.children('span').text(count);
+	thisObj.children('i').addClass("active");
+}
+
+/**
+ * handleCommentDislike() 메소드에서 호출
+ */
+function displayAfterDislikeSubmit(thisObj, count){
+	//'싫어요' 갱신
+	thisObj.children('span').text(count);
+	thisObj.children('i').addClass("active");
+}
+
+
+/**
+ * [대댓글 불러오기]
+ */
+function display_child(parentId){
+	$("#loading_" + parentId).fadeIn(100);
+	setTimeout(function(){
+		$("#loading_" + parentId).css("display", "none");
+		$(".child-" + parentId).parent(".comment-area").fadeIn(100);
+	},330);
+	
+	// 다시 대댓글 보이기
+	$("#children"+parentId).css("display", "");
+	
+	//대댓글 부르기 버튼
+	$("#display_" + parentId).css("display", "none");
+	$("#disappear_" + parentId).css("display", "");
+	
+	var stageId = $('#stageId').val();
+	var next = "/reply/playvoiceBook/list/" + stageId + "/" + parentId;
+	
+	reloadChildrenReply(next, '#children'+parentId);
+}
+
+/**
+ * [대댓글 숨기기]
+ */
+function disappear_child(id){
+	$("#children"+id).css("display", "none");
+	//대댓글 부르기 버튼
+	$("#display_" + id).css("display", "");
+	$("#disappear_" + id).css("display", "none");	
+	//대댓글 폼 지우기
+	$(".re-form").html(""); 
+	$(".re-form").css("display", "none");
+}
+
+/**
+ * [대댓글 폼 불러오기]
+ */
+function re_reply(parentId, childIndex){
+	var alias = $("#alias" + parentId + "_" + childIndex).text(); // 별명
+	$(".re-form").html(""); // 다른 대댓글 폼 지우기
+	$(".re-form").css("display", "none");
+	   
+	var paste = $("#re_comment_paste" + parentId + "_" + childIndex); //붙여넣기 되는 영역
+	var input = $("#re_comment_copy").clone();
+	input.appendTo(paste); //end copy
+	   
+	input.find(".re-comment-copy").attr("id", "re_comment_copy" + parentId);
+	input.find(".re-comment-copy").css("display", "");
+	input.find(".hidden_parentId").attr("id", "parentId");
+	input.find(".hidden_parentId").val(parentId); 
+	input.find(".recomment-area").attr("id", "comment2");
+	input.find(".recomment-btn").attr("id", "addCommentBtn2");
+	input.find(".recomment-cancel").attr("onclick", "cancel_recomment(" + parentId + "," + childIndex + ")" );
+	   
+	$("#re_comment_paste" + parentId + "_" + childIndex).css("display", "");// 해당 폼 열기
+	input.show();
+	$("#comment2").focus(); 
+	$(".re-alias").html(alias); // 답글을 받는 사람 별명 보여주기
+}
+
+/**
+ * [대댓글 취소]
+ */
+function cancel_recomment(parentId, childIndex) {
+	$("#re_comment_paste" + parentId + "_" + childIndex).html(""); // 다른 대댓글 폼 지우기
+	$("#re_comment_paste" + parentId + "_" + childIndex).hide();
+}
+
+
+</script>
+</head>
+
+
+
+
+
+		
+<!-------------------------------------/* 댓글 영역 */---------------------------------------->
+<div id="commentList">
+	<div class="comment-area" th:id="'comment_' + ${reply.rid}" th:each="reply, iterStat : ${replyList}">
+		<!-- 부모 댓글 -->
+		<div th:unless="${reply.parentId}" class="parent-comment row no-gutters">
+			<div class="col-sm-1 col-2" style="padding: 5px;">
+				<div class="member-personacon">
+					<a><img th:if="${reply.personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+						class="personacon-profile"
+						th:style="'background: url(\'/resource/profile/' +${reply.personacon.iconPath} +'\') no-repeat;
+						background-position: center; background-size: cover;'">
+					<img th:unless="${reply.personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+						class="personacon-profile"
+						style="background: url('/images/app/member/profile_default.png') no-repeat;
+						background-position: center; background-size: cover;">
+					<img th:src="@{/images/app/member/profile_paper.png}" 
+						th:class="'personacon-frame frame-' + ${reply.personacon.memberType}"></a>
+				</div>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+			</div>
+			<div class="col-sm-11 col-10" style="padding:0;">
+				<div class="nickname pt-lg-0 pt-1"> 
+					<a><span th:id="'alias' + ${reply.rid} + '_0' " th:text="${reply.personacon.alias}">별명 (PC)</span></a>
+					<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}">
+						작성날짜 (PC)
+					</span>
+				</div>
+				<div class="comment-body">
+					<span th:if="${reply.priority < 6}" class="pr-1"><i lang="fa" class="fa fa-trophy" style="color: gold;"></i></span>
+					<span class="comment-text" th:utext="${#strings.replace(reply.comment, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"></span>
+				</div>
+				<!--/* <div class="nickname d-sm-none"> 
+					<a><span th:id="'alias' + ${reply.rid} + '_0'" th:text="${reply.personacon.alias}">별명 (Mobile)</span></a>
+					<span th:if="${reply.priority < 6}" class="badge badge-danger best">BEST</span>
+					<span class="date"><b>ㆍ</b> [[${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+				</div> */-->
+				<div class="comment-button">
+					<a data-toggle="tooltip" title="좋아요" data-placement="bottom" th:data-rid="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn like-comment">
+						<i class="thumb-up"></i>
+						<span style="color: #444;" th:text="${reply.likeCount}">12</span>
+					</a> 
+					<a data-toggle="tooltip" title="싫어요" data-placement="bottom" th:data-rid="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn dislike-comment">
+						<i class="thumb-down"></i>
+						<span style="color: #444;" th:text="${reply.dislikeCount}">3</span>
+					</a> 
+					<a th:onclick="'re_reply(\'' + ${reply.rid} + '\',\'0\')'" 
+						class="like-comment-btn">
+						<span style="color: #444;">REPLY</span>
+					</a>
+					<div class="button-etc float-right btn-group">
+						<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+							<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						
+						<!-- --------------------수정된 부분--------------------- -->
+						 	
+						    
+						    <li class="dropdown-item text-center" 
+						    	th:if="${session.userContainer.personacon.pid == reply.personacon.pid} 
+						    		or ${session.userContainer.personacon.memberType} == 'A'">
+						    	<a href="javascript:void(0)" class="delete-reply" th:value="${reply.rid}">삭제</a></li>
+						    
+						    <li class="dropdown-item text-center" th:if="${session.userContainer.personacon.memberType} == 'A' " >
+						    	<a href="javascript:void(0)" class="edit-priority" th:value="${reply.rid}">우선순위 수정</a>
+						    	<input type="text" class="priority-value" th:value="${reply.priority}" style="display: none">
+						    	<button class="edit-priority-btn" style="display: none" th:value="${reply.parentId}">수정</button> 
+						    </li>
+						    
+						    <li class="dropdown-item text-center"
+								th:unless="${session.userContainer.personacon.pid == reply.personacon.pid} 
+						    		or ${session.userContainer.personacon.memberType} == 'A'">
+						    	<a href="#">신고</a></li>
+						   <!-- ------------------------------------------------------ -->
+						</ul>
+					</div>
+				</div> 
+				<!--/* 대댓글 입력 폼 들어갈 영역 */-->
+				<div th:id="'re_comment_paste' + ${reply.rid}+ '_0'" 
+					class="re-form child-comment col-12" style="display: none;"></div>
+			</div>
+		</div> <!--/* end of 부모댓글 영역 */-->
+		
+		<!-- 대댓글보기/숨기기 텍스트 -->
+		<div th:unless="${reply.parentId}" class="row no-gutters">
+			<div class="col-sm-1 col-2"></div>
+			<div class="display-child-btn col-sm-11 col-10">
+				<div>
+					<th:block th:if="${reply.childrenNum != 0}">
+					<button type="button" class="btn-none" th:id="'display_' + ${reply.rid}" 
+						th:onclick="'display_child(\'' + ${reply.rid} + '\')'">
+						View [[${reply.childrenNum}]] replies
+						<i lang="fa" class="fa fa-angle-down"></i>
+					</button>
+					</th:block>
+					<button type="button" class="btn-none" th:id="'disappear_' + ${reply.rid}" 
+						th:onclick="'disappear_child(\'' + ${reply.rid} + '\')'" style="display: none;">
+						Hide replies <i lang="fa" class="fa fa-angle-up"></i>
+					</button>
+				</div>
+				<div th:id="'loading_' + ${reply.rid}" style="padding: 10px; display: none;">
+					<i lang="fa" class="fa fa-spinner fa-spin fa-2x"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 대댓글  목록 내용은 list_children_replies.html로 이관-->
+		<!-- 대댓글이 표시될 영역-->
+		<div th:id="'children' + ${reply.rid}" class="recomment-area">
+		
+		</div>
+		
+	</div> <!--/* end of th:each="reply,iterStat : ${replyList}" */-->
+
+</div> <!-- end of commentList -->
+
+
+<div class="text-right" style="color:red;">
+	source :: list_replies.html	
+</div>

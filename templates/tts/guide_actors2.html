@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>TTS 성우 소개 (플레이보이스 TTS) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '플레이보이스 TTS - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 TTS는 영어 전문 TTS MP3 파일 변환 서비스입니다. 플레이보이스에는
+	수십명의 다양한 성우들의 목소리가 있으며, 자신이 원하는 문장들을 고품질 음성 파일로 쉽고 간편하게 만들 수 있습니다.', 
+	metaImage = '/images/common/characters/pictionary.jpg',
+	metaKeyword = 'TTS, MP3, 영어 듣기, 받아쓰기, 딕테이션, 스피킹 '"></th:block>
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment2::schemaBread}"
+	th:with="breadList = ${ {'/tts', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이보이스 TTS', 'TTS 성우 소개'} }"></th:block>]
+</script>	
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+<script th:inline="javascript">
+var remianFileSize = /*[[${remianFileSize}]]*/ 0; // 남은 파일 생성 개수
+var maxSentLength = /*[[${maxSentLength}]]*/ 150; // 파일 예문 최대 길기
+$(document).ready(function(){
+/**-------------------------------------------------------------------------- *
+ * 								예문 편집 영역									  *
+ * -------------------------------------------------------------------------- */
+	// [예문 textarea 높이 자동 setting, 예문 글자 수 표시]---------------------------------
+	$("#listParcingSentencesSection .sentenceForm").each(function(i, obj){
+		adjustHeight($(obj)); // textarea 높이 조정
+	});
+	// [textarea에 예문 입력, 수정 시 textarea 높이 자동 조정]-------------------------------
+	$(document).on("keyup", ".sentenceForm", function(){
+		$(this).css("height", "24px");
+		adjustHeight($(this));
+	});
+	$(document).on("keyup", ".sentenceTrans", function(){
+		$(this).css("height", "33px");
+		adjustHeight($(this).siblings(".sentenceForm"));
+	});
+	
+	// [체크박스 전체 선택]-----------------------------------------------------------
+	$("#checkAll").click(function(){
+		if($(this).is(":checked")) {
+			$("#sentenceListDiv .sentenceCheck").prop("checked", true);
+		} else {
+			$("#sentenceListDiv .sentenceCheck").prop("checked", false);
+		}
+	});
+	
+	// [체크한 예문 개수 편집 컨트롤러에 표시]-----------------------------------------------
+	$(document).on("change", ".sentenceCheck, #checkAll", function(){
+		var checkCount = $("#sentenceListDiv .sentenceCheck:checked").length;
+		$("#countSelected").text(checkCount);
+		if(checkCount > 0) {
+			$("#groupingSentBtn, #deleteSentBtn").prop("disabled", false);
+		} else {
+			$("#groupingSentBtn, #deleteSentBtn").prop("disabled", true);
+		}
+	});
+	
+	
+	
+	
+	// [예문 복사하기]--------------------------------------------------------------
+	$(document).on("click", ".cloneSentence", function(){
+		var parentCover = $(this).closest(".sentenceCover");
+		var sentenceForm = parentCover.find(".sentenceForm");
+		sentenceForm.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			parentCover.find(".copy-sentence-section").addClass("active")
+			setTimeout(function() {
+				parentCover.find(".copy-sentence-section").removeClass("active")
+			}, 1000);
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+		sentenceForm.blur(); 
+	});
+	
+	// [예문 번역 보기]--------------------------------------------------------------
+	$(document).on("click", ".showTransBtn", function(){
+		var parentCover = $(this).closest(".sentenceCover");
+		var transDiv = parentCover.find(".sentenceTrans");
+		if(transDiv.is(":visible")) {
+			transDiv.hide();
+			$(this).removeClass("active");
+		} else {
+			transDiv.show();
+			$(this).addClass("active");
+			adjustHeight(parentCover.find(".sentenceForm"));
+		}
+	});
+	
+	// [예문 선택 후 합치기]-----------------------------------------------------------
+	$("#groupingSentBtn").click(function(){
+		pushBeforeParaStorage() // 편집 전 예문 저장
+		var msg = "";
+		if($("#sentenceListDiv .sentenceCheck:checked").length < 2) {
+			msg = "병합할 예문을 2개 이상 선택해 주세요.";
+			openTTSModal(msg, 'alert');
+			return;
+		}
+		var parentCover;
+		var composeSent = "";
+		var composeTrans = "";
+		var firstIndex;
+		$("#sentenceListDiv .sentenceCheck:checked").each(function(i, obj){
+			var sentIndex = $(obj).attr("data-count");
+			parentCover = $(obj).closest(".sentenceCover");
+			var sentArea = $("#textForm" + sentIndex);
+			var sentTrans = parentCover.find(".sentenceTrans");
+			if(i == 0) {
+				composeSent += sentArea.val().trim();
+				composeTrans += sentTrans.val().trim();
+				firstIndex = sentIndex;
+				parentCover.addClass("active");
+			} else {
+				composeSent += " " + sentArea.val().trim();
+				composeTrans += " " + sentTrans.val().trim();
+				parentCover.remove();
+			}
+		});
+		// 다른 해석 영역 모두 닫은 후 병합한 해석 영역 펼치기
+		$(".sentenceTrans").hide();
+		$(".showTransBtn").removeClass("active");
+		
+		var targetForm = $("#textForm" + firstIndex);
+		var targetTrans = targetForm.siblings(".sentenceTrans");
+		
+		targetForm.val(composeSent);
+		targetTrans.val(composeTrans).show();
+		targetForm.closest(".sentenceCover").find(".showTransBtn").addClass("active");
+		
+		adjustHeight(targetForm); // textarea 높이 자동 조정
+		arrangeSentenceIndex(0); // 예문 순서 재정렬
+		setTimeout(function() {
+			$(".sentenceCover").removeClass("active");
+		}, 1000);
+	});
+	
+	// [예문 선택 후 삭제하기]----------------------------------------------------------
+	$("#deleteSentBtn").click(function(){
+		pushBeforeParaStorage() // 편집 전 예문 저장
+		var msg = "";
+		var checkedSize = $("#sentenceListDiv .sentenceCheck:checked").length;
+		var paraSentLength = $("#sentenceListDiv .sentenceCover").length;
+		if(checkedSize < 1) {
+			msg = "삭제할 예문을 선택해 주세요.";
+			openTTSModal(msg, 'alert');
+			return;
+		} else if (checkedSize == paraSentLength) {
+			msg = "예문은 모두 삭제할 수 없습니다.";
+			openTTSModal(msg, 'alert');
+			return;
+		}
+		var parentCover;
+		var parentCoverList = [];
+		$("#sentenceListDiv .sentenceCheck:checked").each(function(i, obj){
+			parentCover = $(obj).closest(".sentenceCover");
+			parentCover.addClass("remove");
+			parentCoverList.push(parentCover);
+		});
+		setTimeout(function() {
+			for(i = 0; i < parentCoverList.length; i++) {
+				parentCoverList[i].remove();
+			}
+			arrangeSentenceIndex(0); // 예문 순서 재정렬
+		}, 400);
+	});
+	
+	// [예문 form 추가]------------------------------------------------------------
+	$("#addFormBtn").click(function(){
+		pushBeforeParaStorage() // 편집 전 예문 저장
+		
+		var $copyDiv = $("#copyDivSection .sentenceCover").clone();
+		$copyDiv.appendTo("#sentenceListDiv");
+		arrangeSentenceIndex(0); // 예문 순서 재정렬
+		$copyDiv.find(".sentenceForm").focus();
+	});
+	
+	// [편집 이전으로 되돌리기]---------------------------------------------------------
+	$("#returnSentBtn").click(function(){
+		getBeforeParaStorage();
+	});
+	
+	// [모달창 닫기]----------------------------------------------------------------
+	$(".closeAlertModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#ttsAlertModal").hide();
+	});
+	
+	// [뒤로 가기 (파일 등록 페이지로 이동)]------------------------------------------------
+	$("#backAddFileBtn").click(function(){
+		history.back(-1);
+	});
+	
+	// [성우 선택 페이지로 이동 (next 버튼 클릭)]-------------------------------------------
+	$("#choiceActorBtn").click(function(){
+		var checkedSize = $("#sentenceListDiv .sentenceCheck:checked").length;
+		var allSentSize = $("#sentenceListDiv .sentenceCheck").length;
+		var msg = "";
+		if(checkedSize > 0) {
+		//1. 변환할 예문을 선택한 경우 (1.1 남은 생성횟수 확인, 1.2 문장 길이 확인)
+			if(checkedSize > remianFileSize) {
+				msg = "오늘 남은 파일 생성 개수는 <b>" + remianFileSize + 
+					"개</b>입니다.<br>다시 선택해 주세요.";
+				openTTSModal(msg, 'alert');
+				return;
+			} else {
+				msg = checkedSize + "개의 예문을<br>음성 변환 예문으로 선택하였습니다.";
+				openTTSModal(msg, 'submit');
+			}
+		} else {
+		//2. 변환할 예문을 선택하지 않은 경우 (2.1 위의 파란 부분을 TTS로 변환할 건지 확인, 2.2 문장 길이 확인)
+			var admitSent = "";
+			if(remianFileSize > 1) {
+				admitSent = "1 ~ " + ((allSentSize > remianFileSize)? remianFileSize : allSentSize);
+			} else {
+				admitSent = "1";
+			}
+			msg = "음성으로 변환할 예문을 선택하지 않았습니다.<br>허용 영역의 <b>" + admitSent + 
+					"번</b> 예문을<br>음성 변환 예문으로 선택합니다.";
+			openTTSModal(msg, 'confirm');
+		}
+	});
+	$("#confirmParaSelectBtn").click(function() {
+		$("#sentenceListDiv .sentenceCheck").each(function(i, obj){
+			if(i < remianFileSize) {
+				$(obj).prop("checked", true);
+			}
+		});
+		checkSelectedSentLength();
+	});
+	$("#submitParaSelectBtn").click(function() {
+		checkSelectedSentLength();
+	});
+	
+	
+	
+/**-------------------------------------------------------------------------- *
+ * 								성우 선택 영역									  *
+ * -------------------------------------------------------------------------- */
+	
+	// [체크박스 전체 선택]-----------------------------------------------------------
+	$("#addActorVoicesSection").on("click", "#checkAll2", function(){
+		if($(this).is(":checked")) {
+			$("#choiceVoiceActorsDiv .sentenceCheck2").prop("checked", true);
+		} else {
+			$("#choiceVoiceActorsDiv .sentenceCheck2").prop("checked", false);
+		}
+	});
+	// [체크한 예문 개수 편집 컨트롤러에 표시]-----------------------------------------------
+	$("#addActorVoicesSection").on("change", ".sentenceCheck2, #checkAll2", function(){
+		var checkCount = $("#choiceVoiceActorsSection .sentenceCheck2:checked").length;
+		$("#countSelected2").text(checkCount);
+		if(checkCount > 0) {
+			$("#openChoiceActorBtn").prop("disabled", false);
+		} else {
+			$("#openChoiceActorBtn").prop("disabled", true);
+		}
+	});
+	
+	// [각 예문의 성우 선택 모달 띄우기]---------------------------------------------------
+	$("#addActorVoicesSection").on("click", ".openChoiceActor", function(){
+		$(".sentenceCheck2").prop("checked", false);
+		var parentDiv = $(this).closest(".sentenceCover2");
+		parentDiv.find(".sentenceCheck2").prop("checked", true);
+		openChoiceActorModal();
+	});
+	
+	// [선택한 예문의 성우 선택 모달 띄우기]-------------------------------------------------
+	$("#addActorVoicesSection").on("click", "#openChoiceActorBtn", function(){
+		openChoiceActorModal();
+	});
+	
+	// [성우 선택 모달 닫기]-----------------------------------------------------------
+	$(".closeActorModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#voiceActorListModal .voiceActorRadio").prop("checked", false);
+		$("#voiceActorListModal .actor-list-section").removeClass("active");
+		$("#confirmActorBtn").prop("disabled", true);
+		$("#voiceActorListModal").hide();
+	});
+	
+	// [성우 선택 모달창에서 성우 선택시 active 표시]----------------------------------------
+	$(document).on("change", ".voiceActorRadio", function(){
+		$(".actor-list-section").removeClass("active");
+		$(this).closest(".actor-list-section").addClass("active");
+		$("#confirmActorBtn").prop("disabled", false);
+	});
+	
+	// [모달창에서 성우 선택 후 확인버튼 클릭]-----------------------------------------------
+	$("#confirmActorBtn").click(function(){
+		var selectedActor = $("#voiceActorListModal .voiceActorRadio:checked");
+		var parentDiv = selectedActor.closest(".actor-list-section");
+		var vendorCode = selectedActor.attr("data-vendorCode");
+		var description = parentDiv.find(".description").val();
+		var actorImage = parentDiv.find(".actor-image").html();
+		var actorName = parentDiv.find(".actorName").text();
+		
+		$("#choiceVoiceActorsDiv .sentenceCheck2:checked").each(function(i, obj){
+			var sentenceDiv = $(obj).closest(".sentenceCover2");
+			var actorSelected = sentenceDiv.find(".actorSelected");
+			actorSelected.find(".actor-image-section").html(actorImage);
+			actorSelected.find(".actor-name-section").text(actorName);
+			sentenceDiv.find(".vendorCode").val(vendorCode);
+			sentenceDiv.find(".description").val(description);
+			sentenceDiv.find(".name").val(actorName);
+			
+			sentenceDiv.find(".actorNoSelected").hide();
+			actorSelected.show();
+		});
+		$(".closeActorModal").click(); // 모달 닫기
+		$("#openChoiceActorBtn").prop("disabled", true); // 성우 선택 버튼 비활성화
+		resetCheckbox();
+	});
+	
+	// [예문 편집 화면으로 되돌아가기]----------------------------------------------------
+	$("#backEditSentBtn").click(function(){
+		$("#choiceVoiceActorsDiv").empty();
+		$("#addActorVoicesSection").hide();
+		$("#editParcingSentencesSection").show();
+		resetCheckbox();
+	});
+
+	// [선택한 예문 음성 파일로 만들기]----------------------------------------------------
+	$("#makeVoiceFileBtn").click(function(){
+		submitVoiceMaker();
+	});
+	// [전체 예문 음성 파일로 만들기]-----------------------------------------------------
+	$("#makeAllVoiceFileBtn").click(function(){
+		$("#choiceVoiceActorsDiv .sentenceCheck2").prop("checked", true);
+		submitVoiceMaker();
+	});
+	
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*					editing sentence Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 모달 창 열기
+ */
+function openTTSModal(msg, kind){
+	$("#ttsAlertModal #msgSection").html("").html(msg);
+	if(kind == 'alert') {
+		$("#ttsAlertModal .alertFooter").show();
+		$("#ttsAlertModal .confirmFooter, #ttsAlertModal .submitFooter").hide();
+	} else if (kind == 'confirm') {
+		$("#ttsAlertModal .confirmFooter").show();
+		$("#ttsAlertModal .alertFooter, #ttsAlertModal .submitFooter").hide();
+	} else {
+		$("#ttsAlertModal .submitFooter").show();
+		$("#ttsAlertModal .alertFooter, #ttsAlertModal .confirmFooter").hide();
+	}
+	$("html").addClass("modalOpen");
+	$("#ttsAlertModal").show();
+}
+ 
+/**
+ * textarea 높이 자동 조정 (예문을 수정할 때 예문 전체를 보이게 하기 위해)
+ */
+function adjustHeight(obj) {
+	var backDiv = $(obj).closest(".sentenceCover").find(".sentenceBack");
+	var textEleHeight = $(obj).prop('scrollHeight');
+	var transEle = $(obj).closest(".sentenceCover").find(".sentenceTrans");
+	var text = $(obj).val();
+	var target = $(obj).closest(".sentenceCover").find(".textSize");
+	$(obj).css("height", textEleHeight);
+	backDiv.css("height", textEleHeight);
+	transEle.css("height", transEle.prop('scrollHeight'));
+	
+	getSizeOfText(text, target);
+	changeDangerFont(text, target);
+};
+
+/**
+ * 예문 순서 재정렬 (예문을 삭제 또는 병합 했을 경우 index 번호를 재정렬한다)
+ */
+function arrangeSentenceIndex(index) {
+	if(index == 0) {
+		$(".sentenceCover").removeClass("admit");
+		$(".sentenceCover").each(function(i, obj){
+			var indexNum = $(obj).find(".sentIndex");
+			var checkbox = $(obj).find(".sentenceCheck");
+			var textForm = $(obj).find(".sentenceForm");
+			indexNum.text(i + 1);
+			checkbox.attr("data-count", (i + 1));
+			textForm.attr("id", "textForm" + (i + 1));
+			getSizeOfText(textForm.val(), $(obj).find(".textSize"));
+			if(i < remianFileSize) {
+				$(obj).addClass("admit");
+			}
+		});
+	} else {
+		$(".sentenceCover2").each(function(i, obj){
+			var indexNum = $(obj).find(".sentIndex2");
+			var checkbox = $(obj).find(".sentenceCheck2");
+			var sentence = $(obj).find(".sentenceForm2");
+			var vendorCode = $(obj).find(".vendorCode");
+			var description = $(obj).find(".description");
+			var name = $(obj).find(".name");
+			var text = $(obj).find(".text");
+			var trans = $(obj).find(".trans");
+			indexNum.text(i + 1);
+			checkbox.attr("data-count", (i + 1));
+			sentence.attr("id", "sentence" + (i + 1));
+			vendorCode.attr("id", "vendorCode" + i).attr("name", "vendorCode" + i);
+			description.attr("id", "description" + i).attr("name", "description" + i);
+			text.attr("id", "text" + i).attr("name", "text" + i);
+			trans.attr("id", "trans" + i).attr("name", "trans" + i);
+			name.attr("id", "name" + i).attr("name", "name" + i);
+		});
+	}
+	resetCheckbox(); // 체크박스 리셋
+};
+
+/**
+ * 삭제, 병합, 추가 버튼 클릭 때 예문 편집 내용을 리스트에 저장 (되돌리기 기능 목적)
+ */
+var beforeParaList = [];
+var paraDataSize = 0;
+function pushBeforeParaStorage() {
+	paraDataSize++;
+	var $copyParaDiv = $("#listParcingSentencesSection #sentenceListDiv").clone();
+	beforeParaList.push($copyParaDiv);
+	if(paraDataSize > 0) {
+		$("#returnSentBtn").prop("disabled", false);
+	}
+}
+
+/**
+ * 배열에 담아 둔 편집 전 예문으로 되돌리기
+ */
+function getBeforeParaStorage() {
+	var $copyParaDiv = beforeParaList[paraDataSize - 1];
+	$("#listParcingSentencesSection #sentenceListDiv").replaceWith($copyParaDiv);
+	beforeParaList.pop();
+	paraDataSize--;
+	if(paraDataSize < 1) {
+		$("#returnSentBtn").prop("disabled", true);
+	}
+	resetCheckbox(); // 체크박스 리셋
+}
+
+/**
+ * 체크박스 리셋
+ */
+function resetCheckbox() {
+	$(".sentenceCheck, #checkAll, .sentenceCheck2, #checkAll2").prop("checked", false);
+	$("#groupingSentBtn, #deleteSentBtn, #choiceActor").prop("disabled", true);
+	$("#countSelected, #countSelected2").text(0);
+}
+ 
+/**
+ * 글자 수 센 후 표시
+ */
+function getSizeOfText(text, target) {
+	var textSize = text.length;
+	$(target).text("").text(textSize);
+	if(textSize > maxSentLength) {
+		$(target).closest(".sentenceCover").addClass("over");
+	} else {
+		$(target).closest(".sentenceCover").removeClass("over");
+	}
+	changeDangerFont(text, target);
+}
+
+/**
+ * 한 파일 당 초과한 글자수 배경색으로 표시
+ */
+function changeDangerFont(text, target) {
+	var textSize = text.length;
+	text = text.replace(/(<([^>]+)>)/gi, "");
+	if (textSize > maxSentLength) {
+		var text0 = text.substring(0, maxSentLength);
+		var text1 = text.substring(maxSentLength);
+		text = text0 + "<b>" + text1 + "</b>";
+	}
+	$(target).closest(".sentenceCover").find(".sentenceBack").html(text);
+}
+
+/**
+ * 체크한 예문의 글자 수 초과 여부 확인 후 성우 선택 페이지로 이동
+ */
+function checkSelectedSentLength() {
+	var overParaSize = 0;
+	$("#sentenceListDiv .sentenceCheck:checked").each(function(i, obj){
+		var parentCover = $(obj).closest(".sentenceCover");
+		var sentLength = parentCover.find(".sentenceForm").val().length;
+		if(sentLength > maxSentLength) {
+			overParaSize++;
+		} 
+	});
+	if(overParaSize > 0) {
+		msg = "선택한 예문 중<br>" + maxSentLength + "자를 넘는 예문이 <b>" + 
+				overParaSize + "개</b> 있습니다.<br>다시 확인해 주세요.";
+		openTTSModal(msg, 'alert');
+		return;
+	} else {
+		submitParaSent();
+	}
+}
+
+/**
+ * 성우 선택 페이지로 이동
+ */
+function submitParaSent() {
+	$(".closeAlertModal").click();
+	$("#choiceVoiceActorsDiv").empty();
+	$("#sentenceListDiv .sentenceCheck:checked").each(function(i, obj){
+		var sentenceCover = $("#copyDivSection").find(".sentenceCover2").clone();
+		var parentCover = $(obj).closest(".sentenceCover")
+		var selectedSent = parentCover.find(".sentenceForm").val();
+		var selectedTrans = parentCover.find(".sentenceTrans").val();
+		sentenceCover.find(".sentenceForm2").html(selectedSent);
+		sentenceCover.find(".sentenceTrans2").html(selectedTrans);
+		sentenceCover.find(".text").val(selectedSent);
+		sentenceCover.find(".trans").val(selectedTrans);
+		sentenceCover.appendTo("#choiceVoiceActorsDiv");
+	});
+	$("#editParcingSentencesSection").hide();
+	$("#addActorVoicesSection").show();
+	resetCheckbox();
+	arrangeSentenceIndex(1);
+}
+
+
+/* ----------------------------------------------------------------------------- 
+*						add voice Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 성우 선택 모달 띄우기
+ */
+function openChoiceActorModal() {
+	$("html").addClass("modalOpen");
+	$("#voiceActorListModal").slideDown(100);
+}
+
+/**
+ * (음성 변환 클릭) 변환할 예문 체크 여부, 성우 선택 여부 확인
+ */
+function checkSelectActor() {
+	var noSelectedSize = 0;
+	var selectedSent = $("#choiceVoiceActorsDiv .sentenceCheck2:checked");
+	if(selectedSent == null || selectedSent.length < 1) {
+		var msg = "음성으로 변환할 예문을 선택해 주세요.";
+		openTTSModal(msg, 'alert');
+		return false;
+	} else {
+		selectedSent.each(function(i, obj){
+			var vendorCode = $(obj).closest(".sentenceCover2").find(".vendorCode").val();
+			if(vendorCode == null || vendorCode.length < 1) {
+				noSelectedSize++;
+			}
+		});
+		if(noSelectedSize > 0) {
+			var msg = "<b>" + noSelectedSize + "개</b>의 예문에 성우를 선택하지 않았습니다.<br>"+
+					"각 예문에 어울리는 성우를 선택해 주세요.";
+			openTTSModal(msg, 'alert');
+			noSelectedSize = 0;
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+/**
+ * (음성 변환 클릭) 음성으로 만들기 form submit
+ */
+function submitVoiceMaker() {
+	if(checkSelectActor()) {
+		location.href="/tts/voice/result";
+	} else {
+		return;
+	}
+}
+
+</script>
+
+</head>
+
+
+<section layout:fragment="content" class="edit-parcing-sentence-list-section"
+	th:with="memberType = ${session?.userContainer}? 
+	${session?.userContainer?.personacon?.memberType}:'G'">
+<div class="modalFadeSection">
+
+<!-- ---------------------[1. 파싱한 예문 list 편집 영역]--------------------------- -->
+<div id="editParcingSentencesSection"
+	th:insert="~{/tts/view_sentence_incl2::sentenceList}"></div>
+
+
+<!-- ---------------------[2. 선우 선택 편집 영역]--------------------------------- -->
+<div id="addActorVoicesSection" style="display: none;"
+	th:insert="~{/tts/add_actors_incl2::voiceActorList}"></div>
+
+</div>
+
+
+<!-- -----------------------[3. TTS alert modal]---------------------------- -->
+<div id="ttsAlertModal" class="playvoice-mobile-modal-section modal-alert" style="display: none;">
+	<div class="closeAlertModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div id="msgSection" class="inform-modal-body"></div>
+		<div class="alertFooter inform-modal-footer">
+			<button class="closeAlertModal btn-mobile btn-main2" type="button">확인</button>
+		</div>
+		<div class="submitFooter inform-modal-footer">
+			<button id="submitParaSelectBtn" class="btn-mobile btn-main2" type="button">확인</button>
+			<button class="closeAlertModal btn-mobile btn-main" type="button">취소</button>
+		</div>
+		<div class="confirmFooter inform-modal-footer">
+			<button id="confirmParaSelectBtn" class="btn-mobile btn-main2" type="button">확인</button>
+			<button class="closeAlertModal btn-mobile btn-main" type="button">취소</button>
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+<!-- -----------------------[4. 성우 선택 modal]-------------------------------- -->
+<div id="voiceActorListModal" class="playvoice-mobile-modal-section actor-choice" style="display: none;">
+	<div class="closeActorModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeActorModal fa fa-times"></i>
+			<h5>Playvoice TTS Actors</h5>
+		</div>
+		<div id="actorListSection" class="inform-modal-body">
+			<div class="actor-list-section-back">
+			<label th:each="actorAccent, iter : ${actorAccentList}" 
+				class="actor-list-section row no-gutters">
+				<input type="hidden" class="description" value="11"/>
+				<span class="actor-image col-auto align-self-center">
+					<img th:src="'/images/common/actors/' + ${actorNameList[iter.index]} + '.jpg'">
+				</span>
+				<span class="actor-name col align-self-center">
+					<span class="actorName">[[${actorNameList[iter.index]}]]</span>
+					<input type="radio" name="voiceActor" class="voiceActorRadio" 
+						th:data-vendorCode="${iter.index}"/>
+				</span>
+				<span class="actor-flag col-auto align-self-center"
+					th:with="accent = ${#strings.arraySplit(actorAccent,'-')[1]}">
+					<img th:src="'/images/common/flags/' + ${accent} + '.png'">
+				</span>
+				<span class="actor-voice col-auto align-self-center">
+					<button class="btn btn-trans" type="button">
+						<i class="fa fa-volume-up"></i>
+					</button>
+				</span>
+			</label>
+			</div>
+			<div th:if="${#strings.contains('GP', memberType)}" 
+				class="confirm-button-section">
+				<button id="confirmActorBtn" class="btn btn-main2" disabled
+					type="button">성우 선택</button>
+			</div>
+		</div>
+		<div class="closeActorModal inform-modal-footer close">close</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+<!-- ----------------------------------------------------------------------- -->
+<!-- -------------------------[copy div section]---------------------------- -->
+<!-- ----------------------------------------------------------------------- -->
+<div id="copyDivSection" style="display: none;">
+	<!-- ---------------------[1. 예문 form]---------------------------------- -->
+	<div class="sentenceCover parcing-sentences-cover row no-gutters" draggable="true">
+		<!-- 예문 선택 체크박스 -->
+		<div class="select-sentence-section col-auto">
+			<label>
+				<span class="sentIndex sentence-index"></span>
+				<input data-count="" type="checkbox" 
+					class="sentenceCheck option-input checkbox"/>
+			</label>
+		</div>
+		<!-- 예문 text -->
+		<div class="sentence-text-section col">
+			<div class="sentenceBack background-text"></div>
+			<textarea placeholder="영어 문장을 입력해 주세요."
+				class="sentenceForm form-control playvoice-form"></textarea>
+			<textarea th:if="${#strings.contains('GP', memberType)}" 
+				class="sentenceTrans form-control sentence-trans-div" 
+				placeholder="해석을 입력해 주세요." style="display: none;"></textarea>
+			<div th:unless="${#strings.contains('GP', memberType)}" 
+				class="sentenceTrans" style="display: none;"></div>
+		</div>
+		<!-- 예문 복사 -->
+		<div class="copy-sentence-section col-auto">
+			<div>
+				<i class="cloneSentence far fa-clone"></i>
+				<div class="clone-guide-msg">복사 완료</div>
+			</div>
+			<div class="textSize"></div>
+			<div th:if="${#strings.contains('GP', memberType)}" 
+				class="show-trans-button-section">
+				<i class="showTransBtn fa fa-language"></i>
+			</div>
+		</div>
+	</div><!-- end of 예문 form -->
+	
+	
+	<!-- ---------------------[2. 보이스 선택 form]----------------------------- -->
+	<div class="sentenceCover2 parcing-sentences-cover row no-gutters admit">
+		<input type="hidden" class="vendorCode"/>
+		<input type="hidden" class="description"/>
+		<input type="hidden" class="name"/>
+		<input type="hidden" class="text"/>
+		<input type="hidden" class="trans"/>
+		<!-- 예문 선택 체크박스 -->
+		<div class="select-sentence-section col-auto">
+			<label>
+				<span class="sentIndex2 sentence-index"></span>
+				<input th:if="${#strings.contains('GP', memberType)}" 
+					data-count="" type="checkbox" 
+					class="sentenceCheck2 option-input checkbox"/>
+			</label>
+		</div>
+		<!-- 예문 text -->
+		<div class="sentence-text-section col">
+			<div class="sentenceForm2 text-cover"></div>
+			<div th:if="${#strings.contains('GP', memberType)}" 
+				class="sentenceTrans2 trans-cover"></div>
+		</div>
+		<!-- 성우 선택 -->
+		<div class="actor-sentence-section col-auto">
+			<!-- 미선택 -->
+			<div th:if="${#strings.contains('GP', memberType)}" 
+				class="actorNoSelected voice-choice-section">
+				<button type="button" class="openChoiceActor btn btn-trans">
+					<i class="fa fa-user-plus"></i>
+				</button>
+			</div>
+			<!-- 선택 -->
+			<div class="actorSelected" th:style="${#strings.contains('GP', memberType)}?
+				'display: none;':''">
+				<div th:class="${#strings.contains('GP', memberType)}? 
+					'openChoiceActor':''">
+					<div class="actor-image-section">
+						<img src="/images/common/actors/Brian.jpg">
+					</div>
+					<div class="actor-name-section">Brian</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+</section><!-- end of content -->
+</html>

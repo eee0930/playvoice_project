@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/myteam_layout2}">
+
+<head>
+<title>My Journey - playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/myteam.css}">
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+});//end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+ 
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div class="myteam-top-cover mt-4 py-1">
+	<h3>
+		My travel location
+		<i class="fa fa-globe-americas fa-lg" style="color: #927fef;"></i><br>
+		<small>Check out your journey and carry out the missions</small>
+	</h3>
+</div>
+
+<!-- ---------------------------[1. Missions]------------------------------- -->
+<div id="myCityMissionsSection" class="my-city-mission-section"
+	th:with="tribeType='P'">
+	<!-- ------------------------[1.1 미션]----------------------------------- -->
+	<div id="cityMissionDiv" class="my-mission-cover">
+		<div class="myteam-top-cover">
+			<h3 class="row no-gutters">
+				<span class="col">
+				City Missions
+				<i class="fa fa-bell fa-fw fa-lg" style="color: #a31b1e;"></i><br>
+				<small>Check out your city missions</small>
+				</span>
+				<span class="col-auto align-self-end">
+					<button class="btn btn-sm about-btn" type="button">
+						도시 미션이란 <i class="fa fa-question-circle"></i>
+					</button>
+				</span>
+			</h3>
+		</div>
+		<div class="city-mission-list row no-gutters">
+			<div class="mission-card-section col-md-4">
+				<div class="mission-card d-flex align-content-between flex-wrap">
+					<div class="image-section">
+						<img src="/images/mission1.jpg">
+						<img th:class="'cha-' + ${tribeType} + '1 cha-position'" 
+							src="/images/app/member/profile_paper.png">
+					</div>
+					<div class="mission-detail">
+						<div class="front">당신은 크리스마스 축제에 참여하려고 합니다!!<br>
+						아이고, 근데 함께 즐길 친구들이 없네요! 친구를 초대해 볼까요?</div>
+						<div class="back"><i class="fa fa-arrow-right"></i>
+						마이팀 home에 있는 링크를 복사해 친구 3명 플레이보이스에 가입시키기</div>
+					</div>
+					<div class="success-rate">
+						Success Rate <span class="rate">98%</span>
+					</div>
+				</div>
+			</div>
+			<div class="mission-card-section col-md-4">
+				<div class="mission-card d-flex align-content-between flex-wrap">
+					<div class="image-section">
+						<img src="/images/mission2.jpg">
+						<img th:class="'cha-' + ${tribeType} + '0 cha-position'" 
+							src="/images/app/member/profile_paper.png">
+					</div>
+					<div class="mission-detail">
+						<div class="front">해외의 해변의 경치를 즐기고 있는 중이다.<br>
+						갑자기 어느 외국인이 다가와 말을 건다.
+						도대체 무슨 말을 하는지 모르겠다.</div>
+						<div class="back"><i class="fa fa-arrow-right"></i>
+						Stack English에 질문 15개, 답변 20개 달기</div>
+					</div>
+					<div class="success-rate">
+						Success Rate <span class="rate">95%</span>
+					</div>
+				</div>
+			</div>
+			<div class="mission-card-section col-md-4">
+				<div class="mission-card d-flex align-content-between flex-wrap">
+					<div class="image-section">
+						<img src="/images/mission3.jpg">
+						<img th:class="'cha-' + ${tribeType} + '2 cha-position'" 
+							src="/images/app/member/profile_paper.png">
+					</div>
+					<div class="mission-detail">
+						<div class="front">지나가던 현지 코미디언이 자신의 무대에 오를 것을 요청했슴다.<br> 
+						당신의 끼와 지식을 뽐낼 시간임다!
+						과연 관중들의 반응은!?</div>
+						<div class="back"><i class="fa fa-arrow-right"></i>
+						Digest에 글을 등록 후 추천 10개 받기</div>
+					</div>
+					<div class="success-rate">
+						Success Rate <span class="rate">82%</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of cityMissionDiv -->
+	
+	
+</div><!-- end of myCityMissionsSection -->
+
+<!-- -------------------------[2. Location Map]----------------------------- -->
+<div id="myLocationInfoSection" class="my-location-section">
+	<div id="myLocationDiv" class="my-location-cover">
+		<div class="myteam-top-cover">
+			<h3>
+				Location Information
+				<i class="fa fa-map-marked-alt fa-fw" style="color: #a31b1e;"></i><br>
+				<small>Check out your level location</small>
+			</h3>
+		</div>
+		
+		<div class="row no-gutters">
+			<div class="col-md-8">
+				<img src="/images/app/mypage/my_location_map.jpg" width="100%">
+			</div>
+			<div class="city-infomation col-md-4 pl-md-3">
+				<div>
+					<img src="/images/moldiv.jpg">
+				</div>
+				<div class="title">Maldives</div>
+				<div class="hello">“Assalaam Alaikum. Maruhabaa.”</div>
+				<div class="detail">
+					인도 남서쪽 인도양에 위치한 섬나라.<br>
+					천여 개의 작은 산호섬으로 이루어진 몰디브의 지리적 특성을 살려서, 
+					하나의 섬을 통째로 하나의 리조트로 개발하여 영업 중입니다.<br>
+					힘들게 달려온 당신, 몰디브에서 쉬었다 가세요!
+				</div>
+			</div>
+		</div>
+		
+	</div><!-- end of myLocationDiv -->
+	
+	
+</div><!-- end of myLocationInfoSection -->
+
+		
+	
+<div class="text-right" style="color:red;">
+	source :: myteam/mylocation.html	
+</div>
+</section>

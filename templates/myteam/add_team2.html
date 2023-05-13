@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/myteam_layout2}">
+<head>
+<title>My Trunk - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+<link rel="stylesheet" th:href="@{/css/app/myteam.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [검색 결과에서 멤버를 선택했을 때 선택한 멤버 퍼스나콘 표시]----------------------------------
+	$(document).on("click", ".result-item", function(){
+		var personacon = $(this).find(".personacon-profile").clone();
+		var checkbox = $(this).find(".selectMember");
+		var alias = $(this).find(".alias").text().replace(/ /gi, "");
+		if(checkbox.is(":checked") == false) {
+			personacon.appendTo(".selected-list");
+			// 선택 취소할 경우 삭제할 이미지를 선택할 때 별명을 선택자로 하기 위해
+			personacon.addClass("alias-" + alias);
+		} else {
+			var removePersonacon = $(".alias-" + alias).remove();
+		}
+		if($(".selectMember").length > 0) {
+			$("#addGuildBtn").prop("disabled", false);
+		} else {
+			$("#addGuildBtn").prop("disabled", true);
+		}
+	});
+});
+</script>
+
+</head>
+
+
+<section layout:fragment="content">
+<div class="row"><div class="col-lg-1"></div>
+
+<div class="col-lg-10">
+
+<div id="myTeamIndexSection" class="index-container mt-4">
+<!-- -------------------------[1. My Trunk List]---------------------------- -->
+<div class="add-trunk-section">
+<h3>
+	팀원 초대 <i class="fa fa-child"></i><br>
+	<small>초대를 통해 함께 여정과 미션을 헤쳐나갈 팀원들을 늘려보세요</small>
+</h3>
+<div class="add-trunk-form-section row no-gutters">
+	<!-- 1.1 친구 검색 후 추가 -->
+	<div class="col-md-6 pr-md-3">
+		<div id="searchMemberDiv">
+			<div th:replace="~{/incl/search_member2::search_member}"></div>
+		</div><!-- end of searchMemberDiv -->
+		
+	</div>
+	
+	<!-- 1.2 나의 turnk list -->
+	<div class="my-trunk-list-section col-md-6">
+		<h5><i class="fa fa-share-alt fa-fw" style="color: green;"></i> My trunk에서 팀원 초대하기</h5>
+		<div class="my-trunk-list-cover">
+			<div class="trunk-cover none">
+				<div>팀원으로 초대할 친구가 없습니다 <i class="far fa-sad-cry fa-lg"></i><br>
+				마이 팀 Home에 있는 링크로 친구에게 초대장을 보내거나 기존 멤버를 친구로 등록해 보세요.</div>
+				<div class="pt-2">
+					<button th:href="@{/myteam/trunk/add}" class="add-friend-button" 
+						onclick="location.href=$(this).attr('href')" type="button">
+						친구 추가 <i class="fa fa-child fa-lg"></i>
+					</button>
+				</div>
+			</div>
+			<div th:each="num: ${#numbers.sequence(1,8)}" class="trunk-cover row no-gutters">
+				<div class="personacon-section col-auto">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							th:style="'background: url(\'/images/app/profile/'+${num}+'.jpg\') no-repeat;
+							background-position: center; background-size: cover;'">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-G">
+					</div>
+				</div>
+				<div class="alias col align-self-center">별명[[${num}]]</div>
+				<div class="status col-auto align-self-center">
+					<i th:if="${num%3 == 0}" title="팀 소속" class="fa fa-rocket fa-fw"></i>
+					<button th:unless="${num%3 == 0}" class="btn add-trunk-btn" 
+						type="button">초대하기</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- 1.3 팀 초대 버튼 -->
+	<div id="addGuildBtnDiv" class="add-trunk-btn-div col-12" style="display: ;">
+		<!-- 선택한 멤버 사진 목록이 들어갈 자리 -->
+		<div class="selected-list"></div>
+		<button id="addGuildBtn" class="btn add-trunk-btn" type="button" 
+			disabled>팀원으로 초대하기</button>
+	</div><!-- end of addGuildBtnDiv -->
+</div>
+
+</div>
+
+</div>
+
+
+<div class="text-right" style="color: red;">
+	source :: /myteam/add_team.html
+</div>
+
+</div></div>
+</section>
+
+
+

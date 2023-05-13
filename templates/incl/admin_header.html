@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="header" class="header-shadow">
+	
+	<!--/*=================================================================*/-->
+	<!--/*  						PC ver main menu					   */-->
+	<!--/*=================================================================*/-->
+	<div class="header-color header-menulist d-none d-lg-block">
+		<div class="row no-gutters px-3">
+			<div class="col-lg-auto text-left align-self-center">
+				<span th:insert="~{/incl/playvoice_logo::logo-admin}">
+					logo is here
+				</span>
+			</div>
+			<!-- 1차 메뉴 -->
+			<div th:replace="~{/incl/main_menu::admin_menu}"></div>
+			
+			<!--/* 로그인 여부 */-->
+			<th:block th:replace="~{/incl/login_inheader::login}"></th:block>
+			
+		</div>
+	</div>
+	
+	<!--/*=================================================================*/-->
+	<!--/*  						PC ver app menu						   */-->
+	<!--/*=================================================================*/-->
+	<div id="playvoice_menu_section" style="display: none;">
+		<div class="container">
+			<div th:insert="~{/incl/app_menu::app_menu}"></div>
+		</div>
+	</div>
+	
+	
+	
+	<!--/*=================================================================*/-->
+	<!--/*  					tablet & mobile ver header				   */-->
+	<!--/*=================================================================*/-->
+	<div class="main-header d-lg-none">
+		<div class="row no-gutters py-1">
+			<!-- menu toggle button -->
+			<div class="col-2 px-2 text-center align-self-center">
+				<a id="menuOpenBtn">
+					<i lang="fa" class="fa fa-bars fa-2x"></i>
+				</a>
+			</div>
+			<div class="col-8 text-center align-self-center">
+				<span class="playvoice-logo" th:insert="~{/incl/playvoice_logo::logo-admin}">
+					logo is here
+				</span>
+			</div>
+		</div>
+		
+		<div onclick="history.back();" class="page_cover"></div>
+		<div th:replace="~{/incl/mobile_menu::mobile_menu}"></div>
+		
+	</div>
+	
+	<!-- <div class="text-right" style="color:red;">
+		source :: Playvoice/.../template/incl/admin_header.html	
+	</div> -->
+</div><!-- end of header -->
+
+</html>

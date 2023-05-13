@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout2}">
+<head>
+<title>SmallTalk - playvoice</title>
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, 
+	metaTitle = '첫만남에서 젠틀하게 보일 수 있는 방법 (미팅 성공률 99%) - 플레이보이스 (playvoice)', 
+	metaDescription = ${paraList[0].replaceAll('\\<[^>]*>','')}, 
+	metaImage = '/images/app/playsquare/square_index3.jpg', metaRegDate = null"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-lite.css" rel="stylesheet">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+
+<script th:src="@{/js/common.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-lite.js"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [스몰톡 상세보기 영역으로 스크롤 이동]-----------------------------------------------
+	var viewSmallTalkSection = $("#viewSmallTalkSection").offset().top - 60;
+    $('html, body').animate({scrollTop : viewSmallTalkSection}, 300);
+	
+    
+    
+	// [단어 뜻 등록 모달 열기]---------------------------------------------------------
+	$("#smallTalkArticleContentDiv").on("click", ".showWordFormModal", function(){
+		openWordMeaningModal($(this));
+		$("#wordMeaningModal .guide1").hide();
+		$("#wordMeaningModal .meaning-list").hide();
+	});
+	// [단어 선정 모달 열기]-----------------------------------------------------------
+	$("#smallTalkArticleContentDiv").on("click", ".showWordMeaningModal", function(){
+		openWordMeaningModal($(this));
+		$("#wordMeaningModal .guide2").hide();
+	});
+	// [단어 뜻 수정 모달 열기]---------------------------------------------------------
+	$("#smallTalkArticleContentDiv").on("click", ".showEditMeaningModal", function(){
+		openWordMeaningModal($(this));
+		$("#wordMeaningModal .guide1").hide();
+		$("#wordMeaningModal .meaning-list").hide();
+	});
+
+	// [단어 선정/ 뜻 등록 / 품사 수정 모달 닫기]--------------------------------------------
+	$(document).on("click", ".closeWordFormModal", function(){
+		$("html").removeClass("modalOpen");
+		$(".storyWordModal").fadeOut(200);
+	});
+	
+	// [단어 품사 수정 모달 열기]-------------------------------------------------------
+	$(".word-info-list-cover").on("click", ".showEditPartBtn", function(){
+		$("html").addClass("modalOpen");
+		$("#editPartModal").fadeIn(200);
+	});
+
+	// [스토리 담기 (for gold membership)]------------------------------------------
+	$(".addPlateBtn").click(function(){
+		$(this).addClass("active");
+		$(".heart-estimate-section .position-add-plate").remove();
+	});
+	
+	// [독해 힌트/ 왓슨 구문 분석 보기]---------------------------------------------------
+	$(".hintActiveBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var $paraArticleDiv = parentParaDiv.find(".paraArticleDiv");
+		var watsonHintDiv = parentParaDiv.find(".watsonHintDiv");
+		if($paraArticleDiv.is(".activeAll")) {
+			$paraArticleDiv.removeClass("activeAll");
+			watsonHintDiv.find(".paraWantsonAnalDiv").hide();
+			watsonHintDiv.slideUp(100, function(){
+				activeParaDiv($(this), false);
+			});
+		} else {
+			$(".paraArticleDiv").removeClass("activeAll");
+			$(".paraWantsonAnalDiv").hide();
+			$(".watsonHintDiv").slideUp(200);
+			$paraArticleDiv.addClass("activeAll");
+			watsonHintDiv.show();
+			activeParaDiv($(this), true);
+		}
+	});
+	// [왓슨 가이드 펼치기]-----------------------------------------------------------
+	$(".watsonInfoBtn").click(function(){
+		$(this).closest(".watsonHintDiv").find(".hintGuideDiv").toggle(100);
+	});
+	// [왓슨 구문분석 열기]-----------------------------------------------------------
+	$(".watson-title").click(function(){
+		$(this).closest(".watsonHintDiv").find(".paraWantsonAnalDiv").toggle(100);
+	});
+	// [번역, 왓슨 힌트 창 닫기]--------------------------------------------------------
+	$(".closeDivBtn").click(function(){
+		$(this).parent().slideUp(200, function(){
+			activeParaDiv($(this), false);
+		});
+	});
+	
+	
+	// [단어장 보기]----------------------------------------------------------------
+	var paraWordIndex = 0;
+	$(".showPharaWordBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var paraWordList = parentParaDiv.find(".paraWordDiv").children().clone();
+		$(".showPharaWordBtn").removeClass("active");
+		
+		if(parseInt(paraWordList.find(".paraWordsCount").val()) == paraWordIndex) {
+			$(".vocaListDiv").hide(200, function(){
+				activeParaDiv($(this), false);
+			});
+			paraWordIndex = 0;
+		} else {
+			activeParaDiv($(this));
+			$(".vocaListDiv").show(200); // 단어장 영역 열기
+			$(".vocaListDiv .paraWords").remove(); // 단어장에 있던 단어들 지우기
+			paraWordIndex = parseInt($(this).attr("data-paraWordIndex"));
+			paraWordList.appendTo(".word-info-list-cover");
+			$(this).addClass("active");
+			$(".vocaListDiv").find(".wordNum").text(paraWordIndex);
+			
+			$(window).trigger("scroll");
+			
+			// 단어 영역 최대 높이 정의 
+			// (단어장 높이가 아티클 크기보다 크면 단어장이 아티클 영역을 벗어나기 때문에, 
+			// 단어장이 열리면 아티클 높이가 변하기 떄문에 단어장을 열때 아티클 길이를 잰다)
+		    var smallTalkArticleHeight = $(".smalltalk-article-section").height();
+		    $(".article-words-cover").css("max-height", smallTalkArticleHeight);
+		}
+	});
+	// [단어장 닫기 (Mobile ver.)]--------------------------------------------------
+	$(".closeVocaListBtn").click(function(){
+		$(".vocaListDiv").hide(200, function(){
+			activeParaDiv($('.paragraph-article-section.active'), false);
+		});
+		$(".showPharaWordBtn").removeClass("active");
+		paraWordIndex = 0;
+	});
+	// [단어 전체 선택 (체크박스)]------------------------------------------------------
+	/* $("#checkAllVoca").change(function(){
+		$(".vocaListDiv").find(".word-info-cover .checkbox")
+						 .prop("checked", $(this).is(":checked"));
+	}); */
+	// [단어장 넓이 조정 (Mobile ver.)]-----------------------------------------------
+	$(".expandVocaListBtn").click(function(){
+		$(this).closest(".article-words-cover").addClass("wide");
+		$(this).hide();
+		$(".compressVocaListBtn").show();
+	});
+	$(".compressVocaListBtn").click(function(){
+		$(this).closest(".article-words-cover").removeClass("wide");
+		$(this).hide();
+		$(".expandVocaListBtn").show();
+	});
+	
+	// [스터디 버튼 눌렀을 때 해당 버튼이 있는 문단의 단어 띄어주기]---------------------------------
+	$(".studyParaSectionBtn").click(function(){
+		var parentSection = $(this).closest(".paragraph-article-div");
+		var paraWordsCount = parentSection.find(".paraWordDiv .paraWordsCount").val();
+		if(paraWordIndex != 0 && paraWordsCount != paraWordIndex) {
+			$(this).siblings(".showPharaWordBtn").click();
+		} else {
+			return;
+		}
+	});
+	
+
+	// [아티클 번역 보기]-------------------------------------------------------------
+	$(".showTransBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var paraTransDiv = parentParaDiv.find(".paraTransDiv");
+		
+		if(paraTransDiv.is(":visible")) {
+			paraTransDiv.slideUp(200, function(){
+				activeParaDiv($(this), false);
+			});
+		} else {
+			$(".paraTransDiv").slideUp(200);
+			paraTransDiv.slideDown(200);
+			activeParaDiv($(this), true);
+		}
+	});
+	
+	// [아티클 직접 번역 폼 열기]--------------------------------------------------------
+	$(".showTransFormBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var transForm = parentParaDiv.find(".memberTransFormDiv");
+		if(transForm.is(":visible")) {
+			transForm.slideUp(200, function(){
+				activeParaDiv($(this), false);
+			});
+		} else {
+			$(".memberTransFormDiv").slideUp(200);
+			transForm.slideDown(200);
+			activeParaDiv($(this), true);
+		}
+	});
+	// [아티클 직접 번역 폼 닫기]--------------------------------------------------------
+	$(".cancelMemberTransBtn").click(function(){
+		$(this).closest(".memberTransFormDiv").slideUp(200);
+	});
+	
+	// [문단 수정 폼 열기]------------------------------------------------------------
+	$(".showEditParaBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var paraTextDiv = parentParaDiv.find(".paraArticleDiv");
+		var editFormArea = parentParaDiv.find(".editParaDiv"); // 에디터 들어갈 영역
+		if(editFormArea.find("#editParaFormDiv").is(":visible")) {
+			parentParaDiv.find(".cancleEditBtn").click(); // 수정 버튼 토글
+		} else {
+			var paraHtml = paraTextDiv.find("pre").html(); // 수정 할 글 복사
+			parentParaDiv.find(".editParaSection").show();
+			paraTextDiv.hide();
+			var form = $("#editParaFormDiv").clone();
+			form.appendTo(editFormArea);
+			form.find(".note-editable").html(paraHtml);
+		}
+	});
+	// [문단 수정 취소]--------------------------------------------------------------
+	$(".paragraph-article-div").on("click", ".cancleEditBtn", function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		parentParaDiv.find(".paraArticleDiv").show();
+		parentParaDiv.find("#editParaFormDiv").remove();
+		parentParaDiv.find(".editParaSection").hide();
+	});
+	
+	
+	// [코멘트 불러오기]-------------------------------------------------------------
+	$(document).on("click", "#openCommentBtn", function(){
+		if($("#smallTalkCommentSection").is(":visible")) {
+			$("#smallTalkCommentSection").slideUp(100);
+		} else {
+			$("#smallTalkCommentSection").slideDown(100);
+		}
+	});
+	
+	// [아티클 추천하기]-------------------------------------------------------------
+	$(".heart").on("click", function() {
+		$(this).toggleClass("heart-blast");
+	});
+	
+	
+}); //end of ready
+
+/**
+ * 단어장 스크롤 역역 지정 (PC ver.)
+ */
+$(window).scroll(function() {
+	// 단어장을 스몰톡 아티클 영역 안에서만 움직이게 하기 (PC ver.)
+    if($(window).width() > 991){
+		var navbarHeight = $("#headerNavbar").height();
+		var windowHeight = $(window).height();
+	    
+		var articleTop = $(".smalltalk-article-section").offset().top;
+		var articleHeight = $(".smalltalk-article-section").height();
+		var articleLastTop = articleTop + articleHeight - windowHeight + navbarHeight;
+		
+		var wordListMargin = windowHeight - navbarHeight - $(".para-words-position").height();
+	    
+		if (articleTop > window.scrollY + navbarHeight + wordListMargin) {
+			$(".para-words-position").removeClass("bottomFix")
+									 .addClass("topFix"); // 아티클 상단에 맞춤
+		} else if (window.scrollY < articleLastTop) {
+			$(".para-words-position").removeClass("topFix bottomFix");	// 화면에 고정
+		} else {
+			$(".para-words-position").removeClass("topFix")
+									 .addClass("bottomFix"); // 아티클 하단에 맞춤
+		}
+    } else {
+    	$(".para-words-position").removeClass("topFix bottomFix");
+    }
+    
+});
+
+
+/**
+ * 문단 학습 버튼 클릭 시 문단 active or 해제
+ */
+function activeParaDiv(obj, enable) {
+	var $parent = $(obj).is('.paragraph-article-section')
+				? $(obj) : $(obj).closest(".paragraph-article-section");
+	$(".paragraph-article-section").not($parent).removeClass("active");
+	if(enable){
+		$parent.addClass("active");
+	}else if ($parent.find('.closeDivBtn:visible,.memberTransFormDiv:visible').length == 0){
+		$parent.removeClass("active");
+	}
+}
+
+/**
+ * 단어 등록/ 선택 창 띄우기
+ */
+function openWordMeaningModal(obj) {
+	$("#wordMeaningModal .word-modal-guide").show();
+	$("#wordMeaningModal .meaning-list").show();
+	$("html").addClass("modalOpen"); // 모달 뒤쪽 화면 정지
+
+	var word = $(obj).closest(".word-info-cover").find(".word-eng").text();
+	$("#wordMeaningModal").find(".word-title").text(word);
+	var partType = $(obj).closest(".word-info-cover").find(".badge").text();
+	if(partType == 'n') {
+		partType = '명사';
+	} else if (partType == 'v') {
+		partType = '동사';
+	} else if (partType == 'adv') {
+		partType = '부사';
+	} else if (partType == 'adj') {
+		partType = '형용사';
+	}
+	$("#wordMeaningModal").find(".part-type").text(partType);
+	
+	$("#wordMeaningModal").fadeIn(200);
+}
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<div id="contentSection">
+<!-- -------------------------[1. 스몰톡 소개/ 메뉴]----------------------------- -->
+<div id="introductionSection" class="introduction-section talktive mt-4">
+	<h3><span class="pv-tm">SmallTalk</span></h3>
+	<div class="sub">Share interesting stories and enjoy reading them.</div>
+</div>
+<div th:insert="~{/square/smalltalk/incl/smalltalk_top_menu2::menu}"></div>
+
+<!-- ---------------------------[2. 스몰톡 상세보기]----------------------------- -->
+<div id="viewSmallTalkSection" class="mt-4" style="position: relative;">
+<div class="view-smalltalk-article-section" th:with="alias='옴냥냥이힝'">
+	<!-- -----------------------[2.1 아티클 타이틀 영역]--------------------------- -->
+	<div id="smallTalkTitleDiv" class="article-content-section">
+		<!-- 제목/카테고리 -->
+		<div class="smalltalk-writer-info-section row no-gutters"><div class="col"></div>
+			<div class="story-title text-center col-auto">
+				<i class="fa fa-quote-left"></i>
+				첫만남에서 젠틀하게 보일 수 있는 방법 (미팅 성공률 99%)
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="col text-right"><div class="d-none d-md-inline-block">
+				<button th:if="${#strings.contains('PG', (memberType))}" 
+					class="addPlateBtn add-plate-button" type="button">
+					<i class="fa fa-bookmark"></i>
+					<div class="add-plate-guide">스토리 보관함에 담기</div>
+				</button>
+				
+				<button th:unless="${#strings.contains('PG', (memberType))}" 
+					class="add-plate-button disabled" disabled type="button">
+					<i class="fa fa-bookmark"></i>
+					<div class="add-plate-guide">플레이보이스 전체 통합 앱의 골드회원 전용 저장 서비스입니다</div>
+				</button>
+			</div></div>
+		</div>
+		<!-- 작성자 정보 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="category col-md col-12">
+				<i class="fa fa-bars"></i>
+				관계 (사랑, 우정, 동성 연예, 데이트)
+			</div>
+			<div class="date col-auto col text-right align-self-center">2019-12-30</div>
+			<div class="like col-auto pl-3 align-self-center">
+				<i class="fa fa-heart" title="좋아요"></i> 12
+			</div>
+			<div class="hits col-md-auto col pl-3 align-self-center">
+				<i class="fa fa-paw" title="조회수"></i> 123
+			</div>
+			<div class="etc col-auto btn-group align-self-center">
+				<a class="dropdown-toggle ml-3" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+				    <li class="dropdown-item text-center">삭제</li>
+				    <li class="openReportModal dropdown-item text-center">신고</li>
+				</ul>
+			</div>
+		</div>
+	</div><!-- end of smallTalkTitleDiv -->
+	
+	<!-- ----------------------[2.2 단어/ 아티클 본문 영역]------------------------ -->
+	<div id="smallTalkArticleContentDiv" class="smalltalk-article-content-div row no-gutters">
+		<div class="closeVocaListBtn vocaListBack smalltalk-playvoca-back-position"></div>
+		<!-- ---------------------------단어 리스트----------------------------- -->
+		<div class="vocaListDiv smalltalk-playvoca-section list col-lg-auto col-12" 
+			style="display: none;">
+			<div class="para-words-position"><div class="article-words-cover">
+				<div class="wordNum">1</div>
+				<!-- 단어 저장 가이드 -->
+				<!-- <div class="word-list-guide-section">
+					※ 기억하고 싶은 단어는 선택 후 저장해 보세요
+				</div> -->
+				<!-- 단락 단어 붙여넣기 되는 영역 -->
+				<div class="word-info-list-cover"></div>
+				<!-- 단어장 크기 조절, 단어장 닫기 버튼(Mobile ver.) -->
+				<div class="word-list-button-section row no-gutters">
+					<!-- <div class="col-auto px-2 align-self-center">
+						<input id="checkAllVoca" type="checkbox" class="option-input checkbox"/>
+					</div>
+					<div class="col align-self-center">
+						<button class="btn btn-sm btn-smalltalk">
+							선택한 단어 저장 <i class="fa fa-check fa-fw"></i>
+						</button>
+					</div> -->
+					<div class="col"></div>
+					<div class="wide-section col-auto align-self-center d-lg-none">
+						<i class="expandVocaListBtn fa fa-expand-arrows-alt"></i>
+						<i class="compressVocaListBtn fa fa-compress-arrows-alt" style="display: none;"></i>
+					</div>
+					<div class="close-section col-auto align-self-center d-lg-none">
+						<i class="closeVocaListBtn fa fa-times"></i>
+					</div>
+				</div>
+			</div></div>
+		</div>
+		
+		
+		<!-- -------------------------스토리 아티클 영역-------------------------- -->
+		<div class="article-content-section section-body col-lg">
+		<div class="smalltalk-article-section">
+			<!-- 퍼스나콘 스탬프 -->
+			<div class="member-personacon-stamp-position">
+				<div class="member-personacon-stamp">
+					<div class="member-alias">[[${alias}]]</div>
+					<img src="/images/app/playsquare/article_stamp_frame.png" 
+						class="member-frame">
+				</div>
+			</div>
+			
+			<!-- -------------------스토리 아티클 문단 시작------------------------- -->
+			<div th:each="para, iter : ${paraList}" class="paragraph-article-section">
+			<div class="paragraph-article-div">
+				<!-- 본문 문단 -->
+				<div class="paraArticleDiv para-article-div article-default-font-style eng">
+					<div class="hint-label-guide">
+						<div class="hint-label">
+							<span class="empVerb">메인 동사</span>
+							<span class="empMod-f">수식어</span>
+							<span class="empAdv">비수식어</span>
+						</div>
+					</div>
+					<pre th:utext="${para}"></pre>
+					<div class="wordMark"></div>
+				</div>
+				<!-- 수정 에디터 들어갈 부분 -->
+				<div class="editParaSection para-article-div article-default-font-style 
+					eng activeAll" style="display: none;">
+					<div class="editParaDiv form-group"></div>
+					<div class="form-group">
+						<div class="add-button-section text-center">
+							<button type="reset" class="cancleEditBtn btn btn-playsquare2 mr-3">취소</button>
+							<button type="button" class="editParaBtn btn btn-smalltalk2">수정</button>
+						</div>
+					</div>	
+				</div>
+				
+				<th:block th:if="${!#strings.isEmpty(transList[iter.index])}">
+				<!-- 학습 버튼 -->
+				<div class="study-button-section row no-gutters">
+					<div class="study-button-cover col-auto ml-auto">
+						<button class="hintActiveBtn studyParaSectionBtn 
+							btn btn-sm btn-hint" type="button">
+							<i class="fa fa-search fa-fw"></i>
+							<div class="button-guide">독해 힌트 보기</div>
+						</button>
+						<button class="showPharaWordBtn btn btn-sm btn-pharaword"
+							type="button" th:data-paraWordIndex="${iter.count}">
+							<span>W</span>
+							<div class="button-guide">단어 보기</div>
+						</button>
+						<button class="showTransBtn studyParaSectionBtn 
+							btn btn-sm btn-trans" type="button">
+							<i class="fa fa-list-alt fa-fw"></i>
+							<div class="button-guide">번역 보기</div>
+						</button>
+						<button class="showTransFormBtn studyParaSectionBtn 
+							btn btn-sm btn-trans-form" type="button">
+							<i class="fa fa-pencil-alt fa-fw"></i>
+							<div class="button-guide">나도 번역해 보기</div>
+						</button>
+						<button class="showEditParaBtn btn btn-sm btn-edit" type="button">
+							<i class="fa fa-edit fa-fw"></i>
+							<div class="button-guide">문단 수정하기</div>
+						</button>
+					</div>
+				</div>
+				
+				<!-- 왓슨 구문 분석 -->
+				<div class="watsonHintDiv para-article-div activeWatson 
+					article-default-font-style eng" style="display: none;">
+					<div class="watson-title">
+						<span><i class="fa fa-search fa-fw"></i></span>
+						<span>Mr. Watson의 구문 분석</span>
+					</div>
+					<div class="paraWantsonAnalDiv para-translation-div" style="display: none;">
+						<i class="fa fa-times float-right closeDivBtn"></i>
+						<i class="watson-btn fa fa-question-circle float-right watsonInfoBtn"></i>
+						<div class="hintGuideDiv hint-guide" style="display: none;">
+							<div>Watson의 구문 분석은 참고 용도로만 이용하세요</div>
+							<ul>
+								<li>Watson은 하나의 문장을 
+									<span class="subject-role">Subject</span>, 
+									<span class="action-role">Action</span>, 
+									<span class="object-role">Object</span>
+									영역으로 나누어 분석합니다.</li>
+								<li>이 세 영역은 입시 문법에서 말하는 '주어/동사/목적어' 와 완전히 동일한 의미로 볼 수 없습니다.</li>
+								<li>문장 파싱(parse) 과정에서 Watson은 적절하지 않은 단어를 제시하기도 합니다.</li>
+							</ul>
+						</div>
+						<pre th:utext="${para}"></pre>
+					</div>
+				</div>
+				<!-- 단어 -->
+				<div class="paraWordDiv" style="display: none;"><div class="paraWords para-words-section row no-gutters">
+					<input type="hidden" class="paraWordsCount" th:value="${iter.count}"/>
+					<div class="none-prime word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">gentleman</span>
+								<label class="showEditPartBtn badge badge-success badge-pill">n</label>
+								<a class="voice-icon"><i class="fa fa-volume-up"></i></a>
+							</div>
+							<div class="showWordMeaningModal check-icon col-auto align-self-center">
+								<i class="fa fa-question-circle fa-fw"></i>
+								<div class="guide-msg">대표 뜻 선정하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordMeaningModal word-kor col">젠틀 맨</div>
+							<div class="showEditMeaningModal check-icon col-auto align-self-center">
+								<i class="fa fa-edit fa-fw"></i>
+								<div class="guide-msg">단어 뜻 수정하기</div>
+							</div>
+						</div>
+					</div>
+					<div class="none-mean word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">manner</span>
+								<label class="showEditPartBtn badge badge-primary badge-pill">adv</label>
+							</div>
+							<div class="showWordFormModal check-icon col-auto align-self-center">
+								<img src="/images/common/icon/coins.png">
+								<div class="guide-msg">단어 뜻 작성하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordFormModal word-kor col">단어 뜻을 등록해 주세요</div>
+						</div>
+					</div>
+					<div class="none-mean word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">mainly</span>
+								<label class="showEditPartBtn badge badge-warning badge-pill">adj</label>
+							</div>
+							<div class="showWordFormModal check-icon col-auto align-self-center">
+								<img src="/images/common/icon/coins.png">
+								<div class="guide-msg">단어 뜻 작성하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordFormModal word-kor col">단어 뜻을 등록해 주세요</div>
+						</div>
+					</div>
+					<div class="none-prime word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">conversation</span>
+								<label class="showEditPartBtn badge badge-danger badge-pill">v</label>
+								<a class="voice-icon"><i class="fa fa-volume-up"></i></a>
+							</div>
+							<div class="showWordMeaningModal check-icon col-auto align-self-center">
+								<i class="fa fa-question-circle fa-fw"></i>
+								<div class="guide-msg">대표 뜻 선정하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordMeaningModal word-kor col">대화</div>
+						</div>
+					</div>
+					<div class="none-prime word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">gentleman</span>
+								<label class="showEditPartBtn badge badge-success badge-pill">n</label>
+								<a class="voice-icon"><i class="fa fa-volume-up"></i></a>
+							</div>
+							<div class="showWordMeaningModal check-icon col-auto align-self-center">
+								<i class="fa fa-question-circle fa-fw"></i>
+								<div class="guide-msg">대표 뜻 선정하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordMeaningModal word-kor col">젠틀 맨</div>
+						</div>
+					</div>
+					<div class="none-mean word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">manner</span>
+								<label class="showEditPartBtn badge badge-primary badge-pill">adv</label>
+							</div>
+							<div class="showWordFormModal check-icon col-auto align-self-center">
+								<img src="/images/common/icon/coins.png">
+								<div class="guide-msg">단어 뜻 작성하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordFormModal word-kor col">단어 뜻을 등록해 주세요</div>
+						</div>
+					</div>
+					<div class="none-mean word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">mainly</span>
+								<label class="showEditPartBtn badge badge-warning badge-pill">adj</label>
+							</div>
+							<div class="showWordFormModal check-icon col-auto align-self-center">
+								<img src="/images/common/icon/coins.png">
+								<div class="guide-msg">단어 뜻 작성하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordFormModal word-kor col">단어 뜻을 등록해 주세요</div>
+						</div>
+					</div>
+					<div class="none-prime word-info-cover col-lg-12 col-md-6 col-12">
+						<div class="row no-gutters">
+							<div class="col align-self-center">
+								<span class="word-eng">conversation</span>
+								<label class="showEditPartBtn badge badge-danger badge-pill">v</label>
+								<a class="voice-icon"><i class="fa fa-volume-up"></i></a>
+							</div>
+							<div class="showWordMeaningModal check-icon col-auto align-self-center">
+								<i class="fa fa-question-circle fa-fw"></i>
+								<div class="guide-msg">대표 뜻 선정하기</div>
+							</div>
+						</div>
+						<div class="row no-gutters">
+							<div class="showWordMeaningModal word-kor col">대화</div>
+						</div>
+					</div>
+				</div></div>
+				<!-- 직접 번역 폼 -->
+				<div class="memberTransFormDiv member-trans-section" style="display: none;">
+					<form>
+					<div>
+						<textarea class="form-control playvoice-form"
+							placeholder="힌트를 보면서 번역을 해 보세요. 직접 글로 써보는 것이 독해 능력을 기르는 데 큰 효과가 있습니다."></textarea>
+					</div>
+					<div class="row no-gutters"><div class="col-sm d-none d-sm-inline-block"></div>
+						<div class="button-section col-sm-auto col-6">
+							<button class="cancelMemberTransBtn btn btn-playsquare2 btn-sm" 
+								type="reset">나중에 할래</button>
+						</div>
+						<div class="button-section col-sm-auto col-6">
+							<button class="addMemberTransBtn btn btn-smalltalk2 btn-sm" 
+								type="button">번역 완료 <i class="fa fa-glass-martini-alt"></i></button>
+						</div>
+					</div>
+					</form>
+				</div>
+				<div class="memberTransFormDiv member-trans-section" style="display: none;">
+					<div class="form-control playvoice-form loginRequired jsAction">
+						로그인 후 직접 번역해 보세요. 
+					</div>
+				</div>
+				
+				<!-- 번역 리스트 -->
+				<div class="paraTransDiv trans-list-section" style="display: none;">
+					<i class="fa fa-times float-right closeDivBtn"></i>
+					<!-- 다른 멤버들 번역 목록 -->
+					<div th:insert="~{/square/smalltalk/list_translations2::list}"></div>
+				</div>
+				</th:block>
+			</div></div>
+			
+		</div>
+		</div>
+	</div><!-- end of smallTalkArticleContentDiv -->
+	
+	
+	<!-- -------------------------[2.3 아티클 버튼 영역]-------------------------- -->
+	<div id="smallTalkButtonsDiv">
+		<!-- -----------------댓글, 추천 버튼 / 작성자 정보-------------------------- -->
+		<div class="article-content-section">
+			<div class="smalltalk-estimate-section row no-gutters">
+				<!-- 댓글 버튼 -->
+				<div class="col align-self-center">
+					<button id="openCommentBtn" class="btn btn-sm btn-playsquare" type="button">
+						<i class="fa fa-comment-dots fa-fw"></i>
+						댓글 <span class="badge badge-secondary badge-pill">13</span>
+					</button>
+				</div>
+				<!-- 추천 버튼 -->
+				<div class="heart-estimate-section col-auto align-self-center">
+					<div class="heart">추천</div>
+				</div>
+				<!-- 담기 버튼 (Mobile ver.) -->
+				<div class="col align-self-center text-right d-md-none">
+					<button th:if="${#strings.contains('PG', (memberType))}" 
+						class="addPlateBtn add-plate-button" type="button">
+						<i class="fa fa-bookmark"></i>
+						<div class="add-plate-guide">스토리 보관함에 담기</div>
+					</button>
+					<button th:unless="${#strings.contains('PG', (memberType))}" 
+						class="add-plate-button disabled" disabled type="button">
+						<i class="fa fa-bookmark"></i>
+						<div class="add-plate-guide">플레이보이스 전체 통합 앱의 골드회원 전용 저장 서비스입니다</div>
+					</button>
+				</div>
+				<!-- 작성자 정보 -->
+				<div class="col-md col-12 align-self-center row no-gutters">
+					<div class="writer-alias col text-right align-self-center" 
+						th:text="${alias}"></div>
+					<div class="col-auto align-self-center" 
+						th:insert="~{/incl/user_personacon::md_test}"></div>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of smallTalkButtonsDiv -->
+	
+	<!-- --------------------------[2.4 광고/ 댓글 영역]------------------------- -->
+	<div id="smallTalkCommnetDiv" class="row no-gutters">
+		<div class="col-lg-3" style="display: none;"></div>
+		<div class="article-content-section col-lg">
+			<!-- 댓글 -->
+			<div id="smallTalkCommentSection" th:insert="~{/common/comment2::comment}" 
+				class="smalltalk-article-comment-section" style="display: none;"></div>
+		</div>
+	</div><!-- end of smallTalkCommnetDiv -->
+</div>
+</div><!-- end of viewSmallTalkSection -->
+
+
+<!-- --------------------------[3 스몰톡 스토리가 없는 경우]------------------------- -->
+<div id="viewNoneSmallTalkSection" class="view-smalltalk-empty-section mt-4">
+<div class="view-smalltalk-article-section">
+	<!-- -------------------------[3.1 아티클 타이틀 영역]------------------------- -->
+	<div id="smallTalkTitleDiv" class="article-content-section">
+		<!-- 제목/카테고리 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="col"></div>
+			<div class="story-title text-center col-auto">
+				<i class="fa fa-quote-left"></i>
+				존재하지 않는 스토리입니다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="col text-right"><div class="d-none d-md-inline-block">
+				<button class="add-plate-button disabled" disabled type="button">
+					<i class="fa fa-bookmark"></i>
+				</button>
+			</div></div>
+		</div>
+		<!-- 작성자 정보 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="category col-md col-12">
+				<i class="fa fa-bars"></i> smalltalk
+			</div>
+			<div class="likeCount like col-auto align-self-center">
+				<i class="fa fa-heart" title="좋아요"></i>
+			</div>
+			<div class="hits col-md-auto col pl-3 align-self-center">
+				<i class="fa fa-paw" title="조회수"></i>
+			</div>
+			<div class="etc col-auto btn-group align-self-center">
+				<span class="ml-3"><i class="fa fa-ellipsis-h fa-lg fa-fw"></i></span>
+			</div>
+		</div>
+	</div><!-- end of smallTalkTitleDiv -->
+
+	<!-- ------------------------[3.2 아티클 본문 영역]--------------------------- -->
+	<div id="smallTalkArticleContentDiv" class="smalltalk-article-content-div row no-gutters">
+		<!-- ------------------------[스토리 아티클 영역]------------------------- -->
+		<div class="article-content-section section-body pb-3 col-lg">
+			<div class="smalltalk-article-section">
+				<div class="paragraph-article-section"><div class="paragraph-article-div">
+					<!-- 본문 문단 -->
+					<div class="para-article-div none-report">
+						<div class="text-center">
+							<img src="/images/common/characters/robots.png"
+								class="robot-image" alt="플레이보이스">
+						</div>
+						<div class="none-report-text">
+							<b>해당 스토리가 존재하지 않습니다.</b><br><br>
+							관심 있는 주제의 영어 글을 가져와서 로봇들과 함께 스토리를 작성해 보는 건 어떤가요?
+						</div>
+					</div>
+				</div></div>
+			</div>
+		</div>
+	</div><!-- end of smallTalkArticleContentDiv -->
+</div></div><!-- end of viewNoneSmallTalkSection -->
+
+
+<!-- ----------------------------[4. 스토리 리스트]----------------------------- -->
+<div th:replace="~{/square/smalltalk/incl/list_stories_incl2::list}"></div>
+
+<div class="story-word-guide-position"></div>
+
+<!-- -----------------------------[스몰톡 단어 모달]----------------------------- -->
+<div id="wordMeaningModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="word-meaning-modal">
+		<div class="word-title"></div>
+		<div class="word-modal-guide guide1">
+			<b>이 지문에서 가장 알맞은 뜻</b>을 선택해 주세요.<br>
+			없다면 단어의 <b>품사</b>를 고려하여 <b>뜻 하나</b>를 등록해 주세요
+			<i class="far fa-grin-alt"></i>
+		</div>
+		<div class="word-modal-guide guide2">
+			이 지문에서 사용된 단어의 <b>품사</b>를 고려하여<br><b>가장 알맞은 뜻 하나</b>를 등록해 주세요
+			<i class="far fa-grin-alt"></i>
+		</div>
+		<div class="meaning-list row no-gutters">
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio"/> 단어 뜻1
+			</label>
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio"/> 단어 뜻2
+			</label>
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio"/> 단어 뜻3
+			</label>
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio"/> 단어 뜻4
+			</label>
+		</div>
+		<div class="add-meading-form">
+			<div class="row no-gutters">
+				<div class="part-type col-auto align-self-center"></div>
+				<div class="col align-self-center">
+					<input type="text" class="form-control playvoice-form"
+						placeholder="단어 의미를 입력해 주세요"/>
+				</div>
+			</div>
+			<div class="button-section pt-2 text-center">
+				<button class="closeWordFormModal btn btn-sm btn-playsquare2"
+					type="button">취소</button>
+				<button class="btn btn-sm btn-smalltalk2" type="button">등록</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- ----------------------------[단어 품사 변경 모달]----------------------------- -->
+<div id="editPartModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="word-part-modal">
+		<div class="guide">지문에 알맞은 품사를 선택하여 수정해 주세요</div>
+		<div class="part-cover">
+			<label><input type="radio" name="part" value="" class="option-input radio"/>
+				동사 <span class="badge badge-danger badge-pill">v</span>
+			</label><br>
+			<label><input type="radio" name="part" value="" class="option-input radio"/> 
+				명사 <span class="badge badge-success badge-pill">n</span>
+			</label><br>
+			<label><input type="radio" name="part" value="" class="option-input radio"/> 
+				형용사 <span class="badge badge-primary badge-pill">adj</span>
+			</label><br>
+			<label><input type="radio" name="part" value="" class="option-input radio"/> 
+				부사 <span class="badge badge-warning badge-pill">adv</span>
+			</label>
+		</div>
+		<div class="button-section">
+			<button class="closeWordFormModal btn btn-sm btn-playsquare2"
+				type="button">취소</button>
+			<button class="btn btn-sm btn-smalltalk2" type="button">수정</button>
+		</div>
+	</div>
+</div>
+<!-- -------------------------------[확인창 모달]------------------------------- -->
+<div id="confirmModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="story-confirm-modal">
+		<div>뜻이 등록 되었습니다.</div>
+		<div class="button-section">
+			<button class="closeWordFormModal btn btn-sm btn-smalltalk2" 
+				type="button">확인</button>
+		</div>
+	</div>
+</div>
+
+<div style="display: none;">
+<div id="editParaFormDiv">
+	<div id="summernote" class="form-control"></div>
+	<script>
+	$('#summernote').summernote({
+		tabsize: 2,
+		height: 300
+	});
+	</script>
+</div>
+</div>
+
+
+</div>
+</section>

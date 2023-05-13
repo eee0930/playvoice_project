@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="search_member">
+<script>
+$(document).ready(function(){
+	// [멤버 검색]-----------------------------------------------------------------
+	$("#searchMemberBtn").click(function(){
+		$(".result-search-member-list").show();
+	});
+	
+	// [검색 결과 클릭 시 선택 효과 주기]---------------------------------------------------
+	$(document).on("click", ".result-item", function(){
+		var activeItem = $(this).attr("class");
+		var checkbox = $(this).closest(".result-item").find(".selectMember");
+		if(activeItem.indexOf('active') == -1) {
+			$(this).addClass("active");
+			checkbox.prop("checked", true);
+		} else {
+			$(this).removeClass("active");
+			checkbox.prop("checked", false);
+		}
+	});
+})
+
+</script>	
+
+<!-- -----------------------------[멤버 검색 폼]-------------------------------- -->	
+<div id="searchMemberFormDiv" class="search-member-form-section search-divide-div">
+<h3><i class="fa fa-search"></i> Searching for Playvoice members</h3>
+<form class="">
+	<div class="search-member-form row no-gutters">
+		<div class="col">
+			<input type="text" placeholder="찾으려는 대상의 별명 입력" 
+				class="search-member-text form-control"/>
+		</div>
+		<div class="col-auto">
+			<button id="searchMemberBtn" class="btn search-btn" type="button">
+				search <i class="fa fa-search"></i>
+			</button>
+		</div>
+	</div>
+	
+</form>	
+</div><!-- end of searchMemberFormDiv -->
+
+<!-- -----------------------------[멤버 검색 결과]------------------------------- -->	
+<div id="resultSearchMemberDiv" class="result-search-member-section search-divide-div">
+	<!-- 검색 결과 -->
+	<div class="result-search-member-list" style="display: none;">
+		<div class="result-title"><i class="fa fa-ellipsis-v"></i> search results</div>
+		
+		<div class="search-list-cover">
+			<div class="result-item row no-gutters">
+				<div class="personacon-section col-auto">
+					<div th:replace="~{/incl/user_personacon::md_test}"></div>
+				</div>
+				<div class="alias col align-self-center">lazyhysong</div>
+				<div class="checkbox-section col-auto text-right align-self-center">
+					<input class="selectMember select-member-check option-input checkbox" 
+						type="checkbox"/>
+				</div>
+			</div>
+			
+			<div class="result-item row no-gutters">
+				<div class="personacon-section col-auto">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile profile-default">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-S">
+					</div>
+				</div>
+				<div class="alias col align-self-center">눈누 난나</div>
+				<div class="checkbox-section col-auto text-right align-self-center">
+					<input class="selectMember select-member-check option-input checkbox" 
+						type="checkbox"/>
+				</div>
+			</div>
+			
+			<div class="result-item row no-gutters">
+				<div class="personacon-section col-auto">
+					<div class="member-personacon">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-profile"
+							style="background: url('/images/app/profile/3.jpg') no-repeat;
+							background-position: center; background-size: cover;">
+						<img src="/images/app/member/profile_paper.png" 
+							class="personacon-frame frame-">
+					</div>
+				</div>
+				<div class="alias col align-self-center">말포이즈엠티</div>
+				<div class="checkbox-section col-auto text-right align-self-center">
+					<input class="selectMember select-member-check option-input checkbox" 
+						type="checkbox"/>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- 검색 결과가 없을 경우 -->
+	<div class="no-result-search-member" style="display: none;">
+		검색 결과를 찾을 수 없습니다
+	</div>
+</div><!-- end of resultSearchMemberDiv -->	
+	
+	
+
+</div>

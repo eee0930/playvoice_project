@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+
+
+<!--/*=====================================================================*/-->
+<!--/*  						nav header								   */-->
+<!--/*=====================================================================*/-->
+<div th:fragment="nav_header">
+
+<div class="main-header d-none d-lg-block">
+<!-- header navbar -->
+<div id="headerNavbar" class="fixed-navbar" style="display: none;">
+	<div class="header-color header-menulist"><div class="container">
+		<div class="row no-gutters">
+			<div th:unless="${session.userContainer}" class="nav-header-logo col-auto" 
+				th:insert="~{/incl/user_personacon::sm_test}" align="center"></div>
+			<div th:if="${session.userContainer}" class="nav-header-logo col-auto" 
+				th:insert="~{/incl/playvoice_logo::mini_logo}" align="center"></div>
+			<!-- 1차 메뉴 -->
+			<div class="col align-self-center" th:insert="~{/incl/main_menu2::primary_menu}"></div>
+		</div>
+	</div></div>
+	<div id="playvoice_menu_navbar" class="navbar-app-menu" style="display: none;">
+		<div class="container">
+			<div th:insert="~{/incl/app_menu::app_menu}"></div>
+		</div>
+	</div>
+</div><!-- end of headerNavbar -->
+</div>
+
+</div>
+
+
+
+
+
+

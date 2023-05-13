@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+
+<title>[[${memberInfo.alias}]]님의 여행북 - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function(){
+
+	$(".profileMenu").click(function(){
+		var dataMenuName = $(this).attr("data-menuName");
+		var menuName = $(this).html();
+		$(".profileMenu").removeClass("active");
+		$(this).addClass("active");
+		$(".content-title-section h5").html(menuName);
+		
+		$(".contentSection").hide();
+		$("#" + dataMenuName + "ContentDiv").fadeIn(200);
+	});
+	
+	
+	// [프로필픽쳐 주제별 사진 펼치기]---------------------------------------
+	$(".picture-open").click(function(){
+		if($(this).is(":not(.loaded)")){
+			//----------
+			getPictures($(this).val()||$(this).attr("cat"), [[${memberInfo.profileId}]]);
+			//----------
+			$(this).addClass("loaded");
+		}
+		if($(this).is(".displayPictures_xs")){
+			$(this).closest(".profile-picture-cover").find(".pictureListCover_xs").toggle(100);
+			$(this).closest(".profile-picture-cover").find(".title").toggle(100);			
+		}
+		
+	});
+	
+	var prevOffset;
+	// [프로필픽쳐 사진을 클릭하면 확대하여 모달창에 표시]---------------------------------------
+	$(document).on("click", ".pictureLoaded", function(){
+		//----------------------------------
+		enlargePicture($(this).attr("cat"), $(this).attr("idx"));
+		//----------------------------------
+		prevOffset = window.pageYOffset;
+	});
+	
+	
+	// [확대된 프로필픽쳐 사진에서 옆으로 넘기면 이전/다음 사진 표시 (Mobile ver.)]---------------------------
+	$("#displayProfilePicture_modal .modal-body").swipe({
+		swipe:function(event, direction, distance, duration, fingerCount,
+				   fingerData, allowPageScroll){
+			if(direction == "left"){
+				displayOtherImage(true);
+			} else if(direction == "right") {
+				displayOtherImage(false);
+			}else if(direction == "down"){
+				$("#displayProfilePicture_modal").modal("hide");
+			}
+		},
+		allowPageScroll:"vertical"
+	})
+	
+});
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+
+/**
+ * 불러온 카테고리별 사진 화면 표시
+ */
+function displayGetPictures(pictures) {
+	pictures.forEach(function(picture, i, array) {
+		if(picture.picPath != null){
+			$(".picture_" + picture.introType + picture.picIndex)
+			 	.css("background", "url(/resource/profile/pictures/" + picture.picPath + ") no-repeat")
+				.css("background-size", "cover")
+				.css("background-position", "center")
+				.addClass("pictureLoaded");
+			$("#dataPicture_" + picture.introType + "_" + picture.picIndex).val("/resource/profile/pictures/" + picture.picPath);
+		}else{
+			$("#dataPicture_" + picture.introType + "_" + picture.picIndex).remove();
+		}
+	});
+}
+
+/**
+ * 프로필 픽쳐 사진 크게 보기
+ */
+function enlargePicture(category, picIndex) {
+	// 모달에 이미지 넣기
+	var prevScrollY = window.pageYOffset;
+	var imageSrc = $("#dataPicture_" + category + "_" + picIndex).val();
+	$("#displayProfilePicture_modal #maxProfilePicture").attr("src", imageSrc);
+	$("#displayingPictureCategory").val(category);
+	$("#displayingPictureIndex").val(picIndex);
+	$("#displayProfilePicture_modal").modal({
+		show : true
+	}).on("shown.bs.modal",function(){
+		$("body").css("position", "fixed");
+	}).on("hide.bs.modal",function(){
+		$("body").css("position", "static");
+		window.scrollTo(0, prevScrollY);
+	});
+}
+
+/**
+ * 프로필 픽쳐 이전/다음 사진 보기 (프로필 픽쳐 사진 크게 보기 할 시)
+ */
+function displayOtherImage(forward) {
+	var category = $("#displayingPictureCategory").val();
+	var picIndex = Number($("#displayingPictureIndex").val());
+	var interval = forward? 1:(-1);
+	if((forward && picIndex >= 3) || (!forward && picIndex == 0)){
+		return;
+	}else{
+		do {
+			picIndex += interval;
+		}while($(".picture_" + category + picIndex).is(":not(.pictureLoaded)"))
+			
+		if($(".picture_" + category + picIndex).is(".pictureLoaded")){
+			var imageSrc = $("#dataPicture_" + category + "_" + picIndex).val();
+			$("#displayProfilePicture_modal #maxProfilePicture").attr("src", imageSrc);
+			$("#displayingPictureIndex").val(picIndex);
+		}
+	}
+}
+
+</script>
+
+
+</head>
+
+
+<section layout:fragment="content" class="member-profile-section">
+<!-- 로그인 여부 -->
+<span id="loginStatus" th:if="${session.userContainer}" 
+	th:text="true" style="display: none;" ></span>
+	
+<!-- --------------------------[프로필 픽처 확대 modal]--------------------------- -->
+<div id="displayProfilePicture_modal" class="modal fade display-profile-picture-modal" tabindex="-1" role="dialog">
+	<input type="hidden" id="displayingPictureCategory">
+	<input type="hidden" id="displayingPictureIndex">
+	<div class="modal-dialog modal-dialog-scrollable" role="document"><div class="modal-content content-container">
+		<div class="modal-body text-center row no-gutters">
+			<div class="close-section d-md-none">
+				<i class="fa fa-times fa-fw fa-2x text-white" data-dismiss="modal"></i>
+			</div>
+			<div class="col align-self-center d-none d-md-inline">
+				<i onclick="displayOtherImage(false)" class="fa fa-angle-left fa-4x jsAction d-none d-md-inline"></i>
+			</div>
+			<div class="col-md-9 col-12 px-md-3 row no-gutters">
+				<div class="col-12">
+					<img id="maxProfilePicture" class="max-profile-picture">
+				</div>
+				<div class="w-100"></div>
+				<div class="tag-section col pb-3 text-center"></div>
+				<div class="star-section col pb-3 text-center">
+					<a>
+						<i class="fa fa-star fa-2x fa-fw pr-3"></i>
+						<span>30</span>
+					</a>
+				</div>			
+			</div>
+			<div class="col align-self-center d-none d-md-inline">
+				<i onclick="displayOtherImage(true)" class="fa fa-angle-right fa-4x jsAction d-none d-md-inline"></i>
+			</div>
+		</div>
+	</div></div>
+</div>
+
+<div class="row no-gutters" th:with="memberType=${memberInfo.memberType}, tribeType='G', 
+	levelType='H', alias=${memberInfo.alias}">
+<!-- ----------------------------[1. 프로필 메뉴]------------------------------- -->
+<div id="profileWindowMenuSection" th:class="'profile-window-menu-section col-lg-3 ' + ${memberType}">
+<div class="profile-window-menu-cover d-flex align-content-between flex-wrap">
+	<!-- 프로필 메뉴 -->
+	<div class="w-100">
+		<div class="visit-section">
+			hits <span class="num">[[${memberInfo.hits}]]</span>
+		</div>
+		<div class="profile-my-information" align="center">
+			<div class="personacon-section" align="center">
+				<div class="profile-image-cover">
+					<img th:if="${memberInfo.iconPath}" class="profile-image" 
+						src="/images/app/member/profile_paper.png"
+						th:style="'background: url(\'/resource/profile/' +${memberInfo.iconPath} +'\') no-repeat;
+						background-position: center; background-size: cover;'">
+					<img th:unless="${memberInfo.iconPath}" 
+						src="/images/app/member/profile_paper.png"
+						class="profile-image profile-default">
+					<img class="profile-ring" 
+						src="/images/app/member/profile_paper.png">
+				</div>
+			</div>
+			<div class="alias">[[${alias}]]</div>
+		</div>
+		<ul class="profile-menu-ul">
+			<li class="profileMenu active" data-menuName="profile">
+				<i class="fa fa-fw fa-user-astronaut"></i> Profile Info
+			</li>
+			<li class="profileMenu" data-menuName="picture">
+				<i class="far fa-fw fa-images"></i> Pictures
+			</li>
+			<li class="profileMenu" data-menuName="passport">
+				<i class="fa fa-fw fa-passport"></i> Passport
+			</li>
+			<li class="profileMenu" data-menuName="visit">
+				<i class="fa fa-fw fa-comment-dots"></i> Guest Book
+			</li>
+		</ul>
+	</div>
+	<!-- 기부 뱃지 -->
+	<div class="donation-badge-section w-100">
+		<th:block th:if="${memberType} == 'G' OR ${memberType} == 'P'">
+			<img src="/images/app/mypage/donation_tag.png">
+			<div class="donation-info">
+				<div class="title">PLVO vision</div>
+				<div class="detail">Member for<br>Playvoice Sponsored Agencies</div>
+			</div>
+			<div class="donation-detail-info">
+				<b>[[${alias}]]</b>님은 <b>PLVO vision</b>의 후원자로서<br>
+				2019-12-20 부터 기부활동을 하고 있습니다.<br>
+				<span class="small">플레이보이스의 기부 활동은 시·구청 사회복지센터와 함께합니다.</span>
+			</div>
+		</th:block>
+		<th:block th:unless="${memberType} == 'G' OR ${memberType} == 'P'">
+			<img src="/images/app/mypage/donation_blank.png">
+			<div class="donation-info none">
+				<div class="title">후원 정보가 없습니다</div>
+			</div>
+		</th:block>
+	</div>
+</div>
+</div><!-- end of profileWindowMenuSection -->
+
+
+
+<!-- ----------------------------[2. 프로필 바디]------------------------------- -->
+<div id="profileWindowContentSection" th:class="'profile-window-content-section col-lg-9 ' + ${memberType}">
+
+<div id="contentHeaderDiv" class="content-header row no-gutters">
+	<div class="content-title-section col align-self-center">
+		<h5><i class="fa fa-fw fa-user-astronaut"></i> profile info</h5>
+	</div>
+	<div class="col-auto align-self-center">
+		<button class="btn add-friend-btn" type="button">
+			<span><i class="fa fa-user-plus"></i> 친구 추가</span>
+			<span style="display: none;"><i class="fa fa-grin-squint"></i> My Trunk</span>
+		</button>
+	</div>
+</div><!-- end of contentHeaderDiv -->
+
+
+<div id="contentBodyDiv" class="content-body">
+	<!-- --------------------------[2.1 멤버 프로필]---------------------------- -->
+	<div id="profileContentDiv" class="contentSection content-cover">
+		<!-- [2.1.1 멤버 정보] -->
+		<div class="row no-gutters">
+			<!-- 멤버 정보 -->
+			<div class="profile-content-card-section col-md-2">
+				<div class="profile-content-card bg-primary">
+					<div class="profile-info-detail">
+						<div class="detail">
+							<span class="title-icon">
+								<i class="fa fa-venus-mars fa-fw" title="성별"></i>
+							</span>
+							<span th:if="${memberInfo.sex} == 'X'" class="info">X</span>
+							<span th:if="${memberInfo.sex} == 'F'" class="info">W</span>
+							<span th:if="${memberInfo.sex} == 'M'" class="info">M</span>
+						</div>
+						<div class="detail">
+							<span class="title-icon">
+								<i class="fa fa-birthday-cake fa-fw" title="나이"></i>
+							</span>
+							<span th:if="${memberInfo.age_public}" class="info">
+								[[${#dates.year(#dates.createNow()) - #dates.year(memberInfo.birthYear)}]]
+							</span>
+							<span th:unless="${memberInfo.age_public}" class="info">
+								<i class="fa fa-lock" title="비공개"></i>
+							</span>
+						</div>
+						<div class="detail">
+							<span class="title-icon">
+								<i class="fa fa-map-marker-alt fa-fw" title="지역"></i>
+							</span>
+							<span th:if="${memberInfo.region_public}" class="info">
+								[[${memberInfo.region_public?memberInfo.region:'대한민국'}]]
+							</span>
+							<span th:unless="${memberInfo.region_public}" class="info">
+								<i class="fa fa-lock" title="비공개"></i>
+							</span>
+						</div>
+						
+						<div class="detail tribe">
+							<span class="title-icon">
+								<i class="fa fa-landmark fa-fw" title="부족"></i>
+							</span>
+							<span class="info" th:if="${tribeType} == 'P'">Pride</span>
+							<span class="info" th:if="${tribeType} == 'H'">Horde</span>
+							<span class="info" th:if="${tribeType} == 'T'">Troop</span>
+							<span class="info" th:if="${tribeType} == 'F'">Flock</span>
+							<span class="info" th:if="${tribeType} == 'G'">Gang</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- 시그니처 텍스트 -->
+			<div th:if="${memberInfo.introduction != null && memberInfo.introduction != ''}" 
+				class="profile-content-card-section signature col-md-7">
+				<div class="profile-content-card">
+					<div class="title">Signature Text</div>
+					<div class="detail" th:utext="${memberInfo.introduction}"></div>
+				</div>
+			</div>
+			<div th:unless="${memberInfo.introduction != null && memberInfo.introduction != ''}" 
+				class="profile-content-card-section signature col-md-7">
+				<div class="profile-content-card">
+					<div class="contents-none">시그니처 텍스트(Signature Text)가 비어 있습니다</div>
+				</div>
+			</div>
+			<!-- 부족 정보 -->
+			<div class="profile-content-card-section col-md-3">
+				<div th:class="'tribe-seal-section tribe-' + ${tribeType}">
+					<div class="tribe-info">
+						<span class="alias" th:text="${alias}"></span> 님은<br>
+						<span class="tribe" th:if="${tribeType} == 'P'">Pride</span>
+						<span class="tribe" th:if="${tribeType} == 'H'">Horde</span>
+						<span class="tribe" th:if="${tribeType} == 'T'">Troop</span>
+						<span class="tribe" th:if="${tribeType} == 'F'">Flock</span>
+						<span class="tribe" th:if="${tribeType} == 'G'">Gang</span>
+						부족입니다
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="profile-pictures-section row no-gutters">
+			<!-- [2.1.2 프로필 픽쳐스] -->
+			<div class="profile-content-card-section col-md-8">
+				<div class="title">Profile Pictures</div>
+				<div class="border"></div>
+				<div class="border"></div>
+			</div>
+			<!-- [2.1.3  도시 정보] -->
+			<div class="profile-content-card-section col-md-4">
+				<div class="city-info-cover">
+					<div class="city-img-section">
+						<img src="/images/common/icon/icon_paper.png"
+							th:style="'background: url(\'/images/app/mypage/cities/group'
+							+ ${levelType} + '3_index.jpg\'); 
+							background-size: cover; background-position: center;'">
+					</div>
+					<div class="city-info row no-gutters">
+						<div class="icon-section col-auto align-self-end">
+							<i class="fa fa-bus-alt fa-fw"></i>
+						</div>
+						<div class="col pl-2 align-self-end">
+							Where <b th:text="${alias}"></b><br>is on the journey
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- -------------------------[2.2 프로필 픽쳐스]---------------------------- -->
+	<div id="pictureContentDiv" class="contentSection content-cover" style="display: none;">
+		<div class="profile-content-card-section pictures row no-gutters">
+			<div class="display-pictures-area col-md-9"></div>
+			
+			<div class="col-md-3">
+				<div class="profile-content-card">
+					<button class="btn btn-mypage picture-btn" type="button">
+						좋아하는 인물
+					</button>
+					<button class="btn btn-mypage picture-btn" type="button">
+						갖고싶은 아이템
+					</button>
+					<button class="btn btn-mypage picture-btn" type="button">
+						행복한 여행지
+					</button>
+					<button class="btn btn-mypage picture-btn" type="button">
+						나의 취미
+					</button>
+					<button class="btn btn-mypage picture-btn" type="button">
+						나의 목표
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- --------------------------[2.3 학습 여권]------------------------------ -->
+	<div id="passportContentDiv" class="contentSection content-cover" style="display: none;">
+		<div th:replace="~{/mypage/incl/passport_incl::passport}"></div>
+	</div>
+	<!-- --------------------------[2.4 방명록]------------------------------- -->
+	<div id="visitContentDiv" class="contentSection content-cover" style="display: none;">
+		<div class="profile-content-card-section comment">
+			<div class="profile-content-card" th:insert="~{/common/comment::comment}"></div>
+		</div>
+	</div>
+
+</div><!-- end of contentBodyDiv -->
+
+</div><!-- end of profileWindowMenuSection -->
+
+</div>
+
+
+
+
+<!-- --------------------------[Profile Header]----------------------------- -->
+<div id="profileHeaderDiv" class="memberprofile-header-cover">
+	<div class="profile-background">
+		<div class="hits-section row no-gutters">
+			<div class="col-md-auto col">
+				<span class="title">Hits</span>
+				<span>[[${memberInfo.hits}]]</span>
+			</div>
+			<div class="col-md col-auto text-md-right text-center">
+				<img class="profile-logo" src="/images/common/icon/icon_paper.png">
+			</div>
+			<!-- 프로필 창 닫기 (Mobile ver.) -->
+			<div class="close-profile-button-section col d-md-none text-right">
+				<span onclick="self.close();">close<i class="fa fa-times fa-fw"></i></span>
+			</div>
+		</div>
+	</div>
+</div><!-- end of profileHeaderDiv -->
+
+<!-- ---------------------------[Profile Body]------------------------------ -->
+<div id="profileBodyDiv" class="memberprofile-body-cover">
+	<div class="personal-info-section" align="center">
+		<div class="member-personacon-lg"
+			th:classappend="(${memberInfo.memberType} == 'P') ? 'membership-P' : ''">
+			<img th:if="${memberInfo.iconPath}" src="/images/app/member/profile_paper.png"
+				class="personacon-profile" 
+				th:style="'background: url(\'/resource/profile/' +${memberInfo.iconPath} +'\') no-repeat;
+				background-position: center; background-size: cover;'">
+			<img th:unless="${memberInfo.iconPath}" src="/images/app/member/profile_paper.png"
+				class="personacon-profile profile-default">
+			<img src="/images/app/member/profile_paper.png" 
+				th:class="'personacon-frame frame-' + ${memberInfo.memberType}">
+		</div>
+		<div class="alias">
+			[[${memberInfo.alias}]]&nbsp;
+			<i th:if="${memberInfo.sex} == 'X'" class="fa fa-transgender"></i>
+			<i th:if="${memberInfo.sex} == 'F'" class="fa fa-venus"></i>
+			<i th:if="${memberInfo.sex} == 'M'" class="fa fa-mars"></i>
+		</div>
+		<div class="personal-info">
+			<span class="title mr-1">age</span>
+			<span th:if="${memberInfo.age_public}">[[${#dates.year(#dates.createNow()) - #dates.year(memberInfo.birthYear)}]]</span>
+			<span th:unless="${memberInfo.age_public}"><i class="fa fa-lock"></i></span>
+			<span class="title mr-1 ml-3">city</span>
+			<span th:if="${memberInfo.region_public}">[[${memberInfo.region_public?memberInfo.region:'대한민국'}]]</span>
+			<span th:unless="${memberInfo.region_public}"><i class="fa fa-lock"></i></span>
+		</div>
+	</div>
+	<div class="memberprofile-content-section">
+		<!------------------------------ [menu]----------------------------- -->
+		<div class="content-menu-cover row no-gutters">
+			<div class="col"></div>
+			<div class="col-auto">
+				<div onclick="showProfileContent('profileAboutDiv', this)" class="menu-item active">
+					<i class="fa fa-universal-access fa-fw fa-lg" style="color: #96cfe0;"></i> about
+				</div>
+			</div>
+			<div class="col-auto">
+				<div onclick="showProfileContent('profilePictureDiv', this)" class="menu-item">
+					<i class="far fa-images fa-fw fa-lg" style="color: gold;"></i> pictures
+				</div>
+			</div>
+			<div class="col-auto">
+				<div onclick="showProfileContent('profileStatDiv', this)" class="menu-item">
+					<i class="fa fa-chart-bar fa-fw fa-lg" style="color: #DB8FF6;"></i> stat
+				</div>
+			</div>
+			<div class="col"></div>
+		</div>
+		
+		<!----------------------------------------------------------------------
+								 [about]
+		-------------------------------------------------------------------- -->
+		<div id="profileAboutDiv" class="contentDiv" style="display: ;">
+			<!-- 시그니처 텍스트 -->
+			<div class="signature-text-cover">
+				<div class="content-cover">
+					<div class="content-title">
+						Signature Text
+						<i class="far fa-file-alt fa-fw"></i>
+					</div>
+					<div th:if="${memberInfo.introduction != null && memberInfo.introduction != ''}" 
+						th:utext="${memberInfo.introduction}" class="content-body">
+						For each person there are <b>thousands of opportunities 
+						and challenges</b> to expand ourselves!!<br>
+						We all are <b>the best</b> for each other.
+					</div>
+					<div th:unless="${memberInfo.introduction != null && memberInfo.introduction != ''}" 
+						class="content-body introduction-text none">
+						시그니처 텍스트(Signature Text)가 비어있습니다.
+						<i class="far fa-sad-cry fa-fw fa-lg"></i>
+					</div>
+				</div>
+			</div>
+			
+			<!-- 후원 정보 -->
+			<div class="donation-info-cover">
+				<div th:if="${#strings.contains('GP',memberInfo.memberType)}" class="donation-cover gold-member">
+					<img class="donation-img" src="/images/app/mypage/donation_paper.png">
+					<div class="donation-info">
+						<div class="content">
+							<div class="title">
+								<i class="fa fa-seedling fa-lg text-success" style="text-shadow: 0.5px 0.5px 0.5px #fff;"></i><br>
+								<span class="alias" th:text="${memberInfo.alias}"></span> 님의<br>후원 정보
+							</div>
+							<div class="body">
+								<div>
+									<i class="fa fa-circle text-success fa-fw" style="font-size: 0.1em; vertical-align: middle;"></i>
+									이*민 어린이를 후원하고 있습니다.<br>
+									<i class="fa fa-circle text-success fa-fw" style="font-size: 0.1em; vertical-align: middle;"></i>
+									2019년 06월 24일부터 시작하여 <b>145일간</b> 따뜻한 마음을 나누고 있습니다.<br>
+								</div>
+								<div class="pv-tm text-right">PLVO vision club</div>
+						
+							</div>
+						</div>
+					</div>
+					<div class="donation-info-xs d-md-none">
+						<div><i class="fa fa-circle text-success fa-fw" style="font-size: 0.1em; vertical-align: middle;"></i> 
+						 이*민 어린이를 후원하고 있습니다.<br>
+						 <i class="fa fa-circle text-success fa-fw" style="font-size: 0.1em; vertical-align: middle;"></i>
+						2019년 06월 24일부터 시작하여 <b>145일간</b> 따뜻한 마음을 나누고 있습니다.<br>
+						</div>
+						<div class="pv-tm text-right">PLVO vision club</div>
+					</div>
+					<div class="donation-button-section text-center">
+						<button id="donationMsg_btn" class="donation-msg-btn btn btn-mypage2 btn-sm" type="button">
+							이*민 어린이의 메세지 <i class="far fa-envelope fa-fw"></i>
+							<span class="badge badge-danger badge-pill">N</span>
+						</button>
+					</div>
+					<div class="information-provider">
+						<i class="fa fa-hands-helping fa-fw"></i>
+						대구 달서구 복지센터의 도움과 협조로 함께 하고 있습니다.
+					</div>
+				</div>
+				
+				
+			</div>
+		</div><!-- end of profileAboutDiv -->
+		
+		<!----------------------------------------------------------------------
+								 [pictures]
+		-------------------------------------------------------------------- -->
+		<div id="profilePictureDiv" class="contentDiv" style="display: none;">
+			<!-- 프로필 픽쳐 (PC ver.) -->
+			
+			<div id="picturesDiv" class="mypictures content-cover p-md-3 px-md-5 p-1 d-none d-md-block">
+				<div class="picture-guide">
+					주제를 하나씩 클릭하여 플레이어님의 취향과 아이덴티티를 확인해 보세요!
+				</div>
+				<div class="row no-gutters px-5 py-3"  
+					th:with="categoryTitles=${#strings.arraySplit('좋아하는 인물,갖고싶은 아이템,나의 취미,좋아하는 여행지,나의 목표',',')}">
+					<div th:each="category,iterStat:${#strings.arraySplit('P,H,I,M,G',',')}" class="col-auto p-2">
+						<label th:class="'picture-open-button style' + ${iterStat.index}" th:for="'picture-open' + ${iterStat.index}">
+							<span class="title" th:text="${categoryTitles[iterStat.index]}">좋아하는 인물</span>
+						</label>
+					</div>
+				</div>
+				<div class="picture-display-area" 
+					th:with="categoryTitles=${#strings.arraySplit('좋아하는 인물,갖고싶은 아이템,나의 취미,좋아하는 여행지,나의 목표',',')}">
+					<nav class="pictures" th:each="category,iterStat:${#strings.arraySplit('P,H,I,M,G',',')}">
+						<input type="radio" th:id="'picture-open' + ${iterStat.index}" 
+							class="picture-open" name="picture-open" th:value="${category}"/>
+						<label th:class="'picture-open-circle style' + ${iterStat.index}">
+							<span class="title" th:text="${categoryTitles[iterStat.index]}"></span>
+						</label>
+						<img th:each="picIndex:${#numbers.sequence(0,3)}" 
+							class="picture-item" src="/images/app/member/profile_paper.png" 
+							th:classappend="'picture_'+${category}+${picIndex}" 
+							th:style="'background: url(\'/images/app/mypage/'+${category} +'_like.png\') no-repeat;
+							background-size: cover; background-position: center;'" 
+							data-th-cat="${category}" data-th-idx="${picIndex}">
+						<input th:each="picIndex:${#numbers.sequence(0,3)}" 
+							type="hidden" th:id="'dataPicture_' + ${category} + '_' + ${picIndex}">
+					</nav>
+				</div>
+			
+			</div>
+			
+			<!-- 프로필 픽쳐 (Mobile ver.) -->
+			<div class="profile-picture-mobile d-md-none" 
+				th:with="categoryTitles=${#strings.arraySplit('좋아하는 인물,갖고싶은 아이템,나의 취미,좋아하는 여행지,나의 목표',',')},
+						 categoryComments=${#strings.arraySplit('People whom I like,Items I want to have,Happy doings,Happy destinations,Life Goal',',')}">
+				<div class="picture-guide">
+					주제를 하나씩 클릭하여 플레이어님의 취향과 아이덴티티를 확인해 보세요!
+				</div>
+				<div class="profile-picture-cover content-cover" 
+					th:each="category,iterStat:${#strings.arraySplit('P,H,I,M,G',',')}">
+					<div class="picture-open displayPictures_xs content-title" 
+						data-th-cat="${category}">
+						<span class="title2">
+							[[${categoryTitles[iterStat.index]}]]
+							<i class="far fa-grin-hearts fa-fw ml-1"></i>
+						</span>
+					</div>
+					<div class="title px-3" th:text="${categoryComments[iterStat.index]}"></div>
+					<div class="pictureListCover_xs picture-body row no-gutters" style="display: none;">
+						<div class="picture-cover col-6" th:each="picIndex:${#numbers.sequence(0,3)}">
+							<img class="picture-item" th:classappend="'picture_'+${category}+${picIndex}" 
+								src="/images/app/member/profile_paper.png"
+								th:style="'background: url(\'/images/app/mypage/'+${category} +'_like.png\') no-repeat;
+								background-size: cover; background-position: center;'" 
+								data-th-cat="${category}" data-th-idx="${picIndex}">								
+						</div>
+					</div>
+				</div>
+				
+				
+			</div>
+			
+		</div><!-- end of profilePictureDiv -->
+		
+		
+	</div>
+</div><!-- end of profileBodyDiv -->
+	
+
+</section>

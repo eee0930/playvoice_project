@@ -1,0 +1,182 @@
+/* 	테마 색 : #c06574 /
+	보조 색 : #f5f5f5 /
+*/
+
+
+section a:hover {color: #ff643b !important;}
+.btn-store {background-color: #c06574; color: #fff !important; border: solid 1px #c06574; font-family: 'Open Sans','NanumSquare', Sans-Serif; cursor: pointer;}
+.btn-store:hover {background-color: #ce8895; color: #fff !important; border: solid 1px #ce8895;}
+.btn-store2 {background-color: #F2F0ED; color: #242424 !important; border: solid 1px #F2F0ED; font-family: 'Open Sans','NanumSquare', Sans-Serif; cursor: pointer;}
+.btn-store2:hover {background-color: #C5B9B2; color: #242424 !important; border: solid 1px #C5B9B2;}
+.btn-outline-store {background-color: transparent; color: #c06574 !important; border: solid 1px #c06574; font-family: 'Open Sans','NanumSquare', Sans-Serif; cursor: pointer;}
+.btn-outline-store:hover {background-color: #c06574; color: #fff !important; border: solid 1px #c06574;}
+.btn-outline-store2 {background-color: transparent; color: #ac9b91!important; border: solid 1px #ac9b91; font-family: 'Open Sans','NanumSquare', Sans-Serif; cursor: pointer;}
+.btn-outline-store2:hover {background-color: #C5B9B2; color: #fff !important; border: solid 1px #C5B9B2;}
+
+.content-container {
+	font-size: 14px;
+    font-family: "Open Sans", 'NanumSquare', Sans-Serif;
+    box-shadow: rgb(187, 187, 187) 0px 0px 10px -1px;
+    border-radius: 10px;
+}
+
+.background-index {
+	
+	box-shadow: inset 0 2px 3px -0.5px rgba(0, 0, 0, 0.1);
+}
+
+
+@media (max-width: 992px) {
+	.background-index, .background-products  {
+		background-color: transparent;
+		box-shadow: none;
+	}
+}
+
+
+/**********************************************************
+ *					playstore_top_menu.html
+ **********************************************************/
+.store-menu-section {
+	padding: 5px 0;
+	background-color: #edf2fd;
+	box-shadow: 0 2px 3px -0.5px rgba(0, 0, 0, 0.1);
+}
+.store-menu-section .logo-section {
+	padding-right: 5px;
+	border-right: solid 1px #ececec;
+}
+.store-menu-section .logo-section img {height: 60px;}
+
+.store-menu-section .store-menu {
+	font-family: 'PT Sans', 'Nunito Sans', 'Open Sans', Sans-Serif;
+	font-size: 0.9rem;
+	color: #1B1F40;
+	font-weight: 600;
+	opacity: 0.8;
+}
+.store-menu-section .store-menu a {
+	padding: 10px 5px 3px;
+	margin: 0 15px;
+	border-bottom: solid 2px transparent;
+}
+.store-menu-section .store-menu:hover {color: #512772;}
+.store-menu-section .store-menu a.active {
+	color: #512772 !important;
+	border-bottom: solid 2px #512772;
+	opacity: 1;
+}
+.store-menu-section .store-menu a i {
+	color: #512772;
+	font-size: 0.8em;
+	margin-right: 3px;
+}
+
+.store-menu-section .header-cart {
+	padding-right: 10px;
+}
+.store-menu-section .header-cart img {
+	font-size: 1.5em;
+	color: #4b87a0;
+	width: 25px;
+}
+.store-menu-section .header-cart img.cart_icon {
+	background: url(/images/app/playstore/shopping_cart.png) no-repeat;
+	background-size: cover;
+	background-position: center;
+	z-index: 1;
+}
+.store-menu-section .header-cart label {margin: 0;}
+.store-menu-section .header-cart .cart-size {
+	position: relative;
+	top: -12px;
+	left: -10px;
+}
+
+.store-menu-section .header-personacon {
+	padding-left: 5px;
+	border-left: solid 1px #ececec;
+}
+
+.store-menu-section .member-personacon {display: inline-block;}
+.store-menu-section .header-alias {
+	font-family: 'Nunito Sans', 'Open Sans', 'NanumSquare', 'NanumGothic', Sans-Serif;
+	color: #1B1F40;
+	font-size: 0.85rem;
+	font-weight: 600;
+	padding: 10px 0 10px 10px;
+	display: inline-block;
+}
+.store-menu-section .header-alias i {color: #dd2138;}
+.store-menu-section .header-personacon .personal-tooltip {
+	position: absolute;
+	top: 38px;
+	right: 0;
+	display: none;
+	width: 200px;
+	padding: 15px 25px;
+	border-radius: 5px;
+	background-color: #fff;
+	animation: all 1s ease;
+	box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+.store-menu-section .header-personacon .personal-tooltip:after {
+	content: '';
+	position: absolute;
+	top: -10px;
+	right: 20px;
+	border-bottom: 10px solid #fff;
+	border-left: 8px solid transparent;
+	border-right: 8px solid transparent;
+}
+.store-menu-section .header-personacon:hover .personal-tooltip {
+	display: inline-block;
+}
+.personal-tooltip ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	font-family: 'PT Sans', 'Nunito Sans', 'Open Sans','NanumGothic', Sans-Serif;
+}
+.personal-tooltip ul li {
+	width: 100%;
+	padding: 3px 0;
+	font-size: 13.5px;
+	font-weight: 600;
+}
+.personal-tooltip ul li.title {
+	font-size: 16px;
+	color: #cb2026;
+	padding: 5px 0;
+}
+
+.personal-tooltip ul .division-line {
+	margin: 10px 0;
+}
+.personal-tooltip ul .store-header-logout {
+	border: none;
+	background-color: transparent;
+	padding: 0;
+	font-weight: 600;
+	
+}
+.personal-tooltip ul .store-header-logout i {
+	font-size: 0.6em;
+	vertical-align: middle;
+}
+
+@media (max-width: 992px) {
+	.store-menu-section {padding: 0;}
+}
+
+
+
+
+/**********************************************************
+ *						index.html
+ **********************************************************/
+
+
+
+
+

@@ -1,0 +1,1646 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>[[${smallTalk?.story?.title}]] - 플레이보이스 | Playvoice</title>
+
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = ${smallTalk?.story?.title} + ' - 플레이보이스 | Playvoice', 
+	metaDescription = ${#stringUtil.removeTag(smallTalk?.storyParagraphList[0]?.content)}, 
+	metaImage = '/images/app/playsquare/story_default_image.jpg', 
+	metaRegDate = ${smallTalk?.story?.regDate}"></th:block>
+	
+<!-- schema org (bread, blog) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/square', '/square/smalltalk', 
+	'/square/smalltalk/list', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 스퀘어', '스몰톡', '스몰톡 스토리 목록',
+	smallTalk?.story?.title} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaBlog}"
+	th:with="schemaHeadline = ${smallTalk?.story?.title},
+	metaDescription = ${#stringUtil.removeTag(smallTalk?.storyParagraphList[0]?.content)},
+	metaImage = '/images/app/playsquare/story_default_image.jpg',
+	schemaAlias = ${smallTalk?.story?.personacon?.alias},
+	metaRegDate = ${smallTalk?.story?.regDate},
+	ratingCount = ${smallTalk?.story?.likeCount}"></th:block>]
+</script>
+	
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+<script th:src="@{/js/app/basicchar-filter.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/semanticroles.summernote.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+<script th:src="@{/js/app/playvoice_audio.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+
+
+<script th:if="${smallTalk}" th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	const yourId = /*[[${session.userContainer?.personacon?.pid}]]*/ 0;
+	
+	// [스몰톡 상세보기 영역으로 스크롤 이동]-----------------------------------------------
+	// 동일한 스토리의 상세보기 화면이지만 페이징 정보(페이지 번호)가 다를 경우 페이징 정보 영역으로 스크롤 이동
+	if((location.pathname.split('/').pop() == document.referrer.replace(/\?.+/,'').split('/').pop())
+			&& (location.search != document.referrer.substring(document.referrer.indexOf('?')))){
+		if($('.reading-talkative-section').length > 0){
+			$(window).scrollTop($('.reading-talkative-section:eq(0)').offset().top - $('#headerNavbar').height());
+		}
+	}else{
+		if ('scrollRestoration' in history) {
+		    // 브라우저의 스크롤위치 저장기능 중지
+		    history.scrollRestoration = 'manual';
+		}
+		var viewSmallTalkSection = $("#viewSmallTalkSection").offset().top - 60;
+	    $('html, body').animate({scrollTop : viewSmallTalkSection}, 300);
+	    history.scrollRestoration = 'auto';
+	}
+    
+    // [스토리 삭제]---------------------------------------------------------------
+    $('.delStoryBtn').on('click', function(){
+    	if(confirm('해당 스몰톡을 삭제하시겠습니까?')){
+    		var storyId = $('#storyId').val();
+    		//-------------------
+    		delSmallTalk(storyId);
+    		//-------------------
+    	}
+    })
+
+	// [단어 뜻 등록 모달 열기]---------------------------------------------------------
+	$(document).on("click", "#smallTalkArticleContentDiv .showWordFormModal", function(){
+		openWordMeaningModal($(this));
+		$("#wordMeaningModal .guide1").hide();
+		$("#wordMeaningModal .guide2").show();
+		$("#wordMeaningModal .meaningText").prop('disabled', false)
+										   .focus();
+		$("#wordMeaningModal .meaning-list").hide();
+		$(".parawordSubmit").text('등록');
+		$("#wordMeaningModal").data('submitType', 'new')
+							  .data('target', $(this).closest('.word-info-cover'));
+	});
+	// [단어 뜻 등록하기]-------------------------------------------------------------
+	$("#wordMeaningModal form").submit(function(e) {
+		e.preventDefault();
+		var $form = $("#wordMeaningModal");
+		var $wordInfo = $form.data('target');
+		var paraWordId = $wordInfo.find('.paraWordId').val();
+		var wordSeq = $wordInfo.attr('word-seq');
+		switch($form.data('submitType')){
+		case 'new':	// 비어 있는 단어 뜻을 입력
+			var text = $form.find('.meaningText').val().trim();
+			if(text.length == 0){
+				alert('단어 뜻을 입력해 주세요.');
+				return;
+			}
+			var senseResource = {
+					paraWordId: Number($wordInfo.find('.paraWordId').val()),
+					partId: Number($wordInfo.find('.partId').val()),
+					senseId: Number($wordInfo.find('.senseId').val()),
+					senseText: text,
+					memberId: yourId,
+					emptySense: true,
+					wordTitle: $wordInfo.find('.word-eng').text().trim(),
+					wordId: Number($wordInfo.find('.wordId').val())
+			};
+			//----------------------------------
+			addNewSense(senseResource, wordSeq);
+			//----------------------------------
+			break;
+		case 'edit': // 입력된 단어 뜻을 수정
+			var text = $form.find('.meaningText').val().trim();
+			if(text.length == 0){
+				alert('단어 뜻을 입력해 주세요.');
+				return;
+			}
+			var senseResource = {
+					paraWordId: Number($form.data('target').find('.paraWordId').val()),
+					partId: Number($form.find('.partId').val()),
+					senseId: Number($form.find('.senseId').val()),
+					senseText: text,
+					memberId: yourId
+			};
+			//--------------------------------
+			editSense(senseResource, wordSeq);
+			//--------------------------------
+			break;
+		case 'choose': // 해당 품사의 다른 뜻으로 대표 뜻을 선정
+			var $selected = $form.find(':checked');
+			var text = $selected.attr('data-text').trim();
+			if($selected.length == 0){
+				alert('단어 뜻을 선택해 주세요.');
+				return;
+			}
+			var paraWordResource = {
+					paraWordId: Number($form.data('target').find('.paraWordId').val()),
+					senseId: Number($selected.val()),
+					senseText: text
+			}
+			//------------------------------------------
+			editContextSense(paraWordResource, wordSeq);
+			//------------------------------------------
+			break;
+		case 'append': // 해당 품사의 뜻 추가
+			var text = $form.find('.meaningText').val().trim();
+			if(text.length == 0){
+				alert('단어 뜻을 입력해 주세요.');
+				return;
+			}
+			var senseResource = {
+					paraWordId: Number($form.data('target').find('.paraWordId').val()),
+					senseText: text,
+					partId: Number($form.data('target').find('.partId').val()),
+					memberId: yourId
+			}
+			//----------------------------------
+			appendSense(senseResource, wordSeq);
+			//----------------------------------
+			break;
+		}
+		// 입력값 초기화
+		$form.find('.meaningText').val("");
+		$('.closeWordFormModal').trigger('click');
+	})
+	
+	// [단어 선정 모달 열기]-----------------------------------------------------------
+	$(document).on("click", "#smallTalkArticleContentDiv .showWordMeaningModal", function(){
+		//---------------------------------------------------------------
+		getWordSenses($(this).closest('.word-info-cover').find('.paraWordId').val(), $(this));
+		//---------------------------------------------------------------
+		$("#wordMeaningModal .guide2").hide();
+		$("#wordMeaningModal .guide1").show();
+		$("#wordMeaningModal .meaning-list").show();
+		$("#wordMeaningModal .meaningText").prop('disabled', true);
+		$("#wordMeaningModal").data('submitType', 'choose')
+		  					  .data('target', $(this).closest('.word-info-cover'));
+		$(".parawordSubmit").text('등록');
+	});
+	// [단어 선정 라디오버튼<->입력폼 토글시키기]--------------------------------------------
+	$(document).on('change', '#wordMeaningModal .meaning-list :radio', function(){
+		if($(this).is(':checked')){
+			$("#wordMeaningModal").data('submitType','choose');
+			$('#wordMeaningModal .meaningText').prop('disabled', true);
+			$(".parawordSubmit").text('등록');
+		}
+	});
+	$('#wordMeaningModal .meaningForm').on('click', function(){
+		if($("#wordMeaningModal .meaning-list").is(':visible')){
+			$("#wordMeaningModal").data('submitType','append');
+			$('#wordMeaningModal .meaning-list :radio').prop('checked', false);
+			$(this).find('.meaningText').prop('disabled', false);
+			$(".parawordSubmit").text('추가 등록');
+			$(this).find('.meaningText').focus();
+		}
+	})
+	// [단어 뜻 수정 모달 열기]---------------------------------------------------------
+	$("#smallTalkArticleContentDiv").on("click", ".showEditMeaningModal", function(){
+		openWordMeaningModal($(this));
+		$("#wordMeaningModal .guide1").hide();
+		$("#wordMeaningModal .guide2").show();
+		var $wordInfo = $(this).closest('.word-info-cover');
+		var meaning = $wordInfo.find('.showWordMeaningModal.word-kor').text();
+		$("#wordMeaningModal .meaningText").prop('disabled', false)
+										   .val(meaning).focus();
+		$("#wordMeaningModal .meaning-list").hide();
+		$(".parawordSubmit").text('수정');
+		$("#wordMeaningModal").data('submitType', 'edit')
+							  .data('target', $wordInfo);
+	});
+	
+	
+	// [단어 선정/ 뜻 등록 / 품사 수정 모달 닫기]--------------------------------------------
+	$(document).on("click", ".closeWordFormModal", function(){
+		$("html").removeClass("modalOpen");
+		$(".storyWordModal").fadeOut(200);
+	});
+	
+	// [단어 품사 수정 모달 열기]-------------------------------------------------------
+	$(".word-info-list-cover").on("click", ".showEditPartBtn", function(){
+		var part = $(this).text();
+		$("#editPartModal :radio").each(function(i, element) {
+			if($(element).siblings('.badge').text() == part){
+				$(element).prop('checked', true);
+			}
+		});
+		var $wordInfo = $(this).closest('.word-info-cover');
+		$("#editPartModal").data('target', $wordInfo);
+		$("html").addClass("modalOpen");
+		$("#editPartModal").fadeIn(200);
+	});
+	
+	// [단어 품사 수정]--------------------------------------------------------------
+	$('#editPartModal form').submit(function(e){
+		e.preventDefault();
+		var $modal = $('#editPartModal');
+		var partResource = {
+				paraWordId : Number($modal.data('target').find('.paraWordId').val()),
+				wordId : Number($modal.data('target').find('.wordId').val()),
+				partType : $modal.find(':radio:checked').val()
+		}
+		//--------------------------------------------------------------------
+		editContextPart(partResource, $modal.data('target').attr('word-seq'));
+		//--------------------------------------------------------------------
+	});
+	
+	// [문단 본문의 단어 선택 시 단어장의 해당 단어 선택/강조 표시]---------------------------------
+	$(document).on("selectionchange",function(e){
+		var sel = window.getSelection();
+		
+		if($(sel.anchorNode).closest(".paraArticleDiv")
+			.is($(sel.focusNode).closest(".paraArticleDiv"))
+			&& getSelectedText().length > 0){
+			e.stopPropagation();
+			var $paraArticleDiv = $(sel.anchorNode).closest(".paraArticleDiv");
+			var $showParaWordBtn = $paraArticleDiv.closest(".paragraph-article-section")
+										.find(".showParaWordBtn");
+			
+			var $parentParaDiv = $paraArticleDiv.closest(".paragraph-article-div");
+			// 문단 내에 숨은 단어 영역을 복사하여 단어장에 표시
+			var $paraWordList = $parentParaDiv.find(".paraWordDiv").children().clone();
+			$(".showParaWordBtn").removeClass("active");
+			
+			if(parseInt($paraWordList.find(".paraWordOrder").val()) == paraWordIndex) {
+				paraWordIndex = 0;
+			} else {
+				var dataParaWordIndex = $paraArticleDiv.closest('.paragraph-article-section')
+							.find('.showParaWordBtn').attr("data-paraWordIndex");
+				//-----------------------------------
+				activeParaDiv($paraArticleDiv, true);
+				//-----------------------------------
+				$(".vocaListDiv").show(200); // 단어장 영역 열기
+				$(".vocaListDiv .paraWords").remove(); // 단어장에 있던 단어들 지우기
+				paraWordIndex = parseInt(dataParaWordIndex);
+				$paraWordList.appendTo(".word-info-list-cover");
+				$(this).addClass("active");
+				$(".vocaListDiv").find(".wordNum").text(paraWordIndex);
+				
+				//--------------
+				adjustVocaDiv();
+				//--------------
+				
+				// 단어 영역 최대 높이 정의 
+				// (단어장 높이가 아티클 크기보다 크면 단어장이 아티클 영역을 벗어나기 때문에, 
+				// 단어장이 열리면 아티클 높이가 변하기 떄문에 단어장을 열때 아티클 길이를 잰다)
+			    var smallTalkArticleHeight = $(".smalltalk-article-section").height();
+			    $(".article-words-cover").css("max-height", smallTalkArticleHeight);
+			}
+							   //---------------
+			var selectedWord = getSelectedText().trim();
+							   //---------------
+			var $word = $('.vocaListDiv .word-eng[data-plain="'+selectedWord.toLowerCase()+'"]');
+			//강조하기 전 기존에 강조되있던 단어가 있다면 효과를 없애줌
+			$('.word-info-cover').removeClass("selectedWord");
+			
+			if($word.length > 0){
+				//----------------------------------
+				emphasizeSelectedWord(selectedWord);
+				//----------------------------------
+			}
+		}else{
+			// 기존에 강조되있던 단어가 있다면 효과를 없애줌
+			$('.word-info-cover').removeClass("selectedWord");
+		}
+	});
+	
+	// [스토리 담기 (for gold membership)]------------------------------------------
+	$(".addPlateBtn").click(function(){
+		if($(this).is('.active')){
+			alert("이미 처리되었습니다.");
+			return;
+		}
+		var plateResource = {
+				memberId: yourId,
+				resourceId: Number($("#viewSmallTalkSection #storyId").val()),
+				appCode: /*[[${T(com.varxyz.playvoice.common.Constants).SMALLTALK}]]*/null,
+				likeCount: Number($("#viewSmallTalkSection .likeCount").text().trim())
+		};
+		//------------------------------------
+		addStoryPlate(plateResource, $(this));
+		//------------------------------------
+	});
+	
+	// [독해 힌트/ 왓슨 구문 분석 보기]---------------------------------------------------
+	$(".hintActiveBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var $paraArticleDiv = parentParaDiv.find(".paraArticleDiv");
+		var watsonHintDiv = parentParaDiv.find(".watsonHintDiv");
+		var $btn = $(this);
+		if($paraArticleDiv.is(".activeAll")) {
+			$paraArticleDiv.removeClass("activeAll");
+			watsonHintDiv.find(".paraWantsonAnalDiv").hide();
+			watsonHintDiv.slideUp(100, function(){
+				activeParaDiv($btn, false);
+			});
+		} else {
+			$(".paraArticleDiv").removeClass("activeAll");
+			$(".paraWantsonAnalDiv").hide();
+			$(".watsonHintDiv").slideUp(200);
+			$paraArticleDiv.addClass("activeAll");
+			watsonHintDiv.show();
+			activeParaDiv($btn, true);
+		}
+	});
+	// [왓슨 가이드 펼치기]-----------------------------------------------------------
+	$(".watsonInfoBtn").click(function(){
+		$(this).closest(".watsonHintDiv").find(".hintGuideDiv").toggle(100);
+	});
+	// [왓슨 구문분석 열기]-----------------------------------------------------------
+	$(".watson-title").click(function(){
+		$(this).closest(".watsonHintDiv").find(".paraWantsonAnalDiv").toggle(100);
+	});
+	// [번역, 왓슨 힌트 창 닫기]--------------------------------------------------------
+	$(".closeDivBtn").click(function(){
+		var $btn = $(this);
+		$(this).parent().slideUp(200, function(){
+			activeParaDiv($btn, false);
+		});
+	});
+	
+	// [단어장 보기 버튼 클릭]----------------------------------------------------------
+	var paraWordIndex = 0;
+	$(".showParaWordBtn").click(function(){
+		var $parentParaDiv = $(this).closest(".paragraph-article-div");
+		var $btn = $(this);
+		var $paraWordList = $parentParaDiv.find(".paraWordDiv").children().clone();
+		$(".showParaWordBtn").removeClass("active");
+		
+		if($(".vocaListDiv:visible").length > 0
+		&& parseInt($paraWordList.find(".paraWordOrder").val()) == paraWordIndex) {
+			// 이미 해당 문단의 단어장이 열린 상태면 단어장 닫기
+			$(".vocaListDiv").hide(200, function(){
+				//-------------------------
+				activeParaDiv($btn, false);
+				//-------------------------
+			});
+			paraWordIndex = 0;
+		} else {
+			// 문단을 활성화 하고 문단에 해당하는 단어장 열기
+			//------------------------
+			activeParaDiv($btn, true);
+			//단어장 정보 변경 및 표시------------------------------
+			paraWordIndex = showWordAssist($parentParaDiv);
+			//---------------------------------------------
+			$(this).addClass("active");
+			
+			//--------------
+			adjustVocaDiv();
+			//--------------
+			
+			// 단어 영역 최대 높이 정의 
+			// (단어장 높이가 아티클 크기보다 크면 단어장이 아티클 영역을 벗어나기 때문에, 
+			// 단어장이 열리면 아티클 높이가 변하기 떄문에 단어장을 열때 아티클 길이를 잰다)
+		    var smallTalkArticleHeight = $(".smalltalk-article-section").height();
+		    $(".article-words-cover").css("max-height", smallTalkArticleHeight);
+		}
+	});
+	var posY = window.scrollY;
+	function lockScroll(){
+		window.scrollTo(0,posY);
+	};
+	// [단어장 닫기 (Mobile ver.)]--------------------------------------------------
+	$(".closeVocaListBtn").click(function(){
+		$(".vocaListDiv").hide(200, function(){
+			activeParaDiv($('.paragraph-article-section.active'), false);
+		});
+		$(".showParaWordBtn").removeClass("active");
+		paraWordIndex = 0;
+		// 스크롤 다시 활성화
+		$(window).off('scroll', lockScroll)
+				 .off('scroll', scrollEvent).on('scroll', scrollEvent);
+	});
+	
+	// [단어장 크기 조정 (Mobile ver.)]-----------------------------------------------
+	$(".expandVocaListBtn").click(function(){
+		$(this).closest(".article-words-cover").addClass("wide");
+		$(this).hide();
+		$(".compressVocaListBtn").show();
+		// 스크롤 막기
+		posY = window.scrollY;
+		$(window).off('scroll', scrollEvent)
+				 .on('scroll', lockScroll);
+	});
+	$(".compressVocaListBtn").click(function(){
+		$(this).closest(".article-words-cover").removeClass("wide");
+		$(this).hide();
+		$(".expandVocaListBtn").show();
+		// 스크롤 다시 활성화
+		$(window).off('scroll', lockScroll)
+				 .on('scroll', scrollEvent);
+	});
+	
+	// [스터디 버튼 눌렀을 때 해당 버튼이 있는 문단의 단어 띄어주기]---------------------------------
+	$(".studyParaSectionBtn").click(function(){
+		var parentSection = $(this).closest(".paragraph-article-div");
+		var paraWordOrder = parentSection.find(".paraWordDiv .paraWordOrder").val();
+		if(paraWordIndex != 0 && paraWordOrder != paraWordIndex) {
+			$(this).siblings(".showParaWordBtn").click();
+		} else {
+			return;
+		}
+	});
+
+	// [아티클 번역 보기]-------------------------------------------------------------
+	$(".showTransBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var paraTransDiv = parentParaDiv.find(".paraTransDiv");
+		var $btn = $(this);
+		if(paraTransDiv.is(":visible")) {
+			paraTransDiv.slideUp(200, function(){
+				activeParaDiv($btn, false);
+			});
+		} else {
+			$(".paraTransDiv").slideUp(200);
+			paraTransDiv.slideDown(200);
+			activeParaDiv($btn, true);
+
+			//회원들의 번역 목록 가져오기, 한번만 가져오도록 현재 목록이 없는 경우에만 에이작스 호출.
+			var $transListSection = parentParaDiv.find(".memberTransListDiv");
+			if($transListSection.is('.transLoaded')){
+				$transListSection.show();
+			}else{
+				var storyId = $('#storyId').val();
+				var paragraphNum = parentParaDiv.attr('data-paranum');
+				
+				//--------------------------------------------------------
+				loadTranslations($transListSection, storyId, paragraphNum);
+				//--------------------------------------------------------
+				$transListSection.show();
+				$transListSection.addClass('transLoaded');
+			}
+		}
+	});
+	
+	// [아티클 직접 번역 폼 열기]--------------------------------------------------------
+	$(".showTransFormBtn").click(function(){
+		var parentParaDiv = $(this).closest(".paragraph-article-div");
+		var transForm = parentParaDiv.find(".memberTransFormDiv");
+		var $btn = $(this);
+		if(transForm.is(":visible")) {
+			transForm.slideUp(200, function(){
+				activeParaDiv($btn, false);
+			});
+		} else {
+			$(".memberTransFormDiv").slideUp(200);
+			transForm.slideDown(200);
+			activeParaDiv($btn, true);
+		}
+	});
+	// [아티클 직접 번역 폼 닫기]--------------------------------------------------------
+	$(".cancelMemberTransBtn").click(function(){
+		$(this).closest(".memberTransFormDiv").slideUp(200);
+	});
+	
+	// [아티클 직접 번역 입력하기]-------------------------------------------------------------
+	$(document).on("click", ".addMemberTransBtn", function(){
+		var memberTrans = $(this).closest(".memberTransFormDiv")
+								 .find(".memberTransComment").val().trim();
+		//해석 입력폼의 내용을 비워줌
+		$(this).closest(".memberTransFormDiv").find(".memberTransComment").val('');
+      
+		if(! isEmpty(memberTrans)){
+			var paragraphNum = $(this).closest(".paragraph-article-div").attr('data-paranum');
+			var storyId = $('#storyId').val();
+			var memberId = $('.yourId').val();
+         
+			var storyTranslationForm = {
+				storyId : Number(storyId),
+				content : memberTrans, 
+				paraNum : Number(paragraphNum),
+				memberId : Number(memberId)
+			};
+         
+			var selector = $(this).closest(".paragraph-article-div").find(".memberTransListDiv");
+			//-------------------------------------------------
+			addStoryTranslation(storyTranslationForm, selector); //playsquare.js
+			//-------------------------------------------------
+		}
+		else{
+			alert('해석을 입력해주세요');
+		}
+	});
+
+	//[회원 추가 번역 수정 취소 버튼 클릭 시 수정 폼 닫기]---------------------------------------
+	$(document).on("click", '.editTransDiv .cancelMemberTransBtn', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$(this).closest(".member-trans-div").find(".member-trans-text").show();
+		$(this).closest(".member-trans-div").find(".editTransDiv").hide();
+	});
+	
+	//[회원 추가 번역 수정 버튼 클릭 시 수정 폼 보여주기]---------------------------------------
+	$(document).on("click", '.editTranslationBtn', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		
+		$(this).closest(".member-trans-div").find(".member-trans-text").hide();
+		$(this).closest(".member-trans-div").find(".editTransDiv").show();
+	});
+	
+	//[회원 추가 번역 수정 폼의 수정 완료 버튼 클릭 시 수정]---------------------------------------
+	$(document).on("click", '.editMemberTransBtn', function(e){
+		e.preventDefault();
+		e.stopPropagation();
+		
+		//해당 translationId, 수정 내용 전달
+		var selector = $(this).closest(".member-trans-div");
+		var translationId = selector.find(".translationId").val();
+		var content = $(this).closest(".editTransDiv")
+							 .find(".memberTransComment").val().trim();
+		
+		if(! isEmpty(content)){
+			var storyTranslationForm = {
+					translationId : Number(translationId),
+					content : content
+			};
+			//----------------------------------------------
+			editTranslation(storyTranslationForm, selector);
+			//----------------------------------------------
+		}
+		else{
+			alert('해석을 입력해주세요');
+		}
+		//--------------------------------
+	});
+	
+	//[회원 추가 번역 신고 버튼 클릭 ]----------------------------------------------------
+	$(document).on("click", '.reportTranslationBtn', function(e){
+		var storyId = $("#storyId").val();
+		var transId = $(this).closest(".memberTranslation").find(".translationId").val();
+		var transWriter = $(this).closest(".memberTranslation").find(".alias:eq(0)").text().trim();
+		var reportReadyResource = {
+				appResourceId: Number(storyId),
+				appContentId: Number(transId),
+				appCodeName: 'SmallTalk_Translation',
+				reporterId: yourId,
+				repAlias: /*[[${session.userContainer?.personacon?.alias}]]*/null,
+				posAlias: transWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	});
+	
+	
+	// [문단 수정 폼 열기]------------------------------------------------------------
+	$(".showEditParaBtn").click(function(){
+		var $parentParaDiv = $(this).closest(".paragraph-article-div");
+		var $paraTextDiv = $parentParaDiv.find(".paraArticleDiv");
+		var $editFormArea = $parentParaDiv.find(".editParaDiv"); // 에디터 들어갈 영역
+		if($editFormArea.find("#editParaFormDiv").is(":visible")) {
+			$editFormArea.find(".cancelEditBtn").click(); // 수정 버튼 토글
+		} else {
+			var paraHtml = $paraTextDiv.find("pre").html(); // 수정 할 글 복사
+			$editFormArea.val(paraHtml);
+			$parentParaDiv.find(".editParaSection").show();
+			var editorHeight = $paraTextDiv.height() > 500 ? 500
+								: $paraTextDiv.height() + 50;
+			//-----------------------------------------------------
+			insertSmalltalkEditor($editFormArea,null,editorHeight);
+			//-----------------------------------------------------
+			$paraTextDiv.hide();
+		}
+	});
+	// [문단 수정 취소]--------------------------------------------------------------
+	$(".paragraph-article-div").on("click", ".cancelEditBtn", function(){
+		var $parentParaDiv = $(this).closest(".paragraph-article-div");
+		$parentParaDiv.find(".paraArticleDiv").show();
+		$parentParaDiv.find(".editParaDiv").summernote('destroy');
+		$parentParaDiv.find(".editParaSection").hide();
+		//----------------------------
+		activeParaDiv($(this), false);
+		//----------------------------
+	});
+	// [문단 수정 에디터가 떠 있을 때 '수정' 클릭시 수정]---------------------------------------
+	$('.editParaBtn').click(function(){
+		var storyId = $('#storyId').val();
+		var $parentParaDiv = $(this).closest('.paragraph-article-div');
+		var $content = $(this).closest('.editParaSection').find('.editParaDiv');
+		var paragraphResource = {
+				storyId : Number(storyId),
+				paraNum : Number($parentParaDiv.attr('data-paranum')),
+				content : replaceQuotes(filterSummernoteContent($content)).trim()
+		};
+		var $wrapper = $('<pre></pre>').html(paragraphResource.content);
+		var textLen = $wrapper.text().length;
+		
+		if(hasKor($wrapper.text())){
+			popModal('본문은 영어로만 작성해 주세요.');
+		}else if (textLen == 0 || textLen > 1000){
+			popModal('본문 내용의 길이를 1~1000자로 맞춰 주세요.<br>현재 : ' + textLen + " 자");
+		} else{
+			//-----------------------------------------------------
+			editParagraphContent(paragraphResource, $parentParaDiv);
+			//-----------------------------------------------------
+		}
+	});
+	
+	
+	// [코멘트 불러오기]-------------------------------------------------------------
+	$(document).on("click", "#openCommentBtn", function(){
+		var $commentListSection = $("#smallTalkCommentSection");
+		//
+		if($(this).is('.replyLoaded')){
+			$commentListSection.toggle(100, function(){
+				if($commentListSection.is(":visible")){
+					window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+				}
+			});
+		}else{
+			var url = "/reply/smalltalk/list/" 
+						+ $("#storyId").val()+"?replyType=c";
+			var selector = $('.commentPage');
+			//------------------------------
+			reloadAll(url, selector, false);
+			//------------------------------
+			$commentListSection.show(100, function(){
+				window.scrollTo(0, $commentListSection.offset().top - $("#headerNavbar").height());
+			});
+			$(this).addClass('replyLoaded');
+		}
+	});
+	
+	// [스토리 추천하기]-------------------------------------------------------------
+	$(".heart").on("click", function() {
+		if($(this).is('.heart-blast')){
+			alert('이미 처리되었습니다.');
+			return;
+		}
+		var voteResource = {
+				memberId: yourId,
+				contentId: Number($("#storyId").val()),
+				likeCount: Number($("#viewSmallTalkSection .likeCount").text().trim())
+		};
+		//---------------------------------
+		addStoryLike(voteResource, $(this));
+		//---------------------------------
+	});
+	
+	// [스토리 신고하기]-------------------------------------------------------------
+		$(document).on('click', '.storyReport', function(){
+		var storyId = Number($("#storyId").val());
+		var storyWriter = /*[[${smallTalk.story.personacon.alias}]]*/null;
+		var reportReadyResource = {
+				appResourceId: Number(storyId),
+				appCodeName: 'SmallTalk_Story',
+				reporterId: yourId,
+				repAlias: /*[[${session.userContainer?.personacon?.alias}]]*/null,
+				posAlias: storyWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	})
+	
+	// [동일한 paraWord, Sense를 찾아서 시퀀스 할당]--------------------------------------
+	var wordIds = [];
+	$('.paraWords .word-info-cover').each(function(i,el){
+		var wordId = $(el).find('.paraWordId').val();
+		if(wordIds.indexOf(wordId) < 0){
+			wordIds.push(wordId);
+		}
+		$(el).attr('word-seq', wordIds.indexOf(wordId));
+	});
+	delete wordIds;
+	
+	// [문단 스크롤이벤트 활성화]-------------------------------------------------------
+	$(window).on('scroll', scrollEvent);
+}); //end of ready
+
+/**
+ * 문단 본문내용이 수정되어 상세보기 화면에서도 갱신하여 표시
+ */
+function successEditParagraphContent(paragraph, $selector) {
+	$selector.find('.paraArticleDiv pre').html(paragraph.content);
+	$selector.find('.editParaDiv').val(paragraph.content);
+	$selector.find('.cancelEditBtn').click();
+	popModal('문단 내용이 수정되었습니다.');
+}
+/**
+ * 번역 등록 후 번역 리스트 갱신하여 표시
+ */
+function successAddStoryTranslation(selector, storyId, paraNum){
+	//입력창 닫기
+	var transForm = $(".memberTransFormDiv");
+	transForm.find('form')[0].reset();
+	transForm.slideUp(200);
+	
+	//해석목록 불러오기
+	loadTranslations(selector, storyId, paraNum);
+	selector.closest('.paraTransDiv').show();
+	// 성공 메세지
+	popModal('번역을 추가했습니다.\n다른 회원들의 번역과 비교해 보세요!');
+}
+/**
+ * 수정된 번역을 번역리스트에 반영하여 표시
+ */
+function successEditStoryTranslation(selector, content){
+	//입력창 닫기
+	var transForm = $(".memberTransFormDiv");
+	transForm.find('form')[0].reset();
+	transForm.slideUp(200);
+	// 번역 내용 교체
+	selector.find('.member-trans-text')
+			.html(content.replace(/\n/g, '<br>')).show();
+	selector.find('.editTransDiv').hide();
+	
+	// 성공 메세지
+	popModal('번역을 수정했습니다.')
+}
+
+/**
+ * 스토리 삭제 후 상세보기 화면을 지운다.
+ */
+function deleteContentDiv(){
+	$('#viewSmallTalkSection').slideUp(300, function() {
+		$('#viewSmallTalkSection *').off();
+		$(window).off('scroll', scrollEvent);
+		$(this).off().remove();
+	})
+}
+
+/**
+ * 화면 스크롤 이벤트 처리 (PC ver.)
+ */
+function scrollEvent(e) {
+	//--------------
+	adjustVocaDiv();
+	//--------------
+	// 스크롤 시 활성화 시킬 문단을 판별하는 판별 지점 설정
+	var currentCenter = window.scrollY;
+	if($(window).width() < 992){
+		// (모바일)단어장을 제외한 나머지 부분의 1/3 지점을 중심으로 판별
+		currentCenter += window.outerHeight*0.33
+				+ ($(".article-words-cover").is(':visible')?$(".article-words-cover").outerHeight(true)*0.66:0);
+	}else{
+		// 화면 상단에서 헤더 + 스토리제목 높이 만큼 떨어진 지점을 중심으로 판별
+		currentCenter += ($("#headerNavbar").is(":visible") ? $("#headerNavbar").outerHeight(true):0) 
+				+ ($("#smallTalkTitleDiv").is(":visible")?$("#smallTalkTitleDiv").outerHeight(true):0);
+	}
+	
+	var articleTop = $(".smalltalk-article-section").offset().top;
+	var articleBottom = articleTop + $(".smalltalk-article-section").outerHeight(true);
+	var $currentPara = $('.article-content-section .paragraph-article-section.active');
+	var $sibling = null;
+	// 현재 활성화 된 문단이 있고 아티클 내에서 스크롤 중일 때에만 동작
+	if($currentPara.length > 0 
+			&& articleTop <= currentCenter && articleBottom > currentCenter){
+		var $prevParagraph = $currentPara.prev('.paragraph-article-section');
+		var $nextParagraph = $currentPara.next('.paragraph-article-section');
+		if($prevParagraph.length > 0 &&
+				($prevParagraph.find('.paraArticleDiv').offset().top
+				+ $prevParagraph.find('.paraArticleDiv').outerHeight(true)) > currentCenter){
+		// 활성화 문단의 이전 문단이 판별 지점에 오거나
+			$sibling = $prevParagraph;
+		}else if($nextParagraph.length > 0 && 
+				$nextParagraph.find('.paraArticleDiv').offset().top < currentCenter){
+		// 활성화 문단의 다음 문단이 판별 지점에 오면
+			$sibling = $nextParagraph;
+		}
+		// 문단 활성화 위치를 이전/다음 문단으로 이동한다.
+		if($sibling != null && $sibling.length > 0){
+			//----------------------------
+			activeParaDiv($sibling, true);
+			//----------------------------
+		}
+	}
+};
+/**
+ * 단어장을 스몰톡 아티클 영역 안에서만 움직이게 하기 (PC ver.)
+ */
+function adjustVocaDiv(){
+    if($(window).width() > 991){
+		var navbarHeight = $("#headerNavbar").height();
+		var windowHeight = $(window).height();
+		var articleTop = $(".smalltalk-article-section").offset().top;
+		var articleHeight = $(".smalltalk-article-section").height();
+		var articleLastTop = articleTop + articleHeight - windowHeight + navbarHeight;
+		var wordListMargin = windowHeight - navbarHeight - $(".para-words-position").height();
+	    
+		if (articleTop > window.scrollY + navbarHeight + wordListMargin) {
+			$(".para-words-position").removeClass("bottomFix")
+									 .addClass("topFix"); // 아티클 상단에 맞춤
+		} else if (window.scrollY < articleLastTop) {
+			$(".para-words-position").removeClass("topFix bottomFix"); // 화면에 고정
+		} else {
+			$(".para-words-position").removeClass("topFix")
+									 .addClass("bottomFix"); // 아티클 하단에 맞춤
+		}
+    }
+}
+
+/**
+ * 단어 등록/ 선택 모달 띄우기
+ */
+function openWordMeaningModal(obj) {
+	var $modal = $("#wordMeaningModal");
+	$modal.find(".meaning-list").show();
+	$("html").addClass("modalOpen"); // 모달 뒤쪽 화면 정지
+	
+	var $wordInfo = $(obj).closest(".word-info-cover");
+	var word = $wordInfo.find(".word-eng").text();
+	var senseId = $wordInfo.find('.senseId').val();
+	var partType = $wordInfo.find(".badge").text();
+	$modal.find(".word-title").text(word);
+	$modal.find(".partId").val($wordInfo.find('.partId').val());
+	$modal.find(".senseId").val(senseId);
+	var partTypeMap = {'n':'명사', 'v':'동사','adv':'부사','adj':'형용사'};
+	$modal.find(".part-type").text(partTypeMap[partType]);
+	
+	$modal.fadeIn(200);
+}
+
+/**
+ * 댓글 수 갱신하기
+ */
+function updateReplyCount(selector, quantity) {
+	var replyCount = $("#openCommentBtn span");
+	replyCount.text(parseInt(replyCount.text()) + quantity);
+} 
+
+/**
+ * 단어 뜻 선정 창의 단어 뜻 목록 갱신.
+ * 단어 리스트에 최신 대표 뜻 반영.
+ * openWordMeaningModal 함수 이전에 호출돼야 함.
+ */
+function refreshSenseList($selector, senseList) {
+	var $meaningList = $('#wordMeaningModal .meaning-list').empty();
+	if(senseList != null && senseList.length > 0){
+		for(var i = 0; i < senseList.length; i++){
+			$meaningList.append('<label class="meaning-item col-auto">'
+							+ '<input type="radio" name="contextSense" '
+							+ 'class="option-input radio" '
+							+ 'data-text="' + senseList[i].text + '" '
+							+ 'value="' + senseList[i].sid + '" ' 
+							+ ((senseList[i].contextSense)?'checked':null) + '/> '
+							+ senseList[i].text + '</label>');
+			if(senseList[i].contextSense){ // 대표 뜻이면 단어 목록에도 표시
+				$wordInfo = $selector.closest('.word-info-cover');
+				$wordInfo.find('.senseId').val(senseList[i].sid);
+				$wordInfo.find('.word-kor').text(senseList[i].text);
+			}
+		}
+	}
+}
+
+/**
+ * 단어의 뜻이 등록되어 단어 리스트 상에서 등록된 뜻을 표시
+ */
+function successAddNewSense(seq, senseText, voicePath) {
+	var $words = $('.word-info-cover[word-seq="'+seq+'"]'),
+		wordId = $words.eq(0).find('.wordId').val(),
+		partType = $words.eq(0).find('.showEditPartBtn').text();
+	// 새로 단어 뜻이 등록된 단어와 같은 스펠링의 단어 중 아직 뜻이 없으면(품사가 같을 경우) 동일한 뜻으로 채운다.
+	var $eqWords = $('.none-mean .wordId[value="' + wordId + '"]')
+					.closest('.word-info-cover').filter(function(i, word){
+						return $(word).find('.showEditPartBtn').text() == partType;
+					});
+	$eqWords.each(function(i, word) {
+		$(word).removeClass('none-mean')
+				 .addClass('none-prime')
+				 .find('.check-icon:not(.showEditMeaningModal)')
+				 .html('<i class="fa fa-question-circle fa-fw">'
+						 + '</i><div class="guide-msg"></div>');
+		$(word).find('.showWordFormModal').removeClass('showWordFormModal')
+											.addClass('showWordMeaningModal');
+		$(word).find('.word-kor').text(senseText);
+		
+		// 등록된 단어 보이스가 있다면 재생 버튼 표시
+		if(voicePath != null && voicePath.length > 0){
+			$(word).find('.voice-icon').remove();
+			$(word).find('.showEditPartBtn').after('<a onclick="'
+						+ 'playVoice(\'/resource/dictionary/word/voice/\',\''
+						+ voicePath + '\',3, this);" class="voice-icon">'
+						+ '<i class="fa fa-volume-up"></i></a>');
+		}
+		if($(word).find('.showEditMeaningModal').length == 0){
+			var btn = '<div class="showEditMeaningModal check-icon col-auto align-self-center">';
+			
+			$(word).find('.word-kor')
+				   .after('<div class="showEditMeaningModal check-icon col-auto align-self-center">'
+						+ '<i class="fa fa-edit fa-fw"></i>'
+						+ '<div class="guide-msg">단어 뜻 수정하기</div></div>');
+		}
+		$(word).find('.guide-msg:not(.showEditMeaningModal .guide-msg)')
+			   .text('대표 뜻 선정하기');
+	});
+	//------------------------
+	popModal('뜻이 등록되었습니다.');
+	//------------------------
+}
+
+/**
+ * 단어에 문맥에 맞는 품사가 선정되어 단어 리스트 상에서도 바꿔줌.
+ */
+function contextPartChanged(seq, paraWord) {
+	var $words = $('.word-info-cover[word-seq="' + seq + '"]');
+	const partTypeMap = {
+			'VERB':{
+				init: 'v',
+				labelClass: 'showEditPartBtn badge badge-danger badge-pill'
+			},'NOUN':{
+				init: 'n',
+				labelClass: 'showEditPartBtn badge badge-success badge-pill'
+			},'ADJ':{
+				init: 'adj',
+				labelClass: 'showEditPartBtn badge badge-primary badge-pill'
+			},'ADV':{
+				init: 'adv',
+				labelClass: 'showEditPartBtn badge badge-warning badge-pill'
+			}};
+	$words.each(function(i, word){
+		$(word).find('.partId').val(paraWord.part.pid);
+		$(word).find('.senseId').val(paraWord.contextSense.sid);
+		$(word).find('.showEditPartBtn.badge')
+				 .removeClass().addClass(partTypeMap[paraWord.part.partType].labelClass)
+				 .text(partTypeMap[paraWord.part.partType].init);
+		
+		// 뜻이 있을 경우 물음표와 단어뜻을 표시하여 대표뜻을 선택하도록 함
+		if(paraWord.contextSense.text.length > 0){
+			$(word).removeClass('none-mean').addClass('none-prime')
+					 .find('.check-icon:not(.showEditMeaningModal)')
+					 .html('<i class="fa fa-question-circle fa-fw">'
+							 + '</i><div class="guide-msg"></div>');
+			$(word).find('.showWordFormModal').removeClass('showWordFormModal')
+												.addClass('showWordMeaningModal');
+			$(word).find('.word-kor').text(paraWord.contextSense.text);
+			$(word).find('.guide-msg').text('대표 뜻 선정하기');
+		}else{// 뜻이 없을 경우 단어뜻을 등록하도록 함
+			$(word).removeClass('none-prime').addClass('none-mean')
+					 .find('.check-icon:not(.showEditMeaningModal)')
+					 .html('<img src="/images/common/icon/coins.png">'
+							 + '<div class="guide-msg"></div>');
+			$(word).find('.showWordMeaningModal').removeClass('showWordMeaningModal')
+												.addClass('showWordFormModal');
+			$(word).find('.word-kor').text('단어 뜻을 등록해 주세요');
+			$(word).find('.guide-msg:not(.showEditMeaningModal .guide-msg)')
+					 .text('단어 뜻 작성하기');		
+		}
+	})
+	//-------------------------
+	popModal('품사가 변경되었습니다.');
+	//-------------------------
+}
+
+/**
+ * 단어에 새로운 뜻이 추가되거나 대표 뜻이 선정되어 단어 리스트 상에서도 바꿔줌.
+ * pid: ParaWordId
+ * sid: SenseId
+ * text: senseText
+ */
+function contextSenseChanged(seq, sid, text) {
+	var $words = $('.word-info-cover[word-seq='+seq+']');
+	$words.each(function(i, word){
+		$(word).removeClass('none-prime');
+		$(word).find('.senseId').val(sid);
+		$(word).find('.word-kor').text(text);
+		$(word).find('.guide-msg:not(.showEditMeaningModal .guide-msg)')
+				 .text('대표 뜻 선정하기');
+	})
+	//-------------------------
+	popModal('대표 뜻을 선정했습니다.');
+	//-------------------------
+}
+
+/**
+ * 추천 횟수를 갱신하여 표시
+ */
+function updateLikeCount(count) {
+	$("#viewSmallTalkSection .likeCount")
+		.html('<i class="fa fa-heart" title="좋아요"></i> ' + count);
+	$("#viewSmallTalkSection .heart").addClass('heart-blast');
+}
+
+/**
+ * 문단 학습 버튼 클릭 시 문단 active or 해제
+ */
+function activeParaDiv(obj, enable) {
+	var $parent = ($(obj).is('.paragraph-article-section')) ?
+					$(obj) : $(obj).closest(".paragraph-article-section");
+	// 현재 포커싱된 문단을 제외하고 활성화 해제
+	$(".paragraph-article-section").not($parent).removeClass("active");
+	// 문단의 힌트보기, 번역보기 등이 활성화된 목록
+	var openedAssists = ['.closeDivBtn:visible','.memberTransFormDiv:visible'
+						,'.watsonHintDiv:visible'].join(',');
+	if(enable){
+		$parent.addClass("active");
+	}else if ($parent.find(openedAssists).length == 0
+			&& $(".vocaListDiv").is(':not(:visible)')){
+		$parent.removeClass("active");
+	}
+	
+	if($('.vocaListDiv').is(':visible')){
+		//단어장이 열려 있다면 단어장의 단어 리스트도 변경---------
+		showWordAssist($parent);
+		//--------------------------------------			
+	}
+	
+}
+
+/**
+ * 단어장 정보 변경 및 표시
+ * @return paraWordIndex
+ */
+function showWordAssist($paragraph){
+	var $paraWordList = $paragraph.find(".paraWordDiv").children().clone();
+	$(".vocaListDiv").show(200); // 단어장 영역 열기
+	$(".vocaListDiv .paraWords").remove(); // 단어장에 있던 단어들 지우기
+	$paraWordList.appendTo(".word-info-list-cover");
+	var paraWordIndex = $paragraph.find('.showParaWordBtn').attr("data-paraWordIndex");
+	var wordListCover = document.querySelector('.word-info-list-cover');
+	wordListCover.scrollTo(wordListCover.scrollLeft, 0);
+	$(".vocaListDiv").find(".wordNum").text(paraWordIndex);
+	$(".vocaListDiv").data('paraIndex', paraWordIndex);
+	return paraWordIndex;
+ }
+
+/**
+ * 단어 의미 등록/수정, 본문 내용 수정 등 성공 시 모달창으로 메세지를 표시
+ */
+function popModal(message){
+	$('html').addClass("modalOpen");
+	$("#confirmModal .modalMsg").html(message);
+	$("#confirmModal").fadeIn(200, function(){
+		$('#confirmModal button')[0].focus();
+	});
+}
+
+
+/**
+ * 블록 지정된 텍스트 내용을 반환
+ */
+function getSelectedText() {
+    if (window.getSelection) {
+        return window.getSelection().toString();
+    } else if (document.selection) {
+        return document.selection.createRange().text;
+    }
+    return '';
+}
+
+/**
+ * 본문에서 선택된 단어를 단어장에서 강조표시
+ 
+ */
+function emphasizeSelectedWord(selectedWord){
+	var $word = $('.vocaListDiv .word-eng[data-plain="'+selectedWord.toLowerCase()+'"]');
+
+	if($word.attr('data-plain').toLowerCase() == selectedWord.toLowerCase()){
+		$word[0].scrollIntoView();
+		$word.closest('.word-info-cover').addClass("selectedWord");
+	}
+}
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<div id="contentSection">
+<!-- -------------------------[1. 스몰톡 소개/ 메뉴]----------------------------- -->
+<div id="introductionSection" class="introduction-section talktive mt-4">
+	<h3><span class="pv-tm">SmallTalk</span></h3>
+	<div class="sub">Share interesting stories and enjoy reading them.</div>
+</div>
+<div th:insert="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+
+<!-- ---------------------------[2. 스몰톡 상세보기]----------------------------- -->
+<div id="viewSmallTalkSection" th:if="${smallTalk}" class="mt-4" style="position: relative;">
+<div class="view-smalltalk-article-section" 
+	th:with="personacon=${smallTalk.story.personacon},
+	storyId=${smallTalk.story.sid},
+	loginPersonacon=${session?.userContainer?.personacon},
+	isGold = ${#strings.contains('PG', (loginPersonacon?.memberType?:'Anonymous'))},
+	isMe = ${#strings.equalsIgnoreCase(personacon.pid, loginPersonacon?.pid?:0)}">
+	<!-- -----------------------[2.1 아티클 타이틀 영역]---------------------- -->
+	<div id="smallTalkTitleDiv" class="article-content-section"
+		th:with="story = ${smallTalk.story}">
+		<input id="storyId" type="hidden" th:value="${story.sid}">
+		<!-- 제목/카테고리 -->
+		<div class="smalltalk-writer-info-section row no-gutters"><div class="col"></div>
+			<div class="story-title text-center col-auto">
+				<i class="fa fa-quote-left"></i>
+				[[${story.title}]]
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="col text-right"><div class="d-none d-md-inline-block">
+				<button th:if="${isGold}" 
+					class="addPlateBtn loginRequired add-plate-button" type="button"
+					th:href="${#request.requestURI}">
+					<i class="fa fa-bookmark"></i>
+					<div class="add-plate-guide">스토리 보관함에 담기</div>
+				</button>
+				
+				<button th:unless="${isGold}" 
+					class="add-plate-button disabled" disabled type="button">
+					<i class="fa fa-bookmark"></i>
+					<div class="add-plate-guide">플레이보이스 전체 통합 앱의 골드회원 전용 저장 서비스입니다</div>
+				</button>
+			</div></div>
+		</div>
+		<!-- 작성자 정보 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="category col-md col-12">
+				<i class="fa fa-bars"></i>
+				[[${story.category.korName}]]
+			</div>
+			<div class="date col-auto col text-right align-self-center"
+				th:text="${#dates.format(story.regDate, 'yyyy-MM-dd')}"></div>
+			<div class="likeCount like col-auto pl-3 align-self-center">
+				<i class="fa fa-heart" title="좋아요"></i> [[${story.likeCount}]]
+			</div>
+			<div class="hits col-md-auto col pl-3 align-self-center">
+				<i class="fa fa-paw" title="조회수"></i> [[${story.hits}]]
+			</div>
+			<div class="etc col-auto btn-group align-self-center">
+				<a class="dropdown-toggle ml-3" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+				    <li th:if="${isMe} OR ${loginPersonacon?.memberType} == 'A'"
+				    	class="delStoryBtn dropdown-item text-center"><a>삭제</a></li>
+				    <li th:if="${!isMe}"
+				    	class="storyReport dropdown-item text-center loginRequired"
+				    	th:href="${#request.requestURI}"><a>신고</a></li>
+				</ul>
+			</div>
+		</div>
+	</div><!-- end of smallTalkTitleDiv -->
+
+	<!-- ----------------------[2.2 단어/ 아티클 본문 영역]------------------------ -->
+	<div id="smallTalkArticleContentDiv" class="smalltalk-article-content-div row no-gutters">
+		<div class="closeVocaListBtn vocaListBack smalltalk-playvoca-back-position"></div>
+		<!-- --------------------------[단어 리스트]---------------------------- -->
+		<div class="vocaListDiv smalltalk-playvoca-section list col-lg-auto col-12" 
+			style="display: none;">
+			<div class="para-words-position"><div class="article-words-cover">
+				<div class="wordNum">1</div>
+				<!-- 단락 단어 붙여넣기 되는 영역 -->
+				<div class="word-info-list-cover"></div>
+				<!-- 단어장 크기 조절, 단어장 닫기 버튼 (Mobile ver.) -->
+				<div class="word-list-button-section row no-gutters">
+					<div class="col"></div>
+					<div class="wide-section col-auto align-self-center d-lg-none">
+						<i class="expandVocaListBtn fa fa-expand-arrows-alt"></i>
+						<i class="compressVocaListBtn fa fa-compress-arrows-alt" style="display: none;"></i>
+					</div>
+					<div class="close-section col-auto align-self-center d-lg-none">
+						<i class="closeVocaListBtn fa fa-times"></i>
+					</div>
+				</div>
+			</div></div>
+		</div>
+		
+		
+		<!-- ------------------------[스토리 아티클 영역]------------------------- -->
+		<div class="article-content-section section-body col-lg">
+		<div class="smalltalk-article-section">
+			<!-- 퍼스나콘 스탬프 -->
+			<div class="member-personacon-stamp-position">
+				<div class="member-personacon-stamp">
+					<div class="member-alias">[[${personacon.alias}]]</div>
+					<img src="/images/app/playsquare/article_stamp_frame.png" 
+						class="member-frame">
+				</div>
+			</div>
+			
+			<!-- -------------------스토리 아티클 문단 시작------------------------- -->
+			<div th:each="storyParagraph, iter : ${smallTalk.storyParagraphList}"
+				 class="paragraph-article-section">
+			<div class="paragraph-article-div" th:data-paranum="${iter.index}">
+				<!-- 본문 문단 -->
+				<div class="paraArticleDiv para-article-div article-default-font-style eng">
+					<div class="hint-label-guide">
+						<div class="hint-label">
+							<span class="empVerb">메인 동사</span>
+							<span class="empMod-f">수식어</span>
+							<span class="empAdv">비수식어</span>
+						</div>
+					</div>
+					<pre th:utext="${storyParagraph.content}"></pre>
+				</div>
+				<!-- 수정 에디터 들어갈 부분 -->
+				<div class="editParaSection para-article-div article-default-font-style 
+					eng activeAll" style="display: none;">
+					<textarea class="editParaDiv form-group"></textarea>
+					<div class="form-group">
+						<div class="add-button-section text-center">
+							<button type="reset" class="cancelEditBtn btn btn-playsquare2 mr-3">취소</button>
+							<button type="button" class="editParaBtn btn btn-smalltalk2">수정</button>
+						</div>
+					</div>	
+				</div>
+				
+				<th:block th:if="${storyParagraph.translation != null AND 
+					!#strings.isEmpty(storyParagraph.translation)}">
+				<!-- 학습 버튼 -->
+				<div class="study-button-section row no-gutters">
+					<div class="study-button-cover col-auto ml-auto">
+						<button class="hintActiveBtn studyParaSectionBtn 
+							btn btn-sm btn-hint" type="button">
+							<i class="fa fa-search fa-fw"></i>
+							<div th:if="${iter.index == 0}" 
+								class="controller-mobile-guide d-md-none">독해힌트</div>
+							<div class="button-guide">독해 힌트 보기</div>
+						</button>
+						<button class="showParaWordBtn btn btn-sm btn-pharaword" 
+							type="button" th:data-paraWordIndex="${iter.count}">
+							<span>W</span>
+							<div th:if="${iter.index == 0}" 
+								class="controller-mobile-guide d-md-none">단어</div>
+							<div class="button-guide">단어 보기</div>
+						</button>
+						<button class="showTransBtn studyParaSectionBtn 
+							btn btn-sm btn-trans" type="button">
+							<i class="fa fa-list-alt fa-fw"></i>
+							<div th:if="${iter.index == 0}" 
+								class="controller-mobile-guide d-md-none">번역</div>
+							<div class="button-guide">번역 보기</div>
+						</button>
+						<button class="showTransFormBtn studyParaSectionBtn
+							btn btn-sm btn-trans-form" type="button">
+							<i class="fa fa-pencil-alt fa-fw"></i>
+							<div th:if="${iter.index == 0}" 
+								class="controller-mobile-guide d-md-none">번역하기</div>
+							<div class="button-guide">나도 번역해 보기</div>
+						</button>
+						<button th:if="${isMe}"
+							class="showEditParaBtn btn btn-sm btn-edit" type="button">
+							<i class="fa fa-edit fa-fw"></i>
+							<div th:if="${iter.index == 0}" 
+								class="controller-mobile-guide d-md-none">수정</div>
+							<div class="button-guide">문단 수정하기</div>
+						</button>
+					</div>
+				</div>
+				
+				<!-- 왓슨 구문 분석 -->
+				<div class="watsonHintDiv para-article-div activeWatson 
+					article-default-font-style eng" style="display: none;">
+					<div class="watson-title">
+						<span><i class="fa fa-search fa-fw"></i></span>
+						<span>Mr. Watson의 구문 분석</span>
+					</div>
+					<div class="paraWantsonAnalDiv para-translation-div" style="display: none;">
+						<i class="fa fa-times float-right closeDivBtn"></i>
+						<i class="watson-btn fa fa-question-circle float-right watsonInfoBtn"></i>
+						<div class="hintGuideDiv hint-guide" style="display: none;">
+							<div>Watson의 구문 분석은 참고 용도로만 이용하세요</div>
+							<ul>
+								<li>Watson은 하나의 문장을 
+									<span class="subject-role">Subject</span>, 
+									<span class="action-role">Action</span>, 
+									<span class="object-role">Object</span>
+									영역으로 나누어 분석합니다.</li>
+								<li>이 세 영역은 입시 문법에서 말하는 '주어/동사/목적어' 와 완전히 동일한 의미로 볼 수 없습니다.</li>
+								<li>문장 파싱(parse) 과정에서 Watson은 적절하지 않은 단어를 제시하기도 합니다.</li>
+							</ul>
+						</div>
+						<pre th:if="${storyParagraph.semantic}" 
+							th:utext="${storyParagraph.semantic}"></pre>
+					</div>
+				</div>
+				
+				<!-- 단어 -->
+				<div class="paraWordDiv" style="display: none;"
+					th:with="wordPartNames = ${ {'VERB': {'badge-danger','v'},
+												'NOUN': {'badge-success','n'},
+												'ADJ': {'badge-primary','adj'},
+												'ADV': {'badge-warning','adv'}
+												} }">
+				<div class="paraWords para-words-section row no-gutters">
+					<input type="hidden" class="paraWordOrder" th:value="${iter.count}"/>
+					<th:block th:each="paraWord : ${storyParagraph.paraWordList}"
+						th:with="partType = ${wordPartNames[paraWord.part.partType]}">
+						<!-- 뜻이 없을 경우 -->
+						<div th:if="${#strings.length(paraWord?.contextSense?.text) EQ 0}" 
+							class="none-mean word-info-cover col-lg-12 col-md-6 col-12">
+							<input type="hidden" class="paraWordId" th:value="${paraWord?.pid}">
+							<input type="hidden" class="partId" th:value="${paraWord?.part?.pid}">
+							<input type="hidden" class="wordId" th:value="${paraWord?.word?.wid}">
+							<input type="hidden" class="senseId" th:value="${paraWord?.contextSense?.sid}">
+							<div class="row no-gutters">
+								<div class="col align-self-center">
+									<span class="word-eng" th:text="${paraWord.word.title}"
+										th:data-plain="${#strings.toLowerCase(paraWord.text)}"></span>
+									<label class="showEditPartBtn badge badge-pill loginRequired"
+										th:classappend="${partType[0]}" th:text="${partType[1]}"
+										th:href="${#request.requestURI}">v</label>
+								</div>
+								<!-- 단어 뜻 등록하기 -->
+								<div class="showWordFormModal loginRequired check-icon col-auto align-self-center"
+									th:href="${#request.requestURI}">
+									<img src="/images/common/icon/coins.png">
+									<div class="guide-msg">단어 뜻 작성하기</div>
+								</div>
+							</div>
+							<div class="row no-gutters">
+								<div class="showWordFormModal word-kor col loginRequired"
+									th:href="${#request.requestURI}">단어 뜻을 등록해 주세요</div>
+							</div>
+						</div>
+						<!-- 뜻이 채워진 경우 -->
+						<div th:unless="${#strings.length(paraWord?.contextSense?.text) EQ 0}" 
+							class="none-prime word-info-cover col-lg-12 col-md-6 col-12">
+							<input type="hidden" class="paraWordId" th:value="${paraWord?.pid}">
+							<input type="hidden" class="partId" th:value="${paraWord?.part?.pid}">
+							<input type="hidden" class="wordId" th:value="${paraWord?.word?.wid}">
+							<input type="hidden" class="senseId" th:value="${paraWord?.contextSense?.sid}">
+							<div class="row no-gutters">
+								<div class="col align-self-center">
+									<span class="word-eng" th:text="${paraWord.word.title}"
+										th:data-plain="${#strings.toLowerCase(paraWord.text)}"></span>
+									<label class="showEditPartBtn badge badge-pill loginRequired"
+										th:classappend="${partType[0]}" th:text="${partType[1]}"
+										th:href="${#request.requestURI}">v</label>
+									<a th:if="${paraWord.word.voicePath}" 
+										th:data-path="${paraWord.word.voicePath}"
+										onclick="playVoice('/resource/dictionary/word/voice/', $(this).attr('data-path'), 3, this);"
+										class="voice-icon">
+										<i class="fa fa-volume-up"></i>
+									</a>
+								</div>
+								<!-- 대표 뜻이 없는 단어에 대표 뜻 선정하기 -->
+								<div class="showWordMeaningModal check-icon col-auto align-self-center loginRequired"
+									th:href="${#request.requestURI}">
+									<i class="fa fa-question-circle fa-fw"></i>
+									<div class="guide-msg">대표 뜻 선정하기</div>
+								</div>
+							</div>
+							<div class="row no-gutters">
+								<div class="showWordMeaningModal word-kor col loginRequired"
+									th:text="${paraWord.contextSense.text}"
+									th:href="${#request.requestURI}"></div>
+								<div th:if="${#strings.equalsIgnoreCase(paraWord.contextSense.memberId, loginPersonacon?.pid?:0)}
+									OR ${loginPersonacon?.memberType} == 'A'"
+									class="showEditMeaningModal check-icon col-auto align-self-center loginRequired"
+									th:href="${#request.requestURI}">
+									<i class="fa fa-edit fa-fw"></i>
+									<div class="guide-msg">단어 뜻 수정하기</div>
+								</div>
+							</div>
+						</div>
+					</th:block>
+				</div></div>
+				<!-- 직접 번역 폼 -->
+				<div th:if="${session?.userContainer}" 
+					class="memberTransFormDiv member-trans-section" style="display: none;">
+					<form>
+					<div>
+						<textarea class="memberTransComment form-control playvoice-form"
+							placeholder="힌트를 보면서 번역을 해 보세요. 직접 글로 써보는 것이 독해 능력을 기르는 데 큰 효과가 있습니다."></textarea>
+					</div>
+					<div class="row no-gutters"><div class="col-sm d-none d-sm-inline-block"></div>
+						<div class="button-section col-sm-auto col-6">
+							<button class="cancelMemberTransBtn btn btn-playsquare2 btn-sm" 
+								type="reset">나중에 할래</button>
+						</div>
+						<div class="button-section col-sm-auto col-6">
+							<button class="addMemberTransBtn btn btn-smalltalk2 btn-sm" 
+								type="button">번역 완료 <i class="fa fa-glass-martini-alt"></i></button>
+						</div>
+					</div>
+					</form>
+				</div>
+				<div th:unless="${session?.userContainer}" 
+					class="memberTransFormDiv member-trans-section" style="display: none;">
+					<div class="form-control playvoice-form loginRequired jsAction"
+						th:href="${#request.requestURI}">
+						로그인 후 직접 번역해 보세요. 
+					</div>
+				</div>
+				
+				<!-- 번역 리스트 -->
+				<div class="paraTransDiv trans-list-section" style="display: none;">
+					<i class="fa fa-times float-right closeDivBtn"></i>
+					<!-- 멤버들 번역 목록 -->
+					<div class="memberTransListDiv"></div>
+				</div>
+				</th:block>
+			</div></div>
+			
+		</div>
+		</div>
+	</div><!-- end of smallTalkArticleContentDiv -->
+	
+	
+	<!-- -------------------------[2.3 아티클 버튼 영역]-------------------------- -->
+	<div id="smallTalkButtonsDiv">
+		<!-- -----------------댓글, 추천 버튼 / 작성자 정보-------------------------- -->
+		<div class="article-content-section">
+			<div class="smalltalk-estimate-section row no-gutters">
+				<!-- 댓글 버튼 -->
+				<div class="col align-self-center">
+					<button id="openCommentBtn" class="btn btn-sm btn-playsquare" type="button">
+						<i class="fa fa-comment-dots fa-fw"></i>
+						댓글 <span class="badge badge-secondary badge-pill">[[${smallTalk.story.replyCount}]]</span>
+					</button>
+				</div>
+				<!-- 추천 버튼 -->
+				<div class="heart-estimate-section col-auto align-self-center loginRequired"
+					th:href="${#request.requestURI}">
+					<div th:data-count="${smallTalk?.story?.likeCount}" 
+						class="heart">추천</div>
+				</div>
+				<!-- 담기 버튼 (Mobile ver.) -->
+				<div class="col align-self-center text-right d-md-none">
+					<button th:if="${isGold}" 
+						class="addPlateBtn add-plate-button" type="button">
+						<i class="fa fa-bookmark"></i>
+						<div class="add-plate-guide">스토리 보관함에 담기</div>
+					</button>
+					<button th:unless="${isGold}" 
+						class="add-plate-button disabled" disabled type="button">
+						<i class="fa fa-bookmark"></i>
+						<div class="add-plate-guide">플레이보이스 전체 통합 앱의 골드회원 전용 저장 서비스입니다</div>
+					</button>
+				</div>
+				<!-- 작성자 정보 -->
+				<div class="col-md col-12 align-self-center row no-gutters">
+					<div class="writer-alias col text-right align-self-center" 
+						th:text="${personacon.alias}"></div>
+					<div class="col-auto align-self-center" 
+						th:insert="~{/incl/user_personacon::user_md}"></div>
+				</div>
+			</div>
+		</div>
+	</div><!-- end of smallTalkButtonsDiv -->
+	
+	<!-- --------------------------[2.4 광고/ 댓글 영역]------------------------- -->
+	<div id="smallTalkCommentDiv" class="row no-gutters">
+		<div class="col-lg-3" style="display: none;"></div>
+		<div class="article-content-section col-lg">
+			<!-- 댓글 -->
+			<div id="smallTalkCommentSection" class="smalltalk-article-comment-section" 
+				th:with="appContentWriter=${personacon.alias},
+					appDomain='smalltalk', appContentId=${storyId}" style="display: none;">
+				<div th:insert="~{/common/comment::comment}" class="smalltalk-comment-back"></div>
+			</div>
+		</div>
+	</div><!-- end of smallTalkCommentDiv -->
+	
+</div>
+</div><!-- end of viewSmallTalkSection -->	
+	
+	
+	
+<!-- --------------------------[3 스몰톡 스토리가 없는 경우]------------------------- -->
+<div id="viewNoneSmallTalkSection" th:unless="${smallTalk}" 
+	class="view-smalltalk-empty-section mt-4">
+<div class="view-smalltalk-article-section">
+	<!-- -------------------------[3.1 아티클 타이틀 영역]------------------------ -->
+	<div id="smallTalkTitleDiv" class="article-content-section">
+		<!-- 제목/카테고리 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="col"></div>
+			<div class="story-title text-center col-auto">
+				<i class="fa fa-quote-left"></i>
+				존재하지 않는 스토리입니다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="col text-right"><div class="d-none d-md-inline-block">
+				<button class="add-plate-button disabled" disabled type="button">
+					<i class="fa fa-bookmark"></i>
+				</button>
+			</div></div>
+		</div>
+		<!-- 작성자 정보 -->
+		<div class="smalltalk-writer-info-section row no-gutters">
+			<div class="category col-md col-12">
+				<i class="fa fa-bars"></i> smalltalk
+			</div>
+			<div class="likeCount like col-auto align-self-center">
+				<i class="fa fa-heart" title="좋아요"></i>
+			</div>
+			<div class="hits col-md-auto col pl-3 align-self-center">
+				<i class="fa fa-paw" title="조회수"></i>
+			</div>
+			<div class="etc col-auto btn-group align-self-center">
+				<span class="ml-3"><i class="fa fa-ellipsis-h fa-lg fa-fw"></i></span>
+			</div>
+		</div>
+	</div><!-- end of smallTalkTitleDiv -->
+	<!-- ------------------------[3.2 아티클 본문 영역]--------------------------- -->
+	<div id="smallTalkArticleContentDiv" class="smalltalk-article-content-div row no-gutters">
+		<!-- ------------------------[스토리 아티클 영역]------------------------- -->
+		<div class="article-content-section section-body pb-3 col-lg">
+			<div class="smalltalk-article-section">
+				<div class="paragraph-article-section"><div class="paragraph-article-div">
+					<!-- 본문 문단 -->
+					<div class="para-article-div none-report">
+						<div class="text-center">
+							<img src="/images/common/characters/robots.png"
+								class="robot-image" alt="플레이보이스">
+						</div>
+						<div class="none-report-text">
+							<b>해당 스토리가 존재하지 않습니다.</b><br><br>
+							관심 있는 주제의 영어 글을 가져와서 로봇들과 함께 스토리를 작성해 보는 건 어떤가요?
+						</div>
+					</div>
+				</div></div>
+			</div>
+		</div>
+	</div><!-- end of smallTalkArticleContentDiv -->
+</div></div><!-- end of viewNoneSmallTalkSection -->
+
+
+
+<!-- ----------------------------[4. 스토리 리스트]----------------------------- -->
+<div th:replace="~{/square/smalltalk/incl/list_stories_incl::list}"></div>
+<!-- 가이드 캐릭터 -->
+<div class="story-word-guide-position"></div>
+
+<!-- -----------------------[스몰톡 단어 뜻 선택/ 뜻 작성 모달]------------------------ -->
+<div id="wordMeaningModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<form>
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="word-meaning-modal">
+		<div class="word-title"></div>
+		<input type="hidden" class="partId">
+		<input type="hidden" class="senseId">
+		<div class="word-modal-guide guide1">
+			<b>이 지문에 가장 알맞은 뜻</b>이 있으면 선택해 주세요.<br>
+			없다면 단어의 <b>품사</b>를 고려하여 <b>뜻 하나</b>를 등록해 주세요
+			<i class="far fa-grin-alt"></i>
+		</div>
+		<div class="word-modal-guide guide2">
+			이 지문에서 사용된 단어의 <b>품사</b>를 고려하여<br><b>가장 알맞은 뜻 하나</b>를 등록해 주세요
+			<i class="far fa-grin-alt"></i>
+		</div>
+		<div class="meaning-list row no-gutters">
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio"/> 단어 뜻1
+			</label>
+			<label class="meaning-item col-auto">
+				<input type="radio" name="contextSense" class="option-input radio" value="oo"/> 단어 뜻5
+			</label>
+		</div>
+		<div class="add-meaning-form">
+			<div class="meaningForm row no-gutters">
+				<div class="part-type col-auto align-self-center"></div>
+				<div class="col align-self-center">
+					<input type="text" class="meaningText form-control playvoice-form"
+						placeholder="품사가 맞는지 한번 더 확인해 주세요"/>
+				</div>
+			</div>
+			<div class="button-section pt-2 text-center">
+				<button class="closeWordFormModal btn btn-sm btn-playsquare2"
+					type="button">취소</button>
+				<button class="parawordSubmit btn btn-sm btn-smalltalk2" 
+					type="submit">등록</button>
+			</div>
+		</div>
+	</div>
+	</form>
+</div>
+
+<!-- ----------------------------[단어 품사 변경 모달]----------------------------- -->
+<div id="editPartModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<form>
+	<input type="hidden" class="pararWordId">
+	<input type="hidden" class="wordId">
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="word-part-modal">
+		<div class="guide">지문에 알맞은 품사를 선택하여 수정해 주세요</div>
+		<div class="part-cover">
+			<label><input type="radio" name="part" value="VERB" class="option-input radio"/>
+				동사 <span class="badge badge-danger badge-pill">v</span>
+			</label><br>
+			<label><input type="radio" name="part" value="NOUN" class="option-input radio"/> 
+				명사 <span class="badge badge-success badge-pill">n</span>
+			</label><br>
+			<label><input type="radio" name="part" value="ADJ" class="option-input radio"/> 
+				형용사 <span class="badge badge-primary badge-pill">adj</span>
+			</label><br>
+			<label><input type="radio" name="part" value="ADV" class="option-input radio"/> 
+				부사 <span class="badge badge-warning badge-pill">adv</span>
+			</label>
+		</div>
+		<div class="button-section">
+			<button class="closeWordFormModal btn btn-sm btn-playsquare2"
+				type="button">취소</button>
+			<button class="editPart btn btn-sm btn-smalltalk2" type="submit">수정</button>
+		</div>
+	</div>
+	</form>
+</div>
+<!-- -------------------------------[확인창 모달]------------------------------- -->
+<div id="confirmModal" class="storyWordModal word-meaning-modal-cover" style="display: none;">
+	<div class="closeWordFormModal word-meaning-modal-back"></div>
+	<div class="story-confirm-modal">
+		<div class="modalMsg">뜻이 등록 되었습니다.</div>
+		<div class="button-section">
+			<button class="closeWordFormModal btn btn-sm btn-smalltalk2" 
+				type="button">확인</button>
+		</div>
+	</div>
+</div>
+
+</div>
+
+</section>
+</html>

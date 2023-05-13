@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>플레이보이스 TTS - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '플레이보이스 TTS - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 TTS는 영어 전문 TTS MP3 파일 변환 서비스입니다. 플레이보이스에는
+	수십명의 다양한 성우들의 목소리가 있으며, 자신이 원하는 문장들을 고품질 음성 파일로 쉽고 간편하게 만들 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = 'TTS, MP3, 영어 듣기, 받아쓰기, 딕테이션, 스피킹 '"></th:block>
+<!-- schema org (bread, search) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment2::schemaBread}"
+	th:with="breadList = ${ {'/tts'} },
+	breadName = ${ {'플레이보이스 TTS'} }"></th:block>]
+</script>	
+
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	const search = $(location).attr('search');
+	const resMsgs = getParameter('resMsgs');
+	if(resMsgs=='ok'){
+		$('#loginFormContainer button[class="btn btn-info btn-xs"]').css("display", '');
+	}else if(search.indexOf('?error')  != -1 || resMsgs=='fail'){
+		$('#loginFormContainer > div[class=resMsgs]').show();
+	}
+	
+	// 접속 기기 모바일 여부
+	const isMobile = navigator.userAgent.indexOf("Mobi") > -1;
+	// [폼 유효성 검사 후 로그인 실행]----------------------------------------------------
+	$("#ttsLoginForm").submit(function(e){
+		var id = $("#username").val();
+		var pw = $("#password").val();
+		
+		if(id.length < 1 || pw.length < 1){
+			$('.error-msg-section').show();
+			$('#errorMsg').html("아이디와 비밀번호를 모두 입력해 주세요.");
+			return false;
+		} else {
+			// 아이디 기억
+			localStorage.setItem('checkRememberId', 'true');
+			localStorage.setItem('rememberedId', id);
+			// 모바일의 경우 비밀번호까지 기억
+			if(isMobile){
+				localStorage.setItem('rememberPwd', btoa(pw));
+			}
+			return true;
+		}
+	});
+	
+	// [아이디 기억 여부, 기억된 아이디 표시]-----------------------------------------------
+	if(localStorage.getItem('checkRememberId') == 'true'){
+		const id = localStorage.getItem('rememberedId');
+		if(id == null){
+			localStorage.setItem('checkRememberId', 'false');
+		}else{
+			$('#username').val(id);
+			// 모바일의 경우 비밀번호까지 기억
+			if(isMobile){
+				const pwd = atob(localStorage.getItem('rememberPwd'));
+				$('#password').val(pwd);
+			}
+		}
+	}
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+</script>
+
+</head>
+
+<section layout:fragment="content" class="playvoice-layout-mobile-section 
+	mobile-container-mode dark-mode welcome-page">
+<!-- -------------------------[1. welcome ment]----------------------------- -->
+<div class="welcome-index-ment-section">
+	<div class="playvoice-tts-copy-emb">Keep native speakers by your side!</div>
+</div>
+<!-- -------------------------[2. welcome image]---------------------------- -->
+<div class="welcome-index-image-section">
+	<div class="welcome-index-image-cover"></div>
+	<div class="TY-fly"></div>
+	<div class="TY-fly2"></div>
+	<div class="circle-bubble"></div>
+	<div class="circle-bubble2"></div>
+</div>
+
+<!-- --------------------------[3. welcome logo]---------------------------- -->
+<div class="welcome-index-ment-section">
+	<div class="playvoice-tts-logo-emb"></div>
+</div>
+
+<!-- ---------------------------[4. login]---------------------------------- -->
+<div class="playvoice-tts-login-section">
+<form th:action="@{/tss/main}" class="form-horizontal" method="get">
+	<!-- error msg -->
+	<div class="error-msg-section login-form-group" style="display: none;">
+		<i class="fa fa-exclamation-triangle"></i>
+		<span id="errorMsg"></span>
+	</div>
+	<!-- 아이디 -->
+	<div class="joinId login-form-group">
+		<input id="username" type="text" class="form-control playvoice-form"
+			placeholder="아이디"/>
+	</div>
+	<!-- 비밀번호 -->
+	<div class="joinPassword login-form-group">
+		<input id="password" type="password" class="form-control playvoice-form"
+			placeholder="비밀번호"/>
+	</div>
+	<!-- 로그인 버튼 -->
+	<div class="welcome-index-button-section">
+		<div class="button-cover">
+			<a id="ttsLoginBtn" th:href="@{/tts/main}" class="btn btn-login">
+				login <img src="/images/common/icon/jelly_login_icon.png"
+					alt="플레이보이스 TTS">
+			</a>
+		</div>
+	</div>
+</form>
+</div>
+
+<!-- -----------------------------[5. join]--------------------------------- -->
+<div class="playvoice-tts-join-section">
+	<a th:href="@{/member/registration/815010000}" class="btn btn-join">
+		<i class="fa fa-smile-wink fa-fw"></i> join 
+	</a>
+</div>
+
+
+</section><!-- end of content -->
+
+
+
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout2}">
+<head>
+<title>입국 심사 결과 - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = 'noindex', 
+	metaTitle = '입국 심사 결과 - 플레이보이스 | Playvoice', 
+	metaImage = '/images/app/mypage/pass_immigration.jpg'"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	
+});
+
+</script>	
+</head>
+<body>
+<section layout:fragment="content" class="container">
+
+<div id="myRankSection" class="my-test-result-section mt-4">
+	<h3 class="test-title">
+		Immigration Test Result
+		<i class="fa fa-chart-bar fa-fw"></i><br>
+		<small>입국 심사 결과를 확인해 보세요. '나의 시험정보'에서도 결과를 확인할 수 있습니다.</small>
+	</h3>
+	<!-- --------------------------[1. 입국 심사 결과]--------------------------- -->
+	<div class="detail-cover">
+		<div class="detail-position">
+			<!-- [1.1 결과 이미지] -->
+			<div class="detail-image">
+				<!-- <img src="/images/app/dictationbook/theme_paper3.png" alt="플레이보이스"
+					style="background: url('/images/app/mypage/pass_immigration.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<img src="/images/common/icon/icon_paper.png" class="press-stamp"> -->
+				<img src="/images/app/dictationbook/theme_paper3.png" alt="플레이보이스"
+					style="background: url('/images/app/mypage/denied_immigration.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<img src="/images/common/icon/icon_paper.png" 
+					class="press-stamp" alt="플레이보이스">
+			</div>
+			<!-- [1.2 결과 메세지] -->
+			<div class="detail-ment">
+				<div class="detail-title">test result</div>
+				<div style="display: none;">
+					축하합니다! <b>입국 심사를 통과하였습니다.</b>
+					<i class="fa fa-stamp fa-lg"></i><br>
+					입국 스탬프가 발급되었으며 스탬프는 나의 여권 정보에서 확인할 수 있습니다.<br>
+					새로운 도시에서도 즐거운 일들이 가득하길 바랍니다.
+				</div>
+				<div>
+					<b>아쉽게도 입국 심사를 통과하지 못하였습니다.</b>
+					<i class="far fa-sad-cry fa-lg"></i><br>
+					다음번엔 더 잘할 수 있을 겁니다!<br>
+					입국 심사 테스트는 통과할 때까지 하루 한 번씩 응시할 수 있으며<br class="d-none d-sm-block">
+					<a th:href="@{/dictationBook}" class="pv-tm">DictationBook</a>
+					을 통해 연습할 수 있습니다.
+				</div>
+				<div class="regdate py-1">
+					<span class="alias">
+					<i class="fas fa-quote-left fa-fw"></i>
+					[[${alias}]]
+					<i class="fas fa-quote-right fa-fw"></i>
+					</span>님의 여정이 시작된 지 <span class="date">143</span>일이 지났습니다.
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<div class="my-score-section row no-gutters">
+		<!-- -----------------------[2. 입국 심사 결과 점수]----------------------- -->
+		<div id="myScoreDiv" class="my-score-div col-md-8 px-lg-4 px-1">
+			<!-- [2.1 나의 테스트 점수] -->
+			<div class="my-score-cover score-style1">
+				<div class="title d-md-none">Test Score<br>
+					<span>해당 도시 입국 심사에 대한 나의 점수입니다.</span>
+				</div>
+				<div class="title d-none d-md-block">테스트 결과</div>
+				<!-- 점수 -->
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-grin-alt fa-fw fa-lg"></i>
+						Your Score
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 60%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">60</div>
+						</div>
+					</div>
+				</div>
+				<!-- DSR 점수 -->
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-grin-alt fa-fw fa-lg"></i>
+						Your DSR Point
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 22%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">22</div>
+						</div>
+					</div>
+				</div>
+				<!-- ADSR 점수 -->
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-laugh-wink fa-fw fa-lg"></i>
+						Your ADSR Point
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 52.2%;">
+								<div class="score-gragh my"></div>
+							</div>
+							<div class="score-num">52.2</div>
+						</div>
+					</div>
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>DSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br><b>정답 개수</b>와 선택한 <b>음성 반복 횟수</b>를 함께 고려한 평가 포인트입니다.
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>ADSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br><b>정답 개수</b>와 선택한 <b>음성 반복 횟수</b> 
+					그리고 이 테마를 <b>테스트한 횟수</b>를 모두 고려한 평가 포인트입니다.
+					<br>딕테이션 북 랭킹의 평가 지표로 사용됩니다.
+				</div>
+			</div>
+			
+			<!-- [2.2 평균 테스트 점수] -->
+			<div class="my-score-cover score-style2">
+				<div class="title d-md-none">Test Evaluation<br>
+					<span>해당 도시 입국 심사에 대한 평균 점수입니다.</span>
+				</div>
+				<div class="title d-none d-md-block">테스트 평가</div>
+				<!-- 점수 -->
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-chart-bar fa-fw fa-lg"></i>
+						Average Score
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 67.6%;">
+								<div class="score-gragh"></div>
+							</div>
+							<div class="score-num">67.6</div>
+						</div>
+					</div>
+				</div>
+				<!-- DSR 점수 -->
+				<div class="score row no-gutters p-1">
+					<div class="col-xl-3 col-lg-4 col-sm-5 pb-1 align-self-center">
+						<i class="far fa-chart-bar fa-fw fa-lg"></i>
+						Average DSR
+					</div>
+					<div class="col-xl-9 col-lg-8 col-sm-7 align-self-center">
+						<div class="score-gragh-default">
+							<div class="score-gragh-size" style="width: 32.65%;">
+								<div class="score-gragh"></div>
+							</div>
+							<div class="score-num">37.2</div>
+						</div>
+					</div>
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>Average Score란 <i class="fa fa-question-circle"></i></span>
+					<br><b>동일한 음성 반복 횟수</b> 테스트들에 대한 평균 점수입니다. 
+					<br>반복 횟수에 따라 평균 점수는 달라질 수 있습니다.
+				</div>
+				<div class="guide p-1 pt-2">
+					<span>Average DSR Point란 <i class="fa fa-question-circle"></i></span>
+					<br>정답 개수와 반복 횟수를 고려한 점수인 DSR Point의 평균을 구한 점수 입니다.(자신의 DSR Point와 비교해 보세요.)
+				</div>
+			</div>
+		</div>
+		
+		<!-- ------------------------[3. 테마 TOP 랭커]------------------------ -->
+		<div id="topRankerDiv" class="result-top-ranker-section 
+			col-md-4 px-lg-4 pr-md-0 pl-md-3">
+			<h3 class="d-md-none">
+				High Score Ranker Top 10
+				<i class="fa fa-trophy fa-lg fa-fw mr-2" style="color: gold;"></i><br>
+				<small>those who scored the highest on the test</small>
+			</h3>
+			<div class="top-ranker-cover">
+				<h3 class="px-3 d-none d-md-block">
+					High Score Ranker Top 10
+					<i class="fa fa-trophy fa-lg fa-fw mr-2" style="color: gold;"></i><br>
+					<small>those who scored the highest on the test</small>
+				</h3>
+				<div class="test-ranking-list p-1">
+					<th:block th:each="num: ${#numbers.sequence(1,5)}">
+					<div class="test-ranker-cover px-1 py-1">
+						<div class="rank-style px-lg-2 top1 p-1 row no-gutters">
+							<div class="rank-num-cover col-auto px-1 text-center align-self-center">
+								1<br>
+								<i class="fa fa-trophy fa-fw" style="color: gold;"></i>
+							</div>
+							<div class="personacon col-auto px-1 align-self-center">
+								<div class="member-personacon-sm">
+									<img src="/images/app/member/profile_paper.png" 
+										class="personacon-profile profile-default">
+									<img src="/images/app/member/profile_paper.png" 
+									class="personacon-frame frame-S">
+								</div>
+							</div>	
+							<div class="alias col px-1 align-self-center">
+								화욘이
+							</div>
+							<div class="testscore col-4 text-center align-self-center">
+								<div>ADSR Point <br class="d-none d-md-block d-xl-none">
+								<span>98.1</span></div>
+							</div>
+						</div>
+					</div>
+					<div class="test-ranker-cover px-1 py-1">
+						<div class="rank-style px-lg-2 p-1 row no-gutters">
+							<div class="rank-num-cover col-auto px-1 text-center align-self-center">
+								2<br>
+								<i class="fa fa-trophy fa-fw" style="color: gold;"></i>
+							</div>
+							<div class="personacon col-auto px-1 align-self-center">
+								<div class="member-personacon-sm">
+									<img src="/images/app/member/profile_paper.png" 
+										class="personacon-profile profile-default">
+									<img src="/images/app/member/profile_paper.png" 
+									class="personacon-frame frame-S">
+								</div>
+							</div>	
+							<div class="alias col px-1 align-self-center">
+								lazyhysong
+							</div>
+							<div class="testscore col-4 text-center align-self-center">
+								<div>ADSR Point <br class="d-none d-md-block d-xl-none">
+								<span>97.1</span></div>
+							</div>
+						</div>
+					</div>
+					</th:block>
+				</div>
+			</div>
+		</div><!-- end of topRankerDiv -->
+	</div>
+	<!-- ---------------------------[광고 section]---------------------------- -->
+	<div class="result-page-ad"></div>
+</div><!-- end of myRankSection -->
+
+<!-- --------------------------[4. 문제별 채점 정보]------------------------------ -->
+<div id="testResultSection" class="test-result">
+	<div class="test-result-list">
+		<div class="title d-md-none">Test Result</div>
+		<div class="title d-none d-md-block">채점 결과</div>
+		<!-- 결과 문제 리스트 -->
+		<div class="result-cover row no-gutters my-1 py-2 px-1">
+			<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+				<div class="right check">
+					<i class="fa fa-circle" title="정답" data-toggle="tooltip"></i>
+				</div>
+				<div class="wrong">
+					<i class="fa fa-circle" title="오답" data-toggle="tooltip"></i>
+				</div>
+			</div>
+			<div class="col-md-1 col-2 text-center">
+				<div class="num">1</div>
+				<div class="d-md-none">
+					<div class="right check"><i class="fa fa-circle"></i></div>
+					<div class="wrong"><i class="fa fa-circle"></i></div>
+				</div>
+			</div>
+			<div class="test-result-div col-md col px-1">
+				<div class="answer">
+					I have a boy friend.
+					<a><i class="fa fa-volume-up"></i></a>
+				</div>
+				<div class="my-answer">
+					<span>I have a boy friend.</span>
+				</div>
+				<div class="answer">
+					<span class="kor">나 남친있어.</span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="result-cover row no-gutters my-1 py-2 px-1">
+			<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+				<div class="right"><i class="fa fa-circle"></i></div>
+				<div class="wrong check"><i class="fa fa-circle"></i></div>
+			</div>
+			<div class="col-md-1 col-2 text-center">
+				<div class="num">2</div>
+				<div class="d-md-none">
+					<div class="right"><i class="fa fa-circle"></i></div>
+					<div class="wrong check"><i class="fa fa-circle"></i></div>
+				</div>
+			</div>
+			<div class="test-result-div col-md col px-1">
+				<div class="answer">
+					You have a face that only your mother loves.
+					<a><i class="fa fa-volume-up"></i></a>
+				</div>
+				<div class="my-answer">
+					<span>You have a face only your mother love.</span>
+				</div>
+				<div class="answer">
+					<span class="kor">너 졸라 못생겼어.</span>
+					<div class="wrong-list-cover" style="display: none;">
+						<div class="pt-1">I got the baby.</div>
+						<div class="pt-1">You have the face only you mother lover.</div>
+						<div class="pt-1">You have a face only your mother lover.</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of testResultSection -->
+
+
+<div class="result-button-section button-section">
+	<div class="buttons-cover my-4 text-center">
+		<button type="button" class="button-cover jsAction" 
+			onclick="self.location='/mypage'">
+			<b>입국장 나가기</b> <i class="fa fa-plane fa-fw"></i>
+		</button>
+	</div>
+</div>
+
+
+<!-- ---------------------------[copy할 문제 영역]------------------------------ -->
+<div id="result_copy" class="result-cover row no-gutters my-1 py-2 px-1" style="display: none;">
+	<div class="col-md-auto pl-4 text-center d-none d-md-inline pt-1">
+		<div class="right"><i class="fa fa-circle"></i></div>
+		<div class="wrong"><i class="fa fa-circle"></i></div>
+	</div>
+	<div class="col-md-1 col-2 text-center">
+		<div class="num">1</div>
+		<div class="d-md-none">
+			<div class="right"><i class="fa fa-circle"></i></div>
+			<div class="wrong"><i class="fa fa-circle"></i></div>
+		</div>
+	</div>
+	<div class="test-result-div col-md col px-1">
+		<div class="answer">
+			<span class="eng">I have a boy friend.</span>
+			<a><i class="fa fa-volume-up"></i></a>
+		</div>
+		<div class="my-answer">
+			<span>I have a boy friend.</span>
+		</div>
+		<div class="answer">
+			<span class="kor">나 남친있어.</span>
+		</div>
+	</div>
+</div>
+
+</section>
+</body>
+</html>

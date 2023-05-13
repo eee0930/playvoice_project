@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout2}">
+
+<head>
+<title>Index of Admin - playvoice admin</title>
+<link rel="stylesheet" th:href="@{/css/app/admin.css}">
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	
+	// [앱별 컨텐츠 등록 수 기간별 그래프 확인]-----------------------------------------------
+	$(".countContentsBtn").click(function(){
+		$(".countContentsBtn").removeClass("active");
+		$(this).addClass("active");
+		
+		var period = $(this).attr("data-countContent");
+		if (period == "day") {
+			/* 일간 앱별 컨텐츠 등록 수 */
+			
+		} else if (period == "week") {
+			/* 주간 앱별 컨텐츠 등록 수 */
+			
+		} else if (period == "month") {
+			/* 월간 앱별 컨텐츠 등록 수 */
+			
+		}
+		
+	});
+	
+});//end of ready
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<!-- ----------------------------[1. 로그인 영역]------------------------------ -->
+<div id="loginMemberSection" class="admin-dashboard-section">
+<h3>로그인 영역</h3>
+
+<div class="admin-dashboard-cover row no-gutters">
+	<div class="dashboard-section col-9">
+		<div id="newSentenceBox" class="dashboard-box">
+			<div class="title">
+				Access Status <i class="fa fa-sign-in-alt fa-lg fa-fw" style="color: #b01a2c;"></i>
+				<hr class="my-2">
+			</div>
+			<div class="content-section row no-gutters">
+				<div class="col-3">
+					<div class="sub-title">
+						<i class="fa fa-child fa-fw" style="color: #b01a2c;"></i>
+						방문자
+					</div>
+					<div class="count-section">
+						<span class="num">12635</span> 명
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="sub-title">
+						<i class="fa fa-sign-in-alt fa-fw" style="color: #b01a2c;"></i>
+						1일 로그인 수
+					</div>
+					<div class="count-section">
+						<span class="num">4125155</span> 명
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="sub-title">
+						<i class="fa fa-user-ninja fa-fw" style="color: #b01a2c;"></i>
+						 현재 접속자
+					</div>
+					<div class="count-section">
+						<span class="num">12155</span> 명
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="sub-title">
+						<i class="fa fa-file-signature fa-fw" style="color: #b01a2c;"></i>
+						가입률
+					</div>
+					<div class="count-section">
+						<span class="num">74</span> %
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-section col-3">
+		<div id="groupByAppCodeBox" class="dashboard-box">
+			<div class="title">
+				픽셔너리 <i class="fa fa-cube fa-lg fa-fw" style="color: #303672;"></i>
+				<hr class="my-2">
+			</div>
+			<div class="content-section login-member">
+				<div class="sub-title">
+					<i class="fa fa-edit fa-fw" style="color: #303672;"></i>
+					단어 수정요청
+				</div>
+				<div class="count-section">
+					<span class="num">74</span> 건
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of loginMemberSection -->
+
+
+
+<!-- ----------------------------[2. 회원 가입자 수]----------------------------- -->
+<div id="newJoinMemberSection" class="admin-dashboard-section">
+<h3>신규 회원 가입 수</h3>
+
+<div class="admin-dashboard-cover row no-gutters">
+	<!-- [2.1 일간 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="newSentenceBox" class="dashboard-box">
+			<div class="title">
+				일간 가입자 수 <i class="fa fa-user fa-fw" style="color: #1152b3;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-23</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- [2.2 주간 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="memberCountOnAddBox" class="dashboard-box">
+			<div class="title">
+				주간 가입자 수 <i class="fa fa-user-friends fa-lg fa-fw" style="color: #0a9e1e;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- [2.3 월간 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="groupByAppCodeBox" class="dashboard-box">
+			<div class="title">
+				월간 가입자 수 <i class="fa fa-users fa-lg fa-fw" style="color: #b01a2c;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of newJoinMemberSection -->
+
+
+
+<!-- --------------------------[3. 유료 회원 가입자 수]---------------------------- -->
+<div id="newGoldMemberSection" class="admin-dashboard-section">
+<h3>유료 회원 가입 수</h3>
+
+<div class="admin-dashboard-cover row no-gutters">
+	<!-- [3.1 일간 유료 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="newSentenceBox" class="dashboard-box">
+			<div class="title">
+				일간 멤버십 가입자 수 <i class="fa fa-medal fa-lg fa-fw" style="color: #d6dbdf;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-23</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- [3.2 주간 유료 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="memberCountOnAddBox" class="dashboard-box">
+			<div class="title">
+				주간 멤버십 가입자 수 <i class="fa fa-medal fa-lg fa-fw" style="color: #e7a914;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- [3.3 월간 유료 회원 가입자 수] -->
+	<div class="dashboard-section col-4">
+		<div id="groupByAppCodeBox" class="dashboard-box">
+			<div class="title">
+				월간 멤버십 가입자 수 <i class="fa fa-trophy fa-lg fa-fw" style="color: #9DBDD8;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of newGoldMemberSection -->
+
+
+<!-- --------------------------[4. 앱 별 컨텐츠 등록 수]--------------------------- -->
+<div id="newGoldMemberSection" class="admin-dashboard-section">
+<h3>앱 별 컨텐츠 등록 수</h3>
+
+<div class="admin-dashboard-cover row no-gutters">
+	<div class="dashboard-section col-12">
+		<div id="newSentenceBox" class="dashboard-box">
+			<div class="title">
+				<button class="countContentsBtn btn btn-outline-main2 btn-sm active" 
+					data-countContent="day" type="button">
+					일간 <i class="fa fa-box-open fa-fw" style="color: #1152b3;"></i>
+				</button>
+				<button class="countContentsBtn btn btn-outline-main2 btn-sm ml-3" 
+					data-countContent="week" type="button">
+					주간 <i class="fa fa-boxes fa-fw" style="color: #0a9e1e;"></i>
+				</button>
+				<button class="countContentsBtn btn btn-outline-main2 btn-sm ml-3" 
+					data-countContent="month" type="button">
+					월간 <i class="fa fa-th fa-fw" style="color: #b01a2c;"></i>
+				</button>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+</div><!-- end of newGoldMemberSection -->
+
+<!-- --------------------------[5. 앱 별 컨텐츠 등록 수]--------------------------- -->
+<div id="newGoldMemberSection" class="admin-dashboard-section">
+<h3>회원 작성 컨텐츠 수</h3>
+
+<div class="admin-dashboard-cover row no-gutters">
+	<div class="dashboard-section col-4">
+		<div id="newSentenceBox" class="dashboard-box">
+			<div class="title">
+				일간 등록 컨텐츠 수 <i class="fa fa-box-open fa-lg fa-fw" style="color: #1152b3;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>2020-02-23</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-section col-4">
+		<div id="memberCountOnAddBox" class="dashboard-box">
+			<div class="title">
+				주간 등록 컨텐츠 수 <i class="fa fa-boxes fa-lg fa-fw" style="color: #0a9e1e;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="dashboard-section col-4">
+		<div id="groupByAppCodeBox" class="dashboard-box">
+			<div class="title">
+				월간 등록 컨텐츠 수 <i class="fa fa-th fa-lg fa-fw" style="color: #b01a2c;"></i>
+				<hr class="my-2">
+			</div>
+			<!-- 그래프 영역 -->
+			<div class="content-section">
+				<canvas></canvas>
+			</div>
+			<div class="period pt-2 text-secondary row no-gutters"> 
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+				<div class="regDate col-6">
+					<i class="far fa-calendar-alt"></i>
+					<span>02-22 ~ 03-22</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of newGoldMemberSection -->
+
+
+
+
+
+<div class="text-right" style="color:red;">
+	source :: admin/index.html	 
+</div>
+
+
+
+
+</section><!-- end of section -->
+

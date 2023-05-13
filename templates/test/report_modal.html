@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_basic_layout2}">
+
+<head>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [신고 모달 띄우기]------------------------------------------------------------
+	$().click(function(){
+		$("#playvoiceReportModal").fadeIn(100);
+		$("html").addClass("modalOpen");
+	});
+	
+	// [모달 닫기]-----------------------------------------------------------------
+	$(".closeReportModal").click(function(){
+		$("#playvoiceReportModal").hide();
+		$("html").removeClass("modalOpen");
+	});
+	
+	
+	// [신고 접수 하기]--------------------------------------------------------------
+	$("#submitReportBtn").click(function(){
+		
+	});
+	
+});//end of ready
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<!-- -----------------------------[신고 모달]------------------------------ -->
+<div id="playvoiceReportModal" class="report-modal-section" style="display: none;">
+	<div class="closeReportModal report-modal-back"></div>
+	<div class="report-modal-content">
+		<h5>
+			Report <i class="fa fa-exclamation-triangle fa-fw"></i>
+			<i class="closeReportModal fa fa-times fa-lg text-white float-right jsAction" title="닫기"></i>
+		</h5>
+		<div class="report-from">
+			신고 대상자 : <span class="alias">별명</span>
+		</div>
+		<div class="report-select-section">
+			<div class="guide">
+				신고 사유를 선택해 주세요.<br>
+				여러 사유에 해당되는 경우, 대표적인 사유 1개를 선택해 주세요.
+			</div>
+			<div class="select-section">
+				<label><input type="radio" name="report" class="option-input radio" 
+					value="A"/> 욕설 및 비방<br>
+					<textarea class="etc-text form-control playvoice-form"
+						placeholder="신고 내용을 상세히 입력해 주세요 (선택 사항)"></textarea>
+				</label><br>
+				<label><input type="radio" name="report" class="option-input radio" 
+					value="B"/> 부적절한 컨텐츠 <br class="d-md-none">
+					<span>(앱 성격에 맞지 않는 글, 음란물 등)</span><br>
+					<textarea class="etc-text form-control playvoice-form"
+						placeholder="신고 내용을 상세히 입력해 주세요 (선택 사항)"></textarea>
+				</label><br>
+				<label><input type="radio" name="report" class="option-input radio" 
+					value="C"/> 부적절한 홍보나 광고<br>
+					<textarea class="etc-text form-control playvoice-form"
+						placeholder="신고 내용을 상세히 입력해 주세요 (선택 사항)"></textarea>
+				</label><br>
+				<label><input type="radio" name="report" class="option-input radio" 
+					value="D"/> 저작권 및 명예훼손<br>
+					<textarea class="etc-text form-control playvoice-form"
+						placeholder="신고 내용을 상세히 입력해 주세요 (선택 사항)"></textarea>
+				</label><br>
+				<label><input type="radio" name="report" class="etc-select option-input radio" 
+					value="E"/> 기타 <br>
+					<textarea class="etc-text form-control playvoice-form"
+						placeholder="신고 내용을 상세히 입력해 주세요 (선택 사항)"></textarea>
+				</label><br>
+			</div>
+		</div>
+		<div class="report-button-section">
+			<button id="submitReportBtn" class="btn btn-sm btn-main-submit" type="button">신고하기</button>
+			<button class="closeReportModal btn btn-sm btn-main" type="button">취소</button>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+
+</section>

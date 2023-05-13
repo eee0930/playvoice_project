@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+<title>Playvoice | The Basecamp for Learning English</title>
+
+<link rel="stylesheet" th:href="@{/css/app/error.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [에러 메세지 보여주기]----------------------------------------------------------
+	$("#showError_btn").dblclick(function(){
+		var error = $("#showErrorSection");
+		error.toggle();
+		if(error.is(":visible")) {
+			$("#errorMsgDiv").addClass("active");
+		} else {
+			$("#errorMsgDiv").removeClass("active");
+		}
+	});
+	
+
+});
+</script>
+
+</head>
+
+<section layout:fragment="content" class="error-section-style">
+
+<div id="errorCharacterSection" class="service-not-expected-error-section">
+<div th:href="@{/main}" onclick="location.href=$(this).attr('href')"
+	class="error-background-section"></div>
+<div id="errorMsgDiv" class="service-not-expected-error-cover">
+	<h3>
+		Sorry, this is unexpected...
+		<i class="fa fa-frown-open"></i>
+	</h3>
+	<div class="error-text-section">
+		<div class="error-code-section">
+			error code : 500
+		</div>
+		<div>
+			오류가 발생하여 요청을 완료할 수 없습니다.<br>
+			문제가 지속된다면 <a class="loginRequired" th:href="@{/qna/app/list}">'앱 서비스 문의'</a> 
+			게시판에 해당 문제가 일어나게 된 경위를 자세히 알려 주세요.
+		</div>
+		<div class="error-button-section">
+			<button class="loginRequired btn btn-main3" type="button" 
+				th:href="@{/qna/app/list}"
+				 onclick="location.href=$(this).attr('href')">Report</button>
+			<button class="btn btn-main2" type="button" th:href="@{/main}"
+				 onclick="location.href=$(this).attr('href')">Main</button>
+		</div>
+		<div id="showError_btn" class="error-report-btn-section"></div>
+		<!------------------------ [error message section] ---------------------------->
+		<div id="showErrorSection" class="error-msg-section" style="display: none;">
+			<div>
+				<table>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-calendar-alt"></i>
+							Date
+						</td>
+						<td th:text="${timestamp}"/>
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-shoe-prints"></i>
+							Path
+						</td>
+						<td th:text="${path}" />
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-bug"></i>
+							Error
+						</td>
+						<td th:text="${error}" />
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-thermometer-empty"></i>
+							Status
+						</td>
+						<td th:text="${status}" />
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="far fa-fw fa-sticky-note"></i>
+							Message
+						</td>
+						<td th:text="${message}" />
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-exclamation-triangle"></i>
+							Exception
+						</td>
+						<td th:text="${exception}" />
+					</tr>
+					<tr>
+						<td class="t-title">
+							<i class="fa fa-fw fa-route"></i>
+							Trace
+						</td>
+						<td><pre th:text="${trace}"></pre></td>
+					</tr>
+				</table>
+			</div>
+		</div><!-- end of showErrorSection -->
+		
+	</div>
+</div><!-- end of errorMsgDiv -->
+</div><!-- end of showErrorSection -->
+
+
+</section>
+
+</html>
+

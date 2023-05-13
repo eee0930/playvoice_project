@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+
+<head>
+<title>My Profile</title>
+  
+<!-- datepicker -->
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+   
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	
+});//end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<!-- ----------------------------[profile info]----------------------------- -->
+<div class="profile-top-cover mt-4 py-1">
+	<h3>
+		My Profile
+		<i class="fa fa-vihara"></i><br>
+		<small>See what your Playvoice profile looks like to others</small>
+	</h3>
+	
+	<div class="profile-top-content"><div class="row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-address-card fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<!-- <span class="title">Today</span>
+			<span class="body">5</span><br class="d-sm-none"> -->
+			<span class="title ml-sm-4">Hits</span>
+			<span class="body">4335</span>
+		</div>
+	</div></div>
+</div>
+
+<div id="memberProfileContainer" th:with="throughMypage = true" class="profile-cover profile-info-cover mt-3">
+	<div th:replace="~{/mypage/incl/member_profile_incl}"></div>
+
+</div><!-- end of memberProfileContainer -->
+
+
+<div class="text-right" style="color:red;">
+	source :: mypage/member_profile.html	
+</div>
+</section>

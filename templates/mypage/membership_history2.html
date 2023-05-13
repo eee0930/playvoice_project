@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+<head>
+<title>멤버십 결제 내역 - 플레이보이스 | Playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [menu active]------------------------------------------------------------
+	$("#menuSection .myMembershipInfo").addClass("menu-active");
+
+	// [모바일 로고 섹션에 앱 이름 변경]---------------------------------------------------
+	$("#playvoiceMobileTextLogo").show();
+	$("#playvoiceMobileAppName").hide();
+	
+	// [결제 날짜 월 데이터 영문으로 표시하기]-----------------------------------------------
+	var monthNames = ["January", "February", "March", "April", "May", "June",
+		"July", "August", "September", "October", "November", "December"];
+	var monthNum = $(".ticket-date-border .month").text();
+	$(".ticket-date-border .month").html(monthNames[monthNum - 1]);
+
+	// [결제 내역 상세보기]-----------------------------------------------------------
+	$(".openDetailPayment").click(function(){
+		$(".openDetailPayment").removeClass("active");
+		$(this).addClass("active");
+		var detailOffset;
+		if($("#viewDetailMembershipSection").is(":visible")) {
+			$("#viewDetailMembershipSection").hide();
+			detailOffset = $("#membershipHistorySection").offset().top 
+							- $('#headerNavbar').height();
+		} else {
+			$("#viewDetailMembershipSection").show();
+			detailOffset = $("#viewDetailMembershipSection").offset().top 
+							- $('#headerNavbar').height();
+		}
+		$('html, body').animate({scrollTop : detailOffset}, 300);
+	});
+	// [주문 상세 정보 닫기]-----------------------------------------------------------
+	$(".closeDetailPayment").click(function(){
+		$("#membershipHistorySection .membership-history-list").removeClass("active");
+		$('#viewDetailMembershipSection').hide();
+		var detailOffset = $("#membershipHistorySection").offset().top 
+						- $('#headerNavbar').height();
+		$('html, body').animate({scrollTop : detailOffset}, 300);
+	});
+	
+	// [환불 계좌 정보 수정폼 열기]-------------------------------------------------------
+	$("#openEditAccountBtn").click(function(){
+		$("#editMyBankInfoDiv").show();
+		$("#myBankInfoDiv").hide();
+		$(this).hide();
+	});
+	// [환불 계좌 정보 수정 취소]--------------------------------------------------------
+	$("#cancelMyAccountInfo").click(function(){
+		$("#editMyBankInfoDiv").hide();
+		$("#myBankInfoDiv").show();
+		$("#openEditAccountBtn").show();
+	});
+	
+	
+	// [환불 신청 모달창 열기]---------------------------------------------------------
+	$(".openRefundModal").click(function(){
+		$("#requestRefundModal").fadeIn(100);
+		$("html").addClass("modalOpen");
+	});
+	
+	// [환불 신청 모달창 닫기]---------------------------------------------------------
+	$(".closeRefundModal").click(function(){
+		$(this).closest("#requestRefundModal").hide();
+		$("html").removeClass("modalOpen");
+	});
+	
+	// [환불 기타 사유 선택시 텍스트폼 열기]-------------------------------------------------
+	$("#selectRefundReason").change(function(){
+		if($(this).val() == 'etc') {
+			$("#refundEtcReason").show();
+		} else {
+			$("#refundEtcReason").hide();
+		}
+	});
+	
+	$("#refundRequestTitle").click(function(){
+		$(".refundRequestDiv").toggle();
+	});
+	
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+ 
+</script>
+<style>
+@import url('https://fonts.googleapis.com/css?family=Playfair+Display&display=swap');
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans+KR&display=swap');
+</style>
+</head>
+
+<section layout:fragment="content" th:with="memberType = 'M'">
+
+<!-- top 메뉴 (Mobile ver.) -->	
+<div id="menuSection" class="d-lg-none" 
+	th:insert="~{/membership/incl/membership_menu2::menu}"></div>
+
+<div class="profile-top-cover none-sub-title mt-4">
+	<h3>Membership History <i class="fa fa-crown"></i></h3>
+</div>
+
+<!-- profile top contents -->
+<div class="d-none d-md-block">
+	<div class="profile-top-content row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-street-view fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Your Membership</span>
+			<span class="body">Gold</span>
+		</div>
+	</div>	
+</div>
+<div class="d-md-none">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-street-view"></i></label>
+		</div>
+		<div class="detail col">
+			<div class="guide-cover">Your Membership</div>
+			<div>
+				<span class="num">Gold</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- -----------------------[1. membership info]---------------------------- -->
+<!-- [멤버십에 가입했을 경우] -->
+<div id="myMembershipInfoSection" th:if="${memberType != 'M'}" 
+	class="my-membership-info-section row no-gutters">
+	
+	<!-- [1.1 보유 멤버십 가이드] -->
+	<div id="membershipInformationDiv" class="membership-info-list-section 
+		col-md d-none d-md-inline-block">
+		<!-- 실버 멤버십 -->
+		<div class="silver-membership detail-membership-div" style="display: none;">	
+			<div class="detail-info-area row no-gutters">
+				<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon free-use" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">free use</div>
+					<div class="detail-info">
+						플레이보이스의 학습 앱과 커뮤니티 서비스를
+						포인트 걱정없이 자유롭게 사용할 수 있습니다.
+					</div>
+				</div></div>
+				
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon study-only" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">study only</div>
+					<div class="detail-info">
+						영어 학습에만 올인하고자 하는 회원들에게 추천합니다.
+						(단, 플레이 포인트 적립이 없습니다.)
+					</div>
+				</div></div>
+			</div>
+		</div>
+		<!-- 골드 멤버십 -->
+		<div class="gold-membership detail-membership-div" style="display: none;">
+			<div class="detail-info-area row no-gutters">
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon free-use" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">free use</div>
+					<div class="detail-info">
+						플레이보이스의 모든 서비스를 제약없이 사용할 수 있습니다.
+					</div>
+				</div></div>
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon get-gold" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">get gold</div>
+					<div class="detail-info">
+						학습한 활동에 대한 <b>골드 포인트</b>를 적립 받을 수 있으며 
+						여러 프로모션 이벤트에서 골드를 사용할 수 있습니다.
+					</div>
+				</div></div>
+				<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon donation" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">saving</div>
+					<div class="detail-info">
+						베타 기간의 프로모션 가격으로
+						오리지널 골드회원과 동일한 서비스를 이용할 수 있습니다.
+					</div>
+				</div></div>
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon get-gift" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">community reward</div>
+					<div class="detail-info">
+						골드 멤버십 회원만 이용하고 받을 수 있는 다양한 리워드가 있습니다.
+					</div>
+				</div></div>
+			</div>
+		</div><!-- end of promotionDetailMembershipDiv -->
+		
+		<!-- 플래티넘 멤버십 -->
+		<div class="silver-membership detail-membership-div">
+			<div class="detail-info-area row no-gutters">
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon free-use" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">free use</div>
+					<div class="detail-info">
+						골드 멤버십의 모든 혜택을 이용할 수 있습니다.
+					</div>
+				</div></div>
+				<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon priority" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">priority</div>
+					<div class="detail-info">
+						플레이보이스의 모든 이벤트 및 프로모션의 우선권을 부여합니다
+					</div>
+				</div></div>
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon donation" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">donation</div>
+					<div class="detail-info">
+						<b>기부 활동</b>의 참여자로 등록되며
+						도움이 필요한 이웃들에게 골드 멤버십을 선물합니다.
+					</div>
+				</div></div>
+				<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+					<div class="icon-section">
+						<img class="icon tribe" src="/images/common/icon/icon_paper.png"
+							alt="playvoice membership">
+					</div>
+					<div class="sub-title">identity</div>
+					<div class="detail-info">
+						10가지 이상의 멤버십 아이덴티티가 변경됩니다.
+					</div>
+				</div></div>
+			</div>
+		</div>
+	</div><!-- end of membershipInformationDiv -->
+	
+	<!-- [1.2 멤버십 보유 현황 티켓] -->
+	<div id="memebershipInfoTicketDiv" class="membership-ticket-section col-auto">
+		<div class="gold-ticket-bg gold member-P">
+			<!-- ticket header -->
+			<div class="ticket-header ticket-style row no-gutters">
+				<div class="col">
+					<div class="small-title">playvoice</div>
+					<div class="title">membership</div>
+				</div>
+				<div class="ticket-header-logo col-auto">
+					<img src="/images/logo/logo_trans_seonbi.png">
+				</div>
+			</div>
+			<!-- ticket body -->
+			<div class="ticket-body ticket-style">
+				<div class="ticket-divine"></div>
+				<div class="style-line">
+					<div class="style-line-detail"></div>
+					<!-- [멤버 퍼스나콘] -->
+					<div class="logo-section"><div align="center">
+						<div th:replace="~{/incl/user_personacon::lg_test}"></div>
+					</div></div>
+				</div>
+				<div class="ticket-detail-line mb-3"><div class="ticket-detail">
+					<!-- [서비스 상품명] -->
+					<div class="service-info-cover">
+						<div class="detail-title">상품명</div>
+						<div class="detail-info service">
+							<b>골드 멤버십</b> SEMESTER VER.
+						</div>
+					</div>
+					<!-- [서비스 기간] -->
+					<div class="service-info-cover">
+						<div class="detail-title">기간</div>
+						<div class="detail-info">
+							<span class="todayDate big">2020-02-24</span> ~
+							<span class="todayDate big">2020-08-24</span>
+						</div>
+					</div>
+					<div class="ticket-welcome-comment">
+						<div>Come play with us!!</div>
+						<div class="small">
+							You can build your ideas and contents libraries here.
+						</div>					
+					</div>
+				</div></div>
+				<div class="payment-cover row no-gutters">
+					<div class="col-12 px-2">
+						<div class="sub-title">총 결제 금액</div>
+					</div>
+					<div class="col-auto align-self-end">
+						<!-- [결제 금액] -->
+						<div class="detail">
+							<input id="totalPrice" type="hidden" value="114000"/>
+							<i class="fa fa-won-sign mr-1"></i><span 
+								th:text="${#numbers.formatInteger(114000, 1, 'COMMA')}"
+							 	class="inputTotalPrice">114,000</span>
+						</div>
+						<div class="code-section">
+							<i class="fa fa-barcode"></i><!-- 
+							 --><i class="fa fa-barcode"></i><!-- 
+							 --><i class="fa fa-barcode"></i>
+						</div>
+					</div><div class="col"></div>
+					<!-- [결제 날짜] -->
+					<div class="col-auto">
+						<div class="ticket-date-border">
+							<div class="month">5</div>
+							<div class="date">24</div>
+							<div class="year">2020</div>
+						</div>
+					</div>
+				</div>
+				<div class="ticket-divine2"></div>
+			</div>
+		</div>
+	</div><!-- end of memebershipInfoTicketDiv -->
+	
+</div><!-- end of myMembershipInfoSection -->
+
+<!-- [멤버십에 가입하지 않은 경우; 멤버십 회원권 소개 보여주기] -->
+<div class="d-none d-md-block">
+<div id="myMembershipInfoSection" th:unless="${memberType != 'M'}" 
+	class="my-membership-info-section row no-gutters">
+	<div th:replace="~{/membership/incl/intro_membership2::membership}"></div>
+</div>
+</div>
+
+<!-- ------------------------[2. history 상세정보]----------------------------- -->
+<div id="viewDetailMembershipSection" class="view-detail-membership-section">
+	<div class="mypage-sub-title-section">
+		<h5>
+			<i class="fa fa-square fa-fw"></i>
+			Order Details
+			<i class="fa fa-caret-down d-md-none"></i>
+		</h5>
+	</div>
+	<div class="membership-history-list-section">
+		<i class="closeDetailPayment fa fa-times" title="상세정보 닫기"></i>
+		<div class="view-detail-membership-cover">
+			<!-- [2.1 주문 상세 내역] -->
+			<div class="view-detail-membership-body-section">
+				<div class="view-detail-membership-body">
+					<div class="detail-title">주문 정보</div>
+					<div class="detail-membership-cover">
+						<i class="far fa-calendar-check fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">주문 번호</div>
+							<div class="detail col">1234567890</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">결제일</div>
+							<div class="detail col">2020-08-20</div>
+						</div>
+					</div>
+					<div class="membership-date-section">
+						<i class="fa fa-crown fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">구매한 회원권</div>
+							<div class="membership detail col">
+								GOLD DONATION MEMBERSHIP - SEMESTER VERSION (6개월)
+							</div>
+						</div>
+						<!-- <div class="membership-section row no-gutters">
+							<div class="title col-auto">시작일</div>
+							<div class="date col">2020-08-20</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">만료일</div>
+							<div class="date col">2021-02-20</div>
+						</div> -->
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">주문 상태</div>
+							<div class="detail col">결제 완료</div>
+						</div>
+					</div>
+				</div>
+				<!-- [2.2 무통장 입금 정보] -->
+				<div class="view-detail-membership-body">
+					<div class="detail-title">무통장 입금 정보</div>
+					<div class="detail-membership-cover">
+						<i class="fa fa-money-check-alt fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">은행 명</div>
+							<div class="detail col">국민은행</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">예금주</div>
+							<div class="detail col">(주) 이니시스</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">계좌 번호</div>
+							<div class="bank-num detail col">96645501452</div>
+						</div>
+                        <div class="membership-section row no-gutters">
+                            <div class="title col-auto">입금 금액</div>
+                            <div class="bank-num detail col">[[${#numbers.formatInteger(114000, 1, 'COMMA')}]]</div>
+                        </div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto"></div>
+							<div class="bank-num detail col">
+								<a target="_blank" class="btn btn-sm btn-main">현금 영수증 확인</a>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="view-detail-membership-body">
+					<div class="detail-title">결제 정보</div>
+					<div class="payment-info-section">
+						<i class="far fa-credit-card fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto align-self-center">회원권 금액</div>
+							<div class="detail col align-self-center">
+								<i class="fa fa-won-sign"></i>
+								<span class="price">
+								[[${#numbers.formatInteger(114000, 1, 'COMMA')}]]
+								</span>
+							</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto align-self-center">할인 금액</div>
+							<div class="detail col align-self-center">
+								<i class="fa fa-won-sign"></i>
+								<span class="price">
+								[[${#numbers.formatInteger(9000, 1, 'COMMA')}]]
+								</span>
+							</div>
+						</div>
+						<div class="total-payment-cover membership-section row no-gutters">
+							<div class="title col-auto align-self-center">총 구매 금액</div>
+							<div class="detail total col align-self-center">
+								<i class="fa fa-won-sign"></i>
+								<span class="price">
+								[[${#numbers.formatInteger(105000, 1, 'COMMA')}]]
+								</span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="view-detail-membership-body refund-button-section row no-gutters">
+					<div class="col text-left align-self-center">
+						<!-- 영수증 보기 (결제 완료 후) -->
+						<a href="https://iniweb.inicis.com/app/publication/apCashReceipt.jsp"
+							class="btn refund-guide-btn float-left" target="_blank">영수증 보기</a>
+					</div>
+					<div class="col-auto text-center align-self-center d-none d-md-inline-block">
+						<span class="refundGuideText refund-guide">
+							결제 후 7일 이내 환불신청이 가능하며,<br>골드 무료 체험 이용 시 부분 환불이 불가합니다.
+						</span>
+					</div>
+					<div class="col text-right align-self-center">
+						<!-- 주문 취소 (결제 완료 전) -->
+						<button class="orderCancelBtn btn refund-guide-btn"
+							type="button" style="display: none;">주문 취소</button>
+	                    <!-- 환불 신청 (결제 완료 후) -->
+	                    <button class="refundRequestBtn btn refund-guide-btn"
+							type="button" style="display: none;">환불 신청</button>
+						<button id="refundRequestTitle" class="btn refund-guide-btn refund-info"
+							type="button">환불 접수 정보</button>
+					</div>
+					<div class="col-12 pt-3 text-left d-md-none">
+						<span class="refundGuideText refund-guide">
+							결제 후 7일 이내 환불신청이 가능하며,<br>골드 무료 체험 이용 시 부분 환불이 불가합니다.
+						</span>
+					</div>
+				</div>
+			</div>
+			<!-- [2.3 환불 접수 정보] -->
+			<div class="refundRequestDiv view-detail-membership-body-section" 
+				style="display: none">
+				<div class="view-detail-membership-body">
+					<div class="detail-title">환불 접수 정보</div>
+					<div class="detail-membership-cover">
+						<i class="fas fa-receipt fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">처리 상태</div>
+							<div class="detail col">환불 완료</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">환불 신청 접수일</div>
+							<div class="detail col">2020-08-20</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">환불 사유</div>
+							<div class="detail col">가격이 너무 비싸서요.. ㅠㅠ</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto"></div>
+							<div class="bank-num detail col">
+								<button type="button" class="btn btn-sm refund-guide-btn jsAction">
+									환불 취소
+								</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				<!-- 회원의 환불 계좌 정보 (무통장, 실시간 계좌이체일 경우) -->
+				<div class="view-detail-membership-body">
+					<div class="detail-title">환불 계좌 정보</div>
+					<!-- 계좌 정보 -->
+					<div id="myBankInfoDiv" class="detail-membership-cover">
+						<i class="fa fa-money-check-alt fa-fw"></i>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">은행 명</div>
+							<div class="detail col">국민은행</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">계좌 번호</div>
+							<div class="bank-num detail col">96645501452</div>
+						</div>
+						<div class="membership-section row no-gutters">
+							<div class="title col-auto">예금주</div>
+							<div class="detail col">김창식</div>
+						</div>
+					</div>
+				</div>
+				<!-- 관리자 코멘트 -->
+				<div class="comment view-detail-membership-body">
+					환불 처리가 완료되었습니다.
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of viewDetailMembershipSection -->
+
+<!-- ----------------------[3. membership history]-------------------------- -->
+<div id="membershipHistorySection" class="my-membership-history-section">
+	<div class="mypage-sub-title-section">
+		<h5>
+			<i class="fa fa-square fa-fw"></i>
+			Membership history
+			<i class="fa fa-caret-down d-md-none"></i>
+		</h5>
+	</div>
+	<div class="membership-history-list-section">
+		<!-- [2.1 PC ver.] -->
+		<div class="membership-history-cover d-none d-xl-block">
+			<table class="table table-sm table-hover">
+				<thead><tr>
+					<th style="width: 50px;" title="번호">No.</th>
+					<th style="width: 120px;" title="주문 번호">Order Number</th>
+					<th class="text-left" title="구매한 회원권">Membership</th>
+					<th style="width: 100px;" title="구매일">Order Date</th>
+					<th style="width: 100px;" title="만료일">End Date</th>
+					<th style="width: 80px;" title="주문 상태">Status</th>
+				</tr></thead>
+				
+				<tbody>
+					<tr class="openDetailPayment membership-history-list">
+						<td>2</td>
+						<td>153389566684</td>
+						<td class="membership">GOLD DONATION MEMBERSHIP - SEMESTER VERSION (6개월)</td>
+						<td>2020-02-24</td>
+						<td>2020-08-23</td>
+						<td><span class="body">결제 완료</span></td>
+					</tr>
+					<tr class="openDetailPayment membership-history-list">
+						<td>1</td>
+						<td>153389566684</td>
+						<td class="membership">GOLD DONATION MEMBERSHIP - SEMESTER VERSION (6개월)</td>
+						<td>2019-08-24</td>
+						<td>2020-02-23</td>
+						<td><span class="body">결제 완료</span></td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+		
+		<!-- [2.2 Tablet & Mobile ver.] -->
+		<div class="membership-history-cover d-xl-none">
+		
+			<div class="openDetailPayment membership-history-list">
+				<div class="membership-history-div title-cover">
+					<div class="date">
+						2020-02-24 ~ 2020-08-23
+					</div>
+				</div>
+				<div class="membership-history-div row no-gutters">
+					<div class="history-detail col">
+						<div class="title">GOLD DONATION MEMBERSHIP - SEMESTER VERSION (6개월)</div>
+						<div class="orderNum jsAction">153389566684</div>
+					</div>
+					<div class="action col-auto">
+						<label>결제 완료</label>
+					</div>
+				</div>
+			</div>
+			
+			<div class="openDetailPayment membership-history-list">
+				<div class="membership-history-div title-cover">
+					<div class="date">
+						2019-08-24 ~ 2020-02-23
+					</div>
+				</div>
+				<div class="membership-history-div row no-gutters">
+					<div class="history-detail col">
+						<div class="title">GOLD DONATION MEMBERSHIP - SEMESTER VERSION (6개월)</div>
+						<div class="order-num">153389566684</div>
+					</div>
+					<div class="action col-auto">
+						<label>결제 완료</label>
+					</div>
+				</div>
+			</div>
+			<div class="membership-history-list">
+				<div class="membership-history-div title-cover">
+					<b>결제 내역 또는 주문 내역이 없습니다</b>
+				</div>
+			</div>
+		
+		</div>
+		
+	</div>
+	
+	<div class="refund-guide">
+		<ul>
+			<li>취소 및 환불은 상세 결제 내역에 있는 
+				<button class="refund-guide-btn" type="button">환불 신청</button> 
+				버튼을 통해 신청이 가능합니다.</li>
+			<li>환불 신청 버튼은 결제 후 7일 이내, 골드 무료 체험을 이용하지 않았을 경우 활성화됩니다.</li>
+			<li>주문 및 결제 문의는 <a class="loginRequired" 
+				th:href="@{/qna/order/list}">주문, 결제 문의</a> 게시판에서 문의해 주세요.</li>
+			<li>취소 및 환불에 대한 추가 문의는 <a class="loginRequired" 
+				th:href="@{/qna/refund/list}">취소, 환불 문의</a> 게시판에서 문의해 주세요.</li>
+		</ul>
+	</div>
+</div><!-- end of membershipHistorySection -->
+
+<!-- ----------------------------[환불 신청 모달]-------------------------------- -->
+<div id="requestRefundModal" class="playvoice-inform-modal-section" style="display: none;">
+	<div class="closeRefundModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeRefundModal fa fa-times"></i>
+			<h5 class="kor">이용권&nbsp;&nbsp;환불&nbsp;&nbsp;신청</h5>
+		</div>
+		<div class="inform-modal-body">
+			<div class="refund-info-section">
+				<div class="form-group row no-gutters">
+					<label class="col-3 align-self-center">주문번호</label>
+					<div class="col-9">ddfssd</div>
+				</div>
+				<div class="form-group row no-gutters">
+					<label class="col-md-3 align-self-center">환불사유</label>
+					<div class="col-md-9">
+						<select id="selectRefundReason" class="form-control playvoice-form">
+							<option>== 환불 사유 선택 ==</option>
+							<option value="SP">서비스 장애로 인한 불편을 겪었습니다.</option>
+							<option value="NI">학습에 흥미를 잃었습니다.</option>
+							<option value="CM">다른 멤버십으로 변경하고 싶습니다.</option>
+							<option value="UO">다른 영어 학습 앱을 이용하려 합니다.</option>
+							<option value="etc">기타</option>
+						</select>
+					</div>
+				</div>
+				<div id="refundEtcReason" class="etc-form-section form-group row no-gutters" 
+					style="display: none;">
+					<label class="col-md-3"></label>
+					<div class="col-md-9">
+						<textarea class="form-control playvoice-form"
+							placeholder="기타 환불 사유를 입력해 주세요."></textarea>
+					</div>
+				</div>
+			</div>
+			<div class="member-bank-info-section">
+				<div class="form-group row no-gutters">
+					<label class="col-3 align-self-center">은행명</label>
+					<div class="col-9">
+						<select class="form-control playvoice-form">
+							<option>== 은행 명 선택 ==</option>
+							<option></option>
+							<option></option>
+						</select>
+					</div>
+				</div>
+				<div class="form-group row no-gutters">
+					<label class="col-3 align-self-center">계좌번호</label>
+					<div class="col-9">
+						<input type="text" class="form-control playvoice-form"
+							placeholder="숫자만 입력 ( - , 공백 제외)"/>
+					</div>
+				</div>
+				<div class="form-group row no-gutters">
+					<label class="col-3 align-self-center">예금주</label>
+					<div class="col-9">
+						<input type="text" class="form-control playvoice-form"/>
+					</div>
+				</div>
+				<div class="confirm-bank-info-guide row no-gutters">
+					<label class="col-3 align-self-center"></label>
+					<div class="col-9">
+						<button id="checkRefundAccountBtn" class="btn btn-main2 btn-sm mr-2" 
+							type="button">계좌 확인</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="inform-modal-footer text-center">
+			<div>
+				<button class="refundBtn btn btn-main2 mr-2" 
+					type="button" disabled="disabled">환불 신청</button>
+				<button class="closeRefundModal btn btn-outline-main2" 
+					type="button">닫기</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+</section>

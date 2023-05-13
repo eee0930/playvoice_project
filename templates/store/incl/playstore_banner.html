@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- 
+*	반응형으로 보여주기 위해 각 배너마다 사이즈 지정은 따로 하지 않으며, 반응형으로만 구현한다
+*	ex) 가로 긴 배너가 PC에서는 4개의 상품이 가로로 배치되어있다면 모바일에선 2*2로 배치
+*	대신 배너를 보여주는 각각의 화면에서 배너의 사이즈를 지정한다 
+-->
+
+<!-- ======================================================================= -->
+<!-- 						Playvoice App Banner							 -->
+<!-- ======================================================================= -->
+<!-- side banner (contents app) -->
+<div th:fragment="contents_side"></div>
+
+<!-- 정사각형 배너 -->
+<div th:fragment="app_square"></div>
+
+<!-- 가로 긴 배너 -->
+<div th:fragment="app_horizon"></div>
+
+<!-- 세로 긴 배너 -->
+<div th:fragment="app_vertical"></div>
+
+
+
+
+<!-- ======================================================================= -->
+<!-- 						Play Store Item Banner							 -->
+<!-- ======================================================================= -->
+
+<!-- index 상품소개 큰 배너 (/store/index.html) -->
+<div th:fragment="banner_big"></div>
+
+<!-- 이벤트 배너 (/store/index.html) -->
+<div th:fragment="banner_event"></div>
+
+<!-- 정사각형 배너 -->
+<div th:fragment="store_square"></div>
+
+<!-- 가로 긴 배너 -->
+<div th:fragment="store_horizon"></div>
+
+<!-- 세로 긴 배너 -->
+<div th:fragment="store_vertical"></div>
+
+<!-- My Page mypoint banner (골드회원의 골드에 맞춰서 보여줌) (/mypage/mypoint.html) -->
+<div th:fragment="mypoint_side"></div>
+
+
+
+
+<!-- ======================================================================= -->
+<!-- 					Business account Item Banner						 -->
+<!-- ======================================================================= -->
+
+<!-- 정사각형 배너 -->
+<div th:fragment="business_square"></div>
+
+<!-- 옆으로 긴 배너 -->
+<div th:fragment="business_horizon"></div>
+
+<!-- 세로 긴 배너 -->
+<div th:fragment="business_vertical"></div>
+
+
+
+

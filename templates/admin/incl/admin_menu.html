@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="menu">
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [사이드 메뉴 펼치기]-----------------------------------------------------------
+	if(localStorage.getItem("adminMenus") != null){
+		adminMenus = JSON.parse(localStorage.getItem("adminMenus")); 
+	}
+	for(var i = 0; i < adminMenus.length; i++){
+		var mid = adminMenus[i];
+		$("#" + mid).children(".subMenuList").slideDown(100);
+		$("#" + mid).children(".foldMenu").show();
+		$("#" + mid).children(".unfoldMenu").hide();
+	}
+	
+	// [사이드 메뉴 닫기 아이콘 클릭 (메뉴 접기)]---------------------------------------------
+	$(".foldMenu").click(function(){
+		menuClose($(this));
+	});
+	
+	// [사이드 메뉴 타이틀 클릭 (메뉴 열고 닫기)]---------------------------------------------
+	$(".menuTitle, .unfoldMenu").click(function(){
+		var menuList = $(this).siblings(".subMenuList");
+		if(menuList.is(":visible")) {
+			menuClose($(this));
+		} else {
+			menuOpen($(this));
+		}
+	});
+
+	// [사이드 메뉴에서 href값이 현재 uri와 같으면 메뉴 활성화]----------------------------------
+	$(".adminMenuList .subMenuList li a").each(function(i, anchor) {
+		if($(anchor).attr("href") == location.pathname){
+			$(anchor).closest("li").addClass("active");
+		}
+	});
+});	
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+var adminMenus = [];
+
+/**
+ * 사이드 메뉴 오픈 
+ * (페이지 전환 후에도 메뉴가 오픈 되야하므로 메뉴를 local storage에 저장)
+ */
+function menuOpen(obj){
+	var menuId = $(obj).parent().attr("id");
+	$("#" + menuId).children(".subMenuList").slideDown(100);
+	$("#" + menuId).children(".foldMenu").show();
+	$("#" + menuId).children(".unfoldMenu").hide();
+	var confirmN = 0;
+	for(var i = 0; i < adminMenus.length; i++){
+		if(adminMenus[i] == menuId){
+			confirmN++;
+			break;
+		}
+	}
+	if(confirmN == 0){
+		adminMenus.push(menuId);
+		localStorage.setItem("adminMenus", JSON.stringify(adminMenus));
+	}
+}
+
+
+/**
+ * 사이드 메뉴 닫기 
+ * (페이지 전환 후에도 메뉴가 닫혀있어야 하므로 메뉴를 local storage에서 제거)
+ */
+function menuClose(obj) {
+	var menuId = $(obj).parent().attr("id");
+	$(obj).closest(".adminMenuList").find(".foldMenu").hide();
+	$("#" + menuId).children(".subMenuList").slideUp(200);
+	$("#" + menuId).children(".unfoldMenu").show();
+	adminMenus.splice($.inArray(menuId, adminMenus),1); 
+	localStorage.setItem("adminMenus", JSON.stringify(adminMenus));
+}
+</script>
+
+<div id="role-id" sec:authorize="hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')" class="admin-info">
+	<form th:action="@{/auth/logout}" method="post" id="logoutForm" class="row no-gutters">
+		<div class="col-auto">
+			<button id="logout_btn" type="submit" 
+				class="btn btn-main2 btn-sm">로그아웃</button>
+		</div>
+		<div sec:authentication="name" class="admin-alias col align-self-center">로그인</div>
+	</form>
+</div>
+<div class="admin-menu-list-cover">
+	<div id="homeMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-home fa-fw unfoldMenu"></i>
+		<span class="menuTitle"><a th:href="@{/adminxyz}">Home</a></span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				
+			</ul>
+		</div>
+	</div>
+	
+	<div id="adminBoardMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display:none;"></i>
+		<i class="fas fa-bell fa-fw unfoldMenu"></i> 
+		<span class="menuTitle">Admin Board</span> 
+		<div class="subMenuList" style="display: none;"> 
+			<ul> 
+				<li><a th:href="@{/admin/board/notice/list}">관리자 공지사항</a></li>
+				<li><a th:href="@{/admin/board/refund/list}">취소,환불 문의</a></li>
+				<li><a th:href="@{/admin/board/order/list}">주문, 결제 문의</a></li>
+				<li><a th:href="@{/admin/board/business/list}">제휴 광고 문의</a></li>
+				<li><a th:href="@{/admin/board/delivery/list}">배송 문의</a></li>
+				<li><a th:href="@{/admin/board/app/list}">앱 서비스 문의</a></li>
+				<li class="devision-line"></li>
+				<li><a th:href="@{/admin/board/free/list}">자유 게시판</a></li>
+				<li><a th:href="@{/admin/board/library/list}">자료실</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="membershipPaymentMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-money-bill-alt fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Membership Payment</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/payment/list}">멤버십 결제 목록</a></li>
+				<li><a th:href="@{/admin/membership/item/list}">멤버십 목록</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="sentenceBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-book fa-fw unfoldMenu"></i>
+		<span class="menuTitle">SentenceBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/sentenceBook}">센텐스북 인덱스</a></li>
+				<li><a th:href="@{/admin/sentenceBook/add}">예문등록</a></li>
+				<li><a th:href="@{/admin/sentenceBook/searchPage}">예문검색</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=all}">최신 등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=voice}">보이스 미등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=cate}">카테고리 미등록 예문 조회</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	
+	<div id="voiceBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-microphone-alt fa-fw unfoldMenu"></i>
+		<span class="menuTitle">VoiceBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/voiceBook/tts/create?searchType=voice}">클라우드-TTS 등록 </a></li>
+				<li><a th:href="@{/admin/voiceBook/add}">보이스 등록 </a></li>
+				<li><a th:href="@{/admin/voiceBook/batch/add}">보이스 배치 등록 </a></li>
+				<li><a th:href="@{/admin/sentenceBook/list?searchType=newVoice}">보이스 등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/voiceBook/list?searchType=newVoice}">최근 등록 보이스 조회</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	
+	<div id="playvoiceBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-play-circle fa-fw unfoldMenu"></i>
+		<span class="menuTitle">PlayvoiceBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/playvoiceBook/level/add}">레벨 &amp; 스테이지 등록 </a></li>
+				<li><a th:href="@{/admin/playvoiceBook/playvoice/add}">플레이보이스 등록</a></li>
+				<li><a th:href="@{/admin/playvoiceBook/100/stage/list}">플레이보이스북 조회</a></li>
+				<li><a th:href="@{/admin/playvoiceBook/playvoice/list?searchType=level}">레벨조회</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="jungleBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-atlas fa-fw unfoldMenu"></i>
+		<span class="menuTitle">JungleBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/jungleBook/stats}">JungleBook 대시보드</a></li>
+				<li><a th:href="@{/admin/jungleBook/searchPage}">예문 검색 </a></li>
+				<li><a th:href="@{/admin/jungleBook/list?searchType=all}">최근 정글북 목록 </a></li>
+				<li><a th:href="@{/admin/jungleBook/list?searchType=korTrans}">한글 번역 요청 목록</a></li>
+				<li><a th:href="@{/admin/jungleBook/list?searchType=engTrans}">영어 번역 요청 목록</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="jungleVoiceBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-microphone fa-fw unfoldMenu"></i>
+		<span class="menuTitle">JungleVoiceBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/jungleVoiceBook/batch/add}">보이스 미등록 예문 조회 </a></li>
+				<li><a th:href="@{/admin/jungleVoiceBook/batchFile/add}">보이스 파일 등록 </a></li>
+				<li><a th:href="@{/admin/jungleBook/list?searchType=newVoice}">보이스 등록 예문 조회</a></li>
+				<li><a th:href="@{/admin/jungleVoiceBook/list?searchType=newVoice}">최근 등록 보이스 조회</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="dictionaryMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="far fa-file-word fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Dictionary</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/dictionary/stats}">Dictionary 대시보드</a></li>
+				<li><a th:href="@{/admin/dictionary/list?searchType=voice}">발음 미등록 단어 목록 </a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="pictionaryMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-images fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Pictionary</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/pictionary/stats}">Pictionary 대시보드</a></li>
+				<li><a th:href="@{/admin/pictionary/word/request/edit/list}">수정 요청 목록 </a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="dictationBookMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-headphones-alt fa-fw unfoldMenu"></i>
+		<span class="menuTitle">DictationBook</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/dictationBook/theme/add}">신규 테마 등록</a></li>	
+				<li><a th:href="@{/admin/dictationBook/theme/list?searchType=themeType&keyword=100}">최신 테마 목록</a></li>	
+				<li><a th:href="@{/admin/dictationBook/theme/list?searchType=themeType&keyword=300}">테스트 테마 목록</a></li>	
+			</ul>
+		</div>
+	</div>
+	
+	<div id="playMemberdMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-user-astronaut fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Member Management</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/member/stats}">회원 대시보드</a></li>	
+				<li><a th:href="@{/admin/member/searchPage}">회원검색</a></li>	
+				<li><a th:href="@{/admin/member/searchPage}">플래티넘 회원 목록</a></li>	
+				<li><a th:href="@{/admin/member/searchPage}">골드 회원 목록</a></li>	
+				<li><a th:href="@{/admin/member/searchPage}">실버 회원 목록</a></li>							
+			</ul>
+		</div>
+	</div>
+	
+	<div id="adminReportMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-user-shield fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Report Management</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/report/list}">신고 접수 목록</a></li>	
+			</ul>
+		</div>
+	</div>
+	
+	<div id="appPointMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-money-bill-alt fa-fw unfoldMenu"></i>
+		<span class="menuTitle">App-Point Management</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/pointApp}">포인트 앱 대시보드</a></li>
+				<li><a th:href="@{/admin/pointApp/list}">포인트 앱 목록</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="stampMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-stamp fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Stamp Management</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/stamp/list}">스탬프 조회 및 등록</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="couponMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-stamp fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Coupon Management</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/coupon/list}">쿠폰 조회 및 등록</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<div id="notificationMenu" class="menuDiv adminMenuList" style="margin-bottom: 10px;">
+		<i class="fa fa-minus-circle fa-fw foldMenu" style="display: none;"></i>
+		<i class="fa fa-bullhorn fa-fw unfoldMenu"></i>
+		<span class="menuTitle">Notification</span>
+		<div class="subMenuList" style="display: none;">
+			<ul>
+				<li><a th:href="@{/admin/notification/add}">알람 메세지 등록</a></li>
+				<li><a th:href="@{/admin/notification/list}">알람 메세지 조회</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+</div>

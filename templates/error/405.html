@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_section_layout}">
+<head>
+<title>로그인 - 플레이보이스 | Playvoice</title>
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '플레이보이스 로그인 - playvoice'"></th:block>
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [SNS 로그인에 실패했을 경우 실패 메세지 표시하기]---------------------------------------
+	if(/*[[${OAuthFailedMsg != null}]]*/false){
+		alert(/*[[${OAuthFailedMsg}]]*/);
+	}
+	
+	const search = $(location).attr('search');
+	const resMsgs = getParameter('resMsgs');
+	if(resMsgs=='ok'){
+		$('#loginFormContainer button[class="btn btn-info btn-xs"]').css("display", '');
+	}else if(search.indexOf('?error')  != -1 || resMsgs=='fail'){
+		$('#loginFormContainer > div[class=resMsgs]').show();
+	}
+	
+	// 접속 기기 모바일 여부
+	const isMobile = navigator.userAgent.indexOf("Mobi") > -1;
+	// [폼 유효성 검사 후 로그인 실행]----------------------------------------------------
+	$("#login_form").submit(function(e){
+		var id = $("#username").val();
+		var pw = $("#password").val();
+		
+		if(id.length < 1 || pw.length < 1){
+			$('#resMsgs').show();
+			$('#scriptMsgs').html("아이디와 비밀번호는 필수 입력 사항입니다.");
+			return false;
+		} else {
+			// 아이디 기억
+			if($('#rememberMe').prop('checked')){
+				localStorage.setItem('checkRememberId', 'true');
+				localStorage.setItem('rememberedId', id);
+				// 모바일의 경우 비밀번호까지 기억
+				if(isMobile){
+					localStorage.setItem('rememberPwd', btoa(pw));
+				}
+			}else{
+				localStorage.setItem('checkRememberId', 'false');
+				localStorage.setItem('rememberedId', null);
+			}
+			return true;
+			//$("#login_form").submit();
+		}
+	});
+	
+	// [아이디 기억 여부, 기억된 아이디 표시]-----------------------------------------------
+	if(localStorage.getItem('checkRememberId') == 'true'){
+		const id = localStorage.getItem('rememberedId');
+		if(id == null){
+			localStorage.setItem('checkRememberId', 'false');
+		}else{
+			$('#rememberMe').prop('checked', true);
+			$('#username').val(id);
+			// 모바일의 경우 비밀번호까지 기억
+			if(isMobile){
+				const pwd = atob(localStorage.getItem('rememberPwd'));
+				$('#password').val(pwd);
+			}
+		}
+	}
+	
+	// [날짜별로 배경 이미지 세팅]-------------------------------------------------------
+	var today = new Date();
+	var calcDateNum = today.getDate()%4;
+	var backgroundStyle = 'background-image:url(\'/images/app/member/registration_back'
+			+ calcDateNum + '.jpg\');';
+	$(".join-background-cover").attr("style", backgroundStyle);
+	
+});
+</script>
+</head>
+
+<section layout:fragment="content" class="playvoice-join-section">
+<div class="playvoice-join-body-section container"><div class="join-background-cover">
+<div id="loginFormContainer" class="formContainer row no-gutters">
+	
+	<!-- --------------------------[login 메세지]---------------------------- -->
+	<div class="join-message-section col-md-6">
+		<!-- logo -->
+		<div class="join-logo-section">
+			<div class="d-none d-md-block" align="center" 
+				th:insert="~{/incl/playvoice_logo::mini_logo}"></div>
+			<div class="d-md-none" align="center" 
+				th:insert="~{/incl/playvoice_logo::logo_header_got}"></div>
+		</div>
+		<!-- 메세지 -->
+		<h5 class="join-mini-title"><a th:href="@{/}">WELCOME TO PLAYVOICE</a></h5>
+		<div class="join-message-cover">
+			<div class="message1">
+				<a th:href="@{/}">The First BaseCamp for<br>
+				Climbing English</a>
+			</div>
+			
+			<div class="message3">
+				세션이 만료되었습니다.<br>
+				보안을 위해 다시 로그인해 주세요.
+			</div>
+		</div>
+	</div>
+	
+	<!-- ---------------------------[login form]---------------------------- -->
+	<div class="join-form-section col-md-6">
+		<h3 class="row no-gutters">
+			Playvoice Login
+			<button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> Ok
+			</button>
+		</h3>
+		<div class="message3 d-md-none">
+			세션이 만료되었습니다.<br>
+			보안을 위해 다시 로그인해 주세요.
+		</div>
+		<div class="times-section text-right">
+			<a th:href="@{/}" title="플레이보이스 메인으로">
+				<i class="fa fa-times fa-fw"></i>
+			</a>
+		</div>
+		
+		<!--/*응답메세지 박스*/-->
+		<div id="resMsgs" style="display:none;">
+			<h5>Respond Messages</h5>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+			<div id="scriptMsgs" class="text-danger"></div>
+		</div>
+		<div class="resMsgs row no-gutters" th:if="${param.error != null}">
+			<label class="col-md-1 col-2 pt-1"></label>
+			<div class="col-10 pl-1">
+				<b class="text-danger">로그인 정보가 올바르지 않습니다.</b>
+			</div>
+		</div>
+		
+		<form id="login_form" th:action="@{/auth/login}" class="form-horizontal" 
+			method="post"><div class="join-form-cover">
+		<input th:if="${param.destPage}" type="hidden" name="destPage" th:value="${param.destPage}">
+		<!-- 아이디 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1">
+				<i class="far fa-id-badge fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<input id="username" type="text" class="form-control" 
+					name="username" placeholder="아이디" />
+				<div id="loginIdConfirm" class="guide"></div>
+			</div>
+			<div class="inform-guide col-1 align-self-center">
+				<div class="text-center">
+					<i class="far fa-question-circle fa-fw"></i>
+				</div>
+				<div class="text-warning-msg">
+					영문 대소문자/숫자 <font color="pink">( 4~20자 )</font>
+				</div>
+			</div>
+		</div>
+	
+		<!-- 비밀번호 -->
+		<div class="form-group row no-gutters">
+			<label class="col-form-label col-md-1 col-2 pt-1" style="border-bottom-color: #e45063;">
+				<i class="fa fa-unlock-alt fa-fw fa-lg"></i>
+			</label>
+			<div class="col-10 pl-1">
+				<input id="password" type="password" class="form-control" 
+					name="password" placeholder="비밀번호"/>
+				<div id="passwdConfirm" class="guide"></div>
+			</div>
+			<div class="inform-guide col-1 align-self-center">
+				<div class="text-center">
+					<i class="far fa-question-circle fa-fw"></i>
+				</div>
+				<div class="text-warning-msg msg-passwd">
+					영문/숫자/특수문자 2가지 이상 혼합<br>
+					<font color="pink">( 8~20자 )</font>
+				</div>
+			</div>
+		</div></div>
+		
+		<div class="suggest-section row no-gutters">
+			<div class="col-md-1"></div>
+			<div class="remember-me-cover col-md-5 col-auto text-left">
+				<label>
+					<input id="rememberMe" type="checkbox" name="remember-me"
+						class="option-input checkbox"/> 아이디 기억
+				</label>
+			</div>
+			<div class="col-md-5 col text-right">
+				<a th:href="@{/auth/search}">아이디 · 비밀번호 찾기</a>
+			</div>
+		</div>
+		
+		<!-- 로그인 버튼 -->
+		<div  class="row no-gutters mb-3">
+			<div class="col-md-1"></div>
+			<div class="col-md-10 pl-md-1">
+				<button id="login_btn" type="submit" 
+					class="btn btn-main-submit jsAction btn-block">로 그 인</button>
+			</div>
+		</div>
+		</form><!-- end of memberLoginForm -->
+
+		<!-- 가입 페이지로 -->
+		<div class="auth-line row no-gutters">
+			<div class="col-12 text-right">
+				플레이보이스 회원이 아닌가요?
+				<a th:href="@{/member/registration}" class="login-link">JOIN</a>
+			</div>
+		</div>
+	</div>
+</div><!-- end of loginFormContainer -->
+
+</div>
+
+</div>
+
+<!-- footer -->
+<div th:insert="~{/incl/footer::footer}"></div>
+</section>
+</html>

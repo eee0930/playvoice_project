@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>플레이보이스 가입 - 플레이보이스 | Playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [날짜별로 배경 이미지 세팅]-------------------------------------------------------
+	var today = new Date();
+	var calcDateNum = today.getDate()%4;
+	var backgroundStyle = 'background-image:url(\'/images/app/member/registration_back'
+			+ calcDateNum + '.jpg\');';
+	$(".join-background-cover").attr("style", backgroundStyle);
+	
+	// [가입 계속 진행하기]------------------------------------------------------------
+	$("#moveAddMember").click(function(){
+		var email = $("#email").val();
+		if(email.length < 2) {
+			alert("이메일 정보가 없습니다. 처음부터 다시 시도해 주세요.", true);
+		} else {
+			location.href="/member/registration/1/?email=" + email;
+		}
+	});
+}); //end of ready
+
+function alertCallback(){
+	location.href="/member/registration";
+}
+
+</script>
+</head>
+
+<section layout:fragment="content" class="playvoice-join-section find-member confirm-member">
+<div class="playvoice-join-body-section container"><div class="join-background-cover row no-gutters">
+<div class="col"></div>
+<div id="joinFormContainer" class="formContainer col-md-8">
+	<div class="join-message-section fade-background">
+		<!-- logo -->
+		<div class="join-logo-section">
+			<div align="center" th:insert="~{/incl/playvoice_logo::mini_logo}"></div>
+			<div class="login-info-title">
+				<h3>Confirm Your Email</h3>
+			</div>
+		</div>
+		<!-- 이메일 확인 가이드 -->
+		<div class="find-login-info-div">
+			<div class="find-login-info-guide">
+				<div>입력된 메일로 가입을 진행하겠습니다.</div>
+				<div class="email-info">[[${email}]]</div>
+				<input type="hidden" id="email" name="email" th:value="${email}"/>
+			</div>
+			<div class="button-section">
+				<button id="moveAddMember" type="button" 
+					class="btn login-info-button btn-main-submit edit-password">
+					계속 진행 하기
+				</button>
+			</div>
+			<div class="sub-link-section text-right">
+				<a th:href="@{/member/registration}">
+					<i class="fa fa-arrow-left"></i> 메일 재입력
+				</a>
+			</div>
+			<div class="guide-image for-email">
+				<img src="/images/common/icon/icon_paper.png" alt="플레이보이스">
+			</div>
+			<div class="find-login-info-guide">
+				입력하신 메일 주소로 이메일을 발송하였습니다.<br>
+				사용자 인증과 <b>무료 쿠폰 발행</b>을 위해<br>
+				<b>가입 완료 후 이메일을 확인해 주세요.</b>
+			</div>
+		</div>
+	</div>
+</div><!-- end of joinFormContainer -->
+<div class="col"></div>
+</div></div>
+
+<!-- footer -->
+<div th:insert="~{/incl/footer2::footer}"></div>
+</section>
+			

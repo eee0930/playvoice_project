@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div class="viewDigest" th:fragment="list_articles"
+	th:with="yourId = ${session.userContainer?.personacon?.pid},
+	memberType = ${session.userContainer?.personacon?.memberType}">
+<div class="row no-gutters">
+<!-- 아티클 새 창 띄우기 버튼 -->
+<div class="window-section col-auto d-none d-md-inline">
+	<a th:href="${popupLink}" target="_sub" class="openDigest">
+		<i class="reposition-icon far fa-square fa-lg"></i>
+		<i class="far fa-square fa-lg"></i>
+		<span class="window-guide">새창으로 크게 보기</span>
+	</a>
+</div><div class="col"></div>
+<!-- 링크 공유 -->
+<div class="col-auto copy-url-section">
+	<div class="copy-url-cover text-right">
+		<div>
+			<input type="text" th:value="'www.playvoice.org' + ${shareLink!=null?
+				shareLink:'/square/digest/list'}" class="hide-input"/>
+			Share This Link :<br class="d-md-none">
+			<span class="clip-target">
+				<span>www.playvoice.org[[${shareLink}]]</span>
+				<i class="fa fa-external-link-alt fa-fw"></i>
+			</span>
+		</div>
+		<div class="clip-guide">링크 클릭하여 복사</div>
+		<div class="successClip-guide" style="display: none;">복사가 완료되었습니다</div>
+	</div>
+</div>
+</div>
+<!-- -----------------------------[아티클 영역]--------------------------------- -->
+<div th:each="article, iter2:${articleList}" class="articleView content-cover">
+	<input class="articleId" type="hidden" th:value="${article.aid}">
+	<!-- [Article Header] -->
+	<div class="member-info row no-gutters" 
+	th:with="writer=${#strings.contains(#request.requestURI, 'digest/append')?(session.userContainer?.personacon):article.personacon}">
+		<!-- 작성자 정보 -->
+		<div class="personacon-section col-auto">
+			<div class="personacon-position" align="center">
+				<th:block th:with="personacon=${writer}">
+					<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+				</th:block>
+				<div class="alias d-none d-md-block" th:text="${writer.alias}"></div>
+			</div>
+		</div>
+		<div class="alias col px-2 align-self-center d-md-none" th:text="${writer.alias}"></div>
+		<div class="w-100 d-md-none"></div>
+		
+		<!-- sub title / 등록일 -->
+		<div class="displayDigestArticle col row no-gutters">
+			<!-- sub title -->
+			<input class="subtitle" type="hidden" th:value="${article.subtitle}">
+			<input class="title" type="hidden" th:value="${article?.digest?.title}">
+			<div th:unless="${#strings.isEmpty(article.subtitle)}" 
+				class="title-article col-md col-12 pl-md-3 align-self-center">
+				<i class="fas fa-quote-left fa-fw"></i>
+				[[${article.subtitle}]]
+				<i class="fas fa-quote-right fa-fw"></i>
+			</div>
+			<div th:if="${#strings.isEmpty(article.subtitle)}" 
+				class="title-article col-md col-12 pl-md-3 align-self-center">
+				<i class="fas fa-quote-left fa-fw"></i>
+				[[${article.digest.title}]]
+				<i class="fas fa-quote-right fa-fw"></i>
+				[[${(iter2.index > 0)?"의 추가 설명":null}]]
+			</div>
+			<!-- like count -->
+			<div class="recommend-count col-auto align-self-center">
+				<i class="fa fa-heart fa-fw fa-lg"></i>
+				<span class="articleLikeCount" th:text="${article.likeCount}"></span>
+			</div>
+			<!-- reg date -->
+			<div th:text="${#dates.format(article.regDate, 'yyyy-MM-dd')}" 
+				class="date col-md-auto col align-self-center"></div>
+		</div>
+		
+		<!-- 수정,삭제,신고 버튼 -->
+		<div th:if="${session.userContainer}" class="etc btn-group col-auto align-self-center pl-2">
+			<a class="dropdown-toggle" data-toggle="dropdown">
+				<i class="fa fa-ellipsis-v fa-lg"></i>
+			</a>
+			<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+				<th:block th:if="${writer.pid==yourId} OR ${memberType} == 'A'">
+				    <li class="editArticle dropdown-item text-center"><a>수정</a></li>
+				</th:block>
+			    <li th:if="${writer.pid!=yourId}" 
+			    	class="articleReport dropdown-item text-center"><a>신고</a></li>
+			</ul>
+		</div>
+	</div>
+	
+	<!-- [Article Body] -->
+	<div class="viewArticle_div" th:style="${iter2.count > 1}? 'display: none':''">
+		<!-- 아티클 내용 -->
+		<div class="content article-default-font-style">
+			<pre class="contentText" th:utext="${article.content}"></pre>
+		</div>
+		
+		<!-- 추천 / 댓글 버튼 -->
+		<div class="recommend-section row no-gutters">
+			<div class="col"></div>
+			<div class="col-auto ml-auto align-self-center">
+				<button class="likeArticleBtn btn btn-sm btn-playsquare2" type="button">
+					<i class="fa fa-heart fa-fw fa-lg"></i> 추천
+				</button>
+			</div>
+			<div class="col text-right align-self-center">
+				<a class="openCommentList">
+					<i class="fa fa-comment-dots fa-fw fa-lg"></i>
+					댓글 (<span class="replyCount" th:text="${article.replyCount}"></span>)
+				</a>
+			</div>
+		</div>
+		
+		<!-- 댓글 -->
+		<div class="comment-list-section" style="display: none;">
+			<div class="comment-title">
+				Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+			</div>
+		</div>
+		
+		<!-- 아티클 내용 접기 버튼 -->
+		<div class="button-section2">
+			<button class="hideArticle hide-button jsAction" type="button" title="아티클 접기">
+				<i class="fa fa-angle-double-up fa-lg"></i>
+			</button>
+		</div>
+	</div>
+</div>
+</div>
+</html>

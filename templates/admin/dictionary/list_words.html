@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Word</title>
+	<link rel="stylesheet" th:href="@{/css/app/notificationbook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+	<script th:src="@{/js/app/playvoice_audio.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	
+	var tagetLink = $('#wordListDiv th').find("a[data-value='regDate']");
+	var targetSpan = tagetLink.next();
+	targetSpan.css("display", "inline");
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시]-----------------------------------------------------
+	$("#wordListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		var sort = $(this).attr('data-value');
+		console.log('sort '+sort);
+		$('#sortName').val(sort);
+		
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		displaySearchMark($(this));
+		searchWord(searchType, page, 'list');
+	});
+	
+	//[테이블 데이터(eng) 클릭시 상세보기]--------------------------------------------------
+	$('.resultWrapper').on('click', '.wordDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.wordDetailPart').css('display','block');
+		//이전에 수정을 했었다면
+		$('.successBtn').css('display', 'none');
+		//상세보기/수정 폼으로 이동
+		window.scroll(0, getOffsetTop(document.getElementById("editWordForm")));
+	});
+	
+	//[단어 수정 버튼 클릭시 단어 수정 처리]------------------------------------------------------
+	$('#editWordBtn').click(function(e) {
+		e.preventDefault();
+		updateWord($('#jid').val());
+	});
+	
+	
+	//[단어 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchWordDiv').toggle();
+	});
+	
+
+	
+})//end of reday
+
+function searchWord(searchType, page, suffix){
+
+	if(page==undefined){
+		page = 1;
+	}
+	
+	var sType = searchType;
+	if(sType==undefined){
+		sType=$('#searchFormHidden_'+suffix+' #searchType').val();
+	}
+	
+	console.log('page ' + page);
+	console.log('sType ' + sType);
+	console.log('keyword ' + $('#keyword').val().trim());
+	var keyword =  $('#keyword').val().trim();
+	
+	$.getJSON({
+		type: "GET", 
+		url : '/admin/dictionary/search',
+		data : {
+			searchType : sType,
+			keyword : keyword,
+			fromDate : $('#fromDate').val(),
+			toDate : $('#toDate').val(),
+			page : page,
+			sortName : $('#searchFormHidden_'+suffix+' #sortName').val(),
+			asc : $('#searchFormHidden_'+suffix+' #asc').val()
+		},
+		success : function(result){
+			//resetDefault();
+			
+			var page = result.result;
+			displayWordList(page.content, result.currentPageNum, page.totalElements, suffix);		
+			displayPageNavigation(result, sType, suffix); 
+
+			//if open, 에러 패널 닫기
+			$('#errorDiv').css("display",'none');
+			//기존 테이블 닫기
+			$('#wordListDiv').css("display",'none');
+			//신규 테이블 show
+			$('#searchResult_'+suffix).css("display",'block');
+		},
+		error : function (e) {
+			$('#errorDiv').css("display",'inline');
+			$('#errorDiv > pre').text(e.responseText);
+
+            console.log("ERROR : ", e);
+        }
+	});
+} 
+
+
+function displayWordList(wordList, currentPageNum, total, suffix){
+	
+	$('#searchResultTable_'+suffix).children('tbody').children("tr").remove();
+	
+	var page = $("#page").val();
+	var output = ''
+	var num=1;	
+	var fetchSize = 20;//$('#h_size').val();
+	$.each(wordList, function(index, word){
+		num = (total-index)-(currentPageNum-1)*fetchSize;
+		//index++;
+		var regDate = new Date(word.regDate);
+		output += '<tr>';
+		/* output += '<td>'+parseInt(index+(currentPageNum-1)* 20)+'</td>'; */
+		output += '<td>'+num+'</td>';
+		output += '<td>'+word.wordId+'</td>'; 
+		output += '<td class="text-left"><a href="javascript:void(0)" class="sentenceDetail">'
+					+word.wordTitle;
+		output += '<td class="text-left" >'+word.text+'</td>';
+		output += '<td>'+word.partType +'</td>';
+		output += '<td>'+word.level+'</td>';
+		
+		if(word.voicePath != null){
+			output += "<td><a onclick='playVoice(\"/resource/dictionary/word/"+word.voicePath+"','',3, this)'>"
+			+"<i class='fas fa-volume-up'></i></a><i class='fas fa-stop' onclick='stopVoice(this)\' style=\'display:none\'></i></td>";
+		}else{
+			output += "<td></td>";
+		}
+		
+		output += '<td>'+regDate.getFullYear()+"-"
+				+parseInt(regDate.getMonth() +1)+"-"+regDate.getDate()+'</td>';
+		output += '</tr>';
+		$('#searchResultTable_'+suffix+' > tbody:last').append(output)
+		output =''; 
+	});
+}
+
+function displayPageNavigation(pageMaker, sType, suffix){
+	
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var ul = $('#searchResultPageNavi ul');
+	ul.empty();
+	
+	if(prevPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+			html('PREV'+parseInt(prevPage.pageNumber+1));
+		link.attr('onclick','searchWord("'+sType+'",'+parseInt(prevPage.pageNumber+1)+',"'+suffix+'")');
+		link.appendTo(li);
+		li.appendTo(ul);
+		
+	}
+	
+	$.each(pageList, function(index, page){
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="page-link"></a>');
+		link.attr('href', 'javascript:void(0)');
+		link.attr('onclick','searchWord("'+sType+'",'+parseInt(page.pageNumber+1)+',"'+suffix+'")');
+		link.html(parseInt(page.pageNumber + 1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	});
+	
+	if(nextPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+		html('NEXT'+parseInt(nextPage.pageNumber+1));
+		link.attr('onclick','searchWord("'+sType+'",'+parseInt(nextPage.pageNumber+1)+',"'+suffix+'")');
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+}
+
+/**
+ * 목록 헤더 컬럼 정렬 기능 처리
+ */
+function displaySearchMark(target){
+	
+	//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+	$('#wordListDiv .sortMark, #searchResultTable_list .sortMark').css('display', 'none');
+	
+	var dynamicTargets = document.querySelectorAll('#searchResult_list .thlink');
+	
+	var sortName = target.attr('data-value');
+	console.log('sortName ' + sortName);
+	var sortMark = target.next();
+	
+	for(var i = 0; i < dynamicTargets.length; i++){
+		//alert(dynamicTargets[i]);
+		if(dynamicTargets[i].getAttribute("data-value") == sortName){
+			//alert(sortName);
+			sortMark = dynamicTargets[i].nextSibling;
+		}
+	}
+	
+	//현재 선택한 sortName이 이전과 같다면
+	if(sortName == $('#searchFormHidden_list #sortName').val()){
+		//현재 설정된 정렬방향을 가져온다.
+		var direction = $('#searchFormHidden_list #asc').val();
+		
+		//정렬방향을 반대로 변경한다.
+		if(direction == 'false'){
+			$('#searchFormHidden_list #asc').val('true');
+			//sortMark.text('▲');
+			sortMark.innerHTML='▲';
+		}else{
+			$('#searchFormHidden_list #asc').val('false');
+			//sortMark.text('▼');
+			sortMark.innerHTML='▼';
+			
+		}
+		console.log("이전과 동일=");
+		
+	}else{
+		//새로운 sortName으로 교체
+		$('#searchFormHidden_list #sortName').val(sortName);
+		
+		//기본값을 desc로 설정한다.
+		$('#searchFormHidden_list #asc').val('false');
+		
+		console.log("이전과 다름=");
+	}
+	//----------------------------------------
+	target.next().css('display', 'inline');
+	//----------------------------------------
+}
+
+
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+	
+	<h3>워드 목록(Word List)</h3> 
+	
+	<!--/* ----------------[inclule : Search Word Form]--------------- */-->
+	<div id="searchWordDiv" 
+		th:insert="~{/admin/dictionary/incl/search_word::search_word}" 
+		style="display: none"></div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	
+	<!--/* 1. 단어 목록 Table  */-->
+	<div id="wordListDiv">
+		<!-- table -->
+		<div th:with="result=${pageMaker.result}">
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-notificationbook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordId'>wordId</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordTitle'>타이틀</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 220px;">의미</th>
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink" data-value='partType'>품사</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='level'>레벨</a>
+						<span class="sortMark">▼</span></th>
+					
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink" data-value='voicePath'>보이스</a>
+						<span class="sortMark">▼</span></th>
+						
+						
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="dictionaryView, status : ${result.content}">
+					 <td th:text="${( pageMaker.result.totalElements - status.count+1) - ((pageMaker.currentPageNum -1) * 20)} "></td> 
+					<td>[[${dictionaryView.wordId}]]
+						<input type='hidden' th:value="${dictionaryView.partId}"/>
+						<input type='hidden' th:value="${dictionaryView.senseId}"/>
+					</td>
+					<td class="text-left">
+						[[${dictionaryView.wordTitle}]]
+						<input type='hidden' th:value="${dictionaryView.voicePath}"/>
+						</td>
+					<td class="text-left" th:text="${dictionaryView.text}">단어 뜻</td>
+					<td th:text="${dictionaryView.partType}">품사</td>
+					<td th:text="${dictionaryView.level}">레벨</td>
+					<td>
+						<th:block th:if="${dictionaryView.voicePath} != null">
+							<a th:data="'/resource/dictionary/word/' + ${dictionaryView.voicePath}"
+								onclick="playVoice(this.getAttribute('data'),'',3,this)">
+								<i class='fas fa-volume-up'></i>
+							</a>
+							<i class='fas fa-stop' onclick='stopVoice(this)' style='display:none'></i>
+						</th:block>
+					</td>
+					<td th:text="${#dates.format(dictionaryView.regDate, 'yyyy-MM-dd')}">날짜</td>
+				</tr>
+			</table>
+		</div>
+		<!--/* 1.paging */--> 
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	
+	<!--/* 2. 단어 목록 Table By Ajax */-->
+	<div id="searchResult_list" style="display: none">
+		<div>
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table id="searchResultTable_list" class="resultWrapper table table-bordered table-striped table-sm table-hover text-center admin-notificationbook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordId'>wordId</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordTitle'>타이틀</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 220px;">의미</th>
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink" data-value='partType'>품사</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='level'>레벨</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink" data-value='voicePath'>보이스</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<tbody><!--/* 결과 목록 */--></tbody>
+			</table>
+		</div>
+		<!--/* paging */-->
+		<nav class="row my-333">
+			<div  class="col-12" id="searchResultPageNavi">
+				<ul class="pagination pagination-sm justify-content-center">
+					
+				</ul>
+			</div>
+		</nav>
+	</div> <!-- end of searchResult -->
+	
+	
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	
+	
+</div></div> <!--/* end of 단어 목록 */-->
+	
+
+</section><!-- end of section -->
+

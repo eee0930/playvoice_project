@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- 모바일 , 태블릿 기기, 브라우저에 따라 화면에 키보드가 나오는 방법, 화면에서 차지하는 비율이 다르기 때문에
+테스트 화면 관련 키보드는 playvoice_keyboard로 대체한다. 
+키보드의 enter를 클릭 시 테스트의 결과화면 버튼 or next 버튼을 click 시킨다. -->
+<!-- keyboard를 사용하는 화면은'/css/app/keyboard.css', 'js/app/keyboard.js' 링크를 필수로 달아야 한다 
+키보드가 입력한 글자가 들어가는 div에는 'inputPlayKeyboard' 클래스를 달아준다-->
+<div th:fragment="keyboard" class="playvoice-keyboard-section">
+<script th:inline="javascript">
+$(document).ready(function(){
+
+	// [대소문자 변경]---------------------------------------------------------------
+	$("#upperKey").click(function(){
+		var upperType = $(this).attr("data-upperType");
+		var basicLineKeys = $(".playvoice-keyboard-cover.basic-line").find(".alphabet .key");
+		$(this).find("i").toggle();
+		if(upperType == 'down') {
+			// 대문자로 변경
+			upperType = 'up';
+		} else {
+			// 소문자로 변경
+			upperType = 'down';
+		}
+		$(this).attr("data-upperType", upperType);
+		basicLineKeys.each(function(i, obj) {
+			// from playvoice_keyboard.js
+			var changedKey = changePlayKeyboardKeys(upperType, i);
+			$(obj).text(changedKey);
+		});
+	});
+	
+	// [입력한 텍스트를 현재 커서 위치에 입력]-----------------------------------------------
+	var keyText = '';
+	$(".inputKey").click(function(e){
+		var keyCode = $(this).attr("data-keyCode");
+		var inputPlayKeyboard = $(".inputPlayKeyboard.focus");
+		if(inputPlayKeyboard.is(":visible")) {
+			keyText += inputKeyCodeToText(keyCode);
+			//inputPlayKeyboard.val(keyText).focus();
+		} else {
+			return;	
+		}
+	});
+	
+
+});
+
+</script>
+
+<!-- ---------------------------[1. 알파벳 영역]-------------------------------- -->
+<div class="playvoice-keyboard-cover basic-line">
+	<!-- [1.1 1번 라인 (Q~P)] -->
+	<div class="playvoice-keyboard-line" th:with="alphabetKeys = 'q,w,e,r,t,y,u,i,o,p',
+		keyCodes = ${ {81, 87, 69, 82, 84, 89, 85, 73, 79, 80} }">
+		<div class="key-section" th:each="alphabetKey, iter: ${#strings.arraySplit(alphabetKeys,',')}">
+			<div class="key-cover alphabet">
+				<button class="inputKey key" type="button" th:text="${alphabetKey}" 
+					th:data-keyCode="${keyCodes[iter.index]}"></button>
+			</div>
+		</div>
+	</div>
+	<!-- [1.2 2번 라인 (A~L)] -->
+	<div class="playvoice-keyboard-line" th:with="alphabetKeys = 'a,s,d,f,g,h,j,k,l',
+		keyCodes = ${ {65, 83, 68, 70, 71, 72, 74, 75, 76} }">
+		<div class="key-section" th:each="alphabetKey, iter: ${#strings.arraySplit(alphabetKeys,',')}">
+			<div class="key-cover alphabet">
+				<button class="inputKey key" type="button" th:text="${alphabetKey}" 
+					th:data-keyCode="${keyCodes[iter.index]}"></button>
+			</div>
+		</div>
+	</div>
+	<!-- [1.3 3번 라인 (Z~M, 기호, 지우기)] -->
+	<div class="playvoice-keyboard-line" th:with="alphabetKeys = 'z,x,c,v,b,n,m',
+		keyCodes = ${ {90, 88, 67, 86, 66, 78, 77} }">
+		<div class="key-section">
+			<div class="key-cover upper">
+				<button id="upperKey" class="key" type="button"
+					data-upperType="down">
+					<i class="fa fa-arrow-up"></i>
+					<i class="fa fa-arrow-down" style="display: none;"></i>
+				</button>
+			</div>
+		</div>
+		<div class="key-section" th:each="alphabetKey, iter: ${#strings.arraySplit(alphabetKeys,',')}">
+			<div class="key-cover alphabet">
+				<button class="inputKey key" type="button" th:text="${alphabetKey}" 
+					th:data-keyCode="${keyCodes[iter.index]}"></button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover back-space">
+				<button class="inputKey key" type="button" data-keyCode="8">
+					<i class="fa fa-backspace"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	<!-- [1.4 4번 라인 (점, 스페이스, 엔터)] -->
+	<div class="playvoice-keyboard-line">
+		<div class="key-section">
+			<div class="key-cover unicode">
+				<button class="key" type="button">
+					123&#35;&#43;&#61;
+				</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=".">&#46;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover space">
+				<button class="key" type="button">
+					space 
+				</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover enter">
+				<button class="key" type="button">
+					<i class="fa fa-check-circle"></i> Enter
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+<!-- --------------------------[2. 숫자, 기호 영역]------------------------------ -->
+<div class="playvoice-keyboard-cover code-line">
+	<!-- [2.1 1번 라인 (숫자)] -->
+	<div class="playvoice-keyboard-line" th:with="numbers = '0,1,2,3,4,5,6,7,8,9'">
+		<div class="key-section" th:each="numberKey: ${#strings.arraySplit(numbers,',')}">
+			<div class="key-cover number">
+				<button class="inputKey key" type="button"
+					th:data-keyCode="${numberKey + 48}" th:text="${numberKey}"></button>
+			</div>
+		</div>
+	</div>
+	<!-- [2.2 2번 라인 (기호)] -->
+	<div class="playvoice-keyboard-line">
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="+">&#43;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="-">&#45;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="=">&#61;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=":">&#58;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=";">&#59;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="%">&#37;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="(">&#40;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=")">&#41;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="/">&#47;</button>
+			</div>
+		</div>
+	</div>
+	<!-- [2.3 3번 라인 (지우기)] -->
+	<div class="playvoice-keyboard-line">
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=",">&#44;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode=".">&#46;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="?">&#63;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="!">&#33;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="~">&#126;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode='\"'>&#34;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover">
+				<button class="inputKey key" type="button"
+					data-keyCode="\'">&#39;</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover back-space">
+				<button class="key" type="button">
+					<i class="fa fa-backspace"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	<!-- [2.4 4번 라인 (스페이스, 엔터)] -->
+	<div class="playvoice-keyboard-line">
+		<div class="key-section">
+			<div class="key-cover unicode">
+				<button class="key" type="button">
+					ABC
+				</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover space">
+				<button class="key" type="button">
+					space 
+				</button>
+			</div>
+		</div>
+		<div class="key-section">
+			<div class="key-cover enter">
+				<button class="key" type="button">
+					<i class="fa fa-check-circle"></i> Enter
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+</html>

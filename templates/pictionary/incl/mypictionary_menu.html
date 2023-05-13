@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- -----------------------[my pictionary tab menu]------------------------ -->
+<div th:fragment="myPictionaryMenu">	
+<script>
+$(document).ready(function(){
+	$('.myTrainingNav[href="' + location.pathname + '"]').addClass('active');
+});
+</script>
+<div class="review-tab-button-section" th:with="memberType = ${session?.userContainer?.personacon.memberType}">
+<!-- PC ver. -->
+<div class="nav-tab-position d-none d-lg-block"><ul>
+	<li><a th:href="@{/pictionary/word/mylist}" class="loginRequired myTrainingNav tab-button">
+		<span class="pv-tm">Pictionary</span>
+		<span class="pv-tm-around">나의 컨텐츠</span>
+		<i class="for-add fa fa-pen-fancy"></i>
+	</a></li>
+	<li><a th:href="@{/pictionary/tracer/list}" class="loginRequired myTrainingNav tab-button">
+		<i class="forGold fa fa-crown"></i>
+		<span class="pv-tm">Pictionary</span>
+		<span class="pv-tm-around">트레이서</span>
+		<i class="for-tracer fa fa-shoe-prints"></i>
+	</a></li>
+	<li><a th:href="@{/pictionary/tracer/quiz}" class="loginRequired myTrainingNav tab-button">
+		<i class="forGold fa fa-crown"></i>
+		<span class="pv-tm">Pictionary</span>
+		<span class="pv-tm-around">트레이서 퀴즈</span>
+		<i class="fa fa-gamepad"></i>
+	</a></li>
+</ul></div>
+
+<!-- mobile ver. -->
+<div class="d-lg-none"><div class="my-pictionary-menu-mobile row no-gutters">
+	<div class="menu-b col">
+		<button th:href="@{/pictionary/word/mylist}" class="loginRequired myTrainingNav btn-mobile btn-main" 
+			onclick="location.href=$(this).attr('href')" type="button">
+			<i class="for-add fa fa-pen-fancy"></i><br>
+			<span class="pv-tm-around">나의 컨텐츠</span>
+		</button>
+	</div>
+	<div class="menu-b col">
+		<button th:href="@{/pictionary/tracer/list}" class="loginRequired myTrainingNav btn-mobile btn-main" 
+			onclick="location.href=$(this).attr('href')" type="button">
+			<i class="for-tracer fa fa-shoe-prints"></i><br>
+			<span class="pv-tm-around">트레이서</span>
+			<i class="forGold fa fa-crown"></i>
+		</button>
+	</div>
+	<div class="menu-b col">
+		<button th:href="@{/pictionary/tracer/quiz}" class="loginRequired myTrainingNav btn-mobile btn-main" 
+			onclick="location.href=$(this).attr('href')" type="button">
+			<i class="fa fa-gamepad"></i><br>
+			<span class="pv-tm-around">트레이서 퀴즈</span>
+			<i class="forGold fa fa-crown"></i>
+		</button>
+	</div>
+</div></div>
+
+</div>
+</div>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout}">
+
+<head>
+<title>Playvoice | The BaseCamp for Learning English</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/terms.css}">
+
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	const isLogin =/*[[${#authentication.principal} eq 'anonymousUser'
+		? null :${#authentication.principal.member.loginId}]]*/null ;
+	const articleId56 = /*[[${board.articleId56}]]*/null;
+	const boardAlias = /*[[${board.alias}]]*/'free';
+	if(articleId56 != null){
+		$('#viewArticle').empty();
+		
+		var scrollPosition = $('html, body').offset().top;			
+		$("html, body").animate({
+			scrollTop: scrollPosition
+		}, 0);
+		
+		var url='/terms/'+ boardAlias +'/view/' + articleId56;
+		$('#viewArticle').load(url);
+	}
+	
+	//[게시글 상세 조회시]----------------------------------------------------------
+	$('.articleLink').click(function(e){
+		$('#viewArticle').empty();
+
+		var aid56 = $(this).attr("data-aid");
+		
+		var url='/terms/'+ boardAlias +'/view/' + aid56;
+		
+		var scrollPosition = $('html, body').offset().top;			
+		$("html, body").animate({
+			scrollTop: scrollPosition
+		}, 0);
+
+		$('#viewArticle').load(url);
+	});
+	
+	//[게시글 검색시]---------------------------------------------------------------
+	$('.search-article').click(function(e){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[초기 sortMark 디스플레이 설정]--------------------------------------------------
+	var defaultSortBy= $('#sortName').val();
+	var target = $('a[data-value='+defaultSortBy+']');
+	$('a[data-value='+defaultSortBy+']').next().css("display", "inline");
+	
+	//[next pagination 링크 전송]--------------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]---------------------------------------
+	$("#articleListByDefault a[class=thlink]").click(function(e) {
+		console.log("#articleListByDefault a[class=thlink]");
+		
+		//단순조회에서는 searchType은 불필요하다.
+		$('#searchType2').val('all');
+		
+		console.log("#end of articleListByDefault");
+	});
+});
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/terms/incl/terms_menu::menu}"></div>
+
+<div class="mt-lg-4">
+
+<!--/* ------------------------[게시글 상세보기 표시 영역]------------------------ */-->
+<div id="viewArticle"></div>
+
+<!--/* ------------------------[플레이보드 타이틀 영역]-------------------------- */-->
+<div class="introduction-section">
+	<h3 class="article-title">
+		[[${board?.engName}]]
+		<span class="d-none d-md-inline-block">Board</span>
+	</h3>
+	<div class="sub">the previous terms and conditions of playvoice</div>
+</div>
+
+<!-- -----------------------[inclule : Search Article Form]----------------- -->
+<div id="searchFormDiv" th:insert="~{/board/incl/search_article::search_article}" 
+	class="search-form-section" style="display: none;"></div>
+	
+	
+<!--/* ---------------------------[2. 게시글 목록]---------------------------- */-->
+<div id="articleListByDefault" class="board-article-list-section">
+	<!--/* 검색과 등록 아이콘 */-->
+	<div class="d-none d-lg-block"><div class="search-add-button-section row no-gutters">
+		<div class="col-6 text-left">
+			<a href="javascript:void(0)" class="search-article">
+				<i class="fas fa-search fa-fw"></i>
+				<span class="guide-quote">게시글 검색</span>
+			</a>
+		</div>
+	</div></div>
+	
+	<!-- [2.1 PC & Tablet ver.] -->
+	<div class="d-none d-md-block">
+	<table id="boardTable" th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}" 
+		class="board-table-l table table-sm table-bordered table-hover text-center">
+		<thead>
+		<tr class="thead">
+			<th style="width: 60px;">번호</th>
+			<th>제목</th>
+			<th style="width: 60px;"><!-- N or P label --></th>
+			<th style="width: 60px;">등록일<span class="sortMark">▼</span></th>
+			<th style="width: 60px;">조회수</th>
+			<th style="width: 110px;">작성자</th>
+		</tr></thead>
+		
+		<tbody>
+		<!-- ------------------------/* 게시글 목록 */-------------------------- -->
+		<tr th:each="article, status : ${page.content}"
+			th:class="${article.pinned == true}?'admin':''">
+			<!--/*번호*/-->
+			<td th:if="${article.pinned == true}" class="t-number">
+				<i class="fa fa-bell"></i>
+			</td>
+			<td th:unless="${article.pinned == true}" class="t-number" 
+				th:text="${(pageMaker.totalElements-(status.index)) - (
+				(pageMaker.currentPageNum -1) * 
+				T(com.varxyz.playvoice.common.Constants).FETCH_SIZE	)} ">
+			</td>
+			<!--/*제목*/-->
+			<td class="t-title text-left">
+				<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+					<span class="subject" th:text="${article.title}">제목</span>
+					<span class="comment-badge">
+						<span th:if="${article.replyCount > 0}" 
+							th:text="${article.replyCount}" 
+							class="badge badge-pill reply-count"></span>
+					</span>
+				</a>
+			</td>
+			<td class="t-info text-right">
+				<span class="badge badge-danger new-label" title="new" 
+					th:if="${article.newArticle}">N</span>
+				<span class="badge badge-warning pic-label" title="picture" 
+					th:if="${article.pics}">P</span>
+				<span class="badge badge-warning video-label" title="video" 
+					th:if="${article.video}">V</span>
+			</td>
+			<!--/*등록일*/-->
+			<td class="t-date" th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+				?#dates.format(article.regDate, 'HH:mm')
+				:#dates.format(article.regDate, 'MM-dd')}">
+			</td>
+			<!--/*조회수*/-->
+			<td class="t-hits" th:text="${article.hits}"></td>
+			<!--/*작성자*/-->
+			<td class="t-writer">
+				<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+				<span>[[${article.alias}]]</span>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!-- [2.2 Mobile & Tablet ver.] -->
+	<div class="d-md-none">
+	<table id="boardTable" th:with="today=${#dates.format(now, 'yyyy-MM-dd(E)')}" 
+		class="board-table-l table table-sm table-bordered table-hover text-center tboby-xs">
+		<tbody>
+		<!-- -------------------------/* 게시글 목록 */-------------------------- -->
+		<tr th:each="article, status : ${page.content}"
+			th:class="${article.pinned == true}?'admin':''">
+			<td class="text-left">
+				<div class="t-title-xs">
+					<a href="javascript:void(0)" class="articleLink" th:data-aid="${article.id56}">
+						<span class="subject-xs">
+							<span th:if="${article.newArticle}" class="new-point"></span>
+							[[${article.title}]]
+						</span>
+					</a>
+				</div>
+				<div class="t-info-xs">
+					<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+					<span class="t-writer-xs">[[${article.alias}]]</span>
+					<span class="t-date-xs" th:text="${#dates.format(article.regDate, 'yyyy-MM-dd(E)')==today
+						?#dates.format(article.regDate, 'HH:mm')
+						:#dates.format(article.regDate, 'MM-dd')}"></span> 
+					<span class="t-hits-xs"><i class="fa fa-eye"></i> [[${article.hits}]]</span>
+				</div>
+			</td>
+			<td class="text-right" style="width: 50px; padding-left:0;">
+				<th:block th:if="${article.pinned == true}">
+					<i class="fa fa-bell"></i>
+				</th:block>
+				<th:block th:unless="${article.pinned == true}">
+					<span class="badge badge-warning pic-label" 
+						th:if="${article.pics}">P</span>
+					<span class="badge video-label" th:if="${article.video}">V</span>
+				</th:block>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!--/* Paging(PC) */-->
+	<nav class="article-list-pagenation-section mt-3 d-none d-md-block">
+		<ul class="pagination pagination-sm justify-content-center">
+			<li class="page-item" th:if="${pageMaker.prevPage}">
+				<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+					PREV [[${pageMaker.prevPage.pageNumber}+1]]
+				</a>
+			</li>
+			<li class="page-item" th:each="p:${pageMaker.pageList}"
+				th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active : '' ">
+				<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+			</li>
+			<li class="page-item" th:if="${pageMaker.nextPage}">
+				<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+					NEXT [[${pageMaker.nextPage.pageNumber}+1]]
+				</a>
+			</li>
+		</ul>
+	</nav>
+	<!--/* Paging(Mobile) */-->
+	<div class="d-md-none" th:if="${pageMaker != null AND pageMaker.totalPageNum > 0}">
+		<div class="pagination trans-list-page row no-gutters my-3">
+			<div class="col-6 text-left" 
+				th:styleappend="${pageMaker.currentPageNum EQ 1} ? 'visibility:hidden':''">
+				<a class="btn btn-main2" th:href="${pageMaker.currentPageNum - 1}">
+					<i class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-6 text-right" 
+				th:styleappend="${pageMaker.currentPageNum EQ pageMaker.totalPageNum} ? 'visibility:hidden':''">
+				<a class="btn btn-main2" th:href="${pageMaker.currentPageNum + 1}">
+					next <i class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+</div> <!-- end of articleListByDefault -->
+
+
+<!-- paging hidden values-->
+<div id="searchFormHidden_list" style="display: none;">
+	<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+		Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+		Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+		S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+		Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+		S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+		ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+	</form>
+</div>
+
+</div></section><!-- end of content -->
+</html>

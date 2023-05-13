@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Add Dictation Theme</title>
+	<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function() {
+	//[ajax 전송 : 1)버튼을 통한 저장 ]-----------------------------------------------
+	$('#addThemeBtn').click(function(event) {
+		 
+		//----------------------------------------------------------
+		addDictationTheme($('#addThemeFormContainer #appCodeSelect').val(),
+				$('#addThemeFormContainer #themeTypeSelect').val(),
+				$('#title').val(), $('#description').val(),
+				$('#limit').val(), $('#cutOffPoint').val(),
+				$('#numOfQuestions').val());
+		//----------------------------------------------------------
+		$('#searchFormHidden_search .showView').prop( "disabled", false);
+	});
+	
+	$('#appCodeSelect').click(function(event){
+		$('#addThemeFormContainer button[class="btn btn-info btn-xs"]').hide();
+	});
+	
+	
+}); //end of ready
+
+
+</script>
+</head>
+
+
+<section layout:fragment="content">
+
+<h3>딕테이션 테마 등록 (Add Dictation Theme)</h3>
+<!-- -------------------[inclule : Search Sentence Form]------------------- -->
+<div th:insert="~{/admin/dictationBook/incl/search_dictation_theme::search_dictation_theme}"></div>
+<!-- ---------------------------------------------------------------------- -->
+
+<div class="row"><div class="col-12">
+	<!-- 2. Add Dictation Theme Form -->
+	<div class="formContainer" id="addThemeFormContainer" th:object="${dictationTheme}">
+		<h3>
+			Adding New Dictation Theme Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<div>
+			<div class="row"><div class="col-12">
+				<!--/* 앱코드 선택박스 */-->
+				<div class="form-group row">
+					<label for="appCode" class="col-2 control-label headerLabel text-right">앱코드</label>
+					<div class="col-10">
+						<select id="appCodeSelect" name="appCode" class="form-control">
+								<option value=""> --선택-- </option>
+								<option value="800">딕테이션북</option>
+								<option value="820">플레이보이스북</option>
+								<option value="840">입국심사테스트</option>
+							</select>
+					</div>
+				</div>
+				
+	
+				<!--/* 테마타입 선택박스 */-->
+				<div class="form-group row">
+					<label for="themeType" class="col-2 control-label headerLabel text-right">테마타입</label>
+					<div class="col-10">
+						<select id="themeTypeSelect" name="themeType" class="form-control">
+								<option value=""> --선택-- </option>
+								<option value="100">콘텐츠</option>
+								<option value="200">통계</option>
+								<option value="300">시험용(플보북/입국 테스트)</option>
+							</select>
+					</div>
+				</div>
+				
+				<!--/* 타이틀 텍스트 div */-->
+				<div class="form-group row">
+					<label for="title" class="col-2 control-label headerLabel text-right">타이틀</label>
+					<div class="col-10" id="titleDiv">
+						<input type="text" th:field="*{title}" placeholder="타이틀을 입력하세요."  class="form-control"/>
+					</div>
+				</div>
+				
+				<!--/* 설명 텍스트 div */-->
+				<div class="form-group row">
+					<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+					<div class="col-10" id="descriptionDiv">
+						<textarea class="form-control" th:field="*{description}" placeholder="설명을 입력하세요." rows="3"></textarea>
+					</div>
+				</div>
+	
+	
+				<!--/* 범위 텍스트 div */-->
+				<div class="form-group row">
+					<label for="limit" class="col-2 control-label headerLabel text-right">범위</label>
+					<div class="col-10" id="limitDiv">
+						<input type="text" th:field="*{limit}" placeholder="범위를 입력하세요."
+							class="form-control" />
+					</div>
+				</div>
+				
+				<!--/* 합격 기준 점수 텍스트 div */-->
+				<div class="form-group row">
+					<label for="cutOffPoint" class="col-2 control-label headerLabel text-right">합격 기준 점수</label>
+					<div class="col-10" id="cutOffPointDiv">
+						<input type="text" th:field="*{cutOffPoint}" placeholder="합격 기준 점수를 입력하세요."
+							class="form-control" /> 
+					</div>
+				</div>
+	
+	
+				<!--/* 문제 갯수 텍스트 div */-->
+				<div class="form-group row">
+					<label for="numOfQuestions" class="col-2 control-label headerLabel text-right">문제 갯수</label>
+					<div class="col-10" id="numOfQuestionsDiv">
+						<input type="text" th:field="*{numOfQuestions}" placeholder="테스트할 문제 갯수를 입력하세요." class="form-control"/>
+					</div>
+				</div>
+			</div></div>	
+				
+			<div class="row" id="submitDiv"><div class="col-12">
+				<div class="form-group row">
+					<div class="ml-auto col-10">
+						<input type="button" id="addThemeBtn" value="Register" class="btn btn-primary"/>
+					</div>
+				</div>
+			</div></div>
+		 </div>
+		 
+		 <div class="errorMsgs" style="display: none;">
+		 	<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre th:text="${errorMsg}"></pre>
+	 	</div>
+	</div><!-- end of formContainer -->
+</div></div>
+
+<div class="text-right" style="color:red;">
+	source :: add_theme.html	
+</div>	
+
+</section><!-- end of content -->
+
+<th:block layout:fragment="script">
+	<script th:inline="javascript">
+
+	</script>
+
+</th:block>

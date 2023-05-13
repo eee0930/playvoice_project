@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Stamp</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+	<script th:src="@{/js/app/stamp.js}"></script>
+	<script th:src="@{/js/common.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]----------------------------------------------
+	var query = $(location).attr('search');
+	
+		var tagetLink = $('#stampListDiv th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시 정렬 순서 변경]------------------------------------------------
+	$("#stampListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		
+		var sort = $(this).attr('data-value');
+		$('#sortName').val(sort);
+		
+		var asc = $('#searchFormHidden_list #asc').val();
+		if(asc == 'true'){
+			asc = 'false';
+		}else{
+			asc = 'true';
+		}
+		$('#searchFormHidden_list #asc').val(asc);
+		
+		formObj.submit();
+	});
+	
+	//[이미지 첨부 시 미리보기]---------------------------------------------------------
+	$(document).on("input",".stampImage" , function(e) {
+		handleImagefile(e);
+	})
+	
+	//[테이블 데이터(image) 클릭시 상세보기]----------------------------------------------
+	$('.resultWrapper').on('click', '.stampDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.stampDetailPart').css('display','block');
+		//센텐스 정보 추출
+		pickUpStampInfo($(this));
+		//이전에 수정을 했었다면
+		$('.successBtn').css('display', 'none');
+		//상세보기/수정 폼으로 이동
+		window.scroll(0, getOffsetTop(document.getElementById("editStampForm")));
+	});
+	
+	//[스탬프 등록창 토글]------------------------------------------------------------
+	$('.addIcon').click(function(e){
+		$('#addStampDiv').toggle();
+	});
+	
+	//[스탬프 기타 정보(타이틀, 타입 등) 수정 버튼 클릭시 스탬프 수정 처리]---------------------------
+	$('#editStampBtn').click(function(e) {
+		e.preventDefault();
+		$("#editStampForm #title")[0].trim();
+		$("#editStampForm #stampValue")[0].trim();
+		$("#editStampForm #description")[0].trim();
+		
+		updateStamp();//stamp.js
+	});
+	
+	//[예문 수정 버튼 클릭시 예문 수정 처리]-------------------------------------------------
+	$('#editStampImageBtn').click(function(e) {
+		e.preventDefault();
+		$("#editStampForm #title")[0].trim();
+		$("#editStampForm #stampValue")[0].trim();
+		$("#editStampForm #description")[0].trim();
+		
+		updateStampImage();//stamp.js
+	});
+ 
+	//[스탬프 등록 버튼 클릭 시 폼 전송]----------------------------------------------------
+	var addStampFormObj = $("#addStampForm");
+	$("#addStampBtn").click(function(e) {
+		
+		var title = $("#addStampFormContainer #title");
+		var stampImage = $("#addStampFormContainer #stampImage");
+		var stampValue = $("#addStampFormContainer #stampValue");
+		var stampTypeSelect = $("#addStampFormContainer #stampTypeSelect");
+		
+		$("#addStampForm #title")[0].trim();
+		$("#addStampForm #stampValue")[0].trim();
+		$("#addStampForm #description")[0].trim();
+	   
+		if(title.val().length < 1) {
+			alert("타이틀을 입력해 주세요.");
+			return;
+		} else if(stampImage.val().length < 1){
+			alert("이미지 파일을 선택해 주세요.");
+			return;
+		} else if(stampValue.val().length < 1) {
+			alert("검색 키워드를 입력해 주세요.");
+			return;
+		} else if(stampTypeSelect.val() == "") {
+			alert("스탬프 타입을 선택해 주세요.");
+			return;
+		} else {
+			e.preventDefault();
+			
+			addStampFormObj.submit();
+		}
+		
+	});
+
+})//end of reday
+
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+
+<!--/* ----------------[Add Stamp Form]--------------- */-->
+<div id="addStampDiv" style="display: none">
+	<div class="row"><div class="col-12">
+		<div class="formContainer mt-3" id="addStampFormContainer" >
+			<form th:action="@{add}" id="addStampForm" 
+				class="form-horizontal" method="post" enctype="multipart/form-data">
+			<h3>
+				Adding New Stamp Form
+				<button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+				<span>Please fill the text in the field.</span>
+			</h3>
+			<div class="resMsgs" style="display:none;">
+				<h3>
+					Response Messages
+					<span>Your request was processed.</span>
+				</h3>
+				<pre>[[${resMsgs}]]</pre>
+			</div>
+			<div>
+				<div class="row no-gutters">
+					<div class="imageDiv col-2">
+				</div>
+				
+				<div class="col-10">
+				
+					<!--/* 타이틀 텍스트 div */-->
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">타이틀</label>
+						<div class="col-10" id="titleDiv">
+							<input type="text" id="title" name="title" 
+								placeholder="타이틀을 입력하세요." class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 이미지 파일 div */-->
+					<div class="form-group row">
+						<label for="stampImage" class="col-2 control-label headerLabel text-right">이미지 파일</label>
+						<div class="col-10" id="stampImageDiv">
+							<input type="file" id="stampImage" name="stampImage" 
+								class="stampImage form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 스탬프 검색 키워드 div */-->
+					<div class="form-group row">
+						<label for="stampValue" class="col-2 control-label headerLabel text-right">검색 키워드</label>
+						<div class="col-10" id="stampValueDiv">
+							<input type="text" id="stampValue" name="stampValue" 
+								placeholder="검색 키워드를 입력하세요."  class="form-control"/>
+						</div>
+					</div>
+					
+					<!--/* 스탬프 타입 선택박스 */-->
+					<div class="form-group row">
+						<label for="stampType" class="col-2 control-label headerLabel text-right">스탬프 타입</label>
+						<div class="col-10">
+							<select id="stampTypeSelect" name="stampType" class="form-control">
+								<option value=""> --선택-- </option>
+								<option value="IM">입국 스탬프</option>
+								<option value="TT">타임 스탬프</option>
+								<option value="EV">이벤트 스탬프</option>
+								<option value="MC">미션 스탬프</option>
+								<option value="TS">탑 스테이지 스탬프</option>
+								<option value="PM">멤버십 스탬프</option>
+							</select>
+						</div>
+					</div>
+					
+					<!--/* 설명 텍스트 div */-->
+					<div class="form-group row">
+						<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+						<div class="col-10" id="descriptionDiv">
+							<textarea class="form-control" id="description" 
+								name="description" placeholder="설명을 입력하세요." rows="3"></textarea>
+						</div>
+					</div>
+	
+				</div></div>	
+					
+				<div class="row" id="submitDiv"><div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input id="addStampBtn" type="button" value="Register" 
+								class="btn btn-primary"/>
+						</div>
+					</div>
+				</div></div>
+			 </div>
+			 
+			 <div class="errorMsgs" style="display: none;">
+			 	<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre th:text="${errorMsg}"></pre>
+		 	</div>
+		 	</form>
+		</div><!-- end of formContainer -->
+		
+	</div></div>
+</div>
+<!--/* --------------------------------------------------------------- */-->
+
+<h3>스탬프 목록(Stamp List)</h3> 
+
+<div class="text-left"><i class="fas fa-search-plus addIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+
+<!--/* 1. 스탬프 목록 Table  */-->
+<div id="stampListDiv">
+	<!-- table -->
+	<div th:with="result=${pageMaker.result}, 
+		stampTypeMap=${ {'IM':'입국 스탬프','TT':'타임 스탬프','EV':'이벤트 스탬프',
+						'MC':'미션 스탬프','TS':'탑 스테이지 스탬프','PM':'멤버십 스탬프'} }">
+		<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-sentencebook-board">
+			<thead>
+			<tr class="thead">
+				<th style="width: 50px;">
+					<a href="javascript:void(0)" class="thlink">번호</a></th>
+				<th style="width: 70px;">
+					<a href="javascript:void(0)" class="thlink" data-value='sid'>SID</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 160px;">
+					<a href="javascript:void(0)" class="thlink" data-value='title'>타이틀</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 150px;">이미지</th>
+				<th style="width: 70px;">
+					<a href="javascript:void(0)" class="thlink" data-value='stampValue'>검색 키워드</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 120px;">
+					<a href="javascript:void(0)" class="thlink" data-value='stampType'>타입</a>
+					<span class="sortMark">▼</span></th>
+				<th>
+					<a href="javascript:void(0)" class="thlink" data-value='description'>설명</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 90px;">
+					<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+					<span class="sortMark" data-orderBy="default"></span></th>
+			</tr></thead>
+			<!--/* 1.결과 목록 */-->
+			<tr th:each="stamp, status : ${result.content}">
+				 <td th:text="${( pageMaker.result.totalElements - status.count+1) - ((pageMaker.currentPageNum -1) * 10)} "></td> 
+				<td class="text-center" th:text="${stamp.sid}">sid</td>
+				<td class="text-left" th:text="${stamp.title}">title</td>
+				<td class="text-left"> 
+					<a href="javascript:void(0)" class="stampDetail">
+					<img th:src="'/resource/stamp/images/' + ${stamp.imagePath}" style="width: 100%;"></a>
+				</td>  
+				<td class="text-center" th:text="${stamp.stampValue}">stampValue</td>
+				<td th:text="${stampTypeMap[stamp.stampType]}">stampType</td>
+				<td class="text-left" th:text="${stamp.description}">description</td>
+				<td th:text="${#dates.format(stamp.regDate, 'yyyy-MM-dd')}">날짜</td>
+			</tr>
+		</table>
+	</div>
+	<!--/* 1.paging */--> 
+	<nav class="row my-3">
+		<div class="col-12">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item" th:if="${pageMaker.prevPage}">
+					<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+						PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:each="p:${pageMaker.pageList}"
+					th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+					<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:if="${pageMaker.nextPage}">
+					<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+						NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+</div>
+
+<!-- paging hidden values-->
+<div class="row">
+<div class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+	<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+		Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+		Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+		S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+		Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+		S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+		ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+	</form>
+</div></div>
+<!-- error -->
+<div id="errorDiv" style="display: none;">
+	<pre></pre> 
+</div>
+	
+</div></div> <!--/* end of 스탬프 목록 */-->
+
+<!--/* =====================[스탬프 상세 보기/스탬프 수정 및 삭제]====================== */-->	
+<div class="row stampDetailPart" style="display:none"><div class="col-12">
+	
+	<div class="formContainer" id="eidtStampFormContainer">
+		<h3>
+			View Detail &amp; Editing Stamp Form <button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		 
+		<!--/*---------------------------- [Stamp 상세 정보 폼]-------------------------------*/-->
+		<form th:action="@{edit}" id="editStampForm" 
+				method="post" class="form-horizontal" >
+			<div class="row no-gutters">
+				<div class="imageDiv col-2">
+				
+				</div>
+				<div class="col-10">
+					<div class="form-group row">
+						<label for="sid" class="col-2 control-label headerLabel text-right">SID</label>
+						<div class="col-10">
+							<input type="text" id="sid" name="sid" class="form-control" readonly="readonly"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">타이틀</label>
+						<div class="col-10">
+							<input type="text" id="title" name="title" class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="stampValue" class="col-2 control-label headerLabel text-right">검색 키워드</label>
+						<div class="col-10">
+							<input type="text" id="stampValue" name="stampValue" class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="stampType" class="col-2 control-label headerLabel text-right">타입</label>
+						<div class="col-10">
+							<select id="stampType" name="stampType" class="form-control"
+								th:with="stampTypeMap=${ {'IM':'입국 스탬프','TT':'타임 스탬프','EV':'이벤트 스탬프',
+										'MC':'미션 스탬프','TS':'탑 스테이지 스탬프','PM':'멤버십 스탬프'} }">
+								<option th:each="stampType : ${stampTypeMap}"
+	                                   th:value="${stampType.key}"
+	                                   th:utext="${stampType.value}" />
+							</select>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="description" class="col-2 control-label headerLabel text-right">설명</label>
+						<div class="col-10">
+							<input type="text" id="description" name="description" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="regDate" class="col-2 control-label headerLabel text-right">등록일</label>
+						<div class="col-10 ">
+							<p id="regDate" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="editStampBtn" class="col-2 control-label headerLabel text-right"></label>
+						<div class="ml-auto col-10">
+							<input type="button" id="editStampBtn" value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div> 
+			</div>
+		</form>
+		
+		<hr>
+		<!--/*-------------------- [Stamp Image 정보 수정 폼]-----------------------*/-->
+		<form th:action="@{image/edit}" id="editStampImageForm"  
+			method="post" class="form-horizontal" enctype="multipart/form-data">
+			<div class="row no-gutters">
+				<div class="col-2"></div>
+				<div class="col-10">
+					<div class="form-group row">
+						<label for="stampImage" class="col-2 control-label headerLabel text-right">이미지</label>
+						<div class="col-8">
+							<input type="hidden" id="sid" name="sid" 
+								class="form-control" readonly="readonly"/>
+							<input type="file" id="stampImage" name="stampImage" 
+								class="stampImage form-control"/>
+						</div>
+						<div class="col-2">
+							<input type="button" id="editStampImageBtn" 
+								value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+	</div><!-- eidtStampFormContainer -->
+	
+</div></div><!--/* end of 스탬프 상세보기 */-->
+	
+
+<div class="text-right" style="color:red;">
+	source :: admin/stamp/list_stamps.html	
+</div>
+</section><!-- end of section -->
+

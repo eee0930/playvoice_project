@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>개인정보 수정 - 플레이보이스 | Playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+   
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:src="@{https://t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [수정 버튼 나타내기]-----------------------------------------------------------
+	$(".confirm-edit").on('input',function(){
+		$("#editProfileButtonArea").show(100);
+	});
+	// [수정 버튼 숨기기]
+	$(".cancelEditBtn").click(function(){
+		$(this).closest(".buttonGroupArea").hide(100);
+	});
+	
+	// [폼에 숫자만 입력시키기 (전화번호)]-------------------------------------------------
+	$(".onlyInputNumber").on("change keyup keydown", function(){
+		var type = $(this).val().replace(/[^0-9]/g,'');
+		$(this).val(type);
+		$("[name='phone']").val($("#phone1").val() + "-"
+									+ $("#phone2").val() + "-"
+									+ $("#phone3").val());
+	});
+	
+	// [주소 검색창 띄우기]-----------------------------------------------------------
+	$("#searchPostNum").click(function(){
+		new daum.Postcode({
+	        oncomplete: function(data) {
+				$("#buyerDistrict").val(data.sido);
+	            $("#buyerZipCode").val(data.zonecode);
+	            $("#buyerAddr1").val(data.address);
+	            $("#buyerAddr2").focus().trigger('input');
+	        }
+	    }).open();
+	});
+	$(".addAdressForm").click(function(){
+		$("#searchPostNum").click();
+	});
+	
+	// [주소 검색창 닫기]------------------------------------------------------------
+	$(".closeZipCodeModal").click(function(){
+		$("#searchZipCodeSection").hide();
+	});
+	
+	// [비밀번호 변경 폼 나타내기]------------------------------------------------------
+	$("#displayPassword_btn").click(function(){
+		$("#editPasswordForm").toggle();
+	});
+	// [비밀번호 수정 버튼 나타내기]-----------------------------------------------------
+	$(".passwordConfirm-edit").on('input',function(){
+		if($("#passwordButtonArea").is(":not(:visible)")){
+			$("#passwordButtonArea").show(100);
+		}else{
+			var oldPasswd = $("#oldPassword").val();
+			var newPasswd = $("#newPassword").val();
+			var rePasswd = $("#rePassword").val();
+			if(oldPasswd == null || oldPasswd.trim().length == 0
+				|| newPasswd == null || newPasswd.trim().length == 0){
+				$("#editPasswordBtn").prop("disabled", true);
+				$("#rePasswdConfirm,#newPasswdConfirm").html("");
+			}else if(!isValidPassword(newPasswd)
+					|| newPasswd.length < 8 || newPasswd.length > 20){
+				
+				$("#rePasswdConfirm").html("");
+				$("#newPasswdConfirm").html("<font color=red>영문 대소문자/숫자/특수문자 2가지 이상 혼합 (8~20자)<br>(*,&,+,- 제외)</font>");
+			}else if(oldPasswd == newPasswd){
+				$("#rePasswdConfirm").html("");
+				$("#newPasswdConfirm").html("<font color=red>기존 비밀번호와 동일합니다.</font>");
+				$("#editPasswordBtn").prop("disabled", true);
+			}else if(newPasswd != rePasswd){
+				$("#newPasswdConfirm").html("");
+				$("#rePasswdConfirm").html("<font color=red>입력하신 비밀번호와 일치하지 않습니다.</font>");
+				$("#editPasswordBtn").prop("disabled", true);
+			}else{
+				$("#rePasswdConfirm,#newPasswdConfirm").html("");
+				$("#editPasswordBtn").prop("disabled", false);
+			}
+		}
+	});
+	
+	// [비밀번호 수정 적용]-----------------------------------------------------------
+	$("#editPasswordBtn").click(function(){
+		var oldPasswd = $("#oldPassword").val();
+		var newPasswd = $("#newPassword").val();
+		var rePasswd = $("#rePassWord").val();
+		var mid = /*[[${personalInfo.member?.mid}]]*/0;
+		//----------------------------------------
+		changePassword(newPasswd, oldPasswd, mid);
+		//----------------------------------------
+	})
+	
+	
+	// [개인정보 수정]--------------------------------------------------------------
+	$("#editPersonalInfo_btn").click(function(){
+		var name = $("#name").val();
+		var phone = $("#phone").val();
+		var buyerZipCode = $("#buyerZipCode").val();
+		var buyerAddr1 = $("#buyerAddr1").val();
+		$(".guide").html("");
+		if(name == null || name.trim().length == 0) {
+			$('#nameConfirm').html('<font color=red>이름을 입력해 주세요.</font>');
+		} else if (phone == null || phone.trim().length < 8) {
+			$('#phoneConfirm').html('<font color=red>전화번호를 입력해 주세요.</font>');
+		} else if (buyerZipCode == null || buyerZipCode.length == 0) {
+			$('#adressConfirm').html('<font color=red>주소를 입력해 주세요.</font>');
+		} else if (buyerAddr1 == null || buyerAddr1.length == 0) {
+			$('#adressConfirm').html('<font color=red>주소를 입력해 주세요.</font>');
+		} else {
+			$("#editPersonalInfoForm").submit();
+		}
+	});
+	
+});
+
+/**
+ * 비밀번호를 성공적으로 변경 후 입력폼 리셋
+ */
+function successChangePassword() {
+	$(".passwordConfirm-edit").val("");
+	$("#editPasswordForm").hide(100);
+}
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<div th:insert="~{/mypage/incl/mypage_top_menu::menuProfile}"></div>
+<div id="editProfileFormContainer" class="edit-profile-form my-4">
+	<div class="formContainer">
+		<h3>
+			Edit Personal Information
+			<button type="button" class="btn btn-info btn-xs" style="display: none">
+				<span class="glyphicon glyphicon-ok"></span> SUCCESS
+			</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display: none;">
+			<h3>
+				Response Messages <span>Your request was processed.</span>
+			</h3>
+			<pre></pre>
+		</div>
+		<div>
+		<!-- -----------------------[1. 로그인 정보]---------------------------- -->
+		<form method="post" class="form-horizontal">
+			<!-- 플레이보이스 로그인 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">ID</label>
+				<div class="col-md-10 control-text pt-md-1">
+					[[${session.userContainer?.member?.loginId}]]
+				</div>
+			</div>
+			<!-- 이메일 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">e-mail</label>
+				<div class="col-md-5 control-text pt-md-1">
+					[[${session.userContainer?.member?.decodedEmail}]]
+				</div>
+			</div>
+			<!-- 비밀번호 수정 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">password</label>
+				<div class="col-md-10 control-button">
+					<button id="displayPassword_btn" class="btn btn-mypage btn-sm" 
+						type="button">비밀번호 변경</button>
+				</div>
+			</div>
+			<!-- 비밀번호 수정 폼 -->
+			<div id="editPasswordForm" style="display: none;">
+				<div class="form-group row">
+					<label class="col-md-2 control-label headerLabel">기존 비밀번호</label>
+					<div class="col-md-8">
+						<input id="oldPassword" type="password" 
+						class="playvoice-form passwordConfirm-edit form-control"/>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label class="col-md-2 control-label headerLabel">새 비밀번호</label>
+					<div class="col-md-8">
+						<input id="newPassword" type="password" 
+						class="playvoice-form passwordConfirm-edit form-control"/>
+						<div id="newPasswdConfirm" class="guide"></div>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label class="col-md-2 control-label headerLabel">비밀번호 확인</label>
+					<div class="col-md-8">
+						<input id="rePassword" type="password" 
+						class="playvoice-form passwordConfirm-edit form-control"/>
+						<div id="rePasswdConfirm" class="guide"></div>
+					</div>
+				</div>
+				<div class="form-group row">
+					<label class="col-md-2"></label>
+					<div class="password-guide col-md-10">
+						※ 영문 대소문자/숫자/특수문자 2가지 이상 혼합<br><font color="red">(*,&amp;,+,- 제외)</font>
+						(8~20자)
+					</div>
+				</div>
+				<div id="passwordButtonArea" class="buttonGroupArea form-group row pt-3" style="display: none;">
+					<div class="col-md-2"></div>
+					<div class="col-md-auto col-6">
+						<button id="editPasswordBtn" type="button" disabled
+							class="edit-btn btn btn-mypage">수정하기</button>
+					</div>
+					<div class="col-md-auto col-6 ">
+						<input type="reset" class="cancelEditBtn btn btn-outline-mypage2" value="취 소">
+					</div>
+				</div>
+			</div>
+			<!-- SNS 로그인 -->
+			<div class="form-group row" style="display: none;">
+				<label class="col-md-2 control-label headerLabel">Login Info</label>
+				<div class="col-md-10 control-text">
+					SNS login
+				</div>
+			</div>
+		</form>
+		
+		<!-- -------------------------[2. 배송 정보]--------------------------- -->
+		<form id="editPersonalInfoForm" method="post" 
+			th:action="@{/mypage/member/edit}" class="form-horizontal">	
+			<div class="division-border">Shipping Info</div>
+			<div th:if="${resultMsg}" class="form-group row">
+				<label class="col-md-2"></label>
+				<div class="result-msg col-md-10" th:text="${resultMsg}"></div>
+			</div>
+			<input type="hidden" name="pid" th:value="${personalInfo?.pid}">
+			<input type="hidden" name="member.mid" th:value="${personalInfo?.member?.mid}">
+			<!-- 이름 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">이름</label>
+				<div class="col-md-5">
+					<input id="name" type="text" name="name" 
+						class="playvoice-form confirm-edit form-control" 
+						th:value="${personalInfo?.name}" placeholder="이름"/>
+					<div id="nameConfirm" class="guide"></div>
+				</div>
+			</div>
+			<!-- 전화번호 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">전화번호</label>
+				<div class="col-md-10" 
+					th:with="phoneArr=${#strings.arraySplit(personalInfo?.phone?:'','-')}">
+					<div class="row no-gutters">
+						<div class="col-md-2 col">
+							<select id="phone1" class="playvoice-form confirm-edit form-control"
+								th:with="phone1Arr=${#strings.arraySplit('010,011,012,015,016,017,018,019',',')}">
+								<option th:each="phone1:${phone1Arr}" th:text="${phone1}" th:value="${phone1}"
+									th:selected="${phoneArr.length>0 AND phone1 EQ phoneArr[0]}" ></option>
+							</select>
+						</div>
+						<div class="col-auto align-self-center px-2"> - </div>
+						<div class="col-md-2 col">
+							<input id="phone2" type="tel" class="onlyInputNumber playvoice-form confirm-edit form-control" 
+								maxlength="4" th:value="${phoneArr.length>1?phoneArr[1]:''}"/>
+						</div>
+						<div class="col-auto align-self-center px-2"> - </div>
+						<div class="col-md-2 col">
+							<input id="phone3" type="tel" class="onlyInputNumber playvoice-form confirm-edit form-control" 
+								maxlength="4" th:value="${phoneArr.length>2?phoneArr[2]:''}"/>
+						</div>
+					</div>
+					<input id="phone" type="hidden" name="phone" th:value="${personalInfo?.phone?:''}"/>
+					<div id="phoneConfirm" class="guide"></div>
+				</div>
+			</div>
+			<!-- 주소 -->
+			<div class="form-group row">
+				<label class="col-md-2 control-label headerLabel">주소</label>
+				<div class="col-md-10" th:with="addr=${personalInfo?.address}">
+					<input type="hidden" name="address.aid" th:value="${addr?.aid?:'0'}">
+					<div class="row no-gutters pb-2">
+						<div class="col-6 pr-3">
+							<input id="buyerDistrict" type="hidden" name="address.district"
+								th:value="${addr?.district?:''}"/>
+							<input id="buyerZipCode" name="address.postalCode" placeholder="우편 번호" 
+								type="text" th:value="${addr?.postalCode?:''}" 
+								class="addAdressForm playvoice-form confirm-edit form-control"/>
+						</div>
+						<div class="col control-button">
+							<button id="searchPostNum" class="btn btn-sm btn-mypage2" type="button">
+								우편번호 검색
+							</button>
+						</div>
+					</div>
+					<div class="pb-2">
+						<input id="buyerAddr1" name="address.address1" type="text" 
+							th:value="${addr?.address1?:''}" placeholder="주소"
+							class="addAdressForm playvoice-form confirm-edit form-control"/>
+					</div>
+					<div class="pb-1">
+						<input id="buyerAddr2" name="address.address2" type="text" 
+							th:value="${addr?.address2?:''}" placeholder="상세 주소"
+							class="confirm-edit playvoice-form form-control"/>
+					</div>
+					<div id="adressConfirm" class="guide"></div>
+				</div>
+			</div>
+			<!-- 수정 버튼 -->
+			<div id="editProfileButtonArea" class="buttonGroupArea form-group row pt-3" style="display: none;">
+				<div class="col-md-2"></div>
+				<div class="col-md-auto col-6">
+					<input id="editPersonalInfo_btn" type="button" value="수정하기" 
+						class="edit-btn btn btn-mypage"/>
+				</div>
+				<div class="col-md-auto col-6">
+					<input type="reset" value="취 소" 
+						class="cancelEditBtn btn btn-outline-mypage2"/>
+				</div>
+			</div>
+		</form>
+		</div>
+	</div>
+</div><!-- end of editProfileFormContainer -->	
+<div class="remove-member text-right mb-5">
+	<div class="mb-2">
+		<span>소중한 개인정보 이용내역이 궁금하다면</span><br class="d-sm-none">
+		<a th:href="@{/terms/privacy}" 
+			target="_blank">개인정보 이용내역 보기
+			<i class="fa fa-caret-right"></i></a>
+	</div>
+	<div>
+		<span>플레이보이스를 더 이상 이용하지 않는다면</span><br class="d-sm-none">
+		<a th:href="@{/member/delete}">계정 삭제 바로가기 <i class="fa fa-caret-right"></i></a>
+	</div>
+</div>
+
+
+<!-- ---------------------------[우편번호 찾기 모달]------------------------------ -->
+<div id="searchZipCodeSection" class="playvoice-inform-modal-section search-zip" 
+	style="display: none;">
+	<div class="closeZipCodeModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeZipCodeModal fa fa-times"></i>
+			<h5 class="kor">주소 검색 <i class="fa fa-search"></i></h5>
+		</div>
+		<div id="searchZipCodeDiv" class="inform-modal-body">
+		<!-- 우편번호 찾기 들어가는 곳 -->
+		</div>
+	</div>
+</div>
+
+</section>
+
+
+</html>

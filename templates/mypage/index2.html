@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_index_layout2}">
+
+<head>
+<title>Index Of My Page - playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	// [city 이미지 날짜별로 다르게 세팅]------------------------------------------------
+	var today = new Date();
+	var cityNum = today.getDate() % 4;
+	var memberLevelImage = $("#introductionSection .level-img");
+	var backgroundImage = "background: url('/images/app/mypage/cities/group"
+			+ memberLevelImage.attr('data-level') + cityNum + "_index.jpg') no-repeat;"
+			+ "background-size: cover; background-position: center; width: 100%;";
+	memberLevelImage.attr("style", backgroundImage);
+	
+	
+	// [알람 리스트 열기]------------------------------------------------------------
+	$("#displayAlarmList").click(function(){
+		$("#alarmListDiv").show(100);
+		$(this).hide();
+		$(".noticeBadge").hide(100);
+	});
+	
+	
+});//end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+
+</script>
+</head>
+
+<section layout:fragment="content" class="container">
+
+<div class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/mypage/incl/mypage_top_menu2::menu}" class="col-lg-10"></div>
+</div>
+<div th:insert="~{/mypage/incl/mypage_top_menu2::menuMyPage}"></div>
+
+<div id="myPageIndexSection" class="row"><div class="col-lg-1"></div>
+
+<div class="col-lg-10">
+<div id="introductionSection" th:with="upperLevel=${#strings.toUpperCase(myLevel)}" 
+	class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<th:block th:if="${#strings.equals(myLevel, upperLevel)}" 
+		th:insert="~{/mypage/incl/index_level_incl::level_ + ${upperLevel}}"></th:block>
+	<th:block th:unless="${#strings.equals(myLevel, upperLevel)}" 
+		th:insert="~{/mypage/incl/index_level_incl::level_rejected}"></th:block>
+</div>
+
+
+<div id="introDiv">
+
+<div class="reg-date-section p-2 text-right">
+	<i class="far fa-calendar-plus fa-fw" title="lazyhysong님이 가입한지.."></i>
+	<span class="mr-1"><span class="date-num">196</span> days passed,</span>
+	<span>Since <span class="date-num">2018-09-03</span></span>
+</div>
+
+<div class="index-container">
+
+<!-- ---------------------[Notification Alarm]------------------------------ -->
+<div class="my-alarm-section index-content-section">
+	<h3>
+		Notification <span class="index-text-color">Alarm</span>
+		<i class="fa fa-envelope fa-fw" style="color: pink;"></i>
+		<!-- 알림 뱃지 -->
+		<span class="noticeBadge badge badge-danger badge-pill notice-num">
+			[[${alarmCount}]]
+		</span><br>
+		<small>
+			<span class="guide-title">[알람에 대한 새로운 생각] </span>
+			알람을 확인하면서 해당 컨텐츠를 복습하세요.<br class="d-none d-md-block d-lg-none">
+			학습에 대한 비정기적 인출이 많을수록 장기 기억에 도움이 됩니다.
+		</small>
+	</h3>
+	
+	<div th:if="${alarmCount} > 0" class="alarm-msg-guide">
+		<div id="displayAlarmList" class="jsAction">
+			<i class="fa fa-envelope fa-fw mr-2" style="color: pink;"></i>
+			<span class="alias">lazyhysong</span> 님에게
+			<span class="notice-num">[[${alarmCount}]]</span> 개의 알림이 도착했습니다
+			<span class="click-guide">
+				<i class="fa fa-arrow-left text-dark"></i>
+				확인하기
+			</span>
+		</div>
+	</div>
+	<div th:unless="${alarmCount} > 0" class="alarm-msg-guide">
+		<i class="fa fa-info-circle fa-fw"></i>
+		새로운 알림이 없습니다<br>
+	</div>
+	
+	<div id="alarmListDiv" class="alarm-list-cover" style="display: none;">
+		<div class="alarm-guide-small">※ 알람은 2주 후 자동 삭제됩니다.</div>
+		<div class="alarm-list row no-gutters active">
+			<div class="active-section col-md-auto col-1 pr-2">
+				<i class="fa fa-bell fa-fw"></i>
+			</div>
+			<div class="col-md col-11">
+				<a th:href="@{/mypage/journey/welcome}" target="_sub" class="row no-gutters">
+					<!-- 알림 내용 (PC ver.) -->
+					<span class="alarm-alias col-auto d-none d-md-block">
+						<span class="normal">[</span>플레이보이스
+					</span>
+					<span class="alarm-content col-auto d-none d-md-block">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						축하합니다! 이스탄불 입국 심사를 통과하였습니다. 주어진 미션을 확인해 보세요.
+					</span>
+					<span class="alarm-msg col d-none d-md-block">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+					</span>
+					<span class="alarm-date col-auto d-none d-md-block">
+						2020-05-29
+					</span>
+					<!-- 알림 내용 (Mobile ver.) -->
+					<span class="d-md-none">
+						<span class="alarm-alias">
+							<span class="normal">[</span> 플레이보이스
+						</span>
+						<span class="alarm-content">
+							<span class="normal">]</span>
+							<i class="fa fa-quote-left ml-2"></i>
+							축하합니다! 이스탄불 입국 심사를 통과하였습니다. 주어진 미션을 확인해 보세요.
+						</span>
+						<span class="alarm-msg">
+							<i class="fa fa-quote-right mr-2 ml-1"></i>
+						</span>
+						<span class="alarm-date">
+							2020-05-29
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="alarm-list row no-gutters active">
+			<div class="active-section col-md-auto col-1 pr-2">
+				<i class="fa fa-comment-dots fa-fw"></i>
+			</div>
+			<div class="col-md col-11">
+				<a class="row no-gutters" target="_sub">
+					<!-- 알림 내용 (PC ver.) -->
+					<span class="alarm-alias col-auto d-none d-md-block">
+						<span class="normal">[</span>MEMO
+					</span>
+					<span class="alarm-content col-auto d-none d-md-block">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						Fake Friends Vs. Real Friends: 12 Ways to Spot a Two-Faced Faker (2)
+					</span>
+					<span class="alarm-msg col d-none d-md-block">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+						에 댓글을 남겼습니다.
+					</span>
+					<span class="alarm-date col-auto d-none d-md-block">
+						2020-04-27
+					</span>
+					
+					<!-- 알림 내용 (Mobile ver.) -->
+					<span class="d-md-none">
+						<span class="alarm-alias">
+							<span class="normal">[</span> MEMO
+						</span>
+						<span class="alarm-content">
+							<span class="normal">]</span>
+							<i class="fa fa-quote-left ml-2"></i>
+							Fake Friends Vs. Real Friends: 12 Ways to Spot a Two-Faced Faker (2)
+						</span>
+						<span class="alarm-msg">
+							<i class="fa fa-quote-right mr-2 ml-1"></i>
+							에 댓글을 남겼습니다.
+						</span>
+						<span class="alarm-date">
+							2020-04-27
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="alarm-list row no-gutters active">
+			<div class="active-section col-md-auto col-1 pr-2">
+				<i class="fa fa-child fa-fw"></i>
+			</div>
+			<div class="col-md col-11">
+				<a class="row no-gutters" target="_sub">
+					<!-- 알림 내용 (PC ver.) -->
+					<span class="alarm-alias col-auto d-none d-md-block">
+						<span class="normal">[</span>나는 아무 생각이 없다
+					</span>
+					<span class="alarm-content col-auto d-none d-md-block">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						lazyhysong 님을 Trunk로 등록했습니다.
+					</span>
+					<span class="alarm-msg col d-none d-md-block">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+					</span>
+					<span class="alarm-date col-auto d-none d-md-block">
+						2020-03-05
+					</span>
+					
+					<!-- 알림 내용 (Mobile ver.) -->
+					<span class="d-md-none">
+						<span class="alarm-alias">
+							<span class="normal">[</span> 나는 아무 생각이 없다
+						</span>
+						<span class="alarm-content">
+							<span class="normal">]</span>
+							<i class="fa fa-quote-left ml-2"></i>
+							lazyhysong 님을 Trunk로 등록했습니다.
+						</span>
+						<span class="alarm-msg">
+							<i class="fa fa-quote-right mr-2 ml-1"></i>
+						</span>
+						<span class="alarm-date">
+							2020-03-05
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+		<div class="alarm-list row no-gutters active">
+			<div class="active-section col-md-auto col-1 pr-2">
+				<i class="active fa fa-coffee fa-fw"></i>
+			</div>
+			<div class="col-md col-11">
+				<a class="row no-gutters" target="_sub">
+					<!-- 알림 내용 (PC ver.) -->
+					<span class="alarm-alias col-auto d-none d-md-block">
+						<span class="normal">[</span>got my arm
+					</span>
+					<span class="alarm-content col-auto d-none d-md-block">
+						<span class="normal">]</span>
+						<i class="fa fa-quote-left ml-2"></i>
+						There are thousand of opportunities and challenges to expand ourselves.
+					</span>
+					<span class="alarm-msg col d-none d-md-block">
+						<i class="fa fa-quote-right mr-2 ml-1"></i>
+						에 번역을 남겼습니다.
+					</span>
+					<span class="alarm-date col-auto d-none d-md-block">
+						2020-03-05
+					</span>
+					
+					<!-- 알림 내용 (Mobile ver.) -->
+					<span class="d-md-none">
+						<span class="alarm-alias">
+							<span class="normal">[</span> got my arm
+						</span>
+						<span class="alarm-content">
+							<span class="normal">]</span>
+							<i class="fa fa-quote-left ml-2"></i>
+							There are thousand of opportunities and challenges to expand ourselves.
+						</span>
+						<span class="alarm-msg">
+							<i class="fa fa-quote-right mr-2 ml-1"></i>
+							에 번역을 남겼습니다.
+						</span>
+						<span class="alarm-date">
+							2020-03-05
+						</span>
+					</span>
+				</a>
+			</div>
+		</div>
+		
+		
+		<!-- pagination -->
+		<div class="alarm-pagination text-center">
+			<a class="active">1</a>
+			<a>2</a>
+			<a>3</a>
+			<a>
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+	
+</div>
+
+
+	
+<!-- -----------------------------[my ranking]------------------------------ -->
+<div class="my-ranking-section index-content-section">
+	<h3>
+		My <span class="index-text-color">Ranking</span>
+		<i class="fa fa-award fa-fw" style="color: #be86f8;"></i><br>
+		<small>Check out your total ranking</small>
+	</h3>
+	
+	<div class="my-ranking-cover row no-gutters" th:with="myRankNum = 2000">
+		<div class="image-position col-md pr-md-3">
+			<img th:if="${myRankNum < 1000}" alt="플레이보이스 playvoice" 
+				src="/images/app/mypage/mypage_mandrill.jpg">
+			<img th:unless="${myRankNum < 1000}" alt="플레이보이스 playvoice" 
+				src="/images/common/characters/goto_travel_evening.jpg">
+		</div>
+		<div class="my-ranking-ment col-md-auto text-md-right">
+			Excellence Is The Gradual Result<br class="d-none d-sm-block d-xl-none">
+			Of Always Striving To Do Better.<br class="d-none d-sm-block">
+			It Always Seems Impossible Until It’s Done.<br>
+			– Pat Riley &amp; Nelson Mandela
+		</div>
+		<div class="my-ranking-position col-md-6">
+			<div th:if="${myRankNum < 1000}" class="my-ranking confirm">
+				<div class="title">My Ranking</div>
+				<div class="my-rank">
+					<span class="rank-num">[[${myRankNum}]]</span> 등
+				</div>
+				<div class="ment">
+					모든 플레이보이스 랭킹 목록은 학습에 참여한 플보 멤버들의 부단한 노력과 
+					꾸준함에 대한 감사를 전달하고자 마련한 플레이보이스의 조그마한 성의입니다. 
+				</div>
+			</div>
+			<div th:unless="${myRankNum < 1000}" class="my-ranking">
+				<div class="title">My Ranking</div>
+				<div class="my-rank">
+					플레이보이스 랭킹은 1000등 안에 들 경우 등수를 제공합니다.
+				</div>
+				<div class="ment">
+					모든 플레이보이스 랭킹 목록은 학습에 참여한 플보 멤버들의 부단한 노력과 
+					꾸준함에 대한 감사를 전달하고자 마련한 플레이보이스의 조그마한 성의입니다. 
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+
+
+
+<!-- 플레이보이스 명예의 전당 설명 -->
+<div class="ranker-msg-section" align="center">
+	<div class="ranker-logo">
+		<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+	</div>
+	<div class="ranking-msg-cover">
+		<h5 class="ranking-msg-title">
+			Playvoice Hall of Fame
+		</h5>
+		<div class="ranking-msg">
+			플레이보이스 명예의 전당에 입성한 <b>최고의 랭커들입니다</b>.<br>
+			플레이보이스 랭킹 포인트는 영어 실력에 대한 평가가 아니라
+			목표를 향해 도전하는 보이지 않는 <b>노력에 대한 찬사</b>입니다.<br>
+		</div>
+	</div>
+</div>
+
+<!-- ---------------------[Hall of Fame (Play Point)]----------------------- -->
+<div class="member-ranking-section play-point">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-end pl-3">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">Play Point Top Rankers</span>
+			<i class="fas fa-trophy fa-fw" style="color: #ee6253;"></i><br>
+			<small>Members who got the high Play Points</small>
+		</span>
+	</h3>
+	
+	<div class="ranking-bg bg2">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="rank-num-cover">01</div>
+							<div class="alias">
+								<div>lazyhysong</div>
+								<div class="info"></div>
+							</div>	
+							<div class="personacon">
+								<img src="/images/app/member/profile_paper.png" 
+									style="background: url('images/app/member/profile_ex7.jpg') no-repeat;
+									background-position: center; background-size: cover;">
+							</div>
+							<div class="buttons">
+								<div>Gold</div>
+								<div><a><i class="far fa-address-card fa-fw"></i></a></div>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="rank-num-cover">02</div>
+							<div class="alias">
+								<div>오슬오슬</div>
+								<div class="info"></div>
+							</div>	
+							<div class="personacon">
+								<img src="/images/app/member/profile_paper.png" 
+									style="background: url('images/app/member/profile_ex5.jpg') no-repeat;
+									background-position: center; background-size: cover;">
+							</div>
+							<div class="buttons">
+								<div>Silver</div>
+								<div><a><i class="far fa-address-card fa-fw"></i></a></div>
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->	
+
+<!-- ------------------[Hall of Fame (Ranking Point)]----------------------- -->
+<div class="member-ranking-section">
+	<h3 class="text-center row no-gutters">
+		<span class="ranker-logo col-auto">
+			<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+		</span>
+		<span class="col text-left align-self-end pl-3">
+			Playvoice Hall of Fame :<br class="d-md-none">
+			<span class="index-text-color">Ranking Point Top Rankers</span>
+			<i class="fas fa-trophy fa-fw" style="color: #ee6253;"></i><br>
+			<small>Members who got the high ranking points</small>
+		</span>
+	</h3>
+	
+	<div class="ranking-bg bg1">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="rank-num-cover">01</div>
+							<div class="alias">
+								<div>lazyhysong</div>
+								<div class="info"></div>
+							</div>	
+							<div class="personacon">
+								<img src="/images/app/member/profile_paper.png" 
+									style="background: url('images/app/member/profile_ex7.jpg') no-repeat;
+									background-position: center; background-size: cover;">
+							</div>
+							<div class="buttons">
+								<div>Gold</div>
+								<div><a><i class="far fa-address-card fa-fw"></i></a></div>
+							</div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="rank-num-cover">02</div>
+							<div class="alias">
+								<div>오슬오슬</div>
+								<div class="info"></div>
+							</div>	
+							<div class="personacon">
+								<img src="/images/app/member/profile_paper.png" 
+									style="background: url('images/app/member/profile_ex5.jpg') no-repeat;
+									background-position: center; background-size: cover;">
+							</div>
+							<div class="buttons">
+								<div>Silver</div>
+								<div><a><i class="far fa-address-card fa-fw"></i></a></div>
+							</div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div><!-- end of member ranking section -->		
+
+
+
+</div>	
+</div><!-- end of introDiv -->
+
+</div>	
+</div><!-- end of myPageIndexSection -->
+</section>

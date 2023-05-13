@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- paging hidden values-->
+<div class="row" th:fragment="pageFormDiv">
+
+<div class="col-12 text-center" style="display:none; padding:0px 20px 20px 20px;">
+	<form id='pageForm' method="get" th:object="${searchRequest}">
+		Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+		Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+		S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+		Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+		S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+		ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+	</form>
+</div></div>

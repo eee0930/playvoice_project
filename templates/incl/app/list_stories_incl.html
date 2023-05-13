@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="list">
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [스토리 리스트의 카테고리에서 괄호 제거 (영역 공간 확보를 위해)]------------------------------
+	categoryNameArrange();
+
+	// [검색 폼 열기]---------------------------------------------------------------
+	$(".squareSearchBtn").click(function(){
+		$("#searchSentence_div").toggle(100);
+	});
+	// [검색 취소]-----------------------------------------------------------------
+	$("#cancelSearch_btn").click(function(){
+		$("#searchSentence_div").hide();
+		resetForm($(this));
+	});
+	// [검색버튼 활성화]----------------------------------------------------------
+	$(document).on("change keyup keydown", ".requireSentenceForm", function(){
+		var add_btn = $(this).closest("form").find(".squareAddBtn");
+		if($(this).val().length > 0){
+			add_btn.removeAttr("disabled");
+		} else {
+			add_btn.attr("disabled", "disabled");
+		}
+	});
+	// [스토리 검색]-------------------------------------------------------------
+	$(document).on('submit', '#searchForm', function(e){
+		e.preventDefault();
+		var searchType = $(this).find('#searchType').val();
+		var keyword = $(this).find("#searchKeyword").val().trim();
+		if(keyword.length == 0){
+			alert('검색어를 입력해 주세요.');
+			return;
+		}
+		var $form = $("#defaultSmallTalkPagination form");
+		$form.find('[name="page"]').val("1");
+		$form.find('[name="searchType"]').val(searchType);
+		$form.find('[name="keyword"]').val(keyword);
+		$form.submit();
+	});
+	
+}); //end of ready
+
+/**
+ * category 한글명칭에 괄호 생략하기
+ */
+function categoryNameArrange() {
+	$(".reading-talkative-list, .select-trans-list li").each(function(i, obj) {
+		var category = $(obj).find(".category");
+		var categories = category.text().split("(");
+		category.text(categories[0].trim());
+	});
+}
+
+/**
+ * 페이지 번호를 클릭하여 페이지 이동
+ */
+function moveTo(pageNum) {
+	if(location.pathname.indexOf('/square/smalltalk/mylist/') > -1){
+		location.href = location.pathname + '?pagaNum=' + pageNum;
+	}else{
+		var $form = $("#defaultSmallTalkPagination form");
+		$form.find("[name='page']").val(pageNum);
+		$form.submit();
+	}
+}
+</script>
+
+
+
+<div id="smallTalkSection" class="translation-section talkative"><div class="translation-bg">
+	<!-- --------------------------[스몰톡 등록/ 검색 버튼]------------------------ -->
+	<div class="translation-guide row no-gutters">
+		<!-- 스몰토크 등록 버튼 -->
+		<div class="col-auto d-none d-md-inline-block align-self-center">
+			<button id="addSmallTalk_btn" type="button" 
+				class="loginRequired btn btn-outline-playsquare2"
+				th:href="@{/square/smalltalk/add}"
+				onclick="location.href=$(this).attr('href')">
+				SmallTalk 등록 <i class="fa fa-pen fa-fw"></i>
+			</button>
+		</div>
+		<!-- [바벨 리스트 sort 버튼 (Mobile ver.)] -->
+		<div class="select-trans-list dropdown d-md-none col align-self-center">
+			<button class="btn btn-secondary dropdown-toggle text-center w-100" 
+				data-toggle="dropdown" type="button">
+				<i class="fa fa-list fa-fw float-left"></i>
+				<span th:if="${selectedCategory != null}"
+					class="selectedCategory" th:text="${selectedCategory.korName}"></span>
+				<span th:unless="${selectedCategory != null}" 
+					class="selectedCategory">전체 보기</span>
+				<i class="fa fa-caret-down fa-fw float-right"></i>
+			</button>
+			<div class="dropdown-menu w-100">
+				<a class="categorySelect dropdown-item"
+					th:href="@{/square/smalltalk/list}">
+					전체보기</a>
+				<a th:each="category, iter :${categoryList}" class="categorySelect dropdown-item"
+					th:href="${'/square/smalltalk/list?searchType=category&keyword=' + #securityUtil.encode(category.cid)}">
+					[[${category.korName}]]</a>
+			</div>
+		</div>
+		<div class="add-babel-guide col-md px-2 align-self-center py-1 only-PC">
+			관심 있는 주제의 영어 글만 준비해 오세요.<br class="d-none d-md-block">
+			여러분의 컨텐츠 작성을 도울 로봇들이 대기하고 있습니다.
+		</div>
+		<!-- 검색 버튼 -->
+		<div class="search-button-section col-auto align-self-center">
+			<a class="squareSearchBtn" title="검색">
+				<i class="fa fa-search"></i>
+			</a>
+		</div>
+	</div>
+	
+	<!-- ----------------------------[주제 검색]------------------------------- -->
+	<div id="searchSentence_div" class="search-sentence-section trans-list add" style="display: none;">
+		<div class="translation-cover"><div class="sentence">
+			<h3>검색 <i class="fa fa-search fa-fw"></i></h3>
+			<form id="searchForm">
+			<div class="squareSentenceForm-div row no-gutters">
+				<div class="col-md-2 py-2 align-self-center">
+					<select id="searchType" class="form-control">
+						<th:block th:each="searchOption : ${searchOptions}" >
+							<option th:value="${searchOption.value}">[[${searchOption.name}]]</option>
+						</th:block>
+					</select>
+				</div>
+				<div class="col-md-10 pl-md-3 py-2 align-self-center">
+					<input type="search" id="searchKeyword" 
+						class="squareSentenceForm requireSentenceForm form-control" 
+						placeholder="검색어를 입력해주세요."/>
+				</div>
+			</div>	
+			<div class="squareSentenceDiv mt-2 text-right">
+				<button id="cancelSearch_btn" type="reset" class="btn btn-outline-playsquare btn-sm" 
+					style="width: 80px; margin-right: 10px;">취 소</button>
+				<button type="submit" class="squareAddBtn btn btn-playsquare btn-sm" 
+					disabled="disabled" style="width: 80px;">
+					<i class="fa fa-search fa-fw"></i> 검 색
+				</button>
+			</div>
+			</form>
+		</div></div>
+	</div>
+	
+	<!-- -------------------[스몰톡 카테고리/ 리스트 sort 버튼]---------------------- -->
+	<div class="d-none d-md-block">
+		<div class="select-trans-list list-pc row no-gutters">
+			<div class="col-4 dropdown align-self-center">
+				<button class="btn btn-secondary dropdown-toggle text-center w-100" data-toggle="dropdown" type="button">
+					<i class="fa fa-list fa-fw float-left"></i>
+					<span th:if="${selectedCategory != null}" class="selectedCategory" 
+						th:text="${selectedCategory.korName}"></span>
+					<span th:unless="${selectedCategory != null}" 
+						class="selectedCategory">전체 보기</span>
+					<i class="fa fa-caret-down fa-fw float-right"></i>
+				</button>
+				<ul class="dropdown-menu w-100">
+					<li class="categorySelect jsAction dropdown-item"
+						th:href="@{/square/smalltalk/list}"
+						onclick="location.href=$(this).attr('href')">
+						<i class="fa fa-list fa-fw"></i> 전체 보기</li>
+					<li th:each="category, iter :${categoryList}" 
+						class="categorySelect jsAction dropdown-item"
+						th:href="${'/square/smalltalk/list?searchType=category&keyword=' + #securityUtil.encode(category.cid)}"
+						onclick="location.href=$(this).attr('href')">
+						<i class="fa fa-list fa-fw"></i> 
+						<span class="category">[[${category.korName}]]</span></li>
+				</ul>
+			</div>
+			<div th:if="${session?.userContainer}" 
+				th:with="personacon=${session?.userContainer?.personacon}"
+				class="col text-right align-self-center">
+				<a class="loginRequired"
+					th:href="@{/square/smalltalk/plate/{memberId64} 
+					(memberId64=${personacon.id56})}">
+					<img th:if="${#strings.contains('PG', (personacon.memberType))}" 
+						src="/images/common/icon/icon_paper.png" class="forGold">
+					<i th:unless="${#strings.contains('PG', (personacon.memberType))}" 
+						class="fa fa-archive fa-fw"></i>
+					<span>스토리 보관함</span>
+				</a>
+				<a class="loginRequired"
+					th:href="@{/square/smalltalk/mylist/{memberId64} 
+					(memberId64=${personacon.id56})}">
+					<i class="fa fa-street-view fa-fw mr-1"></i>
+					<span>내가 쓴 글 보기</span>
+				</a>
+			</div>
+			<div th:unless="${session?.userContainer}"
+				class="col text-right align-self-center">
+				<a class="loginRequired" 
+					th:href="@{/square/smalltalk/list}">
+					<i class="fa fa-archive fa-fw mr-1"></i>
+					<span>스토리 보관함</span>
+				</a>
+				<a class="loginRequired" 
+					th:href="${#request.requestURI}">
+					<i class="fa fa-street-view fa-fw mr-1"></i>
+					<span>내가 쓴 글 보기</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</div></div><!-- end of smallTalkSection -->
+
+
+<!-- -------------------------[3. 스몰톡 스토리 리스트]---------------------------- -->
+<div id="smallTalkListSection" class="translation-section talkative">				
+	
+	<th:block th:if="${pageMaker != null AND #lists.size(pageMaker?.result?.content) > 0}">
+	<!-- ------------------------[story list]------------------------------- -->
+	<div class="reading-talkative-section row no-gutters">
+		<div th:each="story : ${pageMaker?.result?.content}" 
+			class="reading-talkative-list col-xl-3 col-md-4 col-6">
+			<div class="moveViewArticleDiv reading-talkative-cover loginRequired" 
+				th:href="'/square/smalltalk/view/'+${story.id56}"
+				onclick="location.href=$(this).attr('href')">
+				<!-- 이미지 -->
+				<div class="image-section">
+					<img th:if="${story.repImgPath}" src="/images/app/playsquare/reading_paper.png"
+						th:style="'background: url(\''+${story.repImgPath}+'\') no-repeat;
+						background-size: cover; background-position: center;'">
+					<img th:unless="${story.repImgPath}" src="/images/app/playsquare/reading_paper.png"
+						class="story-img-default">
+				</div>
+				
+				<!-- 아티클 제목 / 작성자 정보 -->
+				<div class="reading-info-cover" th:with="personacon = ${story.personacon}">
+					<div class="title" th:title="${story.title}">
+						<label class="badge badge-danger">N</label>
+						<span th:text="${story.title}"></span>
+					</div>
+					<div class="alias-section">
+						<span class="posted">Posted by</span>
+						<span class="alias" th:text="${personacon.alias}"></span>
+					</div>
+					<div class="personacon-section">
+						<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png"
+							th:style="'background: url(\'/resource/profile/' 
+							+ ${personacon.iconPath} + '\') no-repeat;
+							background-position: center; background-size: cover;'">
+						<img th:unless="${personacon.iconPath}" class="profile-default"
+							src="/images/app/member/profile_paper.png">
+					</div>
+				</div>
+				<!-- 카테고리 / 작성일 -->
+				<div class="reading-info-cover2 row no-gutters">
+					<div class="category col align-self-center" 
+						th:text="${story.category.korName}"></div>
+					<div class="date col-auto align-self-center"
+						th:text="${#dates.format(story.regDate, 'yyyy-MM-dd')}"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	
+	<!-- pagination -->
+	<div id="defaultSmallTalkPagination">
+		<!-- PC ver. -->
+		<div class="d-none d-md-block">
+			<div class="trans-list-page row no-gutters my-3">
+				<div class="col-md-3 text-center text-left align-self-center">
+					<a th:if="${pageMaker?.prevPage}" th:data-page="${pageMaker.prevPage.pageNumber + 1}"
+						th:onclick="moveTo($(this).attr('data-page'))" 
+						class="btn btn-playsquare2">
+						<i class="fa fa-angle-left"></i> prev
+					</a>
+				</div>
+				<div class="col-md-6 text-center align-self-center">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li class="page-item" th:each="page : ${pageMaker?.pageList}"
+							th:classappend="${page.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+							<a class="page-link" th:data-page="${page.pageNumber + 1}"
+								th:onclick="moveTo($(this).attr('data-page'))">
+								[[${page.pageNumber}+1]]</a>
+						</li>
+					</ul>
+				</div>
+				<div class="col-md-3 text-center text-right align-self-center">
+					<a th:if="${pageMaker?.nextPage}" 
+						th:data-page="${pageMaker.nextPage.pageNumber + 1}"
+						th:onclick="moveTo($(this).attr('data-page'))" 
+						class="btn btn-playsquare2">
+						next <i class="fa fa-angle-right"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+		<!-- Mobile ver. -->
+		<div class="d-md-none">
+			<div class="trans-list-page row no-gutters my-3">
+				<div class="col-6 text-left">
+					<a th:if="${pageMaker?.currentPageNum != 1}" 
+						th:data-page="${pageMaker?.currentPageNum -1}" 
+						th:onclick="moveTo($(this).attr('data-page'))" 
+						class="btn btn-playsquare2">
+						<i class="fa fa-angle-left"></i> prev
+					</a>
+				</div>
+				<div class="col-6 text-right">
+					<a th:if="${pageMaker?.currentPageNum != (pageMaker?.totalPageNum?:1 +1)}" 
+						th:data-page="${pageMaker?.currentPageNum +1}" 
+						th:onclick="moveTo($(this).attr('data-page'))" 
+						class="btn btn-playsquare2">
+						next <i class="fa fa-angle-right"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+		
+		<!--/* SearchRequest Form */-->
+		<form th:action="${#request.requestURI}" method="get">
+			<input type="hidden" name="page" th:value="${param.page}">
+			<input type="hidden" name="searchType" th:value="${param.searchType}">
+			<input type="hidden" name="keyword" th:value="${param.keyword}">
+		</form>
+		
+	</div><!-- end of defaultSmallTalkPagination -->
+	</th:block>
+	
+	
+	<th:block th:unless="${pageMaker != null AND #lists.size(pageMaker?.result?.content) > 0}">
+		<!-- 스토리 리스트가 없을 경우 -->
+		<div th:if="${#strings.contains(#request.requestURI,'/smalltalk/list')}" 
+			class="reading-talkative-section no-contents">
+			<span th:if="${selectedCategory != null}">
+				'<i class="fa fa-list fa-fw"></i> [[${selectedCategory.korName}]]'
+				스토리가 비어있습니다.<br>
+			</span>
+			로봇들이 <span class="alias">'[[${session.userContainer.personacon.alias}]]'</span>님의 
+			글쓰기를 돕기 위해 대기 중입니다!<br>
+			흥미 있는 이야기, 관심 있는 주제에 대한 영어 글을 발견했다면 등록해 보세요.<br>
+			<img src="/images/common/icon/icon_paper.png" class="robots"><br>
+			로봇들이 계속 농땡이 부리게 두지 말아 주세요 <i class="far fa-sad-cry fa-lg"></i>
+		</div>
+		
+		<!-- 내가 담은 스토리가 없을 경우 -->
+		<div th:if="${#strings.contains(#request.requestURI,'/smalltalk/plate/')}" 
+			class="reading-talkative-section no-contents">
+			스토리 보관함이 비어있습니다.<br>
+			플보 크루들이 정성스럽게 작성한 스토리 중 마음에 드는 글이 있다면 보관해 보세요.<br>
+			<label class="add-plate-button">
+				<i class="fa fa-bookmark"></i>
+			</label>
+			담기 버튼은 스토리 상세보기의 오른쪽 상단에 있습니다 <i class="far fa-grin-alt fa-lg"></i><br>
+			<img src="/images/common/icon/icon_paper.png" class="empty_plate">
+		</div>
+		
+		<!-- 내가 쓴 스토리가 없을 경우 -->
+		<div th:if="${#strings.contains(#request.requestURI,'/smalltalk/mylist/')}" 
+			class="reading-talkative-section no-contents">
+			번역? 독해 힌트? 겁먹지 마세요! <i class="far fa-grin-alt fa-lg"></i><br>
+			로봇들이 <span class="alias">'[[${session.userContainer.personacon.alias}]]'</span>님의 
+			글쓰기를 돕기 위해 대기 중입니다!<br>
+			흥미 있는 이야기, 관심 있는 주제에 대한 영어 글을 발견했다면 등록해 보세요.<br>
+			<img src="/images/common/icon/icon_paper.png" class="robots"><br>
+			로봇들이 계속 농땡이 부리게 두지 말아 주세요 <i class="far fa-sad-cry fa-lg"></i>
+		</div>
+	</th:block>
+	
+</div><!-- end of smallTalkListSection -->
+
+<div class="text-right text-danger">
+source :: /square/smalltalk/incl/list_stories_incl.html
+</div>
+
+</div>

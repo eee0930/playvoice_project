@@ -1,0 +1,42 @@
+
+
+/* 테이블 레이아웃 */
+.admin-sentencebook-board {
+	table-layout: fixed;
+}
+
+.admin-sentencebook-board .t-reference {
+	text-overflow:ellipsis; 
+	overflow:hidden;
+	white-space: nowrap; 
+	width: 100px;
+}
+
+
+
+/* div 영역 띄움 */
+.admin-section-divide {padding: 1rem 0;}
+
+
+/* 차트 크기 */
+.admin-stats-section canvas {
+	width: 100%;
+	height: 200px;
+}
+
+
+/* 디시보드 영역 */
+.dashboard-box {
+	box-shadow: 0 3px 10px 1px #999;
+	border-radius: 5px;
+	min-height: 156.2px;
+}
+.dashboard-box .title {
+	font-family: 'NanumSquare', Sans-Serif;
+	font-size: 0.95rem;
+	font-weight: 600;
+	color: #1b1f40;
+}
+.dashboard-box .title b {font-weight: 600; color: #b01a2c;}
+.dashboard-box .count {font-size: 1.2rem;}
+.dashboard-box .period {font-size: 0.9rem;}

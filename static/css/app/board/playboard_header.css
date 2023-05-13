@@ -1,0 +1,28 @@
+
+.header-color {
+	background-color: #4e78c2;
+	background: -webkit-gradient(linear,left top,left bottom,
+		color-stop(0,#4e78c2),color-stop(1,#325da7));
+}
+
+
+/* 메뉴 font & button color */
+#playvoice_menu, 
+#playvoice_menu_off, 
+ul.menuli3 li,
+.main-menu1 {
+	color: #4e78c2;
+}
+/* user alias color */
+.main-header .alias, 
+.contentapp-header .alias {
+	color: #4e78c2;
+}
+
+/* mobile open bar color */
+#menuOpenBtn, 
+.main-header .contentapp-title {
+	color: #4e78c2;
+}
+
+

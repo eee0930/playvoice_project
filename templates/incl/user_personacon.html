@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- ------------------------[session personacon]--------------------------- -->
+<th:block th:fragment="lg" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-lg"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat:no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background-image: url(\'/resource/profile/'+${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:classappend="'frame-' + ${memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="md" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat:no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background-image: url(\'/resource/profile/'+${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:classappend="'frame-' + ${memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="sm" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-sm"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat:no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background-image: url(\'/resource/profile/'+${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:classappend="'frame-' + ${memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+
+<!-- --------------------------[content personacon]------------------------- -->
+<th:block th:fragment="user_lg" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-lg openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" 
+	th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat: no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background: url(\'/resource/profile/' +${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:class="'frame-' + ${personacon.memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="user_md" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" 
+	th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat: no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background: url(\'/resource/profile/' +${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:class="'frame-' + ${personacon.memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="user_sm" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-sm openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" 
+	th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice"
+			style="background-image:url(/images/logo/admin_personacon.jpg);
+			background-repeat:no-repeat; background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile" alt="playvoice" 
+			style="background-repeat: no-repeat; background-position: center; background-size: cover;"
+			th:styleappend="'background: url(\'/resource/profile/' +${iconPath} +'\')'">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame"
+			th:class="'frame-' + ${personacon.memberType}" alt="playvoice">
+	</th:block>
+</div>
+</th:block>
+
+<!-- ------------------([ LAZY LOADING SECTION ])------------------------------>
+
+<!-- ---------------[session personacon for lazy loading]------------------- -->
+<th:block th:fragment="lg_lazy" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-lg"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" data-background-image="/images/logo/admin_personacon.jpg" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="md_lazy" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" data-background-image="/images/logo/admin_personacon.jpg" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="sm_lazy" th:if="${session.userContainer}"
+	th:with="yourPersonacon = ${session.userContainer.personacon},
+			memberType = ${#strings.toString(yourPersonacon?.memberType)},
+			iconPath = ${yourPersonacon?.iconPath},
+			isAdmin = ${yourPersonacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-sm"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" data-background-image="/images/logo/admin_personacon.jpg" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}" 
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+
+<!-------------------[content personacon for lazy loading]------------------ -->
+<th:block th:fragment="user_lg_lazy" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-lg openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile lozad" alt="playvoice" 
+			data-background-image="/images/logo/admin_personacon.jpg"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="user_md_lazy" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile lozad" alt="playvoice" 
+			data-background-image="/images/logo/admin_personacon.jpg"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+<th:block th:fragment="user_sm_lazy" th:if="${personacon}"
+	th:with="id56 = ${personacon.id56},
+			memberType = ${#strings.toString(personacon.memberType)},
+			iconPath = ${personacon.iconPath},
+			isAdmin = ${personacon?.alias EQ 'Guest' OR memberType EQ 'A'}">
+<div class="member-personacon-sm openProfile jsAction"
+	th:classappend="${memberType EQ 'P'} ? 'membership-P' : ''" th:data-mid="${id56}">
+	<th:block th:if="${isAdmin}">
+		<img src="/images/app/member/profile_paper.png"
+			class="personacon-profile lozad" alt="playvoice" 
+			data-background-image="/images/logo/admin_personacon.jpg"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-A" alt="playvoice">
+	</th:block>
+	<th:block th:unless="${isAdmin}">
+		<img th:if="${iconPath}" src="/images/app/member/profile_paper.png" alt="playvoice"
+			class="personacon-profile lozad" th:data-background-image="'/resource/profile/'+${iconPath}"
+			style="background-repeat:no-repeat; background-position:center; background-size:cover;">
+		<img th:unless="${iconPath}" src="/images/app/member/profile_paper.png"
+			class="personacon-profile profile-default" alt="playvoice">
+		<img src="/images/app/member/profile_paper.png" alt="playvoice" 
+			th:class="'personacon-frame frame-' + ${memberType}">
+	</th:block>
+</div>
+</th:block>
+
+
+
+
+
+
+
+<th:block th:fragment="lg_test">
+<div class="member-personacon-lg">
+	<img src="/images/app/member/profile_paper.png" class="personacon-profile" 
+		style="background: url('/images/app/member/profile_ex7.jpg') no-repeat;
+		background-position: center; background-size: cover;" alt="playvoice">
+	<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-G" alt="playvoice">
+</div>
+</th:block>
+
+
+<th:block th:fragment="md_test">
+<div class="member-personacon">
+	<img src="/images/app/member/profile_paper.png" class="personacon-profile" 
+		style="background: url('/images/app/member/profile_ex7.jpg') no-repeat;
+		background-position: center; background-size: cover;" alt="playvoice">
+	<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-G" alt="playvoice">
+</div>
+</th:block>
+
+
+<th:block th:fragment="sm_test">
+<div class="member-personacon-sm">
+	<img src="/images/app/member/profile_paper.png" class="personacon-profile" 
+		style="background: url('/images/app/member/profile_ex7.jpg') no-repeat;
+		background-position: center; background-size: cover;" alt="playvoice">
+	<img src="/images/app/member/profile_paper.png" class="personacon-frame frame-G" alt="playvoice">
+</div>
+</th:block>
+
+</html>

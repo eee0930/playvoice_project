@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<!-- Use of playvoicebook_layout -->
+
+<!-- [head 정보]============================================================ -->
+<head th:fragment="headFragment">
+<!-- meta -->
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, width=device-width">
+
+<title>Placevoice.org</title>
+<!-- favicon -->
+<link rel="shortcut icon" th:href="@{/images/logo/playvoice_favicon.ico}"> 
+<link rel="icon" th:href="@{/images/logo/logo_seonbi_short.png}">
+<!-- Bootstrap -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap.min.css}">
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap-theme.min.css}">
+<link rel="stylesheet" th:href="@{/fontawesome/css/all.css}">
+<link rel="stylesheet" th:href="@{/css/playvoice_icon.css}">
+<link rel="stylesheet" th:href="@{/css/cr.css}">
+<link rel="stylesheet" th:href="@{/css/custom.css}">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+
+<script th:src="@{/js/public/modernizr-3.6.0.min.js}"></script>
+<script th:src="@{/js/public/jquery-3.3.1.min.js}"></script>
+<script th:src="@{/js/public/jquery.serializejson.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/main.js}"></script>
+<script th:src="@{/js/public/popper.min.js}"></script>
+<script th:src="@{/js/public/bootstrap.min.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	$('#headerLogout, #headerLogout_xs').click(function(e){
+		if(confirm("로그아웃 할까요?")){
+			$('#headerLogout').parent().submit();
+		}
+	});
+	
+	$('#headerLogin, .loginRequired').click(function(e){
+		if($('#loginStatus').text() == 'true'){
+			return;
+		}else{
+			e.preventDefault();
+			location.href="/auth/login?destPage="+$(this).attr("href");
+		}
+	});
+	
+	
+});
+</script>
+
+</head>
+<!-- [end of head 정보]====================================================== -->
+<body>
+
+<div th:with="memberType = 'G'">
+	<!-- [header]=========================================================== -->
+	<header th:replace="~{/incl/header2::header}" ></header>
+	<div th:replace="~{/incl/nav_header2::nav_header}"></div>
+	<!-- [end of header]==================================================== -->
+	
+	
+	<section class="playvoice-layout-content-section" layout:fragment="content"></section>
+	
+	<!-- [footer]=========================================================== -->
+	<footer th:insert="~{/incl/footer::footer}"></footer>
+	<!-- [end of footer]==================================================== -->
+	
+</div>
+
+
+</body>
+</html>
+

@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<th:block th:fragment="bottomMenu">
+<script th:inline="javascript">
+$(document).ready(function(){
+	$("#mobileToggleMainMenu #openMenuBtn").click(function(){
+		if($(this).is(".active")) {
+			$("#mobileToggleMainMenu").removeClass("top-open");
+			$(this).removeClass("active");
+		} else {
+			$("#mobileToggleMainMenu").addClass("top-open");
+			$(this).addClass("active");
+		}
+	});
+	
+	$("#mobileToggleMainMenu .closeoToggleMainMenu").click(function(){
+		$("#mobileToggleMainMenu").removeClass("top-open");
+		$("#mobileToggleMainMenu #openMenuBtn").removeClass("active");
+	});
+});
+</script>
+<div id="mobileToggleMainMenu" class="playvoice-mobile-button-menu">
+	<div class="closeoToggleMainMenu open-menu-back-section"></div>
+	<div class="open-menu-section">
+		<ul class="open-menu-list">
+			<li>
+				<a class="btn btn-menu"
+					th:onclick="'location.replace(\'' + @{/tts/main}
+					+ '/\'+' + 'js.userContainer.member.mid+\'/\'+'
+					+'js.userContainer.deviceStorage.JSESSIONID)'">
+					<span class="image-cover">
+						<img src="/images/common/icon/jelly_home.png">
+					</span>
+					<span>TTS HOME</span>
+				</a>
+			</li>
+			<li>
+				<a class="btn btn-menu"
+					th:onclick="'location.href=\'' + @{/tts/myalbum/list}
+					+ '/\'+' + 'js.userContainer.member.mid'">
+					<span class="image-cover">
+						<img src="/images/common/icon/jelly_album.png">
+					</span>
+					<span>나의 앨범</span>
+				</a>
+			</li>
+			<li>
+				<a class="btn btn-menu">
+					<span class="image-cover">
+						<img src="/images/common/icon/jelly_wink.png">
+					</span>
+					<span>성우 소개</span>
+				</a>
+			</li>
+			<li>
+				<a th:href="@{/tts/guide}" class="btn btn-menu">
+					<span class="image-cover">
+						<img src="/images/common/icon/jelly_book.png">
+					</span>
+					<span>가이드</span>
+				</a>
+			</li>
+			<li>
+				<button class="btn btn-menu" type="button">
+					<span class="image-cover">
+						<img src="/images/common/icon/jelly_crown.png">
+					</span>
+					<span>멤버십</span>
+				</button>
+			</li>
+		</ul>
+	</div>
+	<div class="playvoice-open-menu-button-section button-cover">
+		<button id="openMenuBtn" class="btn btn-open-menu" type="button">
+			<i></i>
+		</button>
+	</div>
+</div>
+</th:block>
+
+
+
+<!-- -----------------------[tts top menu (sub menu)]----------------------- -->
+<th:block th:fragment="topMenu">
+<script th:inline="javascript">
+$(document).ready(function(){
+	var thisUrl = location.href;
+	$("#mobileTopSubMenu .menu-content").each(function(i, obj){
+		var objUrl = $(obj).find("a").attr("href");
+		if(thisUrl.indexOf(objUrl) != -1) {
+			$(obj).addClass("active");
+			return;
+		} 
+	});
+});
+</script>
+<div id="mobileTopSubMenu" class="playvoice-mobile-sub-top-menu">
+	<div class="playvoice-sub-top-menu-section">
+		<ul class="menu-list-section">
+			<li class="menu-content">
+				<a class="btn btn-menu-link" th:href="@{/tts/file/add?extension=text}">
+					<i class="fa fa-pencil-alt"></i>
+				</a>
+			</li>
+			<li class="menu-content">
+				<a class="btn btn-menu-link" th:href="@{/tts/file/add?extension=txt}">
+					<i class="far fa-file-alt"></i>
+				</a>
+			</li>
+			<li class="menu-content">
+				<a class="btn btn-menu-link" th:href="@{/tts/file/add?extension=pdf}">
+					<i class="far fa-file-pdf"></i>
+				</a>
+			</li>
+			<li class="menu-content">
+				<a class="btn btn-menu-link" th:href="@{/tts/file/add?extension=image}">
+					<i class="far fa-file-image"></i>
+				</a>
+			</li>
+		</ul>
+	</div>
+</div>
+</th:block>
+
+
+
+</html>

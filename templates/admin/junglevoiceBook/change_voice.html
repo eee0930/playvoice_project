@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_onepage_layout}">
+
+<head>
+	<title>Change Voice</title>
+	
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/junglebook.js}"></script>
+	
+<script th:inline="javascript">
+var targetFoldingList="";
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	if(query.indexOf('=') == -1){
+		var tagetLink = $('th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	}
+	
+	//[검색폼 보이기]---------------------------------------------------------------
+	$('#showSearchForm').click(function(){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[보이스 폼 추가]--------------------------------------------------------------
+	$("#additioinal").click(function(e){
+		var sentenceDiv = createVoiceDiv();
+		$("#submitDiv").before(sentenceDiv);
+	});
+	
+	
+	//[보이스 등록할 예문 선택시]--------------------------------------------------------
+	$('.resultWrapper').on('click', '.sentenceDetail', function(e) {
+		e.preventDefault();
+		
+		//1. 예문 상세 정보 폼 채우기
+		$('#voiceList').empty();
+		//$('#sentenceListStatic, #sentenceListDynamic').css('display','none');	//검색된 미등록 예문 목록 접기
+		var sentenceList = $(this).parent().parent().parent().parent().parent().parent();
+		targetFoldingList = sentenceList.attr("id");
+		
+		alert("targetFoldingList="+targetFoldingList);
+		$('#'+targetFoldingList).css('display','none');
+		$('#editSentenceForm, #existingVoiceList').css('display','block');
+		
+		
+		var sentenceTr = $(this).parent().parent();
+		var sentenceNo = sentenceTr.children().first();
+		var sid = sentenceNo.next();
+		var eng = sid.next();
+		var kor = eng.next();
+		var voice = kor.next();
+		var category = voice.next();
+		var source = category.next();
+		var firstWriter = source.next();
+		
+		$('#sid').val(sid.text());
+		$('#addVoiceForm .sentenceId').val(sid.text());
+		$('#eng').val(eng.text());
+		$('#kor').val(kor.text());
+		$('#voice').val(voice.text());
+		$('#category').val(category.text());
+		$('#source').val(source.text());
+		$('#firstWriter').val(firstWriter.text());
+		
+		//2. 해당 예문의 기존 보이스 목록 조회
+		$.getJSON("/admin/jungleVoicebook/list/"+sid.text(),function(result){
+			var voiceDir=[[@{/resource/jungleVoice/}]];
+			$('#voiceList').empty();
+			result.forEach(function(voice,index) {
+				var tr = document.createElement("tr");
+				tr.className = "contents";
+				
+				var demo="";
+				if(voice.demo ==true){
+					demo='<i class="fas fa-check"></i>';
+				}
+				tr.innerHTML +=
+				"<td>"+voice.vid+"</td>"
+				+"<td>"+demo+"</td>"
+				+"<td>"+voice.voiceType+"</td>"
+				+"<td>"+voice.voiceRate+"</td>"
+				+"<td>"+voice.voiceSex+"</td>"
+				+"<td>"+voice.accent+"</td>"
+				+"<td>"+voice.source+"</td>"
+				+"<td><i class='fas fa-volume-up' onclick='playVoice(\""+voiceDir+voice.path+"\", this)'></i><i class=\'fas fa-stop\' onclick=\'stopVoice(this)\' style=\'display:none\'></td>"
+				+"<td>"+voice.regDate+"</td>"
+				+"<td><button type='button' value='" + index + "' class='revice_voice_btn btn btn-xs btn-admin'>수 정</button>"
+				+"<button type='button' value='" + index + "' class='delete_voice_btn btn btn-xs btn-default'>삭 제</button>"+"</td>";
+				$('#voiceList').append(tr);
+			});
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+
+	});
+	
+	
+	//[보이스 파일 수정]---------------------------------------------------------------
+	$("#changeVoiceBtn").click(function(e){
+		e.preventDefault();
+		$(':file').on('change', function() {
+			var file = this.files[0];
+			if (file.size > 1024 * 1000 * 5) {
+				alert('max upload size is 5MB')
+			}
+			if(file.type.indexOf('audio') == -1){
+				alert(file.name+'('+file.type+') is not audio file. sorry only audio files allowed');
+			}
+		});
+
+		var form = $('#changeVoiceForm')[0];
+		var vid = $('#vid').val();
+		var data = new FormData(form);
+		$("#addVoiceBtn").prop("disabled", true);
+
+		$.ajax({
+			type: "POST",
+			url: '/admin/jungleVoiceBook/changeFile/'+vid,
+			enctype: 'multipart/form-data',            
+			data: data,
+			processData: false,
+			contentType: false,
+			cache: false,
+			timeout: 600000,
+			success: function (sid) {
+				$("#changeVoiceBtn").prop("disabled", false);
+				alert("success");
+				opener.displayVoiceList(sid);
+				window.close();
+			},
+			error: function (e) {
+				//$("#result").text(e.responseText);
+				console.log("ERROR : ", e);
+				$("#changeVoiceBtn").prop("disabled", false);
+			}
+		});
+	});
+	
+	
+});//end of ready
+	
+	
+	
+</script>
+</head>
+
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+	<div class="formContainer" id="addVoiceFormContainer">
+		<h3>
+			Changing the Voice Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> Ok</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		
+		<!--/*---------------------------- [Voice 파일 수정폼]-------------------------------*/-->
+		<form method="post" class="form-horizontal" id="changeVoiceForm" enctype="multipart/form-data">
+			<div id="sentenceDiv0" class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="kor" class="col-3 control-label headerLabel text-right">보이스 파일</label>
+						<div class="col-9">
+							<input type="text" id="vid" name="vid" th:value="${vid}" class="form-control" />
+						</div>
+					</div>
+				</div>	
+			</div>
+			<div id="sentenceDiv0" class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="kor" class="col-3 control-label headerLabel text-right">보이스 파일</label>
+						<div class="col-9">
+							<input type="file" id="voiceFile" name="voiceFile" class="form-control"  />
+						</div>
+					</div>
+				</div>	
+			</div>
+			<div class="row" id="submitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-9">
+							<input type="button" id="changeVoiceBtn" value="Change File" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		<div class="errorMsgs" style="display: none;">
+			<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre th:text="${errorMsg}"></pre>
+	 	</div>
+	</div><!-- end of formContainer -->
+</div></div>
+	
+</section>
+

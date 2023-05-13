@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [파일 경로 표시]--------------------------------------------------------------
+	$(document).on("change", ".attachedFiles", function(){
+		var file_fath = $(this).val();
+		$(this).parent().children(".attachedFilesLabel").text(file_fath);
+	});
+	  
+	// [파일 등록]-----------------------------------------------------------------
+	$("#addFileBtn").click(function(){
+		var fileForm = $("#sourceFile");
+		if(fileForm.val().length < 1) {
+			alert("파일을 첨부해 주세요.");
+			return;
+		} else {
+			$("#fileInputForm").submit();
+		}
+	});
+	  
+	
+	
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+</script>
+
+</head>
+
+
+<section layout:fragment="content"> 
+<div class="add-file-link-section">
+	<form id="fileInputForm" th:action="@{/tts/sentence/list}" method="get">
+	<div class="file-copy-input">
+		<div class="custom-file form-group" style="width: 100%;">
+			<input type="file" id="sourceFile" name="sourceFile" 
+				class="custom-file-input attachedFiles">
+			<label class="custom-file-label attachedFilesLabel form-control playvoice-form" 
+				for="attachedFiles">파일을 선택해 주세요</label>
+		</div>
+		<div class="form-group">
+			<button id="addFileBtn" type="button" class="btn btn-main-submit">확인</button>		
+		</div>
+	</div>
+	</form>
+</div>
+
+<!-- tts menu -->
+<div th:insert="~{/tts/incl/playvoicetts_menu2::bottomMenu}"></div>	
+</section><!-- end of content -->
+</html>

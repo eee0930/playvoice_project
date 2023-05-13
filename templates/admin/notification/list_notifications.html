@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Notification</title>
+	<link rel="stylesheet" th:href="@{/css/app/notificationbook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/junglebook.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	
+	var tagetLink = $('#notificationListDiv th').find("a[data-value='regDate']");
+	var targetSpan = tagetLink.next();
+	targetSpan.css("display", "inline");
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	
+	//[테이블 데이터(msgTemplate) 클릭시 상세보기]--------------------------------------------------
+	$('.resultWrapper').on('click', '.notificationDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.notificationDetailPart').css('display','block');
+		//센텐스 정보 추출
+		pickUpNotificationInfo($(this));
+		//이전에 수정을 했었ㄷ다면
+		$('.successBtn').css('display', 'none');
+		//상세보기/수정 폼으로 이동
+		window.scroll(0, getOffsetTop(document.getElementById("editNotificationForm")));
+	});
+	
+	//[알람 메세지 수정 버튼 클릭시 알람 메세지 수정 처리]------------------------------------------------------
+	$('#editNotificationBtn').click(function(e) {
+		e.preventDefault();
+		updateNotification($('#nid').val());
+	});
+	
+	
+})//end of reday
+
+
+/**
+  * 검색된 목록의 내용(eng 부분)을 클릭했을 때 상세보기 폼으로 복사
+  */
+function pickUpNotificationInfo(obj){
+ 	var notificationTr = obj.parent().parent();
+ 	var notificationNo = notificationTr.children().first();
+ 	
+ 	var nid = notificationNo.next();
+ 	var msgTemplate = nid.next();
+ 	var uriTemplate = msgTemplate.next();
+ 	var msgType = uriTemplate.next();
+ 	var msgCode = msgType.next();//테이블의 tr요소를 가리킴
+ 	var regDate = msgCode.next();
+ 	
+ 	$('#nid').val(nid.text().trim());	
+ 	$('#msgTemplate').val(msgTemplate.text().trim());
+ 	$('#uriTemplate').val(uriTemplate.text().trim());
+ 	$('#msgType').val(msgType.text().trim());
+ 	$('#msgCode').val(msgCode.text().trim());
+ 	$('#regDate').text(regDate.text());
+
+}
+
+ 
+function updateNotification(nid){
+	var params = $("#editNotificationForm").serialize();
+
+	$.ajax({
+		type: 'POST',
+		url: '/admin/notification/edit/'+nid,
+		data:params,
+		success: function (result) {
+			console.log(result);
+			$('.successBtn').show();
+		},
+		error: function(xhr){
+			alert('등록에 실패하였습니다.\n'+xhr.responseText);
+		}
+	});
+}
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="notificationListPage row"><div class="col-12">
+	
+	<h3>알람 메세지 목록(Notification List)</h3>
+	
+	<!--/* 1. 알람 메세지 목록 Table  */-->
+	<div>
+	
+	</div>
+	<div id="notificationListDiv">
+		<!-- table -->
+		<div th:with="result=${pageMaker.result}">
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-notificationbook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 40px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 60px;">
+						<a href="javascript:void(0)" class="thlink" data-value='nid'>NID</a>
+						<span class="sortMark">▼</span></th>
+					<th>
+						<a href="javascript:void(0)" class="thlink" data-value='msgTemplate'>메세지 템플릿</a>
+						<span class="sortMark">▼</span></th>
+					<th >
+						<a href="javascript:void(0)" class="thlink" data-value='uriTemplate'>uri 템플릿</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 160px;">
+						<a href="javascript:void(0)" class="thlink" data-value='msgType'>메세지 타입</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='msgCode'>메세지 코드</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="notification, status : ${result.content}">
+					 <td th:text="${( pageMaker.result.totalElements - status.count+1) - ((pageMaker.currentPageNum -1) * 20)} "></td> 
+					
+					<td th:text="${notification.nid}"> </td>
+					<td class="text-left">
+						<a href="javascript:void(0)" class="notificationDetail">[[${notification.msgTemplate}]]</a>
+					<td th:text="${notification.uriTemplate}">uri 템플릿</td>
+					<td th:text="${notification.msgType}"></td>
+					<td th:text="${notification.msgCode}"></td>
+					<td th:text="${#dates.format(notification.regDate, 'yyyy-MM-dd')}">등록일</td>
+				</tr>
+			</table>
+		</div>
+		<!--/* 1.paging */--> 
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	
+	
+</div></div> <!--/* end of 알람 메세지 목록 */-->
+	
+	
+<!--/* =====================[알람 메세지 상세 보기/알람 메세지 수정]====================== */-->	
+<div class="row notificationDetailPart" style="display:none"><div class="col-12">
+	
+	<div class="formContainer" id="eidtNotificationFormContainer">
+		<h3>
+			View Detail &amp; Editing Notification Form <button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+		</div>
+		<!--/*---------------------------- [Notification 상세 정보 폼]-------------------------------*/-->
+		<form th:action="@{/admin/notification/edit}" method="post" class="form-horizontal" id="editNotificationForm">
+			<div class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="nid" class="col-2 control-label headerLabel text-right">NID</label>
+						<div class="col-10">
+							<input type="text" id="nid" name="nid" class="form-control" readonly="readonly"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="msgTemplate" class="col-2 control-label headerLabel text-right">메세지 템플릿</label>
+						<div class="col-10">
+							<input type="text" id="msgTemplate" name="msgTemplate" class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="uriTemplate" class="col-2 control-label headerLabel text-right">uri 템플릿</label>
+						<div class="col-10">
+							<input type="text" id="uriTemplate" name="uriTemplate" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="msgType" class="col-2 control-label headerLabel text-right">메세지 타입</label>
+						<div class="col-10">
+							<input type="text" id="msgType" name="msgType" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="msgCode" class="col-2 control-label headerLabel text-right">메세지 코드</label>
+						<div class="col-10">
+							<input type="text" id="msgCode" name="msgCode" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="regDate" class="col-2 control-label headerLabel text-right">등록일</label>
+						<div class="col-10 ">
+							<p id="regDate" class="form-control-static"></p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" id="editSubmitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="editNotificationBtn" value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		
+	</div><!-- eidtNotificationFormContainer -->
+	
+</div></div><!--/* end of 알람 메세지 상세보기 */-->
+
+</section><!-- end of section -->
+

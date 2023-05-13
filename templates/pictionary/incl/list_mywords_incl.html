@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<th:block th:fragment="myWords">
+<!-- [내가 만든 픽셔너리 목록] -->
+<div id="pictionaryListDiv" 
+	th:if="${myPictionaryContentsPageMaker != null AND 
+	#lists.size(myPictionaryContentsPageMaker?.result?.content) > 0}" 
+	class="pictionary-list-row">
+	<div class="view-word-list-guide">
+		<div class="sub-title">
+			<span><i class="fa fa-quote-left"></i>
+				[[${session.userContainer.personacon.alias}]]
+				<i class="fa fa-quote-right"></i></span>
+			님이 생성한 픽셔너리입니다.
+		</div>
+		<div class="detail-body">
+			<div>
+				[[${session.userContainer.personacon.alias}]]님의 참여와 기여 덕분에 
+				많은 회원들이 학습에 도움을 받고 있습니다. <br>
+				시간과 정성을 들여 기억하고자 하는 단어를 직접 등록하면 단어를 더 오래 기억할 수 있습니다.
+			</div>
+			<div class="total-heart-cover"><div class="row no-gutters">
+				<div class="guide1 col-auto align-self-center">
+					<b>[[${session.userContainer.personacon.alias}]]</b> 님이 받은
+				</div>
+				<div class="guide2 col-auto align-self-center">
+					<span class="heart"><i class="fa fa-heart"></i> 좋아요</span>
+					총 합계 <i class="fa fa-caret-right"></i>
+				</div>
+				<div class="col align-self-center">
+					<span class="total-heart-num" th:text="${totalLikeCount}"></span>
+				</div>
+			</div></div>
+		</div>
+	</div>
+	<div id="myContentsContainer" class="my-pictionary-content-cover row no-gutters">
+	<th:block th:each="myPiction, iter : ${myPictionaryContentsPageMaker?.result}"
+		th:with="alphabet = ${#strings.substring(myPiction.title, 0, 1)}">	
+		<h5 th:if="${(iter.index == 0) OR (iter.index > 0 && 
+			#strings.substring(myPictionaryContentsPageMaker?.result?.content[iter.index-1].title, 0, 1) != alphabet)}"
+			class="col-12 mt-4 px-3 row no-gutters">
+			<span class="col-auto">[[${alphabet}]]</span>
+			<span class="my-percent col-auto pl-3 align-self-center">
+				나의 기여도 <i class="fa fa-caret-right"></i> <span class="percent">0.98%</span>
+			</span>
+		</h5>
+		<div class="pictionary-card-p col-lg-3 col-md-4 col-sm-4 col-6"><div class="pictionary-card-cover">
+			<div class="loginRequired jsAction" th:onclick="location.href=$(this).attr('href');"
+				th:href="'/pictionary/word/view/' + ${myPiction.id56}"> 
+				<!-- 대표 사진 -->
+				<div class="pictionary-img-cover">
+					<img th:if="${!#strings.isEmpty(myPiction.repImage)}" 
+						src="/images/app/pictionary/piction_paper.png" class="piction-img" 
+						th:style="'background: url(/resource/pictionary/images/' + ${#strings.substringBefore(myPiction.repImage,',')?:myPiction.repImage} + ') no-repeat;
+						background-size: cover; background-position: center;'">
+					<img th:unless="${!#strings.isEmpty(myPiction.repImage)}" 
+						src="/images/app/pictionary/piction_paper.png" class="piction-img default">
+				</div>
+				<!-- 단어 -->
+				<div class="pictionary-title">
+					<i class="fa fa-cube"></i>
+					<a>[[${myPiction.title}]]</a>  
+				</div>
+			</div>
+			<div class="member-info-cover row no-gutters mx-3 pt-2">
+				<!-- 조회수 -->
+				<div class="hits col align-self-center text-left">
+					<span title="조회 수">[[${myPiction.hits}]]</span>
+				</div>
+				<!-- 퍼스나콘 -->
+				<div class="col-auto text-center align-self-center py-1">
+					<div align="center" th:with="personacon=${myPiction.personacon}">
+						<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+						<div class="star-section">
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+						</div>
+					</div>
+				</div>
+				<!-- 음성 -->
+				<div class="voice-section col align-self-center text-right">
+					<a title="단어 음성 듣기" th:if="${myPiction.voicePath!=null}" 
+						th:data-path="${myPiction.voicePath}" 
+						th:onclick="playVoice('/resource/pictionary/word/voice/',$(this).attr('data-path'),3,this);">
+						<i class="fa fa-headphones-alt fa-lg"></i>
+					</a>
+				</div>
+			</div>
+		</div></div>
+	</th:block>
+	</div>
+	<!-- pagination -->
+	<div class="pictionary-list-page row no-gutters my-3"
+		th:with="last_page = ${myPictionaryContentsPageMaker?.totalPageNum}, 
+		now_page = ${myPictionaryContentsPageMaker?.currentPageNum}">
+		<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+			<a th:if="${myPictionaryContentsPageMaker?.prevPage}" href="javascript:void(0);" 
+				th:onclick="'movePage(\'' + ${now_page - 1} + '\')'" class="btn btn-pictionary">
+				<i lang="fa" class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<!-- start PageList -->
+				<li th:each="page : ${myPictionaryContentsPageMaker?.pageList}" 
+					th:class="${(page.pageNumber+1 == now_page) ? 'page-item active':'page-item'}">
+					<a href="javascript:void(0);" th:onclick="'movePage(\'' + ${page.pageNumber + 1} + '\')'" 
+						th:text="${page.pageNumber+1}" class="page-link">1</a>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+			<a th:if="${myPictionaryContentsPageMaker?.nextPage}" href="javascript:void(0);" 
+				th:onclick="'movePage(\'' + ${now_page + 1} + '\')'" class="btn btn-pictionary">
+				next <i lang="fa" class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+	
+</div>
+
+
+<!-- [작성한 픽셔너리가 없을 경우] -->
+<div th:if="${myPictionaryContentsPageMaker == null} OR 
+	${#lists.size(myPictionaryContentsPageMaker?.result?.content) == 0}"
+	class="create-word-list-guide">
+	<div class="sub-title mx-3">
+		<span><i class="fa fa-quote-left"></i>
+			[[${session.userContainer.personacon.alias}]]
+			<i class="fa fa-quote-right"></i></span>
+		님이 생성한<br class="d-md-none">
+		픽셔너리 컨텐츠가 아직 없습니다  <i class="far fa-sad-cry fa-lg fa-fw"></i>
+	</div>
+	<div class=" row no-gutters">
+		<div class="col-md-3 align-self-start text-center">
+			<img src="/images/common/icon/icon_paper.png" class="no-content" alt="플레이보이스 픽셔너리">
+		</div>
+		<div class="col-md-9">
+			<div class="detail-body">
+				픽셔너리에서 [[${session.userContainer.personacon.alias}]]님의
+				유머, 재치, 상상력을 발휘해 보세요.<br>
+				누구든지 예문과 이미지를 발견하면 픽셔너리에 등록하여 학습 컨텐츠로 만들 수 있습니다.<br class="d-none d-md-block">
+				시간과 정성을 들여 기억하고자 하는 단어를 직접 등록하면
+				단어를 더 오래 기억할 수 있습니다.
+			</div>
+			<div class="button-section">
+				<a th:href="@{/pictionary/word/add}" class="go-goldmembership">
+					픽셔너리 등록하러 가기 <i class="fa fa-arrow-right fa-fw"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="text-right" style="color:red;">
+	source :: pictionary/incl/list_mywords_incl.html   
+</div>
+</th:block>
+</body>
+</html>

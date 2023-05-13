@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+	
+<th:block layout:fragment="css">
+	<style>
+		.panel-body li {
+			margin-bottom: 10px;
+		} 
+	</style>
+</th:block>
+
+
+
+<!-- <div layout:fragment="side-menu">
+	<div th:insert="~{/admin/sentenceBook/incl/sentencebook_menu::adminMenu}">관리자 메뉴</div>
+</div> -->
+
+<section layout:fragment="content">
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel-heading"><h3>Welcome to SentenceBook</h3></div>
+		<div class="panel-body"><p>SentenceBook플레이보이스 시스템에서 사용될 예문들을 등록하여 
+			각 서브 시스템에서 재사용될 수 있도록 예문들을 제공합니다. 등록된 예문들은 학습 목적에 따라  
+			재사용될 수 있도록 구성되어 있으며 회화 연습에 필요한 구어체 중심의 예문을 주로 다룹니다.</p>
+			
+			<p>각각의  예문들은 하나 이상의 보이스(voice)정보를 제공합니다. 이러한 보이스 정보들은
+			눈으로만 읽고 이해하는 학습 형태에서 벗어나 실질적 대화를 위한 청취 능력(listening)을 제공합니다.
+			동시에 다양한 보이스들을 제공하므로서 반복에서 오는 지루함을 감소시키고 예문에 대한 기억력 또한 향상시켜 줄 수 있습니다.</p>
+			
+			<p>영어가 미국인, 영국인들만의 언어로서가 아니라 국제어로서 사용되는 현실에서 영미인들의 발음은
+			물론 다양한 국적별 액센트와 속도, 그리고 성별, 나이 등에 대한 사소한 차이들을 인식하는 것은 매우 중요합니다.
+			다양한 영어 음성에 대한 노출은 영어 실력을 향상을 가져다 줄 것입니다.</p>
+		</div>
+	</div>
+	
+</div><!-- end of 1st_row -->
+
+<div class="row">
+	<div class="col-lg-6">
+		<div class="panel-heading"><h3>제약사항과 주요 이슈</h3></div>
+		<div class="panel-body"><ol>
+			<li>등록된 데이터가 회원/관리자 중 누가 데이터를 등록했는지 알 필요가 있는가? 
+			(회원이 등록한 데이터 수를 알고 싶다면)</li>
+			<li>등록된 예문이 재사용될 곳은 어디인가? 예문이 어떤 목적없이 등록을 위한 등록이 바람직한가?
+			(기록해 두고 싶은 좋은 문장이 있지만 어느 범주에 지정할 지 결정하지 못했다면?)</li>
+			<li>Sentence에 대한 신규 등록은 목적에 맞는 등록 폼에서 등록되도록 하는 것이 바람직하다.
+			(예를 들면, 현재완료와 관련된 예문은 현재완료 예문을 등록할 때가 바람직하다.)</li>
+			<li>신규 예문 등록시 비동기적 방식으로 유사 예문들을 보여주면 중복 여부를 체크할 수 있다.</li>
+			<li>예문은 반드시 하나 이상의 보이스가 등록되어야 하지만 예문 등록시 보이스 등록을 동시에 할 필요는 없다. 
+			따라서 보이스가 등록되지 않는 예문을 조회할 수 있어야 한다.</li></ol>
+		</div>
+	</div>
+	<div class="col-lg-6">
+		<div class="panel-heading"><h3>Data types of SentenceBook</h3></div>
+		<div class="panel-body"><ol>
+			<li>예문id(sid) : PK 규칙 : 100101, 100102, 시퀀스명 : SentenceBook_SEQ</li>
+			<li>영어(eng) : UQ,  문장 종결자 (마침표, 물음표, 느낌표 확인)가 다르면 다른 문장으로 처리</li>
+			<li>한국어(kor) : 한 문장에 여러 번역본이 있을 수 있으며  각 번역은 슬래쉬(/)로 구분한다.</li>
+			<li>보이스등록여부(voiceExist) : 보이스 없이도 예문을 자유롭게 등록하기 위해 
+				단, 보이스가 없는 예문은 학습 콘텐츠에는 출력되지 않도록 한다.</li>
+			<li>범주(cateExist)	SentenceBook에서 등록했을 때는 false 다른 범주에서 등록했을 때는 true</li>
+			<li>출처(source)	string	playvoice.kr </li>
+			<li>등록자(writer)	string	NOT NULL	관리자의 id 혹은 자격을 갖춘 회원</li>
+			<li>등록일(regDate)	date	자동	yyyy/MM/dd, yyyy-MM-dd</li></ol>
+		</div>
+	</div>
+</div><!-- end of 2nd_row -->
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel-heading"><h3>List of Sentence in the SentenceBook(예문 목록)</h3></div>
+		<div class="panel-body">부트스트랩은 아이콘을 그래픽 이미지로 처리하지 않고 Glyphicons라는
+		특수문자 전용 글꼴로 처리하기 때문에 웹사이트를 만들 때 사진 이미지를 빼고는 거의 전부 태그와 CSS만으로
+		제작할 수 있습니다.
+		</div>
+		<div class="panel-body" style="font-family: 나눔명조">부트스트랩은 아이콘을 그래픽 이미지로 처리하지 않고 Glyphicons라는
+		특수문자 전용 글꼴로 처리하기 때문에 웹사이트를 만들 때 사진 이미지를 빼고는 거의 전부 태그와 CSS만으로
+		제작할 수 있습니다.
+		</div>
+	</div>
+</div><!-- end of 3th_row -->
+
+</section><!-- end of content -->
+

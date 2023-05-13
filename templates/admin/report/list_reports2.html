@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout2}">
+
+<head>
+<title>List Reports</title>
+<link rel="stylesheet" th:href="@{/css/app/admin.css}">
+
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+<script th:inline="javascript">
+
+$(document).ready(function() {
+
+	// [신고 검색 폼 열기]------------------------------------------------------------
+	$(".searchIcon").click(function(){
+		$("#reportSearchDiv").toggle();
+	});
+
+	// [신고 목록 검색 : 검색 타입 변경]---------------------------------------------------
+	$("#reportListSection").on("change", "#reportSearchSelect", function(){
+		var searchFormName = $(this).val();
+		$(".searchForm").hide();
+		$("#" + searchFormName + "SearchForm").show();
+	});
+	
+	// [신고 내역 보기]--------------------------------------------------------------
+	$("#reportListSection").on("click", ".viewReportDiv", function(){
+		var tableElementTr = $(this).closest(".tableElementTr");
+		if(tableElementTr.is(".activeSelectedElement")) {
+			$("#viewReportSection").hide();
+			tableElementTr.removeClass("activeSelectedElement");
+		} else {
+			$("#viewReportSection").show();
+			$(".tableElementTr").removeClass("activeSelectedElement");
+			tableElementTr.addClass("activeSelectedElement");
+		}
+	});
+
+	// [admin comment 선택 내용을 폼으로 복사]------------------------------------------
+	$("#viewReportSection").on("change", "#adminCommentSelect", function(){
+		if($(this).val() != 0) {
+			var $commentText = $("#adminCommentSelect option:selected").text();
+			$("#adminComment").val($commentText.trim());
+		}
+	});
+
+	// [관리자 코멘트 답변 등록]--------------------------------------------------------
+	$("#addReportComment").click(function(){
+		alert("등록되었습니다");
+	});
+	
+})//end of reday
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<!-- ----------------------------[1. 신고 리스트]------------------------------- -->
+<div id="reportListSection">
+	<h3>신고 접수 목록(Report List)</h3> 
+	
+	<!-- [1.1 신고 목록 검색] -->
+	<div id="reportSearchDiv" class="formContainer mt-3" style="display: none;">
+		<h3>
+			Searching Reports Form
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<form>
+		<div class="form-group row">
+			<div class="col-3">
+				<select id="reportSearchSelect" class="form-control playvoice-form">
+					<option value="reporter">신고자</option>
+					<option value="poster">신고 받은 사람</option>
+					<option value="reportType">신고 유형</option>
+					<option value="status">신고 처리 상태</option>
+					<option value="regDate">신고 일</option>
+				</select>
+			</div>
+			<div id="reporterSearchForm" class="searchForm col-5 px-3">
+				<input type="text" placeholder="신고자 별명" class="form-control playvoice-form"/>
+			</div>
+			<div id="posterSearchForm" class="searchForm col-5 px-3" style="display: none;">
+				<input type="text" placeholder="신고 받은 사람" class="form-control playvoice-form"/>
+			</div>
+			<div id="reportTypeSearchForm" class="searchForm col-5 px-3" style="display: none;">
+				<select class="form-control playvoice-form">
+					<option value="A">욕설/비방</option>
+					<option value="B">컨텐츠 부적절성</option>
+					<option value="C">홍보/광고</option>
+					<option value="D">저작권 위반</option>
+					<option value="E">기타</option>
+				</select>
+			</div>
+			<div id="statusSearchForm" class="searchForm col-5 px-3" style="display: none;">
+				<select class="form-control playvoice-form">
+					<option value="X">처리 중</option>
+					<option value="A">삭제처리</option>
+					<option value="B">수정 권고/경고</option>
+					<option value="C">문제 없음</option>
+				</select>
+			</div>
+			<div id="regDateSearchForm" class="searchForm col-7 px-3 row" style="display: none;">
+				<div class="col">
+					<input id="fromDateDiv" type="text" placeholder="시작날짜" 
+						class="form-control playvoice-form"/>
+				</div>
+				<div class="col-auto px-2 align-self-center">━</div>
+				<div class="col">
+					<input id="toDateDiv" type="text" placeholder="종료날짜" 
+						class="form-control playvoice-form"/>
+				</div>
+			</div>
+			<div class="col-2">
+				<button type="button" class="btn btn-main2">검색</button>
+			</div>
+		</div>
+		</form>
+	</div>
+	<!-- [1.2 신고 목록] -->
+	<div class="text-left my-2">
+		<i class="fas fa-search-plus searchIcon" 
+			style="font-size: 15px; color: #5bc0de;"></i>
+	</div>
+	<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center">
+		<thead>
+		<tr class="thead">
+			<th style="width: 60px;">
+				<a href="javascript:void(0)" class="thlink">번호</a></th>
+			<th style="width: 100px;">
+				<a href="javascript:void(0)" class="thlink">신고유형</a>
+				<span class="sortMark">▼</span></th>
+			<th style="width: calc(50% - 210px);">
+				<a href="javascript:void(0)" class="thlink">신고 내용</a>
+				<span class="sortMark">▼</span></th>
+			<th style="width: calc(50% - 210px);">
+				<a href="javascript:void(0)" class="thlink">리소스 타이틀</a>
+				<span class="sortMark">▼</span></th>
+			<th style="width: 100px;">
+				<a href="javascript:void(0)" class="thlink">신고자</a>
+				<span class="sortMark">▼</span></th>
+			<th style="width: 80px;">
+				<a href="javascript:void(0)" class="thlink">신고일</a>
+				<span class="sortMark" data-orderBy="default">▼</span></th>
+			<th style="width: 100px;">
+				<a href="javascript:void(0)" class="thlink">처리상태</a>
+				<span class="sortMark" data-orderBy="default">▼</span></th>
+			<th style="display: none;">RID</th>
+		</tr>
+		</thead>
+		<tbody>
+		<tr th:each="report, iter: ${reportList}" class="tableElementTr"
+			th:classappend="(${report[5]} == 'X')? 'active':''">
+			<td>[[${iter.count}]]</td>
+			<td th:if="${report[0]} == 'A'" class="jsAction viewReportDiv">욕설/비방</td>
+			<td th:if="${report[0]} == 'B'" class="jsAction viewReportDiv">컨텐츠 부적절성</td>
+			<td th:if="${report[0]} == 'C'" class="jsAction viewReportDiv">홍보/광고</td>
+			<td th:if="${report[0]} == 'D'" class="jsAction viewReportDiv">저작권 위반</td>
+			<td th:if="${report[0]} == 'E'" class="jsAction viewReportDiv">기타</td>
+			<td class="text-truncate text-left jsAction viewReportDiv" th:title="${report[1]}">[[${report[1]}]]</td>
+			<td class="text-truncate text-left" th:title="${report[2]}">[[${report[2]}]]</td>
+			<td class="text-truncate">[[${report[3]}]]</td>
+			<td>[[${report[4]}]]</td>
+			<td th:if="${report[5]} == 'X'" class="table-text-emp jsAction viewReportDiv">처리 중</td>
+			<td th:if="${report[5]} == 'A'" class="text-truncate table-text-success">삭제처리</td>
+			<td th:if="${report[5]} == 'B'" class="text-truncate table-text-success">수정 권고 및 경고</td>
+			<td th:if="${report[5]} == 'C'" class="text-truncate table-text-success">문제 없음</td>
+			<!-- rid -->
+			<td style="display: none;">
+				<input type="hidden" class="reportRid" value="1111111"/>
+			</td>
+		</tr>
+		</tbody>
+		
+	</table>
+	<!--/* 1.paging */--> 
+	<nav class="my-3">
+		<ul class="pagination pagination-sm justify-content-center">
+			<li class="page-item">
+				<a class="page-link">PREV 1</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link active">1</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">2</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">3</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">NEXT 3</a>
+			</li>
+		</ul>
+	</nav>
+</div><!-- end of reportListSection -->
+
+	
+<!-- ---------------------------[3. 신고 상세보기]------------------------------- -->	
+<div id="viewReportSection" class="admin-view-detail-section" style="display: none;">
+<div class="formContainer">
+<!-- rid -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">RID</div>
+	<div class="content-element col">
+		50003529
+	</div>
+</div>
+<!-- articleId -->
+<div>
+	<input type="hidden" value="10001001"/>
+</div>
+<!-- content type -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Content Type</div>
+	<div class="content-element col">
+		Babel Stack English
+	</div>
+</div>
+<!-- app resource title -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">App Resource Title</div>
+	<div class="content-element col">
+		<a target="_blank" th:href="@{/square/babel/list/eng}">You can study English by translating these into Korean. You can study English</a>
+	</div>
+</div>
+<!-- report type -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Report Type</div>
+	<div class="content-element col">
+		욕설/비방
+	</div>
+</div>
+<!-- report comment -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Report Comment</div>
+	<div class="content-element col">
+		질문을 했길래 답변을 했을 뿐인데 코멘트로 단어 좀 알려줬다고 자길 무시하냐면서 욕하네요
+	</div>
+</div>
+<!-- reporter -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Reporter</div>
+	<div class="content-element content-half-element left col-4">
+		개구리
+	</div>
+	<div class="content-element content-half-element right col" style="display: ;">
+		<label class="element-title">신고 횟수 : </label>
+		<label class="element-detail">3</label>
+	</div>
+</div>
+<!-- poster -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Poster</div>
+	<div class="content-element content-half-element left col-4">
+		옴냥냥이힝
+	</div>
+	<div class="content-element content-half-element right col" style="display: ;">
+		<label class="element-title">신고 당한 횟수 : </label>
+		<label class="element-detail">52</label>
+	</div>
+</div>
+<!-- status -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Status</div>
+	<div class="content-element content-half-element left col-4">
+		<select class="form-control playvoice-form">
+			<option value="X">처리 중</option>
+			<option value="A">삭제처리</option>
+			<option value="B">수정 권고/경고</option>
+			<option value="C">문제 없음</option>
+		</select>
+	</div>
+	<div class="content-element content-half-element right col">
+		<button class="btn btn-main2" type="button">변경</button>
+	</div>
+</div>
+<!-- admin comment -->
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto">Admin Comment</div>
+	<div class="content-element col-7">
+		<textarea id="adminComment" class="form-control playvoice-form"></textarea>
+	</div>
+	<div class="w-100 pt-2"></div>
+	<div class="content-label col-auto"></div>
+	<div class="content-element col-7">
+		<select id="adminCommentSelect" class="form-control playvoice-form">
+			<option value="0">=== Admin Comment 선택 ===</option>
+			<option value="A">신고 접수된 해당 글을 삭제 처리 하였습니다.</option>
+			<option value="B0">신고 접수된 글을 쓴 작성자에게 수정 권고 조치를 취했습니다.</option>
+			<option value="B1">욕설 및 비방으로 인해 신고 접수된 회원은 경고 조치를 취했습니다.</option>
+			<option value="B2">약관 위반으로 인해 신고 접수된 회원의 계정을 일시정지 시켰습니다.</option>
+			<option value="B3">약관 위반으로 인해 신고 접수된 회원의 계정을 영구 정지 시켰습니다.</option>
+			<option value="C">신고 접수된 사항을 검토한 결과, 약관에 위반된 사항이 없음을 확인하였습니다.</option>
+		</select>
+	</div>
+</div>
+<div class="content-row row no-gutters">
+	<div class="content-label col-auto"></div>
+	<div class="content-element col-7">
+		<button id="addReportComment" class="btn btn-main2 btn-lg">코멘트 등록</button>
+	</div>
+</div>
+
+</div>
+</div><!-- end of viewReportSection -->
+
+<div class="text-right" style="color:red;">
+	source :: jungleBook/list_sentences.html	
+</div>
+</section><!-- end of section -->
+

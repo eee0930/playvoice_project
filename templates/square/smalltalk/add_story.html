@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout}">
+<head>
+<title>Add Story - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+<script th:src="@{/js/app/basicchar-filter.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+
+
+<script th:inline="javascript" type="text/javascript">
+var writer; // 작성 본문 임시저장 시 소유자 정보
+$(document).ready(function(){
+	
+	// 비로그인 상태면 로그인 페이지로.
+	if($("#loginStatus").text() != "true"){
+		self.location = '/auth/login?destPage' + location.pathname;
+	}
+	initSessionMonitor(120);
+	
+	writer = /*[[${session?.userContainer?.personacon?.alias}]]*/ null;
+	// [썸머노트 에디터가 로드되기 전 임시저장된 작성글 불러오기]------------------------------------
+	var tempSmallTalk = localStorage.getItem('tempSmallTalk_' + writer);
+	if(tempSmallTalk != null && tempSmallTalk.length > 0
+		&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+		$("#summernote").text(tempSmallTalk);
+	}
+	// [썸머노트 에디터 로드]-----------------------
+	insertSummernoteEditor($("#summernote"));
+	//---------------------------------------
+	
+	// [가이드 닫기]----------------------------------------------------------------
+	$("#closeGuide_btn").click(function(){
+		$(".smalltalkGuide").hide(100);
+		$(".openGuideBtn").show();
+	});
+	// [가이드 열기]---------------------------------------------------------------
+	$(".openGuideBtn").click(function(){
+		$(this).hide();
+		$(".smalltalkGuide").show(100);
+	});
+	
+	// [스토리 작성 완료]----------------------------------------------------------
+	$("#storyAddFormDiv #viewParagraph").click(function(e){
+		e.preventDefault();
+		var errorMsgs = [];
+		$("#scriptMsgs > ul").empty();
+		
+		$("#closeGuide_btn").click();
+		
+		if( $('#title').val().length == 0 ) {
+			errorMsgs.push("제목을 입력해 주세요.");
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[errorMsgs.length - 1]+"</li>");
+		}
+		
+		//---------------------------------------
+		//simplifyEmptyParagraph($("#summernote"));
+		//---------------------------------------
+					//---------------------------------------------------------
+		var content = replaceQuotes(filterSummernoteContent($("#summernote")));
+					//---------------------------------------------------------
+					
+		if(hasKor(content)) {
+			errorMsgs.push("본문은 영문으로만 작성해 주세요.");
+		}			
+		var paragraphicalContents = []; 
+		// 스토리로 등록할 내용을 문단으로 나눈다.
+		paragraphicalContents = content.split(/<hr(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])*>/)
+								.filter(function(para) {
+									return para.trim().length > 0;
+								});
+		//$("textarea[name='content']").val(paragraphicalContents.join("<p><br></p>"));
+		$("input[name^='paragraphList']").remove();
+		var addForm = $("#storyAddForm")[0];
+		for(var i = 0; i < paragraphicalContents.length; i++){
+			var $wrapper = $('<pre></pre>').html(paragraphicalContents[i]);
+			var textLen = $wrapper.text().length;
+			if(textLen > 1000){
+				errorMsgs.push("" + (i+1) + "번째 문단의 길이를 1~1000자로 맞춰 주세요.<br>"
+								+ "현재: " + textLen +"글자");
+				break;
+			}
+			//--------------------------------------------------------------
+			createHidden(addForm, "paragraphList[" + i + "]", paragraphicalContents[i]);
+			//--------------------------------------------------------------
+		}
+		
+		
+		if(errorMsgs.length > 0){
+			$("#scriptMsgs > ul").empty();
+			$("#alertModal .modalText").empty();
+			for(var i = 0; i < errorMsgs.length; i++){
+				$("#scriptMsgs > ul,#alertModal .modalText").append("<li>"+errorMsgs[i]+"</li>");
+			}
+			$("#resMsgs").show();
+			$('#alertModal').modal('show');
+			return;
+		}else{
+			$("#resMsgs").hide();
+			// 본문 내용 임시 저장
+			localStorage.setItem('tempSmallTalk_' + writer, content);
+			$("#storyAddForm").hide();
+			$("#paragraphicalPreview>.paragraph").remove();
+			for(var i = 0; i < paragraphicalContents.length; i++){
+				if(i > 0){
+					$("#paragraphicalPreview>p").before("<hr class=paragraph>");
+				}
+				$("#paragraphicalPreview>p").before("<div class='paragraph'><span class='para-title'>문단 " 
+												+ (i + 1) + "</span><pre>" 
+												+ paragraphicalContents[i] + "</pre></div>");
+			}
+			$("#paragraphicalPreview").show();
+			
+			var paragraphicalPreview = $("#paragraphicalPreview").offset().top - 50;
+		    $('html, body').animate({scrollTop : paragraphicalPreview}, 300);
+		}
+	});
+	// [작성 취소]-----------------------------------------------------------------
+	$("#storyAddForm").on("reset", function(){
+		$("#summernote").summernote('reset');
+	});
+	
+	// [다시 에디터 화면으로]----------------------------------------------------------
+	$("#rollbackContent").click(function(){
+		$("#paragraphicalPreview").hide();
+		$("#storyAddForm").show();
+	});
+	
+	// [문단 확인이 끝나고 스토리 최종 등록]-------------------------------------------------
+	$("#saveStory").click(function(){
+		$("#loadingSection").show(); // 로딩 화면
+		$("#storyAddForm").submit();
+	})
+	
+	
+	
+
+});
+
+/**
+ * 세션이 만료되어 자동 로그아웃하기 직전에 작성 중이던 본문 내용을 브라우저에 저장
+ */
+function beforeLogout() {
+	var content = filterSummernoteContent($("#summernote"));
+	localStorage.setItem('tempSmallTalk_' + writer, content);
+	alert("작성 제한 시간이 만료되어 자동 로그아웃 합니다.\n작성 중이던 내용은 브라우저에 보관됩니다.");
+}
+
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<!--/* 힌트 경고 모달창*/-->
+<div id="alertModal" class="modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<div class="py-2 modalText">
+					문단 길이를 1~1000자로 맞춰 주세요.
+					<i class="far fa-dizzy fa-lg fa-fw"></i>
+				</div>
+				<div class="text-center pt-2">
+					<button class="btn btn-sm btn-smalltalk2" data-dismiss="modal" 
+						type="button">확 인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div th:replace="~{/square/smalltalk/incl/smalltalk_top_menu::menu}"></div>
+
+<div id="introductionSection" class="article-introduction-section mt-5">
+	<h3><span>Adding New Articles Form</span></h3>
+	<!-- 작성 목적 -->
+	<div class="add-purpose-info cha1 row no-gutters">
+		<div class="character-section col-auto">
+			<img class="character" src="/images/common/icon/icon_paper.png">
+		</div>
+		<div class="col">
+			<img class="character d-sm-none" src="/images/common/icon/icon_paper.png">
+			<div class="point">잡담도 지성이고 능력이다!</div>
+			<div>수많은 게시글들이 사람들의 주목을 받아 왔듯이 다양한 이야기를 가진 자들이 언제나 주인공입니다.<br class="d-none d-xl-block">
+			영어를 통해 자신의 이야기를 직접 작성해 보거나 아니면 관심 있는 이야깃거리를 소개할 수도 있어요.<br class="d-none d-xl-block">
+			관심 있는 특정 분야를 찾아 소개하고 스스로 학습도 해 보세요. 영어가 엄청 빠르게 발전하게 될 거예요.
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="addSmallTalkSection" class="add-smalltalk-section">
+	<!-- 스토리 등록 순서 표시 -->
+	<div class="add-order-point row no-gutters"><div class="col"></div>
+	<div class="order-point step1 active col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 1</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step2 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 2</span>
+	</div>
+	<div class="dashed-point col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+		<i class="fa fa-circle fa-fw"></i>
+	</div>
+	<div class="order-point step3 col-auto px-md-3 align-self-center">
+		<i class="fa fa-circle fa-fw"></i>
+		<span class="step-num">STEP 3</span>
+	</div>
+	<div class="col text-right align-self-center">
+		<div class="open-guide-section d-none d-md-block">
+		<a class="openGuideBtn" style="display: none;">
+			<i lang="fa" class="far fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+		</div>
+	</div></div>
+	
+	<!-- ---------------------------[작성 가이드]------------------------------- -->
+	<div class="open-guide-section d-md-none">
+		<a class="openGuideBtn" style="display: none;">
+			<i lang="fa" class="far fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+	</div>
+	<div class="add-digest-guide-cover smalltalkGuide row no-gutters">
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="title">
+				<span>작성 가이드</span>
+				<span class="guide-icon"><i lang="fa" class="far fa-lightbulb fa-lg"></i> </span>
+				<i id="closeGuide_btn" class="fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> 게시글은 반드시 <span class="emp">영어</span>로 
+					작성해야 하며 제목은 <span class="emp">우리말 / 영어</span> 중에서 선택할 수 있어요.<br>
+				<span class="num">2.</span> 게시글은 <span class="emp">5000자 이하</span>로 작성해 주세요. 
+					내용이 많은 게시글인 경우 적절한 단락(paragraph)으로 나눠 주세요.<br>
+				<span class="num">3.</span> 단락(paragraph)을 지정하기 위해서는 원하는 위치에서 
+					에디터의 <label class="editor-button">━</label> 버튼을 눌러주세요. (한 단락에 1000자 이내)<br>
+				<span class="num">4.</span> 게시글 작성 후 'NEXT' 버튼을 누르면 작성한 게시글의 단락을 확인할 수 있습니다.<br> 
+			</div>
+		</div>
+	</div>
+	<div class="translation-bg">
+		
+		<!--/*응답메세지 박스*/-->
+		<div id="resMsgs" class="respond-msg" style="display:none;">
+			<h4>Respond Messages</h4>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+			<div id="scriptMsgs">
+			<ul></ul>
+			</div>
+		</div>
+		
+		<form id="storyAddForm" th:action="@{/square/smalltalk/translate}" method="post">
+		
+		<div id="storyAddFormDiv" class="digest-form-div">
+			
+			<!--/*주제 */-->
+			<div class="form-group row">
+				<label for="title" class="col-md-1 control-label pl-md-0">주제</label>
+				<div class="col-md-11">
+					<input id="title" name="title" type="text" placeholder="주제를 입력해 주세요." 
+					class="form-control" />
+				</div>
+			</div> 
+			
+			<!--/*내용 */-->
+			<div class="form-group row">
+				<label for="content" class="col-md-1 control-label pl-md-0">내용</label>
+				<div class="article-default-font-style eng col-md-11">
+					<textarea id="summernote" name="content" class="form-control" style="display: none;" th:text="${content}"></textarea>
+				</div>
+			</div>
+			
+			<!--/*작성자 */-->
+			<div class="form-group row">
+				<label for="writer" class="col-md-1 col-auto control-label pl-md-0">작성자</label>
+				<div class="form-alias col-md-10 col">
+					<span>[[${session.userContainer?.personacon?.alias}]]</span>
+					<input type="hidden" id="writerId" name="memberId"  th:value="${session.userContainer?.personacon?.pid}" class="form-control"/>
+				</div>
+			</div>
+			
+			<!--/*submit 컨트롤 박스*/-->
+			<div class="form-group">
+				<div class="add-button-section text-center">
+					<button type="reset" class="btn btn-playsquare2 mr-3">초기화</button>
+					<button id="viewParagraph" type="submit" class="btn btn-smalltalk2"
+						th:disabled="${session.userContainer == null}">
+						NEXT <i class="fa fa-arrow-right"></i>
+					</button>
+				</div>
+			</div>
+			
+		</div><!-- end of storyAddFormDiv -->
+		
+		</form>
+		<div id="paragraphicalPreview" class="article-default-font-style eng" style="display: none;">
+			<p class="confirm-guide">
+				입력한 내용의 <b>문단</b>이 원하는 대로 나눠졌나요?
+				<b>오타</b>는 없는지, 마침표와 같은 <b>문장 종결자</b>를 확인하셨나요?<br>
+				나눠진 문단의 단위로 해석과 구문 분석이 제공됩니다.<br>
+				<b><i class="fa fa-exclamation-triangle"></i> 최종 등록 후에는 문단별로만 수정이 가능하오니</b> 
+				이 점 참고하여 내용을 다시 한번 검토해 주세요.
+			</p>
+			<div class="form-group">
+				<div class="add-button-section text-center">
+					<button type="button" id="rollbackContent" class="btn btn-playsquare2 mr-3">
+						<i class="fa fa-arrow-left"></i> 변경하기</button>
+					<button type="button" id="saveStory" 
+						th:href="${#request.requestURI}"
+						class="loginRequired btn btn-smalltalk2">
+						NEXT <i class="fa fa-arrow-right"></i>
+						<div class="button-msg"><b>문단별로만 수정이 가능하오니</b><br>내용을 다시 검토해 주세요</div>
+					</button>
+				</div>
+			</div>
+		</div>
+		
+		<div class="errorMsgs" style="display: none;">
+			<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre></pre>
+		</div>
+	</div>
+
+</div><!-- end of addDigestSection -->
+
+<!-- 로딩 화면 -->
+<div id="loadingSection" class="loading-section" style="display: none;">
+	<div class="loading-progress">
+		<div class="loading-icon"><i class="fa fa-spin fa-spinner"></i></div>
+		<div class="loading-text">
+			잠시만 기다려 주세요!<br><br>
+			농땡이 치고 있는 번역 로봇들을 찾아<br>
+			[[${session.userContainer?.personacon?.alias}]]님의 <br>
+			작업을 지시하고 있습니다. <i class="fa fa-robot fa-fw"></i>
+		</div>
+	</div>
+</div>
+
+ 
+</section>
+</html>

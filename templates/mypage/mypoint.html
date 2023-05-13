@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>My Account - 플레이보이스(playvoice)</title>
+<meta name="format-detection" content="telephone=no"/>
+  
+<!-- datepicker -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<link rel="stylesheet" th:href="@{/css/library.css}">
+
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [랭크포인트 설명 열기]----------------------------------------------------------
+	$(".rankPointGuide").click(function(){
+		var guide = $(this).find(".rankPointGuide-detail");
+		if(guide.is(":visible")) {
+			guide.removeClass("active");
+		} else {
+			guide.addClass("active");
+		}
+	});
+
+	// [서브타이틀 가이드 열기 (Mobile ver.)]-------------------------------------------
+	$(".submenuActive").click(function(){
+		var openActiveItem = $(this).siblings(".sub-title-small");
+		var activeParent = $(this).closest(".mypage-sub-title-section");
+		if(openActiveItem.is(":visible")) {
+			activeParent.removeClass("active");
+		} else {
+			activeParent.addClass("active");
+		}
+	});
+
+	// [포인트 카드 열기 (Mobile ver.)]-----------------------------------------------
+	$(".activePointCard").click(function(){
+		$(".pointCardDiv").toggle(100);
+	});
+	
+	// [Rank Point 차트 불러오기]---------------------------------------------------
+	// drawLineGraph();
+	  var dataMapArray1 = [{
+               label: "나의 주간 랭킹포인트",
+               color: 'rgba(33,42,120,1)',
+               data: [],
+               dash: [5,5]
+            },{
+               label: '플레이보이스 평균 랭킹포인트',
+               color: 'rgba(221,33,56,1)',
+               data: [],
+               dash: []
+               }];
+   
+	var dataMapArray2 = [{
+               label: "나의 일일 획득 랭킹포인트",   // 제목
+               color: 'rgba(33,42,120,1)', // 선, 꼭짓점 색깔
+               data: [],               // 실제 데이터 리스트
+               dash:[5,5]
+            },{
+               label: "플레이보이스 평균 랭킹포인트",
+               color: 'rgba(221,33,56,1)',
+               data: [],
+               dash: []
+              }];
+	var myWeeklyRankingPointList = /*[[${myWeeklyRankingPointList}]]*/ [];
+	var avgWeeklyRankingPointList = /*[[${avgWeeklyRankingPointList}]]*/ [];
+	if(avgWeeklyRankingPointList != null){
+		var xAxis1 = Array.from(avgWeeklyRankingPointList, function(elt){
+			var date = new Date(elt.targetDay)
+			var weekNum = date.getWeek();
+			return weekNum > 1? ("week " + weekNum) : (date.getFullYear() + ". week " + weekNum);
+		});
+		
+		avgWeeklyRankingPointList.forEach(function(elt, i, array) {
+			var myPoint = myWeeklyRankingPointList.find(function(myRankingPoint){
+				return myRankingPoint.targetDay == elt.targetDay;
+			})
+			dataMapArray1[0].data.push(myPoint?myPoint.rankPoint:0);
+			dataMapArray1[1].data.push(elt.avgRankPoint.toFixed(1));
+		});
+		drawLineGraph($(".rankingPointGraph"), xAxis1, dataMapArray1);
+	}
+	
+	var myDailyRankingPointList = /*[[${myDailyRankingPointList}]]*/ [];
+	var avgDailyRankingPointList = /*[[${avgDailyRankingPointList}]]*/ [];
+	if(avgDailyRankingPointList != null){
+		var weekDayFormat = new Intl.DateTimeFormat('en-us', {weekday: 'short'});
+		var xAxis2 = Array.from(avgDailyRankingPointList, function(elt){
+			var date = new Date(elt.targetDay);
+			if($(window).width() < 768){
+				return date.format("MM-dd");
+			}else{
+				return date.format("MM-dd") + "(" + weekDayFormat.format(date) + ")";
+			}
+		});
+		avgDailyRankingPointList.forEach(function(elt, i, array) {
+			var myPoint = myDailyRankingPointList.find(function(myRankingPoint){
+				return myRankingPoint.targetDay == elt.targetDay;
+			});
+			dataMapArray2[0].data.push(myPoint?myPoint.rankPoint:0);
+			dataMapArray2[1].data.push(elt.avgRankPoint.toFixed(1));
+		});
+		drawLineGraph($("#compareRankingPointGraph"), xAxis2, dataMapArray2);
+	}
+	
+	// [그룹의 위치 및 자취를 지도 위에 그리기]-----------------------------------------------
+	// drawRouteOnMap();
+	
+    var locs = Array.from(/*[[${locationList}]]*/ [], function(elt){
+    	return [elt.longitude, elt.latitude];
+    });
+    
+	//---------------------------------
+    drawRouteOnMap("myLocation", locs);
+	//---------------------------------
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+ /**
+ * 주어진 데이터로 대상 canvas에 그래프를 그린다.
+ * canvas: <canvas>
+ * xAxisLabels: x축 표시값들 [값1,값2,...]
+ * dataMap: 그래프 y축 데이터 
+ 			[{
+ 				label: 라벨1,
+	 		 	data: [값1,값2,...]
+ 			},{
+ 				label: 라벨2,
+ 			 	data: [값1,값2,...]
+ 			},...]
+ */
+function drawLineGraph(canvases, xAxislabels, dataMap){
+	$(canvases).each(function(i,canvas){
+		var ctx = $(canvas)[0].getContext('2d');
+		var datasets = [];
+		dataMap.forEach(function(dataEntry, i, array) {
+			// 그래프 꼭짓점 크기
+			var radiusArr = new Array(dataEntry.data.length);
+			radiusArr.fill(3);
+			radiusArr[dataEntry.data.length - 1] = 5;
+			
+			datasets.push({ 
+					label: dataEntry.label, 
+					data: dataEntry.data, // Y축 값
+					borderWidth: 2,
+		            borderColor: dataEntry.color,
+		            borderDash: dataEntry.dash,
+		            fill: false,
+		            lineTension: 0,
+		            radius: radiusArr
+				})
+		});
+		var mychart = new Chart(ctx, {
+			type: 'line',
+			data: {
+				labels: xAxislabels,
+				datasets:datasets
+			},
+			options: {
+				legend:{
+					position: 'top',
+					align: 'start',
+					fullWidth: false,
+					labels:{
+						fontStyle: 'strong'
+					}
+				},
+				scales:{
+					xAxes:[{
+						ticks:{
+							fontStyle: 'bold'
+						}
+					}],
+					yAxes:[{
+						ticks:{
+							maxTicksLimit: 6
+						}
+					}]
+				},
+				maintainAspectRatio: false
+			}
+		});
+	});
+}
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!--/* PC Mobile Mixed version */-->
+
+<div th:insert="~{/mypage/incl/mypage_top_menu::menuAccount}"></div>
+<div class="profile-top-cover mt-4">
+	<h3>
+		My Account
+		<i class="fa fa-comment-dollar"></i>
+	</h3>
+	<div class="sub-title"><span class="kor">
+		<i class="fa fa-quote-left relative-font"></i>
+		빨간선 아래에 있다면 노력이 부족한 것이다.
+		<i class="fa fa-quote-right relative-font"></i>
+	</span></div>
+</div>
+
+<th:block th:with="pointAccount = ${session?.userContainer?.pointAccount},
+	personacon = ${session.userContainer.personacon},
+	member = ${session.userContainer.member}">
+<!-- profile top contents -->
+<div class="d-none d-md-block">
+	<div class="profile-top-content row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-file-invoice-dollar fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Account Number</span>
+			<span class="body">[[${pointAccount.pid}+'-'+${member.mid}]]</span>
+		</div>
+	</div>	
+</div>
+<div class="d-md-none">
+	<div class="activePointCard box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-file-invoice-dollar"></i></label>
+		</div>
+		<div class="detail col">
+			<div class="guide-cover">Account Number</div>
+			<div>
+				<span class="num">[[${pointAccount.pid}+'-'+${member.mid}]]</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+<!-- [플레이 포인트 카드 (Mobile ver.)] -->
+<div class="d-md-none"><div class="pointCardDiv mypoint-item-div" style="display: none;">
+	<!-- 플레티넘 -->
+	<div th:if="${personacon.memberType} == 'P'" 
+		th:class="'playaccount-card-cover member-' + ${personacon.memberType}">
+		<div class="card-top-margin"></div>
+		<div class="card-info-section row no-gutters">
+			<div class="card-chip col-auto"></div>
+		</div>
+		<div class="card-number">
+			<span th:text="${pointAccount.pid}"></span><span 
+				th:text="${member.mid}"></span>
+		</div>
+		<div class="card-info row no-gutters">
+			<div class="card-since col-auto">
+				<div class="title">cardmember<br>since</div>
+				<div>[[${#dates.format(member.regDate, 'yyyy-MM-dd')}]]</div>
+			</div>
+		</div>
+	</div>
+	<!-- 골드/ 실버/ 일반 -->
+	<div th:unless="${personacon.memberType} == 'P'" 
+		th:class="'playaccount-card-cover member-' + ${personacon.memberType}">
+		<div class="card-top-margin"></div>
+		<div class="card-info-section row no-gutters">
+			<div class="card-chip col-auto"></div>
+		</div>
+		<div class="card-info row no-gutters">
+			<div class="card-since col-auto">
+				<div class="title">cardmember<br>since</div>
+				<div>[[${#dates.format(member.regDate, 'yyyy-MM-dd')}]]</div>
+			</div>
+			<div class="card-number col align-self-end">
+				<span th:text="${pointAccount.pid}"></span><span 
+					th:text="${member.mid}"></span>
+			</div>
+		</div>
+	</div>
+</div></div>
+
+<!-- ----------------------[1. Play Point Account]-------------------------- -->
+<div id="myPointSection" class="my-point-section">
+<div class="mypage-sub-title-section">
+	<h5 class="submenuActive">
+		<i class="fa fa-square fa-fw"></i>
+		Play Point Account
+		<i class="open-guide"></i>
+	</h5>
+	<div class="sub-title-small">
+		<i class="fa fa-caret-right"></i>
+		<span class="kor">Play Point는 플레이보이스에서 컨텐츠 등록 활동과 관련된 포인트입니다.
+		<a th:href="@{/guide#essentialAboutPlayvoiceDiv}" target="_blank">자세히 알아보기</a></span>
+	</div>
+</div>
+<div class="mypage-content-box-section"><div class="mypage-content-box-div row no-gutters">
+	<!-- [1.1 전체 플레이 포인트 정보 (PC ver.)] -->
+	<div class="col-md-6 d-none d-md-inline-block"><div class="row no-gutters">
+		<div class="point-icon col-auto">
+			<i class="fa fa-comment-dollar fa-fw"></i>
+		</div>
+		<!-- play point -->
+		<div class="point-info col pl-md-4 pl-2">
+			<div class="title">Your Play Points</div>
+			<div th:if="${personacon.memberType} == 'M'" class="detail">
+				<span class="num" th:text="${#numbers.formatInteger(pointAccount.point, 1, 'COMMA')}"></span> points
+			</div>
+			<div th:if="${personacon.memberType} == 'S'" class="detail">
+				<span class="num">Unlimited</span> point
+			</div>
+			<div th:if="${personacon.memberType} == 'G' OR ${personacon.memberType} == 'P'" 
+				class="detail gold">
+				<span class="num" th:text="${#numbers.formatInteger(pointAccount.gold, 1, 'COMMA')}"></span> golds
+			</div>
+		</div>
+		<!-- P coin guide -->
+		<div class="guide col-12">
+			<div class="guide-detail">
+				<i class="fa fa-info-circle fa-fw"></i>
+				골드 멤버십 이상의 회원들은 적립한 Gold를<br class="d-sm-none">
+				<span class="point">P-Coin</span>으로 사용할 수 있습니다.
+			</div>
+			<div class="title-sub mt-3 rankPointGuide">
+				P Coin 이란 <i class="fa fa-question-circle"></i>
+				<div class="title-sub-detail rankPointGuide-detail">
+					플레이보이스에서 다양한 커뮤니티 활동을 통해 적립되는 
+					Play Point는 Ranking Point와 함께 회원 분들의 
+					<b>커뮤니티 활동에 대한 평가 및 보상의 지표</b>로 사용됩니다.<br><br>
+					
+					P-Coin은 Gold Point를 플레이 스토어에서 사용할 수 있도록 만든 
+					<b>가상 캐쉬</b>입니다.
+					P-Coin에 대한 자세한 정보는 
+					<a th:href="@{/guide#essentialAboutPlayvoiceDiv}" target="_blank">가이드 페이지</a>에서 확인하세요.
+				</div>
+			</div>
+		</div>
+	</div></div>
+	<!-- [1.2 전체 플레이 포인트 정보 (Mobile ver.)] -->
+	<div class="col-12 d-md-none"><div class="box-cover-mobile box-white icon">
+		<div class="top-icon">
+			<label><i class="fa fa-comment-dollar"></i></label>
+		</div>
+		<div class="title-mobile">Your Play Points</div>
+		<div class="detail-mobile">
+			<div th:if="${personacon.memberType} == 'M'" class="num" 
+				th:text="${#numbers.formatInteger(pointAccount.point, 1, 'COMMA')}"></div>
+			<div th:if="${personacon.memberType} == 'S'" class="num small">Unlimited</div>
+			<div th:if="${personacon.memberType} == 'G' OR ${personacon.memberType} == 'P'" 
+				class="num" th:text="${#numbers.formatInteger(pointAccount.gold, 1, 'COMMA')}"></div>
+			<div class="empty1"></div>
+			<div th:if="${personacon.memberType} == 'M'" 
+				class="guide-mobile text-center">points</div>
+			<div th:if="${personacon.memberType} == 'S'" 
+				class="guide-mobile text-center">point</div>
+			<div th:if="${personacon.memberType} == 'G' OR ${personacon.memberType} == 'P'" 
+				class="guide-mobile text-center">golds</div>
+		</div>
+	</div></div>	
+		
+	<!-- [1.2 플레이 포인트 카드 (PC ver.)] -->
+	<div class="mypoint-item-div col-md-6 pl-xl-5 pl-3 d-none d-md-inline-block">
+		<!-- 플레티넘 -->
+		<div th:if="${personacon.memberType} == 'P'" 
+			th:class="'playaccount-card-cover member-' + ${personacon.memberType}">
+			<div class="card-top-margin"></div>
+			<div class="card-info-section row no-gutters">
+				<div class="card-chip col-auto"></div>
+			</div>
+			<div class="card-number">
+				<span th:text="${pointAccount.pid}"></span><span 
+					th:text="${member.mid}"></span>
+			</div>
+			<div class="card-info row no-gutters">
+				<div class="card-since col-auto">
+					<div class="title">cardmember<br>since</div>
+					<div>[[${#dates.format(member.regDate, 'yyyy-MM-dd')}]]</div>
+				</div>
+			</div>
+		</div>
+		<!-- 골드/ 실버/ 일반 -->
+		<div th:unless="${personacon.memberType} == 'P'" 
+			th:class="'playaccount-card-cover member-' + ${personacon.memberType}">
+			<div class="card-top-margin"></div>
+			<div class="card-info-section row no-gutters">
+				<div class="card-chip col-auto"></div>
+			</div>
+			<div class="card-info row no-gutters">
+				<div class="card-since col-auto">
+					<div class="title">cardmember<br>since</div>
+					<div>[[${#dates.format(member.regDate, 'yyyy-MM-dd')}]]</div>
+				</div>
+				<div class="card-number col align-self-end">
+					<span th:text="${pointAccount.pid}"></span><span 
+						th:text="${member.mid}"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div></div>
+</div><!-- end of myPointSection -->
+
+
+<!-- ---------------------[2. Ranking Point Account]------------------------ -->
+<div id="myPointSection">
+<div class="mypage-sub-title-section">
+	<h5 class="submenuActive">
+		<i class="fa fa-square fa-fw"></i>
+		Ranking Point Account
+		<i class="open-guide"></i>
+	</h5>
+	<div class="sub-title-small">
+		<i class="fa fa-caret-right"></i>
+		<span class="kor">Ranking Point는 플레이보이스의 다양한 앱을 통해 학습할 때 제공되는 포인트입니다.
+		<a th:href="@{/guide#essentialAboutPlayvoiceDiv}" target="_blank">자세히 알아보기</a></span>
+	</div>
+</div>
+<!-- [2.1 전체 랭킹 포인트 정보 (PC ver.)] -->
+<div class="mypage-content-box-section">	
+	<div class="d-none d-md-block"><div class="mypage-content-box-div row no-gutters">
+		<!-- 나의랭킹 포인트 -->
+		<div class="col-md-6"><div class="row no-gutters">
+			<div class="point-icon col-auto">
+				<i class="fa fa-chart-line fa-fw"></i>
+			</div>
+			<div class="col pl-md-4 pl-2">
+				<div class="title">Your Ranking Points</div>
+				<div class="detail">
+					<span class="num"
+						th:text="${#numbers.formatInteger(pointAccount.rankPoint, 1, 'COMMA')}"></span> RP
+				</div>
+			</div>
+			<div class="guide col-12">
+				<div class="title-sub rankPointGuide">
+					Ranking Point 란 <i class="fa fa-question-circle"></i>
+					<div class="title-sub-detail rankPointGuide-detail">
+						Ranking Point는 플레이보이스가 제공하는 다양한 학습 콘텐츠로부터 
+						순수한 <b>학습 활동을 통해 적립되는 포인트</b>입니다.<br>
+						외국어 학습은 단기간 내에 효과를 보기가 어렵습니다. 
+						Ranking Point는 회원분들에게 배움의 긴 여행길에서
+						노력에 대한 시각적 지표를 제공함으로써 목적한 바에 이루도록 돕고자 합니다.<br>
+						또한 Ranking Point는 플레이보이스에서의 <b>랭킹 등수</b>와 <b>Group</b>을 이루는 데 지표로 사용됩니다.
+					</div>
+				</div>
+			</div>
+		</div></div>
+		<!-- 나의 일주일동안 랭킹 포인트 -->
+		<div class="ranking-point-div col-md-6 pl-md-4">
+			<canvas class="rankingPointGraph"><!-- graph is here --></canvas>
+		</div>
+	</div></div>
+</div>
+
+<!-- [2.2 전체 랭킹 포인트 정보 (Mobile ver.)] -->
+<div class="d-md-none"><div class="box-cover-mobile box-white icon">
+	<div class="top-icon">
+		<label><i class="fa fa-chart-line"></i></label>
+	</div>
+	<div class="title-mobile">Your Ranking Points</div>
+	<div class="detail-mobile">
+		<div class="num" th:text="${#numbers.formatInteger(pointAccount.rankPoint, 1, 'COMMA')}"></div>
+		<div class="empty1"></div>
+		<div class="guide-mobile text-center">RP</div>
+	</div>
+</div>	
+<!-- [2.3 나의 일주일동안 랭킹 포인트 (Mobile ver.)] -->
+<div class="mypage-sub-title-section d-md-none">
+	<h5 class="submenuActive">
+		Weekly Ranking Point
+	</h5>
+</div>
+<div class="box-cover-mobile box-main graph">
+	<div id="firstGraphSection" class="detail-mobile">
+		<canvas class="rankingPointGraph"><!-- graph is here --></canvas>
+	</div>
+</div></div>	
+	
+<!-- [2.4 회원 평균과 나의 랭킹포인트 비교 그래프] -->
+<div class="mypage-sub-title-section d-md-none">
+	<h5 class="submenuActive">
+		Daily Ranking Point
+	</h5>
+</div>
+<div class="mypage-content-box-section">
+	<div class="mypage-content-box-div ranking-graph-div">
+		<canvas id="compareRankingPointGraph"><!-- graph is here --></canvas>
+	</div>
+</div>	
+
+
+<div class="mypage-sub-title-section">
+	<h5 class="submenuActive">
+		<i class="fa fa-square fa-fw"></i>
+		Your Location Level
+		<i class="open-guide"></i>
+	</h5>
+	<div class="sub-title-small">
+		<i class="fa fa-caret-right"></i>
+		<span class="kor">City Location은 랭킹포인트의 적립을 통해 입국할 수 있는 현재 자신의 도시입니다.
+		<a th:href="@{/guide#essentialAboutPlayvoiceDiv}" target="_blank">자세히 알아보기</a></span>
+	</div>
+</div>
+<!-- [2.5 도시 정보] -->
+<div class="mypage-content-box-section my-city-section">
+	<div class="mypage-content-box-div box-cover-mobile group-div">
+		<div class="top-icon d-md-none">
+			<label><i class="fa fa-map-marker-alt"></i></label>
+		</div>
+		<div class="mb-3">
+			<div id="myLocation" style="height:400px;"></div>
+		</div>
+		
+		<!-- 도시 정보 PC ver. -->
+		<div class="d-none d-md-block"><div class="row no-gutters">
+			<div class="col-md-6"><div class="row no-gutters py-1">
+				<div class="point-icon col-auto">
+					<i class="far fa-compass fa-fw"></i>
+				</div>
+				<div class="col pl-md-4 pl-2">
+					<div class="title">Your Location</div>
+					<div class="detail">
+						<span class="kor">[[${currentCity}]]</span> 
+					</div>
+				</div>
+			</div></div>
+			
+			<div class="guide left-guide col-md-6 pl-md-3">
+				<div class="guide-detail eng">
+					<i class="fa fa-info-circle fa-fw"></i>
+					Let's go further,
+					<span class="point">[[${#numbers.formatInteger(neededPoint, 1, 'COMMA')}]] RP </span> 
+					left for the next city.
+				</div>
+				<img src="/images/common/icon/icon_paper.png" class="location-cha">
+			</div>
+		</div></div>
+		
+		<!-- 도시 정보 Mobile ver. -->
+		<div class="d-md-none">
+			<div class="title-mobile">Your Location</div>
+			<div class="detail-mobile">
+				<div class="kor">[[${currentCity}]]</div>
+			</div>
+			<div class="empty1 empty-line"></div>
+			<div class="ment text-center">
+				Let's go further,
+				<span class="point">[[${#numbers.formatInteger(neededPoint, 1, 'COMMA')}]] RP</span> 
+				left for the next city.
+			</div>
+		</div>
+	</div>
+		
+</div>
+</div><!-- end of myPointSection -->
+
+
+
+</th:block>
+
+</section>
+</html>

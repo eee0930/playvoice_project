@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>플레이보이스 (playvoice)</title>
+<link rel="stylesheet" th:href="@{/css/app/member.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [이전 버튼 클릭 시 input value 값 reset하기]--------------------------------------
+	$(".resetBtn").click(function(){
+		var searchSection = $(this).closest(".find-login-info-div");
+		searchSection.find("input").val("");
+	});
+	$("input.playvoice-form").on("change keyup paste", function() {
+		var searchSection = $(this).closest(".find-login-info-div");
+		var formList = searchSection.find("input.playvoice-form");
+		var checkFormBtn = searchSection.find(".checkInput");
+		var checkForm = false;
+		formList.each(function(i, obj){
+			if($(obj).val().length < 1) {
+				checkForm = false;
+			} else {
+				checkForm = true;
+			}
+		});
+		if(checkForm == true) {
+			checkFormBtn.prop("disabled", false);
+		} else {
+			checkFormBtn.prop("disabled", true);
+		}
+	});
+
+}); //end of ready
+
+function moveFindDiv(divIndex) {
+	var findLoginInfoDiv = $("#findLoginInfo" + divIndex);
+	$(".find-login-info-div").hide();
+	findLoginInfoDiv.slideDown(100);
+	if(findLoginInfoDiv.find(".form-section").is(":visible")) {
+		$(".form-section").find("input:first").focus();
+	}
+}
+
+function confirmLoginId() {
+	
+}
+
+</script>
+</head>
+
+<section layout:fragment="content" class="playvoice-join-section find-member">
+<div class="playvoice-join-body-section container"><div class="join-background-cover row no-gutters">
+<div class="col"></div>
+<div id="joinFormContainer" class="formContainer col-md-8">
+	<div class="join-message-section  d-flex align-content-between flex-wrap">
+		<!-- logo -->
+		<div class="join-logo-section">
+			<div align="center" th:insert="~{/incl/playvoice_logo::mini_logo}"></div>
+			<div class="login-info-title">
+				<h3>Login Assistance</h3>
+			</div>
+		</div>
+		<!-- -------------------[1. 아이디 및 비번 찾기 선택]------------------------ -->
+		<div id="findLoginInfo1" class="find-login-info-div">
+			<div class="find-info-guide">
+				이곳에서 아이디 찾기 및 비밀번호 재설정을 할 수 있습니다.<br>
+				보안을 위해 해당 계정 소유자가 본인임을 확인할 인증 절차를 거쳐야 합니다.<br>
+			</div>
+			<div class="button-section">
+				<button onclick="moveFindDiv('FindId')" type="button" 
+					class="btn find-login-info-button btn-main2">
+					아이디 찾기 <i class="far fa-id-badge"></i>
+				</button>
+				<button onclick="moveFindDiv('FindPassword')" type="button"
+					class="btn find-login-info-button btn-main2">
+					비밀번호 찾기 <i class="fa fa-unlock-alt"></i>
+				</button>
+			</div>
+		</div>
+		<!-- ----------------------[2. 아이디 찾기]----------------------------- -->
+		<!-- [2.1 계정 정보 입력] -->
+		<div id="findLoginInfoFindId" class="find-login-info-div" style="display: none;">
+			<!-- 메세지 -->
+			<div class="find-login-info-guide">
+				가입 시 등록한 <b>이메일 주소</b>를 입력해 주세요.
+			</div>
+			<div class="join-message-cover">
+				<div class="form-section">
+					<input type="email" class="form-control playvoice-form"
+						placeholder="이메일"/>
+				</div>
+				<div class="button-section">
+					<button onclick="moveFindDiv(1)" type="button" 
+						class="resetBtn btn login-info-button btn-main">이전</button>
+					<button onclick="moveFindDiv('IdResult')" 
+						disabled="disabled" type="button"
+						class="checkInput btn login-info-button btn-main2">찾기</button>
+				</div>
+			</div>
+		</div>
+		<!-- [2.2 계정 정보 확인] -->
+		<div id="findLoginInfoIdResult" class="find-login-info-div" style="display: none;">
+			<!-- 계정 확인 성공 -->
+			<div id="confirmedAccount">
+				<div class="find-login-info-guide">
+					<div>해당 이메일 정보로 가입한 아이디</div>
+					<div class="conform-id-info">eee0***</div>
+				</div>
+				<div class="join-message-cover">
+					<div class="button-section">
+						<button type="button" th:href="@{/auth/login}"
+							onclick="location.href=$(this).attr('href')"
+							class="btn find-login-info-button btn-main2">
+							로그인하기  <i class="icon-sign-in"></i>
+						</button>
+					</div>
+				</div>
+			</div>
+			<!-- 계정 확인 미성공 -->
+			<div id="notConfirmedAccount" style="display: none;">
+				<h5 class="find-login-info-guide">
+					<b>해당 메일로 가입한 계정을 찾을 수 없습니다.</b><br>
+					가입 시 등록한 이메일 주소를 재입력해 주세요.
+				</h5>
+				<div class="join-message-cover">
+					<div class="form-section">
+						<input type="email" class="form-control playvoice-form"
+							placeholder="이메일"/>
+					</div>
+					<div class="button-section">
+						<button onclick="moveFindDiv('IdResult')" 
+							disabled="disabled" type="button"
+							class="checkInput btn login-info-button btn-main2">찾기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- -----------------------[3. 비밀번호 찾기]-------------------------- -->
+		<!-- [3.1 계정 정보 입력] -->
+		<div id="findLoginInfoFindPassword" class="find-login-info-div" style="display: none;">
+			<div class="find-login-info-guide">
+				<b>아이디</b>와 가입 시 등록한 <b>이메일 주소</b>를 입력해 주세요.
+			</div>
+			<div class="join-message-cover">
+				<div class="form-section">
+					<div class="form-group">
+						<input type="text" class="form-control playvoice-form"
+							placeholder="아이디"/>
+					</div>
+					<div class="form-group">
+						<input type="email" class="form-control playvoice-form"
+							placeholder="이메일"/>
+					</div>
+				</div>
+				<div class="button-section">
+					<button onclick="moveFindDiv(1)" type="button" 
+						class="resetBtn btn login-info-button btn-main">이전</button>
+					<button onclick="moveFindDiv('PasswordResult')" 
+						type="button" disabled="disabled" 
+						class="checkInput btn login-info-button btn-main2">찾기</button>
+				</div>
+			</div>
+		</div>
+		<!-- [3.2 계정 정보 확인] -->
+		<div id="findLoginInfoPasswordResult" class="find-login-info-div" style="display: none;">
+			<!-- 계정 확인 성공 -->
+			<div id="confirmedAccount">
+				<div class="find-login-info-guide">
+					<span>eee0***@n****.com</span>로
+					이메일을 전송했습니다.<br>
+					<b>전송된 이메일에 있는 인증 코드를 입력해 주세요.</b><br>
+					10분 지난 뒤에도 메일이 도착하지 않는다면 재시도해 주세요.
+				</div>
+				<form>
+					<div class="form-section">
+						<input type="password" class="form-control playvoice-form"
+							placeholder="인증 코드"/>
+					</div>
+					<div class="button-section">
+						<button type="button" th:href="@{/auth/password/edit}"
+							disabled="disabled" onclick="location.href=$(this).attr('href')"
+							class="checkInput btn login-info-button btn-main2">다음</button>
+						<button type="button" onclick="moveFindDiv('FindPassword')"
+							class="resetBtn btn login-info-button btn-main" disabled>재시도</button>
+					</div>
+				</form>
+			</div>
+			<!-- 계정 확인 미성공 -->
+			<div id="notConfirmedAccount" style="display: none;">
+				<h5 class="find-login-info-guide">
+					<b>해당 정보로 가입한 계정을 찾을 수 없습니다.</b><br>
+					 아이디와 가입 시 등록한 이메일 주소를 재입력해 주세요.
+				</h5>
+				<div class="join-message-cover">
+					<div class="form-section">
+						<div class="form-group">
+							<input type="text" class="form-control playvoice-form"
+								placeholder="아이디"/>
+						</div>
+						<div class="form-group">
+							<input type="email" class="form-control playvoice-form"
+								placeholder="이메일"/>
+						</div>
+					</div>
+					<div class="button-section">
+						<button onclick="moveFindDiv('PasswordResult')" 
+							type="button" disabled="disabled" 
+							class="checkInput btn login-info-button btn-main2">찾기</button>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- ----------------------[4. 플레이보이스 가입]------------------------- -->
+		<div class="find-login-info-footer">
+			<h5>Become a Member</h5>
+			<div class="join-msg-section">
+				<div>
+					플레이보이스 멤버가 되어 다양한 커뮤니티 학습 앱을 무료로 즐겨보세요
+					<i class="far fa-grin-stars"></i>
+				</div>
+				<div class="join-link">
+					<a th:href="@{/member/registration}">
+						플레이보이스 가입하기</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</div><!-- end of joinFormContainer -->
+<div class="col"></div>
+</div></div>
+
+<!-- footer -->
+<div th:insert="~{/incl/footer2::footer}"></div>
+</section>
+			

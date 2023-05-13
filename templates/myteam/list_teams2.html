@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/myteam_layout2}">
+
+<head>
+<title>My Journey - playvoice</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/myteam.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+ 
+</script>
+</head>
+
+<section layout:fragment="content">
+
+
+<div class="profile-top-cover mt-4 py-1">
+	<h3>
+		My Journey Info
+		<i class="fa fa-plane"></i><br>
+		<small>Check out your journey and carry out the missions</small>
+	</h3>
+	
+	<div class="profile-top-content"><div class="row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-map-marker-alt fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Your Location</span><br class="d-sm-none">
+			<span class="body">Tokyo</span>
+		</div>
+	</div></div>
+</div>
+
+
+<!-- ---------------------------[1. Missions]------------------------------- -->
+<div id="myPointSection" class="my-point-section">
+	<h5>
+		<i class="fa fa-square fa-fw"></i>
+		City Missions
+	</h5>
+	<div class="row no-gutters">
+		<div class="point-info col pl-md-4"><div class="detail mission">
+			<ul class="mission-list">
+				<li><div class="row no-gutters">
+					<div class="col"><div class="mission-num">1</div>
+						<div class="mission-story">
+							당신은 축제에 참여하려고 합니다. <br>오 이런 함께 즐길 친구들이 없네요! 친구를 초대해 볼까요?
+						</div>
+						<div class="real-mission">
+							<i class="fa fa-arrow-right"></i>
+							마이팀 home에 있는 링크를 복사해 친구 3명 플레이보이스에 가입시키기
+						</div>
+					</div>
+					<div class="col-auto align-self-start pl-2">
+						<label class="mission-progress complete" title="미션 완료">미션 완료</label>
+					</div>
+				</div></li>
+				<li><div class="row no-gutters">
+					<div class="col"><div class="mission-num">2</div>
+						<div class="mission-story">
+							해외의 해변의 경치를 즐기고 있는 당신. 갑자기 어느 외국인이 다가와 말을 거네요.<br>
+							도대체 무슨 말을 하는지 모르겠어요.
+						</div>
+						<div class="real-mission">
+							<i class="fa fa-arrow-right"></i>
+							Stack English에 질문 15개, 답변 20개 달기
+						</div>
+					</div>
+					<div class="col-auto align-self-start pl-2">
+						<label class="mission-progress" title="진행 중">진행 중</label>
+					</div>
+				</div></li>
+				<li><div class="row no-gutters">
+					<div class="col"><div class="mission-num">3</div>
+						<div class="mission-story">
+							지나가던 현지 코미디언이 자신의 무대에 오를 것을 요청했어요. 당신의 끼와 지식을 뽐낼 시간!<br>
+							과연 관중들의 반응은 어떨까요?
+						</div>
+						<div class="real-mission">
+							<i class="fa fa-arrow-right"></i>
+							Digest에 글을 등록 후 추천 10개 받기
+						</div>
+					</div>
+					<div class="col-auto align-self-start pl-2">
+						<label class="mission-progress" title="진행 중">진행 중</label>
+					</div>
+				</div></li>
+			</ul>
+			<div class="mission-complete-div" style="display: none;"></div>
+		</div></div>
+			
+	</div>
+	
+</div>
+
+<!-- -------------------------[2. Location Map]----------------------------- -->
+<div id="myPointSection" class="my-point-section">
+	<h5>
+		<i class="fa fa-square fa-fw"></i>
+		Location Information
+	</h5>
+	<div class="play-point-div">
+		<img src="/images/app/mypage/my_location_map.jpg" width="100%">
+	</div>
+	
+</div>
+
+
+
+		
+	
+<div class="text-right" style="color:red;">
+	source :: mypage/journey.html	
+</div>
+</section>

@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>Welcome to Wickret</title>
+<meta name="msapplication-TileColor" content="#005ffe">
+<meta name="theme-color" content="#ffffff">
+<link rel="stylesheet" href="/css/test/welcome_style.css">
+</head>
+<section layout:fragment="content">
+	<div class="wt-loader wt-loader_overlay -visible"></div>
+	<nav class="wt-navbar">
+		<div class="wt-navbar-strip">
+			<div class="wt-navbar-container">
+				<div class="wt-navbar-grid">
+					<div class="wt-navbar-grid-col -left">
+						<div class="wt-navbar-logo" data-magnetic data-cursor="-normal">
+							<a href="/" aria-label="Wickret"><img
+								src="/assets/img/logo.png" srcset="/assets/img/logo@2x.png 2x"
+								alt></a>
+						</div>
+					</div>
+					<div class="wt-navbar-grid-col -right">
+						<div class="wt-navbar-nav" role="navigation">
+							<a class="wt-navbar-nav-item" href=""
+								data-section-target="benefits" data-magnetic
+								data-cursor="-scale"><span class="wt-navbar-nav-item-bound"><span
+									data-text="Benefits">Benefits</span></span></a>
+							<a class="wt-navbar-nav-item" href=""
+								data-section-target="security" data-magnetic
+								data-cursor="-scale"><span class="wt-navbar-nav-item-bound"><span
+									data-text="Security">Security</span></span></a>
+						</div>
+						<div class="wt-navbar-sign">
+							<button class="wt-btn wt-btn_sign" data-section-target="getapp"
+								data-cursor="-default">
+								<span class="wt-btn_sign-bound"><span data-width="#fff"
+									data-text="Download">Download</span></span>
+							</button>
+						</div>
+						<div class="wt-navbar-toggle">
+							<button class="wt-btn wt-btn_menu" aria-label="Menu">
+								<span></span><span></span>
+							</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="wt-navbar-menu">
+			<div class="wt-navbar-menu-fill"></div>
+			<div class="wt-navbar-menu-content">
+				<div class="wt-navbar-menu-container">
+					<div class="wt-navbar-menu-nav" role="navigation">
+						<a class="wt-navbar-menu-nav-item" href=""
+							data-section-target="benefits"><span>Benefits</span></a><a
+							class="wt-navbar-menu-nav-item" href=""
+							data-section-target="security"><span>Security</span></a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</nav>
+	<div class="wt-view" data-controller="homeController" id="view-main">
+		<div class="wt-content" role="main">
+			<header class="wt-hero">
+				<div class="wt-hero-particle">
+					<div class="wt-particle">
+						<div class="wt-particle-item -v1">
+							<s class="wt-sprite -wcard"></s>
+						</div>
+						<div class="wt-particle-item -v2">
+							<s class="wt-sprite -wcard"></s>
+						</div>
+						<div class="wt-particle-item -v3">
+							<s class="wt-sprite -wcard"></s>
+						</div>
+						<div class="wt-particle-item -v4">
+							<s class="wt-sprite -wcard"></s>
+						</div>
+						<div class="wt-particle-item -v5 -dot"></div>
+						<div class="wt-particle-item -v6 -dot"></div>
+						<div class="wt-particle-item -v7 -dot"></div>
+						<div class="wt-particle-item -v8 -dot"></div>
+						<div class="wt-particle-item -v9 -dot"></div>
+						<div class="wt-particle-item -v10 -dot"></div>
+						<div class="wt-particle-item -v11 -dot"></div>
+						<div class="wt-particle-item -v12 -dot"></div>
+						<div class="wt-particle-item -v13 -dot"></div>
+					</div>
+				</div>
+				<div class="wt-hero-content">
+					<div class="wt-hero-body">
+						<div class="wt-hero-container">
+							<div class="wt-hero-header">
+								<div class="wt-hero-header-shape">
+									<div class="wt-hero-header-shape-item -v1"></div>
+									<div class="wt-hero-header-shape-item -v2"></div>
+									<div class="wt-hero-header-shape-item -v3"></div>
+								</div>
+								<div class="wt-hero-header-blend">
+									<h1>
+										Banking <br> <span
+											data-textset='["Reimagined", "Easy", "Fun", "Wickret"]'>Reimagined</span>
+									</h1>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="wt-hero-footer">
+						<div class="wt-hero-demo">
+							<div class="wt-hero-card"></div>
+							<div class="wt-hero-phone">
+								<div class="wt-phone">
+									<div class="wt-phone-shadow"></div>
+									<div class="wt-phone-case"></div>
+									<div class="wt-phone-screen">
+										<div class="wt-phone-screen-video">
+											<video preload="auto" loop muted autoplay playsinline>
+												<source src="/assets/video/hello.mp4" type="video/mp4">
+											</video>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</header>
+			<section class="wt-envelope" id="section-fee">
+				<div class="wt-envelope-fill -tertiary"></div>
+				<div class="wt-envelope-particle">
+					<div class="wt-envelope-particle-item -v1" data-magnetic>
+						<s class="wt-sprite -e-ok"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v2" data-magnetic>
+						<s class="wt-sprite -e-moneybag"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v3" data-magnetic>
+						<s class="wt-sprite -e-clutch"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v4" data-magnetic>
+						<s class="wt-sprite -e-money"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v5" data-magnetic>
+						<s class="wt-sprite -e-clutch"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v6" data-magnetic>
+						<s class="wt-sprite -e-ok"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v7" data-magnetic>
+						<s class="wt-sprite -e-money"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v8" data-magnetic>
+						<s class="wt-sprite -e-moneybag"></s>
+					</div>
+				</div>
+				<div class="wt-envelope-content">
+					<div class="wt-envelope-body">
+						<div class="wt-envelope-container">
+							<div class="wt-envelope-header" data-cursor="-exclusion">
+								<h2>
+									It’s Your Money <br>Stop paying fees
+								</h2>
+							</div>
+							<div class="wt-envelope-text">
+								<p>Fee Free Banking is possible</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-showreel" id="section-benefits">
+				<div class="wt-showreel-content">
+					<div class="wt-showreel-roll">
+						<div class="wt-showreel-roll-inner">
+							<div class="wt-showreel-roll-item" data-cursor="-opaque">
+								<div class="wt-showreel-roll-item-title"
+									data-text="No Monthly Service Fees, Transaction Fee from 0%">No
+									Monthly Service Fees, Transaction Fee from 0%</div>
+								<div class="wt-showreel-roll-item-img">
+									<video preload="auto" loop muted playsinline>
+										<source src="/assets/img/showreel/1.webm?2" type="video/webm">
+										<source src="/assets/img/showreel/1.mp4?2" type="video/mp4">
+									</video>
+								</div>
+							</div>
+							<div class="wt-showreel-roll-item" data-cursor="-opaque">
+								<div class="wt-showreel-roll-item-title"
+									data-text="Anonymous, No Chargebacks">Anonymous, No
+									Chargebacks</div>
+								<div class="wt-showreel-roll-item-img">
+									<video preload="auto" loop muted playsinline>
+										<source src="/assets/img/showreel/2.webm?2" type="video/webm">
+										<source src="/assets/img/showreel/2.mp4?2" type="video/mp4">
+									</video>
+								</div>
+							</div>
+							<div class="wt-showreel-roll-item" data-cursor="-opaque">
+								<div class="wt-showreel-roll-item-title"
+									data-text="Simplify Payment Managment">Simplify Payment
+									Managment</div>
+								<div class="wt-showreel-roll-item-img">
+									<video preload="auto" loop muted playsinline>
+										<source src="/assets/img/showreel/3.webm?2" type="video/webm">
+										<source src="/assets/img/showreel/3.mp4?2" type="video/mp4">
+									</video>
+								</div>
+							</div>
+							<div class="wt-showreel-roll-item" data-cursor="-opaque">
+								<div class="wt-showreel-roll-item-title"
+									data-text="Deposit Money, Move Money">Deposit Money, Move
+									Money</div>
+								<div class="wt-showreel-roll-item-img">
+									<video preload="auto" loop muted playsinline>
+										<source src="/assets/img/showreel/4.webm?2" type="video/webm">
+										<source src="/assets/img/showreel/4.mp4?2" type="video/mp4">
+									</video>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-description">
+				<div class="wt-description-content -top">
+					<div class="wt-description-body">
+						<div class="wt-description-container">
+							<div class="wt-description-grid">
+								<div class="wt-description-grid-col -left">
+									<div class="wt-description-figure -multiple"
+										data-cursor="-exclusion">
+										<img src="/assets/img/figure/1/1.png"
+											srcset="/assets/img/figure/1/1@2x.png 2x" alt><img
+											src="/assets/img/figure/1/2.png"
+											srcset="/assets/img/figure/1/2@2x.png 2x" alt><img
+											src="/assets/img/figure/1/3.png"
+											srcset="/assets/img/figure/1/3@2x.png 2x" alt>
+									</div>
+								</div>
+								<div class="wt-description-grid-col -right">
+									<div class="wt-description-header" data-cursor="-exclusion">
+										<h2>Get Paid early</h2>
+									</div>
+									<div class="wt-description-text">
+										<p>Your paycheck will be automatically deposited up to two
+											days early</p>
+									</div>
+									<div class="wt-description-action">
+										<button class="wt-btn wt-btn_rounded -transparent"
+											data-section-target="getapp" type="button">
+											<span class="wt-btn_rounded-bound"><span
+												data-text="Download">Download</span></span>
+										</button>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-envelope">
+				<div class="wt-envelope-fill -secondary"></div>
+				<div class="wt-envelope-particle">
+					<div class="wt-envelope-particle-item -v1" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v2" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v3" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v4" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v5" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v6" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v7" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v8" data-magnetic>
+						<s class="wt-sprite -e-diamond"></s>
+					</div>
+				</div>
+				<div class="wt-envelope-content">
+					<div class="wt-envelope-body">
+						<div class="wt-envelope-container">
+							<div class="wt-envelope-header" data-cursor="-exclusion">
+								<h2>
+									Customer Service<br> on Your Terms
+								</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-feature">
+				<div class="wt-feature-fill -secondary"></div>
+				<div class="wt-feature-content">
+					<div class="wt-feature-body">
+						<div class="wt-feature-container">
+							<div class="wt-feature-grid">
+								<div class="wt-feature-grid-col -left">
+									<div class="wt-feature-demo">
+										<div class="wt-feature-demo-item -visible">
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 463 463">
+												<defs>
+												<filter id="feaute-demo-filter-1">
+												<feTurbulence type="fractalNoise" baseFrequency="0.01 0.003"
+													stitchTiles="noStitch" numOctaves="5" seed="2"
+													result="warp"></feTurbulence>
+												<feDisplacementMap xChannelSelector="R" yChannelSelector="B"
+													scale="1" in="SourceGraphic" in2="warp"></feDisplacementMap></filter></defs>
+												<image xlink:href="/assets/img/screens/1@2x.png"
+													style="filter:url(#feaute-demo-filter-1)" width="463"
+													height="463" x="0" y="0"></image></svg>
+										</div>
+										<div class="wt-feature-demo-item">
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 463 463">
+												<defs>
+												<filter id="feaute-demo-filter-2">
+												<feTurbulence type="fractalNoise" baseFrequency="0.01 0.003"
+													stitchTiles="noStitch" numOctaves="5" seed="2"
+													result="warp"></feTurbulence>
+												<feDisplacementMap xChannelSelector="R" yChannelSelector="B"
+													scale="1" in="SourceGraphic" in2="warp"></feDisplacementMap></filter></defs>
+												<image xlink:href="/assets/img/screens/2@2x.png"
+													style="filter:url(#feaute-demo-filter-2)" width="463"
+													height="463" x="0" y="0"></image></svg>
+										</div>
+										<div class="wt-feature-demo-item">
+											<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 463 463">
+												<defs>
+												<filter id="feaute-demo-filter-3">
+												<feTurbulence type="fractalNoise" baseFrequency="0.01 0.003"
+													stitchTiles="noStitch" numOctaves="5" seed="2"
+													result="warp"></feTurbulence>
+												<feDisplacementMap xChannelSelector="R" yChannelSelector="B"
+													scale="1" in="SourceGraphic" in2="warp"></feDisplacementMap></filter></defs>
+												<image xlink:href="/assets/img/screens/3@2x.png"
+													style="filter:url(#feaute-demo-filter-3)" width="463"
+													height="463" x="0" y="0"></image></svg>
+										</div>
+									</div>
+								</div>
+								<div class="wt-feature-grid-col -right">
+									<div class="wt-feature-items" role="list">
+										<div class="wt-feature-item -active" role="listitem">
+											Real-time alerts <s class="wt-sprite -e-alarm"></s> next day
+											settlement
+										</div>
+										<div class="wt-feature-item" role="listitem">
+											Flexible billing <s class="wt-sprite -e-book"></s> and
+											payments
+										</div>
+										<div class="wt-feature-item" role="listitem">
+											Banking for all <s class="wt-sprite -e-darts"></s> personal,
+											business
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-advantage" id="section-security">
+				<div class="wt-advantage-particle">
+					<div class="wt-particle">
+						<div class="wt-particle-item -v20">
+							<s class="wt-sprite -e-key"></s>
+						</div>
+						<div class="wt-particle-item -v21">
+							<s class="wt-sprite -e-key"></s>
+						</div>
+						<div class="wt-particle-item -v22">
+							<s class="wt-sprite -e-key"></s>
+						</div>
+						<div class="wt-particle-item -v5 -dot"></div>
+						<div class="wt-particle-item -v6 -dot"></div>
+						<div class="wt-particle-item -v7 -dot"></div>
+						<div class="wt-particle-item -v8 -dot"></div>
+						<div class="wt-particle-item -v9 -dot"></div>
+						<div class="wt-particle-item -v10 -dot"></div>
+						<div class="wt-particle-item -v11 -dot"></div>
+						<div class="wt-particle-item -v12 -dot"></div>
+						<div class="wt-particle-item -v13 -dot"></div>
+					</div>
+				</div>
+				<div class="wt-advantage-content">
+					<div class="wt-advantage-body">
+						<div class="wt-advantage-container">
+							<div class="wt-advantage-header">
+								<div class="wt-advantage-header-shape">
+									<div class="wt-advantage-header-shape-item -v1"></div>
+									<div class="wt-advantage-header-shape-item -v2"></div>
+									<div class="wt-advantage-header-shape-item -v3"></div>
+								</div>
+								<div class="wt-advantage-header-blend">
+									<h2>Security</h2>
+								</div>
+							</div>
+							<div class="wt-advantage-details">
+								<div class="wt-advantage-grid">
+									<div class="wt-advantage-grid-col">
+										<div class="wt-advantage-text">
+											<p>
+												<b>Superior Security.</b> Security and fraud prevention is
+												at the core of our business.
+											</p>
+										</div>
+									</div>
+									<div class="wt-advantage-grid-col">
+										<div class="wt-advantage-text">
+											<p>
+												<b>Fraud Protection.</b> Our fraud tools can help your
+												business minimize lost sales.
+											</p>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-envelope">
+				<div class="wt-envelope-fill -tertiary"></div>
+				<div class="wt-envelope-particle -lg">
+					<div class="wt-envelope-particle-item -v1" data-magnetic>
+						<s class="wt-sprite -e-ok"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v2" data-magnetic>
+						<s class="wt-sprite -e-moneybag"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v3" data-magnetic>
+						<s class="wt-sprite -e-clutch"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v4" data-magnetic>
+						<s class="wt-sprite -e-money"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v5" data-magnetic>
+						<s class="wt-sprite -e-clutch"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v6" data-magnetic>
+						<s class="wt-sprite -e-ok"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v7" data-magnetic>
+						<s class="wt-sprite -e-money"></s>
+					</div>
+					<div class="wt-envelope-particle-item -v8" data-magnetic>
+						<s class="wt-sprite -e-moneybag"></s>
+					</div>
+				</div>
+				<div class="wt-envelope-content">
+					<div class="wt-envelope-body">
+						<div class="wt-envelope-container">
+							<div class="wt-envelope-header" data-cursor="-exclusion">
+								<h2>
+									A powerful routing<br> and payout engine
+								</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-description">
+				<div class="wt-description-content">
+					<div class="wt-description-body">
+						<div class="wt-description-container">
+							<div class="wt-description-grid">
+								<div class="wt-description-grid-col -left">
+									<div class="wt-description-header" data-cursor="-exclusion">
+										<h2>Borderless Account</h2>
+									</div>
+									<div class="wt-description-text">
+										<p>Receive money with international bank details, track
+											your transactions.</p>
+									</div>
+								</div>
+								<div class="wt-description-grid-col -right">
+									<div class="wt-description-figure -multiple"
+										data-cursor="-exclusion">
+										<img src="/assets/img/figure/2/1.png"
+											srcset="/assets/img/figure/2/1@2x.png 2x" alt><img
+											src="/assets/img/figure/2/2.png"
+											srcset="/assets/img/figure/2/2@2x.png 2x" alt><img
+											src="/assets/img/figure/2/3.png"
+											srcset="/assets/img/figure/2/3@2x.png 2x" alt><img
+											src="/assets/img/figure/2/4.png"
+											srcset="/assets/img/figure/2/4@2x.png 2x" alt>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+			<section class="wt-getapp" id="section-getapp">
+				<div class="wt-getapp-fill"></div>
+				<div class="wt-getapp-fill2"></div>
+				<div class="wt-getapp-content">
+					<div class="wt-getapp-body -offset">
+						<div class="wt-getapp-container">
+							<div class="wt-getapp-header" data-cursor="-exclusion">
+								<h2>
+									Download the app <br> to get started
+								</h2>
+							</div>
+							<div class="wt-getapp-store">
+								<div class="wt-getapp-store-item">
+									<button class="wt-btn wt-btn_store -apple" disabled>
+										<span class="wt-btn_store-ico"><svg
+												class="wt-svgsprite -apple">
+												<use xlink:href="/assets/img/sprites/svgsprites.svg#apple"></use></svg></span><span
+											class="wt-btn_store-title">Soon on <br>
+										<b>App Store</b></span>
+									</button>
+								</div>
+								<div class="wt-getapp-store-item">
+									<button class="wt-btn wt-btn_store -gplay" disabled>
+										<span class="wt-btn_store-ico"><svg
+												class="wt-svgsprite -gplay-c">
+												<use xlink:href="/assets/img/sprites/svgsprites.svg#gplay-c"></use></svg></span><span
+											class="wt-btn_store-title">Soon on <br>
+										<b>Google Play</b></span>
+									</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="wt-getapp-footer">
+						<div class="wt-getapp-footer-container">
+							<a class="wt-getapp-dev" href="//cuberto.com" target="_blank"
+								aria-label="Design &amp; Development by Cuberto" rel="noopener"><img
+								src="/assets/img/cuberto.png"
+								srcset="/assets/img/cuberto@2x.png 2x" alt><span>Design
+									& Development</span></a>
+						</div>
+					</div>
+				</div>
+			</section>
+		</div>
+	</div>
+	<script src="/js/test/welcome_motion.js" defer></script>
+	<noscript>
+		<link rel="stylesheet" href="/assets/css/noscript.css?v=1.0.28">
+	</noscript>
+</section>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout2}">
+<head>
+<title>group test - playvoice</title>
+
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	$("#getKeywordsBtn").click(function(){
+		var text = $("#inputTextArea").val();
+		
+		//--------------
+		getKeyords(text);
+		//--------------
+	});
+});
+
+function getKeyords(text) {
+	var key = '7652916584591861607';
+	var request_id = 'lazyhysong';
+	var obj = [key, request_id, text];
+	
+	$.ajax({
+		type: 'POST',
+		url: 'http://api.adams.ai/datamixiApi/keywordextract',
+		data : obj,
+		success: function(result) {
+			displayKeywords(result);
+		}
+	}); //end ajax   
+};
+
+function displayKeywords(result) {
+	/* var keywordData = JSON.parse(result);
+	
+	for(var i = 0; i < keywordData.length; i++) {
+		var category = meanings[i][0];	//	품사
+		var meaning = meanings[i][1];	//	뜻
+		$("#meaning" + i + "0").html("[" + category + "]");
+		$("#meaning" + i + "0xs").html("[" + category + "]");
+		$("#meaning" + i + "1").html(meaning);
+		$("#meaning" + i + "1xs").html(meaning);
+	} */
+	$("#keywordArea").text(result.return_type);
+}
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div id="playPointSection" class="play-point-guide-section row no-gutters mt-4">
+	<div class="col-12">
+		<div class="py-1">내용 입력</div>
+		<textarea id="inputTextArea" class="playvoice-form form-control"
+			style="height: 100px;"></textarea>
+		<div class="py-1">
+			<button id="getKeywordsBtn" class="btn btn-main2" type="button" 
+				style="width: 100px;">추출</button>
+		</div>
+	</div>
+	<div class="col-12 py-3">
+		<div class="py-1">키워드 추출</div>
+		<div id="keywordArea" class="p-3 border rounded"></div>
+	</div>
+</div><!-- end of playPointSection -->
+
+</section><!-- end of content -->

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+<head>
+	<title>Playvoice-Admin</title>
+</head>
+
+<section layout:fragment="content">
+
+<div class="row">
+	<div class="col-md-8">
+		Admin Index(8)
+		
+	</div>
+
+	<div class="col-md-4">
+		로그인 영역(4)
+		<div class="row">
+			<div class="col-md-12">
+				<h3>Access Status</h3>
+				<div style="border:1px solid #399FA8; padding:10px;">
+					<span>방문자 : [[${todayVisitorNum}]]명</span><br>
+					<span>접속자 : [[${accessCountOfToday}]]명</span><br>
+					<span>현재 로그인 수 : [[${#lists.size(currentLoginList)}]]명</span>
+				</div>
+			</div>
+		</div>
+		<div class="row">
+			<div class="col-md-12">
+				<h3 th:text="${#lists.size(currentLoginList)} + ' members Logged on'">로그인 회원</h3>
+				<div style="border:1px solid #399FA8; padding:10px;">
+					<ul>
+						<li th:each="loggedMember, status:${currentLoginList}" >
+							[[${loggedMember.alias}]]([[${loggedMember.level}]])
+						</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+</section>

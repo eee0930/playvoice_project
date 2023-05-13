@@ -1,0 +1,171 @@
+@import url('https://fonts.googleapis.com/css?family=Nunito+Sans|Roboto');
+ 
+body { 
+	font-family: -apple-system, BlinkMacSystemFont,'Nunito sans',  
+		"Segoe UI", 'Roboto', "NanumGothic", "함초롬바탕",  sans-serif; 
+	font-size: 14px;
+}
+/* 헤딩 정의 */
+h1, .h1, h2, .h2, h3, .h3 {
+	margin-top: 10px;
+	margin-bottom: 10px;
+	font-family: "Segoe UI","NanumGothic"; 
+	color: #1b1f40;	
+}
+h3{
+	font-size:20px;
+}
+
+
+
+/*********************
+/*    폼 정의            */
+/********************/
+.formContainer{
+	padding : 30px 30px;
+	margin-bottom : 30px;
+	font-family: "Segoe UI","NanumGothic"; /* 추가 */
+
+	box-shadow: rgba(187, 187, 187, 1) 0 0px 20px -1px;
+	-webkit-box-shadow: rgba(187, 187, 187, 1) 0 0px 20px -1px;
+	border-radius: 10px;
+	-webkit-border-radius: 10px;
+}
+
+/* formContainer내부에서 지정할 타이틀 */
+.formContainer h3, .errorMsgs h3{
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif;
+	font-size : 20px;
+	color: #969696;
+	border-bottom: 1px solid #F5F5F5;
+	padding: 0px 0px 10px 0px;
+	margin: -10px 0px 20px 0px;
+}
+.formContainer h3 > span, .errorMsgs h3 > span{
+	display: block;
+	font-size: 11px;
+	color: #C4C2C2;
+}
+
+/* 임시) 폼 레벨과 input 태그 간의 간격을 줄인다*/
+.headerLabel{
+	padding-right: 5px;
+}
+
+.form-horizontal {
+	top: 0;
+	right: 10px;
+}
+
+.form-group {
+	margin-bottom: 6px;
+}
+
+.control-label{
+	font-size: 15px; 							/* 추가 */
+	font-family: "Segoe UI","나눔바른고딕"; 		/* 추가 */
+	color : #969696;
+}
+.form-control {
+	border-radius: 0px;
+	height: 36px;
+	-webkit-box-shadow: inset 0 0px 0px rgba(0, 0, 0, .075);
+	box-shadow: inset 0 0px 0px rgba(0, 0, 0, .075);
+}
+
+
+.resMsgs, .errorMsgs {
+	margin-top: 30px; 
+	padding-top:10px;
+}
+
+.resMsgs pre, .errorMsgs pre{
+	background-color : #FFFFFF;
+	color : #FF4500;
+	font-family:"Trebuchet MS", Arial, Helvetica, sans-serif,"NanumGothic";
+	font-size : 14px;
+	border-radius: 0px;
+}
+
+.lp0{
+	padding-left: 0px;
+}
+
+
+/*********************
+/*    테이블 정의            */
+/********************/
+
+.table{
+	font-family: "Open Sans", "NanumGothic",sans-serif;
+	font-size: 0.8em;
+}
+
+/* th 정의 */
+.table-striped>tbody>tr:nth-child(odd)>th, .thead>th{
+	text-align: center;
+	font-family: "NanumGothic";
+	font-size: 0.85em;
+	color: #ffffff;
+	background-color:#36304A;/*녹색, #5b465d*/
+}
+
+.table>thead>tr>th, .table>tbody>tr>th{
+	border:2px solid #36304A;
+	line-height: 1.8;
+}
+
+
+/*********************
+/*    테이블 컬럼, sortMark */
+/********************/
+thead a:hover, thead a:link, thead a:visited{
+	color: white;
+	text-decoration: none;	
+}
+
+thead a:hover{
+	text-decoration: underline;	
+	color: #399FA8;
+}
+
+.sortMark {
+	padding-left:10px; 
+	text-align:right;
+	display: none;
+}
+
+
+/*-----------------------------------
+			incl/header.html 
+------------------------------------*/
+
+.logoSection{
+	background-color: #1D2235;
+}
+.menuSection{
+	background-color: #ffffff; 
+}
+.headerMunu1{
+	background-color: #399FA8; 
+	border-right: 0px;
+	padding: 5px;
+	color: #ffffff;
+}
+
+
+
+
+/*-----------------------------------
+			incl/adminMenu.html 
+------------------------------------*/
+div.menuDiv{
+	font-family: "Segoe UI", "NanumGothic";
+	font-size: 0.9em;	
+}
+	
+.menuTitle{
+	color:#1D2235; 
+	font-size: 1.1em;
+	font-weight: bold;
+}

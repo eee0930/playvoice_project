@@ -1,0 +1,161 @@
+/* ========================================================================== */
+/* 							Playvoice App Banner							  */
+/* ========================================================================== */
+/* --------------------------[1. 배너 크기별로 배치]------------------------------- */
+.playvoice-app-ad {
+	border: 0;
+	margin: 0 auto;
+	padding: 0;
+	width: 100%;
+	text-align: center;
+}
+/* [1.1 가로 긴 배너] */
+.playvoice-app-ad.horizon-ad-cover-section {
+	max-width: 728px;
+	height: 120px;
+}
+@media (max-width: 991.5px) {
+	.playvoice-app-ad.horizon-ad-cover-section {
+		max-width: 500px;
+		height: 100px;
+	}
+}
+@media (max-width: 575.5px) {
+	.playvoice-app-ad.horizon-ad-cover-section {
+		max-width: unset;
+		height: 50px;
+	}
+}
+
+/* [1.2 정사각형 배너] */
+.playvoice-app-ad.square-ad-cover-section {
+	width: 250px;
+	height: 250px;
+}
+@media (max-width: 575.5px) {
+	.playvoice-app-ad.horizon-ad-cover-section {max-width: unset;}
+}
+
+/* [1.3 사각형 배너] */
+.playvoice-app-ad.rectangle-ad-cover-section {
+	max-width: 300px;
+	height: 250px;
+}
+@media (max-width: 575.5px) {
+	.playvoice-app-ad.horizon-ad-cover-section {max-width: unset;}
+}
+
+/* [1.4 세로 긴 배너] */
+.playvoice-app-ad.vertical-ad-cover-section {
+	width: 160px;
+	height: 600px;
+}
+
+/* ------------------------[2. 모든 앱 순서대로 슬라이드 배치]-------------------------- */
+.playvoice-app-ad.random-ad {
+	-webkit-animation: slideImage 1s ease;
+	animation: slideImage 1s ease;
+}
+
+/* -----------------------------[3. 배너 링크 영역]------------------------------- */
+.playvoice-app-ad .ad-link-cover {
+	border-radius: 0.5rem;
+	display: -ms-flexbox;
+	display: flex;
+	-ms-flex-wrap: wrap;
+	flex-wrap: wrap;
+	width: 100%;
+	height: 100%;
+}
+.playvoice-app-ad .ad-link-cover:hover {
+	-ms-filter: brightness(1.2);
+	filter: brightness(1.2);
+}
+.playvoice-app-ad .ad-link-cover.banner-snow {position: relative;}
+.playvoice-app-ad .ad-link-cover.banner-snow:after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: url('/images/common/images/snow_animation.gif');
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-position: center;
+	opacity: 0.7;
+}
+/* 가로 배너 */
+.horizon-ad-cover-section .ad-title-section {display: none;}
+.horizon-ad-cover-section .ad-image-section,
+.horizon-ad-cover-section .ad-copy-section {
+	-ms-flex: 0 0 50%;
+	flex: 0 0 50%;
+	max-width: 50%;
+	height: 100%;
+}
+/* 정사각형 배너 */
+.square-ad-cover-section .ad-copy-section {display: none;}
+.square-ad-cover-section .ad-title-section,
+.square-ad-cover-section .ad-image-section {
+	-ms-flex: 0 0 100%;
+	flex: 0 0 100%;
+	max-width: 100%;
+}
+/* 사각형 배너 */
+.rectangle-ad-cover-section .ad-copy-section {display: none;}
+.rectangle-ad-cover-section .ad-title-section,
+.rectangle-ad-cover-section .ad-image-section {
+	-ms-flex: 0 0 100%;
+	flex: 0 0 100%;
+	max-width: 100%;
+}
+/* 세로 배너 */
+.vertical-ad-cover-section .ad-title-section,
+.vertical-ad-cover-section .ad-image-section,
+.vertical-ad-cover-section .ad-copy-section {
+	-ms-flex: 0 0 100%;
+	flex: 0 0 100%;
+	max-width: 100%;
+}
+
+/* [3.3 딕테이션북] */
+.playvoice-app-ad .ad-link-cover.app-DictationBook .ad-image-section {
+	background-image: url('/images/common/characters/competition.gif');
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+}
+
+@-webkit-keyframes paulNod {
+	0%, 79%, 80%, 88%, 96%, 100% {
+		background-image: url('/images/common/characters/paul_nod.png');
+	}
+	84%, 92% {
+		background-image: url('/images/common/characters/paul_nod2.png');
+	}
+}
+@keyframes paulNod {
+	0%, 79%, 80%, 88%, 96%, 100% {
+		background-image: url('/images/common/characters/paul_nod.png');
+	}
+	84%, 92% {
+		background-image: url('/images/common/characters/paul_nod2.png');
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

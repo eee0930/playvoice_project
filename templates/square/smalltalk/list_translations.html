@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="list">
+	<div th:each="translation, iter : ${translationList}" 
+		class="memberTranslation member-trans-div"
+		th:classappend="${iter.index == 0}? 'writer':''">
+		<input class="translationId" type="hidden" th:value="${translation.tid}">
+		<input class="translatorId" type="hidden" th:value="${translation.personacon.pid}">
+		<div class="member-trans-text" th:utext="${#strings.replace(translation.content, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"></div>
+		
+		<div class="editTransDiv" style="display: none">
+			<textarea class="memberTransComment form-control playvoice-form"
+				th:text="${translation.content}"></textarea>
+			<div class="row no-gutters"><div class="col-sm d-none d-sm-inline-block"></div>
+				<div class="button-section col-sm-auto col-6">
+					<button class="cancelMemberTransBtn btn btn-playsquare2 btn-sm" 
+						type="reset">취소</button>
+				</div>
+				<div class="button-section col-sm-auto col-6">
+					<button class="editMemberTransBtn btn btn-smalltalk2 btn-sm" 
+						type="button">수정 완료 <i class="fa fa-glass-martini-alt"></i></button>
+				</div>
+			</div>
+		</div>
+		<div class="member-trans-info row no-gutters"
+			th:with="personacon = ${translation.personacon}">
+			<div class="date col-auto align-self-center"
+				th:text="${#dates.format(translation.regDate, 'yyyy-MM-dd')}"></div>
+			<div class="etc col btn-group align-self-center">
+				<a class="dropdown-toggle ml-3" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-left px-3" role="menu">
+				    <li class="editTranslationBtn dropdown-item text-center"
+				    	th:if="${session.userContainer?.personacon?.pid == personacon.pid} 
+	    				or ${session.userContainer?.personacon?.memberType} == 'A'">수정</li>
+				    <li class="reportTranslationBtn dropdown-item text-center"
+				    	th:unless="${session.userContainer?.personacon?.pid == personacon.pid} 
+	    				or ${session.userContainer?.personacon?.memberType} == 'A'">신고</li>
+				</ul>
+			</div><div class="w-100 d-sm-none"></div>
+			<div class="col-auto align-self-center">
+				<i th:if="${iter.index == 0}" class="fa fa-list-alt fa-fw"></i>
+				translated by <span class="alias">[[${personacon.alias}]]</span>
+			</div>
+			<div class="col-auto align-self-center px-2">
+				<div th:replace="~{/incl/user_personacon::user_sm}"></div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+</html>

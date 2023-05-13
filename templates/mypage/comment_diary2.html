@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout2}">
+
+<head>
+<title>My Comment Diary - 플레이보이스(playvoice)</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [페이지 쪽수번호에 따라 디자인 변경]-------------------------------------------------
+	changeJournalPageStyle($("#diaryRealPage"));
+	
+	// [코멘트 문단 줄 정리/ 요일정보를 영문으로 변경]-----------------------------------------
+	organizeParagraphSize();
+	changeWeekStyle();
+	
+	// [다이어리 표지 보이기 (pagination 클릭 이벤트)]-------------------------------------
+	$("#displayJournalCover").click(function(){
+		displayJournalCover($(this));
+	});
+	
+	// [다이어리 코멘트 페이지 보이기 (pagination 클릭 이벤트)]-------------------------------
+	$(".displayCommentPage").click(function(){
+		displayCommentPage($(this));
+	});
+	
+	// [다이어리 페이지 슬라이드로 넘기기]-------------------------------------------------
+	var totalDiaryPage = $(".journal-page").length; //다이어리 마지막 페이지 번호
+	$("#myJournalSwipeArea").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var diaryPage = $("#diaryRealPage").val(); 
+			if(direction == "left") {
+				if(diaryPage >= totalDiaryPage) {
+					$("#diaryRealPage").val(totalDiaryPage);
+					return;
+				} else {
+					diaryPage++;
+					displayCommentPage($(".page-" + diaryPage));
+				} 
+			} else if(direction == "right") {
+				if(diaryPage == 0) {
+					$("#diaryRealPage").val("0");
+					return;
+				} else {
+					diaryPage--;
+					if(diaryPage == 0) {
+						// 다이어리 표지 페이지로 이동할 경우
+						displayJournalCover($("#displayJournalCover"));
+					} else if(diaryPage > 0) {
+						// 코멘트 페이지로 이동할 경우
+						displayCommentPage($(".page-" + diaryPage));
+					}
+				}
+			}
+		},
+		allowPageScroll:"auto"
+	});
+	
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+/**
+ * 다이어리 표지를 보여줌
+ */
+function displayJournalCover(obj) {
+	$("#jounalDiaryCoverageDiv").show();
+	$("#openDiaryDiv").hide();
+	
+	$(".journal-page").removeClass("active");
+	$(obj).addClass("active");
+	
+	$("#diaryRealPage").val("0");
+}
+
+/**
+ * 다이어리 코멘트를 보여줌
+ */
+function displayCommentPage(obj) {
+	var diaryPage = $(obj).attr("data-diaryPage");
+	
+	$("#jounalDiaryCoverageDiv").hide();
+	$("#openDiaryDiv").show();
+	$("#openDiaryDiv .journalCommentPage").show();
+	$(".diary-book-backpage").removeClass("hide-back");
+	
+	$(".journal-page").removeClass("active");
+	$(obj).addClass("active");
+	$("#diaryRealPage").val(diaryPage);
+	
+	changeJournalPageStyle($("#diaryRealPage"));
+	organizeParagraphSize();
+}
+
+/**
+ * 페이지마다 디자인 변경하기
+ */
+function changeJournalPageStyle(diaryRealPage) {
+	$("#openDiaryDiv").removeClass("page-style-0 page-style-1 page-style-2");
+	if($(diaryRealPage).val() > 0) {
+		var styleNum = $(diaryRealPage).val() % 3;
+		$("#openDiaryDiv").addClass("page-style-" + styleNum);
+	}
+}
+
+/**
+ * 다이어리 한페이지에 다른 날짜의 댓글이 4개 이상일 경우 코멘트를 각각 한줄까지만 보여주기
+ * (코멘트의 날짜가 많이 찍힐 수록 문단의 길이가 늘어나는데 다이어리 안에 코멘트를 모두 보여주기 위해 한줄로 줄인다)
+ */
+function organizeParagraphSize() {
+	$(".journalReplies").each(function(index, element){
+		var regDateSize = $(element).find("h5").length;
+		if(regDateSize > 3) {
+			$(element).addClass("short");
+		}
+	});
+}
+
+/**
+ * 다이어리 날짜 요일 스타일 변경
+ */
+ function changeWeekStyle() {
+	$(".journalReplies h5").each(function(index, element){
+		var diaryDates = $(element).html().split("(");
+		var dateStyleAppend = diaryDates[0] + "<span>(" + diaryDates[1] + "</span>";
+		$(element).html(dateStyleAppend);
+	});
+}
+
+
+</script>
+<style type="text/css">
+@font-face {
+	font-family: 'Cafe24Simplehae'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_twelve@1.1/Cafe24Simplehae.woff') format('woff'); 
+	font-weight: normal; font-style: normal; 
+}
+</style>
+
+</head>
+
+<section layout:fragment="content">
+
+<div th:insert="~{/mypage/incl/mypage_top_menu2::menuJourney}"></div>
+
+<div class="profile-top-cover mt-4 py-1">
+	<h3>
+		My Journey Log
+		<i class="fas fa-pen-nib fa-fw"></i><br>
+		<small>
+		<i class="fa fa-quote-left"></i>
+		<span class="kor">다른 곳으로 가는 이유는 우리가 가는 길에 무엇이 있는지 보기 위함이다.</span>
+		<i class="fa fa-quote-right"></i>
+		</small>
+	</h3>
+	
+	<div class="profile-top-content"><div class="row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-pen-fancy fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Comments Log</span>
+			<span class="body">53</span>
+		</div>
+	</div></div>
+</div>
+
+
+<div id="myJournalSection" class="my-journal-section mt-4"
+	th:with="tribeType = 'P', memberType = 'G', alias = 'lazyhysong'">
+<!-- --------------------------[1. my journal]------------------------------ -->
+<div class="row no-gutters"><div class="col-lg"></div>
+<div id="myJournalSwipeArea" class="diary-empty-section col-lg-11">
+	<input id="diaryRealPage" type="hidden" 
+		th:value="${#lists.size(replyList) > 0}? ${currentPage}:'0'"/>
+	<!-- [1.1 다이어리 표지] -->
+	<div id="jounalDiaryCoverageDiv" class="row no-gutters"
+		 th:style="${replyList}?'display: none;':''">
+		<div class="col-md-3"></div>
+		<div th:class="'journal-diary-cover-half col-md-6 tribe-' + ${tribeType}">
+			<div class="tribe-logo"></div>
+			<div class="diary-alias" th:text="${alias}"></div>
+		</div>
+	</div><!-- end of jounalDiaryCoverageDiv -->
+	
+	<div id="openDiaryDiv" th:style="${replyList}?'':'display: none;'">
+		<div class="diary-book-cover"></div>
+		<div class="diary-book-backpage"></div>
+		<!-- [1.3 다이어리 코멘트 페이지] -->
+		<div th:if="${replyList}" class="journalCommentPage my-journal-page-cover row no-gutters">
+			<!-- 일지 (왼쪽 페이지) -->
+			<div class="journalReplies col-md-6 page-left" 
+				th:classappend="${#lists.size(replyList) > 6}? 'mobile-fold':''"
+				th:with="replySize = ${#lists.size(replyList)}">
+				<th:block th:each="reply, iter : ${replyList}" 
+					th:if="${iter.index < 6}">
+					<h5 th:if="${(iter.index == 0) OR (iter.index > 0 && 
+						regDate[iter.index-1] != regDate[iter.index])}">
+						[[${regDate[iter.index]}]]
+					</h5>
+					<div>
+					<div th:if="${(iter.count == replySize || iter.count == 6) 
+						OR (iter.index < replySize && 
+						regDate[iter.index+1] != regDate[iter.index])}" 
+						class="last-comment-check"></div>
+					<div th:class="'journal-comment-cover row no-gutters app-' + 
+						${appName[iter.index]}">
+						<div class="line-empty-section col-auto">
+							<label th:title="${appName[iter.index]}"></label>
+						</div>
+						<div class="comment-section col" th:href="@{/square/babel/list/eng}"
+							onclick="location.href=$(this).attr('href')">
+							<span th:title="${reply}" th:utext="${reply}"></span> 
+							<span th:if="${appName[iter.index]} == 'PlayvoiceBook_Reply'" 
+								title="답글 수" class="replies-size">12</span>
+						</div>
+					</div>
+					</div>
+				</th:block>
+				<div class="diary-margin left">[[${(currentPage * 2) - 1}]]</div>
+			</div>
+			<!-- 일지 (오른쪽 페이지) -->
+			<div class="journalReplies col-md-6 page-right" 
+				th:classappend="${#lists.size(replyList) < 7}? 'mobile-fold':''"
+				th:with="replySize = ${#lists.size(replyList)}">
+				<th:block th:each="reply, iter : ${replyList}" 
+					th:if="${iter.index > 5}">
+					<h5 th:if="${(iter.index == 6) OR (iter.index > 6 && 
+						regDate[iter.index-1] != regDate[iter.index])}">
+						[[${regDate[iter.index]}]]
+					</h5>
+					<div th:if="${(iter.count == replySize) OR (iter.index < replySize && 
+						regDate[iter.index+1] != regDate[iter.index])}" 
+						class="last-comment-check"></div>
+					<div th:class="'journal-comment-cover row no-gutters app-' + 
+						${appName[iter.index]}">
+						<div class="line-empty-section col-auto">
+							<label th:title="${appName[iter.index]}"></label>
+						</div>
+						<div class="comment-section col" th:href="@{/square/smalltalk/view}"
+							onclick="location.href=$(this).attr('href')">
+							<span th:title="${reply}" th:utext="${reply}"></span> 
+							<span th:if="${appName[iter.index]} == 'PlayvoiceBook_Reply'" 
+								title="답글 수" class="replies-size">12</span>
+						</div>
+					</div>
+				</th:block>
+				<div class="diary-margin right">[[${currentPage * 2}]]</div>
+			</div>
+		</div>
+	</div><!-- end of openDiaryDiv -->
+	
+	<!-- [1.4 다이어리 페이지] -->				
+	<div class="my-journal-pagination">
+		<ul th:if="${replyList}" class="journal-page-list">
+			<li id="displayJournalCover" class="journal-page" title="일지 표지">
+				<i class="fa fa-book"></i></li>
+			<li th:each="num: ${#numbers.sequence(1,currentPage)}" 
+				th:class="'displayCommentPage journal-page page-' + ${num}" 
+				th:data-diaryPage="${num}"
+				th:classappend="${num == currentPage}? 'active':''">
+				<a><i class="fa fa-circle"></i></a></li>
+			<li class="journal-page">
+				<i class="fa fa-angle-right"></i></li>
+		</ul>
+		<ul th:unless="${replyList}" class="journal-page-list">
+			<li id="displayJournalCover" class="journal-page active" title="일지 표지">
+				<i class="fa fa-book"></i></li>
+		</ul>
+	</div>
+	
+</div><!-- end of myJournalSwipeArea -->
+<div class="col-lg"></div></div>
+
+
+	
+</div><!-- end of myJournalSection -->
+
+
+</section>

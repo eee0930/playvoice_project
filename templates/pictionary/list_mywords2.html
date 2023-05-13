@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/pictionary_layout2}">
+<head>
+<title>Pictionary My Words - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:src="@{/js/app/text.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	
+	$(".report-alarm-cover").click(function(){
+		$("#confirmWord_modal").modal({
+			show : true
+		});
+	});
+	
+	
+}); // end of ready
+
+function movePictionary() {
+	location.href="/pictionary/word/view2";
+}
+
+function movePictionary2() {
+	location.href="/pictionary/word/view2";
+}
+
+function removeRequest(rid) {
+	$(".editRequest[data-rid='" + rid + "']").remove();
+	if($(".editRequest").length < 1) {
+		$("#myReportSection").hide();
+	}
+}
+</script> 
+</head>
+
+<section layout:fragment="content">
+
+<!--/* ----------------------[word request Modal]------------------------ */-->
+<div id="confirmWord_modal" class="piction-request-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document"
+		th:insert="~{/pictionary/incl/edit_word2::request}"></div>
+</div>
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::menu}"></div>
+<div id="menuSection" th:insert="~{/pictionary/incl/mypictionary_menu2::myPictionaryMenu}"></div>
+<div class="tab-content mt-4" th:with="totalPp=1242, abovePp=1532, ranking=100">
+
+<!-- --------------------------[1. 단어 수정 요청 알람]---------------------------- -->
+<div id="myReportSection" class="report-alarm-section px-md-3">
+	<div class="view-word-list-guide">
+		<div class="sub-title d-none d-md-block">
+			<span class="alias">
+				<i class="fa fa-quote-left"></i>
+				lazyhysong
+				<i class="fa fa-quote-right"></i>
+			</span>
+			님이 작성한 단어 <span class="word">important</span> 가 수정되었음을 알려드립니다.
+			<!-- 님이 작성한 단어에 대한 수정 요청입니다. -->
+		</div>
+		<div class="sub-title d-md-none">
+			단어 수정 요청 목록 <i class="fa fa-edit"></i>
+		</div>
+	</div>
+		
+	<div class="none-report-section row no-gutters">
+		<div class="image-section col-auto align-self-center text-center">
+			<img src="/images/common/icon/icon_paper.png" class="no-word-report" 
+				alt="플레이보이스 픽셔너리">
+		</div>
+		<div class="col align-self-center">
+			<div class="detail-body"><div class="quote-cover">
+				아래 요청된 단어를 클릭하여 내용을 확인 후 요청 반영 유무를 선택해 주세요.
+			</div></div>
+		</div>
+	</div>
+	
+	<div class="report-list-section row no-gutters">
+		<div class="editRequest report-alarm-cover col-md-auto col-6 p-2"
+			data-rid="123">
+			<div class="alarm-cover">
+				<div class="report-alias">
+					<i class="fa fa-quote-left"></i>MEMO<i class="fa fa-quote-right"></i>
+					<span>님의 요청</span>
+				</div>
+				<div class="report-quote">
+					<div class="report-title word">
+						<i class="fa fa-cube fa-fw"></i> play
+					</div>
+					<div class="report-date">2019-10-17</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="editRequest report-alarm-cover col-md-auto col-6 p-2"
+			data-rid="124">
+			<div class="alarm-cover">
+				<div class="report-alias">
+					<i class="fa fa-quote-left"></i>MEMO<i class="fa fa-quote-right"></i>
+					<span>님의 요청</span>
+				</div>
+				<div class="report-quote">
+					<div class="report-title word">
+						<i class="fa fa-cube fa-fw"></i> have
+					</div>
+					<div class="report-date">2019-10-17</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+</div><!-- end of myReportSection -->
+
+
+<!-- 픽셔너리 받은 좋아요 수 (Mobile ver.) -->
+<div class="content-like-count-section d-md-none">
+	<div class="like-count-character">
+		<img src="/images/common/images/43_paper.png" class="like-count-image">
+	</div>
+	<div class="total-heart box-list-mobile box-white"><div class="row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-heart"></i></label>
+		</div>
+		<div class="detail col align-self-center">
+			<div class="guide">좋아요 총 합계</div>
+			<div><span class="num">5665</span></div>
+		</div>
+	</div></div>
+</div>
+<!-- 픽셔너리 컨텐츠 등록 랭킹 (Mobile ver.) -->
+<div th:if="${ranking < 500}" class="content-like-count-section my-ranking d-md-none">
+	<div class="total-heart box-list-mobile box-white"><div class="row no-gutters">
+		<div class="icon-section col-auto pr-3 align-self-center">
+			<label><i class="fa fa-medal"></i></label>
+		</div>
+		<div class="detail col-auto pr-4 align-self-center">
+			<div class="guide small">Your Ranking</div>
+			<div>
+				<i th:if="${ranking == 1}" 
+					class="fa fa-trophy text-warning fa-fw mr-2"></i>
+				<span class="num">[[${ranking}]]</span>
+			</div>
+		</div>
+		<div class="col"></div>
+		<th:block th:if="${ranking > 1}">
+		<div class="detail col-auto align-self-center">
+			<div class="guide">VS</div>
+			<div>
+				<span class="num">[[${abovePp - totalPp}]]</span> point
+			</div>
+		</div>
+		<div class="icon-section personacon col-auto align-self-center pl-3">
+			<img src="/images/app/member/profile_paper.png"
+				class="profile-default">
+		</div>
+		</th:block>
+	</div></div>
+</div>
+<div th:unless="${ranking < 500}" class="content-like-count-section my-ranking d-md-none">
+	<div class="total-heart box-list-mobile box-white"><div class="row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-medal"></i></label>
+		</div>
+		<div class="detail col align-self-center">
+			<div class="guide"><b>RANKING</b></div>
+			<div>500등 안에 들 경우 등수를 제공합니다.</div>
+		</div>
+	</div></div>
+</div>
+
+<!-- --------------------------[2. 내가 만든 픽셔너리]---------------------------- -->
+<div id="myPctionaryListSection" class="pictionarylist-container my-review 
+	reviewTabDiv my px-md-3">
+<!-- [2.1 내가 만든 픽셔너리 목록] -->
+<div id="pictionaryListDiv" class="pictionary-list-row">
+	<div class="view-word-list-guide">
+		<div class="sub-title">
+			<span class="alias"><i class="fa fa-quote-left"></i>
+			lazyhysong
+			<i class="fa fa-quote-right"></i></span>
+			님이 생성한 픽셔너리입니다.
+		</div>
+		<div class="detail-body">
+			<div class="detail-text d-none d-md-block">
+				<b>'lazyhysong'님의 참여와 기여</b> 덕분에 많은 회원들이 학습에 도움을 받고 있습니다.<br>
+				시간과 정성을 들여 기억하고자 하는 단어를 직접 등록하면 단어를 더 오래 기억할 수 있습니다.
+			</div>
+			
+			<!-- 좋아요 총 합계 -->
+			<div class="total-heart-cover d-none d-md-inline-block">
+			<div class="row no-gutters">
+				<div class="guide1 col-auto align-self-center">
+					<b>lazyhysong</b> 님이 받은
+				</div>
+				<div class="guide2 col-auto align-self-center">
+					<span class="heart"><i class="fa fa-heart"></i> 좋아요</span>
+					총 합계 <i class="fa fa-caret-right"></i>
+				</div>
+				<div class="col align-self-center">
+					<span class="total-heart-num">5665</span>
+				</div>
+			</div>
+			</div>
+			
+			<!-- 나의 랭킹 -->
+			<div class="total-heart-cover my-ranking d-none d-md-inline-block"
+				th:classappend="${ranking >= 500}? 'no-ranking':''"><div class="row no-gutters">
+				<div class="guide1 col-auto align-self-center">
+					Your
+					<span class="ranking"><i class="fa fa-medal"></i> Ranking </span>
+					<i class="fa fa-caret-right"></i>
+				</div>
+				<th:block th:if="${ranking < 500}" 
+					th:with="totalPp = 4562, abovePp = 5621">
+					<th:block th:if="${ranking > 1}">
+						<div class="col line-division-v line-right align-self-center">
+							<div th:replace="~{/incl/user_personacon::sm_test}"></div>
+							<span class="total-ranking-num">[[${ranking}]]</span>
+						</div>
+						<div class="guide2 col-auto align-self-center">
+							<span class="total-heart-num point">[[${abovePp - totalPp}]]</span>
+							points less than
+						</div>
+						<div class="col line-division-v align-self-center">
+							<div class="member-personacon-sm">
+								<img src="/images/app/member/profile_paper.png" class="personacon-profile" 
+									style="background: url('/images/app/profile/3.jpg') no-repeat;
+									background-position: center; background-size: cover;">
+								<img src="/images/app/member/profile_paper.png" 
+									class="personacon-frame frame-S">
+							</div>
+							<span class="total-ranking-num">[[${ranking - 1}]]</span>
+						</div>
+					</th:block>
+					<th:block th:unless="${ranking > 1}">
+						<div class="top-ranker col line-division-v align-self-center">
+							<div th:replace="~{/incl/user_personacon::sm_test}"></div>
+							<span class="total-ranking-num">[[${ranking}]]</span>
+							<i class="fa fa-crown"></i>
+						</div>
+					</th:block>
+				</th:block>
+				<th:block th:unless="${ranking < 500}">
+					<div class="col align-self-center">
+						픽셔너리 랭킹은 <b>500등</b> 안에 들 경우 등수를 제공합니다.
+					</div>
+				</th:block>
+			</div></div>
+			
+		</div>
+	</div>
+	
+	<div id="myContentsContainer" class="my-pictionary-content-cover row no-gutters">
+		<div class="pictionary-card-p col-lg-3 col-md-4 col-sm-4 col-6">
+			<div class="pictionary-card-cover">
+				<div onclick="movePictionary()" class="jsAction">
+					<!-- 대표 사진 -->
+					<div class="pictionary-img-cover">
+						<img src="/images/app/pictionary/piction_paper.png" class="piction-img default">
+					</div>
+					<!-- 단어 -->
+					<div class="pictionary-title">
+						<i class="fa fa-cube"></i>
+						<a>none piction</a>  
+					</div>
+				</div>
+				<div class="member-info-cover row no-gutters mx-3 pt-2">
+					<!-- hits -->
+					<div class="hits col align-self-center text-left">
+						<span title="조회 수">12325</span>
+					</div>
+					<!-- 퍼스나콘 -->
+					<div class="col-auto text-center align-self-center py-1"><div align="center">
+						<th:block th:replace="~{/incl/user_personacon::md_test}"></th:block>
+						<div class="star-section">
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+						</div>
+					</div></div>
+					<!-- 음성 -->
+					<div class="voice-section col align-self-center text-right">
+						<a title="단어 음성 듣기"><i class="fa fa-headphones-alt fa-lg"></i></a>						
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<th:block th:each="aword, iter : ${wordList}" 
+			th:with="alphabet = ${#strings.substring(aword, 0, 1)}">
+			<h5 th:if="${(iter.index == 0) OR (iter.index > 0 && 
+				#strings.substring(wordList[iter.index-1], 0, 1) != alphabet)}"
+				class="col-12 mt-4 px-3 row no-gutters">
+				<span class="col-auto">
+					<i class="fa fa-caret-right fa-fw d-none d-md-inline-block"></i> 
+					[[${alphabet}]]
+					<i class="fa fa-caret-right d-md-none"></i>
+				</span>
+			</h5>
+			<div class="pictionary-card-p col-lg-3 col-md-4 col-sm-4 col-6"><div class="pictionary-card-cover">
+				<div onclick="movePictionary()" class="jsAction">
+					<!-- 대표 사진 -->
+					<div class="pictionary-img-cover">
+						<img src="/images/app/pictionary/piction_paper.png" class="piction-img"
+							th:style="'background: url(/images/app/profile/' + ${iter.index} + '.jpg) no-repeat;
+							background-size: cover; background-position: center;'">
+					</div>
+					<!-- 단어 -->
+					<div class="pictionary-title">
+						<i class="fa fa-cube"></i>
+						<a>[[${aword}]]</a>  
+					</div>
+				</div>
+				<div class="member-info-cover row no-gutters mx-3 pt-2">
+					<!-- hits -->
+					<div class="hits col align-self-center text-left">
+						<span title="조회 수">12325</span>
+					</div>
+					<!-- 퍼스나콘 -->
+					<div class="col-auto text-center align-self-center py-1"><div align="center">
+						<th:block th:replace="~{/incl/user_personacon::md_test}"></th:block>
+						<div class="star-section">
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+							<i class="fa fa-star"></i>
+						</div>
+					</div></div>
+					<!-- 음성 -->
+					<div class="voice-section col align-self-center text-right">
+						<a title="단어 음성 듣기"><i class="fa fa-headphones-alt fa-lg"></i></a>						
+					</div>
+				</div>
+			</div></div>
+		</th:block>
+	</div>
+	
+	<!-- pagination -->
+	<div class="pictionary-list-page row no-gutters my-3">
+		<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+			<a class="btn btn-pictionary">
+				<i class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item active">
+					<a class="page-link">1</a>
+				</li>
+				<li class="page-item">
+					<a class="page-link">2</a>
+				</li>
+				<li class="page-item">
+					<a class="page-link">3</a>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+			<a class="btn btn-pictionary">
+				next <i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+</div>
+
+<!-- [2.2 작성한 픽셔너리가 없을 경우] -->
+<div class="create-word-list-guide">
+	<div class="sub-title mx-3 d-none d-md-block">
+		<span class="alias"><i class="fa fa-quote-left"></i>
+		lazyhysong
+		<i class="fa fa-quote-right"></i></span>
+		님이 생성한 픽셔너리 컨텐츠가 아직 없습니다  
+		<i class="far fa-sad-cry fa-lg fa-fw"></i>
+	</div>
+	<div class="sub-title mx-3 d-md-none">
+		작성한 픽셔너리가 없습니다 <i class="far fa-sad-cry fa-lg"></i>
+	</div>
+	<div class="row no-gutters">
+		<div class="col-md-3 align-self-start text-center">
+			<img src="/images/common/images/43_paper.png" class="no-content" alt="플레이보이스 픽셔너리">
+		</div>
+		<div class="col-md-9">
+			<div class="detail-body">
+				<b>픽셔너리에서 'lazyhysong'님의 유머, 재치, 상상력을 발휘해 보세요.</b><br>
+				누구든지 예문과 이미지를 발견하면 픽셔너리에 등록하여 학습 컨텐츠로 만들 수 있습니다.<br class="d-none d-md-block">
+				시간과 정성을 들여 기억하고자 하는 단어를 직접 등록하면
+				단어를 더 오래 기억할 수 있습니다.
+			</div>
+			<div class="button-section">
+				<a th:href="@{/pictionary/word/add}" class="go-goldmembership 
+					d-none d-md-inline-block">
+					픽셔너리 등록하러 가기 <i class="fa fa-arrow-right fa-fw"></i>
+				</a>
+				<button th:href="@{/pictionary/word/add}" type="button" 
+					class="btn-mobile btn-main2 btn-round d-md-none"
+					onclick="location.href=$(this).attr('href')">
+					add</button>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of myPctionaryListSection -->
+
+
+</div>
+
+</section>
+

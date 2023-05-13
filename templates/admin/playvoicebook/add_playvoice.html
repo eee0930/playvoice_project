@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>Add Playvoice</title>
+	
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function() {
+	var resMsgs = getParameter('resMsgs');
+	if(resMsgs=='ok'){
+		$('#addPlayvoiceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'inline');
+	}else if(resMsgs=='fail'){
+		$('#addPlayvoiceFormContainer > div[class=errorMsgs]').css("display",'block');
+	}
+	
+/*----------------------------[첨부 파일 선택시]---------------------------*/
+	$(document).on("change", ".custom-file-input", function(){
+		var file_fath = $(this).val();
+		$(this).parent().children(".custom-file-label").text(file_fath);
+	});
+
+	
+}); //end of ready
+
+</script>
+</head>
+
+<!-- <div layout:fragment="side-menu">
+	<div th:insert="~{/admin/playvoiceBook/incl/playvoicebook_menu::adminMenu}">관리자 메뉴</div>
+</div> -->
+
+<section layout:fragment="content">
+
+<h3>Level 등록(Add Level)</h3>
+
+<div class="row"><div class="col-12">
+
+<!-- 1. Adding Level Form -->
+<div id="addPlayvoiceFormContainer" class="formContainer">
+	<h3>
+		Adding Playvoice Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+		<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+		<span>Please fill the text in the field.</span>
+	</h3>
+	<div class="resMsgs" style="display:none;">
+		<h3>
+			Response Messages
+			<span>Your request was processed.</span>
+		</h3>
+		<pre>[[${resMsgs}]]</pre>
+	</div>
+	
+	<!--/* ---------------------------[신규 플레이보이스 등록]------------------------ */-->
+	 <div>
+	 	<form id="batchSentenceForm" class="form-horizontal" method="post"
+	 		 th:action="@{/admin/playvoiceBook/playvoice/batch/add}" enctype="multipart/form-data" >
+	 		<div class="form-group row">
+				<label for="excelFile" class="col-2 control-label headerLabel">배치파일</label>
+				<div class="col-10 ">
+					<div class="custom-file" style="width: 100%;">
+						<input type="file" name="batchFile" class="custom-file-input attachedFiles" id="batchFile">
+						<label class="custom-file-label attachedFilesLabel form-control" for="batchFile">엑셀 파일을 선택해주세요.</label>
+					</div>
+				</div>
+			</div>
+			<div class="row" id="submitDiv2"><div class="col-12">
+				<div class="form-group row">
+					<div class="ml-auto col-10">
+						<input type="submit" id="batchSentenceBtn" value="Batch-Register" class="btn btn-primary"/>
+					</div>
+				</div>
+			</div></div>
+	 	</form>
+	 </div>
+	 <div class="errorMsgs" style="display: none;">
+	 	<h3>
+			Error Messages
+			<span>Error Occured while processing the request.</span>
+		</h3>
+		<pre th:text="${errorMsg}"></pre>
+ 	</div>
+</div><!-- end of formContainer -->
+</div></div><!-- end of Adding Playvoice Form-->
+
+
+<div class="text-right" style="color:red;">
+	source :: add_playvoice.html	
+</div>	
+</section><!-- end of content -->
+

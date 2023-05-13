@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/smalltalk_layout2}">
+<head>
+<title>SmallTalk - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+
+
+</head>
+
+<section layout:fragment="content">
+
+
+<div id="contentSection">
+
+<div id="introductionSection" class="introduction-section talktive mt-4">
+	<h3><span class="pv-tm">SmallTalk</span></h3>
+	<div class="sub">Share interesting stories and enjoy reading them.</div>
+</div>
+<div th:insert="~{/square/smalltalk/incl/smalltalk_top_menu2::menu}"></div>
+
+<div class="mt-4">
+<!-- [list_stories_incl]==================================================== -->
+<div th:replace="~{/square/smalltalk/incl/list_stories_incl2::list3}"></div>
+<!-- [end of list_stories_incl]============================================= -->
+
+</div>
+
+
+</div>
+
+</section>

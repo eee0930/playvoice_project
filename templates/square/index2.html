@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_index_layout2}">
+<head>
+<title>Index Of Playsquare - playvoice</title>   
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, metaTitle = '플레이스퀘어 (Play Square) - 플레이보이스 (playvoice)', 
+	metaDescription = 'Welcome to Play Square.
+	Let\'s build content libraries about English here for all of us.', 
+	metaImage = '/images/app/playsquare/square_index3.jpg', metaRegDate = null"></th:block>
+		
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+
+<script th:src="@{/js/common.js}"></script>
+
+</head>
+
+<section layout:fragment="content" class="container">
+
+<div class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/square/incl/playsquare_top_menu2::menu}" class="col-lg-10"></div>
+</div>
+
+<div id="introductionSection" class="row"><div class="col-lg-1"></div>
+<div class="col-lg-10">
+
+<div class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png"
+			style="background: url('/images/app/playsquare/square_index3.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			Welcome to <span class="pv-tm">Play Square</span><br>
+			<small>Let's build <b>content libraries</b><br class="d-sm-none">
+			about English here for all of us.</small>
+		</div>
+	</div>
+</div>
+
+
+<div id="indexRankingSection" class="index-ranking-section">
+<!-- ----------------------[1. Babel Stack Ranking]------------------------- -->
+<div id="babelRankingDiv">
+	<!-- -----------------[1.1 English Stack Ranking list]------------------ -->
+	<div class="ranking-list-section eng">
+		<h5>
+			English Stack Ranking <i class="fa fa-award"></i><br>
+			<small>Check out the cool Playvoice Crew on the Ranking list.</small>
+		</h5>
+		
+		<div class="ranking-list-cover row no-gutters">
+			<!-- 최다 질문자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fa fa-user-ninja fa-lg fa-flip-horizontal"></i></div>
+						<div class="col-auto">
+							최다 질문자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>영어에 관심이 많은 호기심 왕</b><br>
+								English Stack에 질문을 많이 올린 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div th:if="${rankingList1[1]}" th:with="ranking = ${rankingList1[1]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+							<div th:if="${rankingList1[0]}" th:with="ranking = ${rankingList1[0]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+							<div th:if="${rankingList1[2]}" th:with="ranking = ${rankingList1[2]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div th:each="ranking, iter : ${rankingList1}" th:if="${iter.count > 3}" 
+							class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									th:style="'background: url(\'/images/app/member/profile_ex' + ${iter.index} + '.jpg\') no-repeat;
+									background-size: cover; background-position: center;'">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">[[${ranking}]]</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">[[${iter.count}]]</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 최다 답변자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fas fa-pen-nib fa-lg"></i></div>
+						<div class="col-auto">
+							최다 답변자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>플보 크루들의 궁금증을 해결해 주는 지식 왕</b><br> 
+								English Stack에 답변을 많이 올린 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div th:if="${#lists.size(rankingList2)} > 1" th:with="ranking = ${rankingList2[1]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+							<div th:if="${#lists.size(rankingList2)} > 0" th:with="ranking = ${rankingList2[0]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+							<div th:if="${#lists.size(rankingList2)} > 2" th:with="ranking = ${rankingList2[2]}" class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">[[${ranking}]]</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div th:each="ranking, iter : ${rankingList2}" th:if="${iter.count > 3}" 
+							class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">[[${ranking}]]</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 인기 답변자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fas fa-paw fa-lg"></i></div>
+						<div class="col-auto">
+							인기 답변자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>훌륭한 지식 공유를 통해 추천을 많이 받은 셀럽</b><br>
+								English Stack의 답변에서 추천을 많이 받은 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">화욤이</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">아미아미</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">lazyhysong</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- -----------------[1.2 Korean Stack Ranking list]------------------- -->
+	<div class="ranking-list-section kor">
+		<h5>
+			Korean Stack Ranking <i class="fa fa-award"></i><br>
+			<small>Check out the cool Playvoice Crew on the Ranking list.</small>
+		</h5>
+		<div class="ranking-list-cover row no-gutters">
+			<!-- 최다 질문자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fa fa-user-ninja fa-lg fa-flip-horizontal"></i></div>
+						<div class="col-auto">
+							최다 질문자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>영어에 관심이 많은 호기심 왕</b><br>
+								Korean Stack에 질문을 많이 올린 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">화욤이</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">아미아미</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">lazyhysong</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 최다 답변자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fas fa-pen-nib fa-lg"></i></div>
+						<div class="col-auto">
+							최다 답변자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>플보 크루들의 궁금증을 해결해 주는 지식 왕</b><br>
+								Korean Stack에 답변을 많이 올린 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">화욤이</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">아미아미</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">lazyhysong</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 인기 답변자 -->
+			<div class="ranking-cover-parent col-md-4">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col text-left"><i class="fas fa-paw fa-lg"></i></div>
+						<div class="col-auto">
+							인기 답변자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>훌륭한 지식 공유를 통해 추천을 많이 받은 셀럽</b><br>
+								Korean Stack의 답변에서 추천을 많이 받은 플보 크루들의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body">
+						<div class="index-ranker-top-cover row no-gutters">
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">2</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+										
+									</div>
+								</div>
+								<div class="alias text-center">화욤이</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+									<div class="ranker-personacon">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">아미아미</div>
+							</div>
+							<div class="col-4" align="center">
+								<div class="ranker-personal-cover">
+									<div class="ranker-num">3</div>
+									<div class="ranker-personacon sub">
+										<div class="member-personacon">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-profile profile-default">
+											<img src="/images/app/member/profile_paper.png" 
+												class="personacon-frame frame-G">
+										</div>
+									</div>
+								</div>
+								<div class="alias text-center">lazyhysong</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+		</div>
+			
+	</div>
+</div><!-- end of babelRankingDiv -->	
+
+<!-- --------------------[2. PLVO BookStore Ranking]------------------------ -->
+<div id="bookStoreRankingDiv">	
+	<!-- ----------------------[2.1 Digest Ranking]------------------------- -->			
+	<div class="ranking-list-section digest">
+		<h5>
+			Digest Ranking <i class="fa fa-award"></i><br>
+			<small>Check out the cool Playvoice Crew and Digests on the Ranking list.</small>
+		</h5>
+		<div class="ranking-list-cover row no-gutters">
+			<!-- 아티클 최다 작성자 -->
+			<div class="ranking-cover-parent col-md-6">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col"></div>
+						<div class="col-auto">
+							다이제스트 최다 작성자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>플보 크루들에게 많은 정보를 제공해주는 지식인 왕</b><br>
+								다이제스트를 많이 등록한 영어 지식인 플레이어의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body mt-2">
+						<div class="index-ranker-top-cover digest row no-gutters">
+							<div class="top-ranker-section col">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">2</div>
+								</div>
+							</div>
+							<div class="top-ranker-section col-auto">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">1</div>
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+								</div>
+							</div>
+							<div class="top-ranker-section col">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">3</div>
+								</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto px-md-2 align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto px-md-2 text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 인기작성자 -->
+			<div class="ranking-cover-parent col-md-6">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col"></div>
+						<div class="col-auto">
+							다이제스트 인기 작성자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>훌륭한 지식 공유를 통해 추천을 많이 받은 셀럽</b><br>
+								특정 기간동안 추천수와 조회수가 가장 높은 인기 다이제스트 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-contents-body">
+					</div>
+				</div>
+			</div>
+		
+		</div>
+	</div>
+	
+	<!-- --------------------[2.2 GrammarBook Ranking]---------------------- -->
+	<div class="ranking-list-section grammar">
+		<h5>
+			GrammarBook Ranking <i class="fa fa-award"></i><br>
+			<small>Check out the cool Playvoice Crew and Grammars on the Ranking list.</small>
+		</h5>
+		<div class="ranking-list-cover row no-gutters">
+		<!-- 아티클 최다 작성자 -->
+			<div class="ranking-cover-parent col-md-6">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col"></div>
+						<div class="col-auto">
+							그래머북 최다 작성자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>플보 크루들에게 많은 정보를 제공해주는 지식인 왕</b><br>
+								그래머를 많이 등록한 영어 지식인 플레이어의 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-body mt-2">
+						<div class="index-ranker-top-cover digest row no-gutters">
+							<div class="top-ranker-section col">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">2</div>
+								</div>
+							</div>
+							<div class="top-ranker-section col-auto">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">1</div>
+									<div class="ranker-icon">
+										<i class="fa fa-crown"></i>
+									</div>
+								</div>
+							</div>
+							<div class="top-ranker-section col">
+								<div class="top-ranker-cover" align="center">
+									<div th:replace="~{/incl/user_personacon::md_test}"></div>
+									<div class="alias">lazyhysong</div>
+									<div class="rank-num">3</div>
+								</div>
+							</div>
+						</div>
+						<hr class="hr-text" data-content="AND">
+						<div class="index-ranker-cover row no-gutters">
+							<div class="ranker-personacon col-auto px-md-2 align-self-center">
+								<img src="/images/app/member/profile_paper.png"
+									style="background: url('/images/app/member/profile_ex2.jpg') no-repeat;
+									background-size: cover; background-position: center;">
+							</div>
+							<div class="index-ranker-info col px-2 align-self-center">
+								<div class="alias">랭커 별명 alias</div>
+								<div class="membership">Gold member</div>
+							</div>
+							<div class="col-auto px-md-2 text-center align-self-center">
+								<div class="num">4</div>
+								<div class="medal">
+									<i class="far fa-star"></i>
+								</div>
+							</div>
+						</div>
+						
+					</div>
+				</div>
+			</div>
+			
+			<!-- 인기작성자 -->
+			<div class="ranking-cover-parent col-md-6">
+				<div class="ranking-cover">
+					<div class="ranking-title row no-gutters">
+						<div class="col"></div>
+						<div class="col-auto">
+							그래머북 인기 작성자
+						</div>
+						<div class="question-guide col align-self-center">
+							<i class="fa fa-question-circle float-right"></i>
+							<div class="ranking-guide">
+								<b>훌륭한 지식 공유를 통해 추천을 많이 받은 셀럽</b><br>
+								특정 기간동안 추천수와 조회수가 가장 높은 인기 그래머북 작성자 랭킹입니다.
+							</div>
+						</div>
+					</div>
+					<div class="ranking-contents-body">
+					</div>
+				</div>
+			</div>
+		
+		</div>
+	</div>
+			
+</div><!-- end of bookStoreRankingDiv -->				
+		
+</div><!-- end of indexRankingSection -->
+
+</div></div>
+
+</section>

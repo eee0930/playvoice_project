@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout}">
+<head>
+<title>플레이보이스 TTS - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+<script th:src="@{/js/app/textrecognition.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [1. 화면 진입 세팅]-----------------------------------------------------------
+	
+	// 회원 타입
+	var memberType = js.userContainer.memberType;
+	if('GP'.indexOf(memberType) == -1){
+		$('.extensionImg').remove();
+	}
+	$('#viewFileTextSection .ment').text(('GP'.indexOf(memberType) > -1) ? '/ 15,000자' : '/ 750자');
+	// [1.1 화면 진입 시 파일 value 리셋 (뒤로가기할 경우)]------------------------------------
+	$("#sourceFile").val("");
+	// [1.2 뒤로가기 버튼 세팅 (main 으로)]----------------------------------------------
+	$("#historyBackBtn, #functionBackBtn").hide();
+	$("#mainBackBtn").show();
+	// [1.4 헤더 제목, 스텝 세팅]------------------------------------------------------
+	setHeaderTitle("Text Upload", 1);
+	
+	// [파일 경로 표시]--------------------------------------------------------------
+	$(document).on("change", "#sourceFile", function(){
+		var filePath = $(this).val();
+		var guideSection = $(this).closest(".add-file-link-cover").find(".guide-section");
+		guideSection.hide();
+		$(".inputFileName").show().text(filePath);
+		$(".file-input-button-section").show();
+	});
+	
+	// [파일을 text로 읽어오기]-------------------------------------------------------
+	$("#addFileBtn").click(function(){
+		if($('#sourceFile').val().length == 0){
+			return;
+		}
+		var file = $('#sourceFile')[0].files[0];
+		var fileExt = file.name.substring(file.name.lastIndexOf('.'));
+		if(fileExt!= null && fileExt.length > 0){
+			//-----------------
+			if(typeof AndroidJS != 'undefined') AndroidJS.showAd();
+			//-----------------
+			// 텍스트 영역 리셋
+			$('#content').val('텍스트 인식 중...').prop('disabled',true);
+			
+			var readData, reader = new FileReader();
+			if(fileExt.match(/\.txt/) != null){
+				// 텍스트 파일 읽기
+				reader.onload = function(){
+					readData = this.result;
+					//-------------------
+					fillResult(readData);
+					//-------------------
+				}
+				reader.readAsText(file);
+			}else{
+				reader.onload = function(){
+					readData = this.result;
+					if(fileExt.match(/\.doc|\.docx/) != null){
+						// Ms Word 읽기
+						docxToText(readData, fillResult);
+					}else if(fileExt.match(/\.pdf/) != null){
+						// 텍스트형 pdf 읽기
+						textualPdfToText(readData,fillResult);
+						// 이미지형 pdf 읽기
+					//	imagePdfToText(readData, displayOCRResult);
+					}else{
+						// 이미지 파일 읽기
+						imgToText(readData, fillResult);
+					}
+				}
+				reader.readAsArrayBuffer(file);
+			}
+		}else{
+			alert('인식할 수 없는 파일 형식입니다. 이미지나 텍스트 파일만 올려 주세요.');
+			return;
+		}
+		
+		$("#addFileSection").hide();
+		$('#sourceFile').val("");
+		
+		// text 파일을 읽어온후 view div 열기
+		$("#viewFileTextSection, #listParcingButtonsSection").show();
+
+		// 헤더의 뒤로가기 버튼 변경
+		$("#mainBackBtn, #functionBackBtn").toggle();
+	});
+	
+	// [이전으로 (파일 등록 폼으로 이동)]--------------------------------------------------
+	$("#functionBackBtn").click(function(){
+		$("#viewFileTextSection, #listParcingButtonsSection").hide();
+		$(".file-input-button-section").hide();
+		
+		$(".inputFileName").text("").hide();
+		$(".add-file-link-cover").find(".guide-section").show();
+		$("#sourceFile").val(""); // 파일 리셋
+		$("#addFileSection").show();
+
+		// 헤더의 뒤로가기 버튼 변경
+		$("#mainBackBtn, #functionBackBtn").toggle();
+	});
+	
+	// [textarea 내용 변경이 있을 때마다 글자 수를 확인]--------------------------------------
+	$('#content').on('input', function(){
+		var len = $(this).val().length;
+		var textLimit = ('GP'.indexOf(memberType) > -1)? 15000 : 750;
+		if(len > textLimit){
+			$('.fileTextSize').css('color','red');
+			$('#viewParaListBtn').prop('disabled', true);
+		}else{
+			$('.fileTextSize').css('color','#212529');
+			$('#viewParaListBtn').prop('disabled', false);
+		}
+		$('.fileTextSize').text("").text($(this).val().length);
+		adjustHeight($(this));
+	})
+	
+	// [text 편집 화면으로 이동]------------------------------------------------------
+	$("#viewParaListBtn").click(function(){
+		var content = $("#content").val();
+		if(content == "" || content.length < 1) {
+			alert("파일을 첨부해 주세요.");
+			return;
+		} else {
+			var form = $("#fileInputForm")[0]; 
+			//--------------------------------------------------
+			createHidden(form,'memberType', memberType).submit();
+			//--------------------------------------------------
+		}
+	});
+	
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * header title settion
+ */
+function setHeaderTitle(title, index) {
+	var titleSection = $("#playvoiceMobileHeader").find(".tts-logo");
+	var indexSection = $("#playvoiceMobileHeader").find(".index");
+	titleSection.text(title);
+	indexSection.text(index);
+}
+
+/**
+ * 결과 텍스트를 표시
+ */
+function fillResult(text){
+	var content = $('#cleanKor').prop('checked')
+			? replaceQuotes(text.replace(/[\u005B-\u0060|\u007B-\u007F|\u1100-\u11FF|\u3131-\u318E|\uAC00-\uD7A3]/gi,''))
+			: replaceQuotes(text);
+	$('#content').val(content).prop('disabled', false).trigger('input');
+}
+
+/**
+ * 글자 수 센 후 표시
+ */
+function getSizeOfText(text) {
+	var textSize = text.length;
+	if(textSize == null || textSize < 1) {
+		textSize = 0;
+	}
+	$('.fileTextSize').text("").text(textSize);
+}
+
+/**
+ * textarea 높이 자동 조정 (예문을 수정할 때 예문 전체를 보이게 하기 위해)
+ */
+function adjustHeight(obj) {
+   $(obj).css("height", '70px');
+   var textEleHeight = $(obj).get(0).scrollHeight;
+   $(obj).css("height", textEleHeight);
+};
+</script>
+</head>
+
+
+<section layout:fragment="content" class="edit-parcing-sentence-list-section mobile-container-mode"
+	th:with="extension = ${#strings.substring(#httpServletRequest.queryString, 10)}">
+<!-- tts header -->
+<header id="playvoiceMobileHeader" th:with="headerFixed = 'fixedStatic bgMain'" 
+	th:insert="~{/tts/incl/tts_header::editing_header}"></header>
+<!-- tts top menu -->
+<div th:replace="~{/tts/incl/tts_menu::topMenu}"></div>	
+
+<div class="file-add-container-section">
+<!-- ---------------------------[1. 파일 등록 영역]------------------------------ -->
+<div id="addFileSection" class="add-file-link-section" th:unless="${extension == 'text'}">	
+	<div class="add-file-link-cover"><div class="add-file-link-back bg-tts-main">
+		<!-- [1.1 등록 가이드] -->
+		<label for="sourceFile" class="file-input-text-section">
+			<span class="inputFileName file-name-section" style="display: none;"></span>
+			<span class="guide-section">
+				<span th:if="${extension == 'txt'}" class="guide-text extensionTxt">
+					메모장 txt 파일을 업로드해 주세요.
+				</span>
+				<span th:if="${extension == 'pdf'}" class="guide-text extensionPdf">
+					PDF 또는 WORD 파일을 업로드해 주세요.
+				</span>
+				<span th:if="${extension == 'image'}" class="guide-text extensionImg">
+					영문이 적혀있는 이미지를 업로드해 주세요.
+				</span>
+			</span>
+			<i th:if="${extension == 'txt'}" class="far fa-file-alt extensionTxt"></i>
+			<i th:if="${extension == 'pdf'}" class="far fa-file-pdf extensionPdf"></i>
+			<i th:if="${extension == 'image'}" class="far fa-file-image extensionImg"></i>
+			<span class="guide-section">
+				<span class="click-guide">click</span>
+			</span>
+		</label>
+		<input th:if="${extension == 'txt'}" id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionTxt" accept="text/plain"/>
+		<input th:if="${extension == 'pdf'}" id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionPdf" 
+			accept="application/pdf,.doc,.docx,.xml,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+		<input th:if="${extension == 'image'}" id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionImg" accept="image/*"/>
+		
+		<!-- [1.2 등록 버튼] -->
+		<div class="file-input-button-section" style="display: none;">
+			<div class="remove-kor-text-section">
+				<label class="my-0">
+					<input id="cleanKor" type="checkbox" class="option-input checkbox"
+						checked="checked"/> 한글은 지우겠습니다.
+				</label>
+			</div>
+			<button id="addFileBtn" type="button" class="btn btn-main2">
+				텍스트 읽어오기
+			</button>		
+		</div>
+	</div></div>
+	
+</div><!-- end of addFileSection -->
+
+<!-- ------------------------[2. 읽어온 텍스트 확인 영역]--------------------------- -->
+<div id="viewFileTextSection" class="view-file-text-section" 
+	th:style="${extension != 'text'}?'display:none'">
+<form id="fileInputForm" th:attr="action=@{/tts/text/add}" method="post">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label>
+				<i th:if="${extension == 'text'}" class="fa fa-pencil-alt extensionText"></i>
+				<i th:if="${extension == 'txt'}" class="far fa-file-alt extensionTxt"></i>
+				<i th:if="${extension == 'pdf'}" class="far fa-file-pdf extensionPdf"></i>
+				<i th:if="${extension == 'image'}" class="far fa-file-image extensionImg"></i>
+			</label>
+		</div>
+		<div class="detail col">
+			<div class="inputFileName guide-cover">직접 작성하기</div>
+			<div>
+				<span class="fileTextSize num"></span>
+				<span class="ment">/ 750자</span>
+			</div>
+		</div>
+	</div>
+	<div class="view-file-text-cover formEdit">
+		<!-- 읽어온 텍스트 print 하는 곳 -->
+		<textarea id="content" name="content" class="text-cover"
+			placeholder="음성으로 만들 영어 문장을 입력해 주세요."></textarea>
+	</div>
+</form>
+</div><!-- end of viewFileTextSection -->
+
+<!-- -----------------------------[3. 버튼 영역]------------------------------- -->
+<div id="listParcingButtonsSection" class="list-parcing-buttons-section"
+	th:style="${extension != 'text'}?'display:none'">
+	<!-- 다음으로 (text 파싱) -->
+	<div class="button-cover">
+		<button id="viewParaListBtn" class="btn btn-next" type="button">
+			next
+		</button>
+	</div>
+</div><!-- end of listParcingButtonsSection -->
+
+</div>
+
+<!-- tts bottom menu -->
+<div th:replace="~{/tts/incl/tts_menu::bottomMenu}"></div>	
+
+</section><!-- end of content -->
+</html>

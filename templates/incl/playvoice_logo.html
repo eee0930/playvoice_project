@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!-- ======================================================================= -->
+<!-- 							LOGO IMAGES									 -->
+<!-- ======================================================================= -->
+
+<!-- ------------------[민트 원 민트 선비 플레이 멤버 퍼스나콘 ver.]---------------------- -->
+<!-- 1. /incl/header.html (PC ver.) -->
+<div th:fragment="logo_header_got" class="member-personacon-lg">
+	<a th:href="@{/playvoice/main}"><img src="/images/app/member/profile_paper.png" 
+		class="personacon-profile" alt="playvoice"
+		style="background: url('/images/logo/logo_seonbi.png') no-repeat;
+		background-position: center; background-size: cover;">
+	<img src="/images/app/member/profile_paper.png" 
+		class="personacon-frame frame-M" alt="playvoice"></a>
+</div>
+
+<!-- -------------------[흰 원  남색 선비 Gold 링 sm]------------------------------- -->
+<!-- 
+	1. /incl/nav_header.html (PC ver.) 
+	2. /auth/login.html 
+	3. /member/add_member.html
+-->
+<div th:fragment="mini_logo" class="member-personacon-sm">
+	<a th:href="@{/playvoice/main}" title="www.playvoice.org">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-profile" alt="playvoice"
+			style="background: url('/images/logo/logo_trans_white3.png') no-repeat;
+			background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-G" alt="playvoice">
+	</a>
+</div>
+
+<!-- -----------------------[흰 원 남색 선비]------------------------------------ -->
+<!-- 
+	1. /incl/header.html (Mobile ver.) 
+	2. /square/digest/view_digest_window.html
+-->
+<a th:fragment="white_seonbi_logo" th:href="@{/playvoice/main}">
+	<img src="/images/logo/logo_trans_white3.png" class="logo1" alt="플레이보이스">
+</a>
+
+<!-- -----------------------[흰 원 남색 선비 no link]----------------------------- -->
+<!-- 1. /mypage/index.html (Hall of Fame) -->
+<img th:fragment="white_seonbi_logo_noLink" 
+	src="/images/logo/logo_trans_white3.png" alt="플레이보이스">
+
+<!-- --------------------[흰 원 선비 퍼스나콘 용]----------------------------------- -->
+<!-- 퍼스나콘용으로 사용하는 로고 이미지. 
+fragment 전체를 퍼스나콘으로 사용하지 않고 이미지만 사용하는 이유는 
+이 이미지를 incl로 사용하는 퍼스나콘에 a태그 url을 걸 수 도 있으므로 그 url을 유연하게 사용하기 위해서이다. -->
+<!-- 1. /incl/mobile_menu.html (로그인 페이지로 연결) -->
+<th:block th:fragment="white_personacon_logo">
+	<img src="/images/app/member/profile_paper.png" 
+		class="personacon-profile" alt="playvoice"
+		style="background: url('/images/logo/logo_trans_white3.png') no-repeat;
+		background-position: center; background-size: cover;">
+</th:block>
+
+<!-- ----------------------[투명 배경 남색 선비]----------------------------------- -->
+<a th:fragment="trans_seonbi_logo" th:href="@{/playvoice/main}">
+	<img src="/images/logo/logo_trans_seonbi.png" alt="플레이보이스">
+</a>
+
+
+<!-- onepage layout (/layout/playvoice_basic_onpage_layout.html) -->
+<a th:href="@{/playvoice/main}" th:fragment="big_logo">
+	<img src="/images/logo/logo_seonbi.png" alt="플레이보이스">
+	<img class="logo-text" src="/images/logo/logo_text_main.png" 
+		style="height: 50px;" alt="플레이보이스">
+</a>
+<!-- -----------------[admin header (/admin/incl/header.html)]-------------- -->
+<a th:href="@{/playvoice/main}" th:fragment="logo-admin">
+	<img src="/images/logo/logo_trans_white3.png" alt="playvoice" style="height: 40px;">
+</a>
+
+
+<!-- error page (파랑 원) (/error_page.html) -->
+<a th:href="@{/playvoice/main}" th:fragment="logo_error">
+	<img src="/images/logo/logo_trans_white3.png" alt="플레이보이스">
+</a>
+
+
+
+<!-- ======================================================================= -->
+<!-- 							LOGO TEXT									 -->
+<!-- ======================================================================= -->
+
+<!-- ------------------[text logo (white 밑에 점)]---------------------------- -->
+<!-- 1. /incl/header.html (PC ver.) -->
+<a th:href="@{/playvoice/main}" th:fragment="logo_header_text" title="www.playvoice.org">
+	<img class="logo-text" src="/images/logo/logo_text_white.png" alt="플레이보이스">
+</a>
+
+<!-- ------------------[text logo (white)]---------------------------------- -->
+<!-- 
+	1. /incl/header.html (Mobile ver.) 
+	2. /square/digest/view_digest_window.html
+-->
+<a th:fragment="white_text_logo" th:href="@{/playvoice/main}">
+	<img src="/images/logo/logo_text_white1.png" class="logo2" alt="플레이보이스">
+</a>
+
+<!-- ------------------[text logo (navy)]---------------------------------- -->
+<!-- 
+	1. /incl/header.html (welcome_header) 
+-->
+<a th:fragment="navy_text_logo" th:href="@{/playvoice/main}">
+	<img src="/images/logo/logo_text_main.png" class="logo-text" alt="플레이보이스">
+</a>
+
+
+
+
+
+
+
+
+
+
+<a th:href="@{/playvoice/main}" th:fragment="logo">
+	<img src="/images/logo/logo_temp2.jpg" style="max-width: 70px;">
+</a>
+
+<a th:href="@{/playvoice/main}" th:fragment="logo_xs">
+	PV
+</a>
+
+<a th:href="@{/playvoice/main}" th:fragment="logo_img">
+	<img src="/images/logo/logo15.jpg" style="max-width: 340px;">
+</a>
+
+</html>

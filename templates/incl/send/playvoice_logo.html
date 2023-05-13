@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+
+<!-- header PC ver. (흰 원, 텍스트) (/incl/header.html) -->
+<div th:fragment="logo_header_got" class="member-personacon-lg">
+	<a th:href="@{/}"><img src="/images/app/member/profile_paper.png" 
+		class="personacon-profile"
+		style="background: url('/images/logo/logo_seonbi.png') no-repeat;
+		background-position: center; background-size: cover;">
+	<img src="/images/app/member/profile_paper.png" 
+		class="personacon-frame frame-G"></a>
+</div>
+<a th:href="@{/}" th:fragment="logo_header_text" title="www.playvoice.org">
+	<img class="logo-text" src="/images/logo/header_text_logo.png" alt="플레이보이스">
+</a>
+
+<!-- header Mobile ver. (흰 원에 골드멤버쉽 링) (/incl/header.html) -->
+<div th:fragment="logo_mobile" class="member-personacon">
+	<a th:href="@{/}"><img src="/images/app/member/profile_paper.png" 
+		class="personacon-profile"
+		style="background: url('/images/logo/logo_seonbi.png') no-repeat;
+		background-position: center; background-size: cover;">
+	<img src="/images/app/member/profile_paper.png" 
+		class="personacon-frame frame-G"></a>
+</div>
+
+<!-- nav header PC ver. (흰 원에 골드멤버쉽 링) (/incl/nav_header.html) -->
+<div th:fragment="logo_header_nav" class="member-personacon-sm">
+	<a th:href="@{/}" title="www.playvoice.org">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-profile"
+			style="background: url('/images/logo/logo_trans_white3.png') no-repeat;
+			background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-G">
+	</a>
+</div>
+
+<!-- add member mini logo (/auth/login.html, /member/add_member.html) -->
+<div th:fragment="mini_logo" class="member-personacon-sm">
+	<a th:href="@{/}" title="www.playvoice.org">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-profile"
+			style="background: url('/images/logo/logo_trans_white3.png') no-repeat;
+			background-position: center; background-size: cover;">
+		<img src="/images/app/member/profile_paper.png" 
+			class="personacon-frame frame-G">
+	</a>
+</div>
+
+<!-- admin header (/admin/incl/header.html) -->
+<a th:href="@{/}" th:fragment="logo-admin">
+	<img src="/images/logo/logo_trans_white3.png" style="height: 40px;">
+</a>
+
+
+<a th:href="@{/}" th:fragment="logo">
+	<img src="/images/logo/logo_temp2.jpg" style="max-width: 70px;">
+</a>
+
+<a th:href="@{/}" th:fragment="logo_xs">
+	PV
+</a>
+
+<a th:href="@{/}" th:fragment="logo_img">
+	<img src="/images/logo/logo15.jpg" style="max-width: 340px;">
+</a>
+
+<!-- error page (파랑 원) (/error_page.html) -->
+<a th:href="@{/}" th:fragment="logo_error">
+	<img src="/images/logo/logo_trans_white3.png" alt="플레이보이스">
+</a>
+
+
+
+

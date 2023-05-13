@@ -1,0 +1,523 @@
+
+/* ----------------------- [index picture container] ------------------------ */
+.introduction-section.index {
+	margin: 2rem 0;
+	position: relative;
+}
+.introduction-section.index h3 {
+	color: #dd2138;
+	font-size: 1.8rem;
+	margin-top: 0;
+}
+.introduction-section.index h3 small {
+	color: #1B1F40;
+	font-size: 0.5em;
+}
+.introduction-section.index .index-ment {
+	color: #888;
+	font-size: 0.7rem;
+	font-family: Roboto, Arial, 'NanumGothic', Sans-Serif;
+}
+.introduction-section.index .index-title {
+	padding: 1.5rem 2rem;
+	background-color: rgba(27,31,64,0.8);
+	font-family: 'PT Serif', 'Open Sans', 'NanumSquare', sans-serif; 
+	color: #fff;
+	width: 100%;
+	position: absolute;
+	font-weight: 600;
+	top: -160px;
+	left: 0px;
+	font-size: 1.5rem;
+	line-height: 1;
+}
+.introduction-section.index.animal-saying .index-title {padding: 1.2rem;}
+.introduction-section.index .index-title small {
+	font-family: Roboto, Arial, 'NanumGothic', Sans-Serif;
+	font-size: .5em;
+	display: block;
+	line-height: 1.4;
+	margin-top: 0.5rem;
+}
+.introduction-section.index .index-title b {color: #ff6577; font-weight: 500;}
+.introduction-section.index.animal-saying .index-title b {color: #ff8695;}
+.introduction-section.index .wise-saying {
+	font-family: 'PT Serif', 'Chosunilbo_myungjo', 'Nanum Myeongjo';
+	font-size: 15.5px;
+	letter-spacing: -0.5px;
+	font-weight: 500;
+	padding-top: 0.6rem;
+	line-height: 1.3;
+}
+.introduction-section.index .wise-saying i {
+	font-size: 0.5em;
+	position: relative;
+	top: -6px;
+	padding-top: 0.5rem;
+	margin: 0 1px;
+}
+.introduction-section.index .from {
+	font-family: 'Open Sans', 'NanumGothic';
+	font-size: 11px;
+	font-weight: 500;
+	padding-top: 0.3rem;
+}
+@media (max-width: 1199.5px) {
+	.introduction-section.index .index-title {
+		padding: 1rem 1.2rem;
+		top: -130px;
+		font-size: 1.35rem;
+		line-height: 1;
+	}
+	.introduction-section.index.animal-saying .index-title {top: -150px;}
+}
+@media (max-width: 991.5px) {
+	.introduction-section.index.animal-saying .index-title {
+		font-size: 1.1rem;
+		top: -142px;
+	}
+	.introduction-section.index.animal-saying .index-ment {
+		line-height: 1.3;
+		font-size: 10px;
+	}
+	.introduction-section.index .wise-saying {font-size: 14.5px;}
+}
+@media (max-width: 767.5px) {
+	.introduction-section.index {margin: 1rem -15px 2rem;}
+	.introduction-section.index img {border-radius: 0.5rem 0.5rem 0 0;}
+	.introduction-section.index.animal-saying .index-ment {display: none;}
+	.introduction-section.index .index-ment {padding: 0 15px;}
+	.introduction-section.index .index-title {
+		position: static;
+		font-size: 1.2rem;
+		border-radius: 0;
+		background-color: #1b1f40;
+	}
+	.introduction-section.index img {border-radius: 0;}
+	.introduction-section.index.animal-saying img {
+		box-shadow: none;
+		border-radius: 0;
+	}
+	.introduction-section.index.animal-saying .index-title {
+		background-color: #1b1f40;
+		position: static;
+		border-radius: 0;
+		text-align: left;
+	}
+	.introduction-section.index.animal-saying .wise-saying {line-height: 1.5;}
+	.introduction-section.index.animal-saying .from {line-height: 1.3;}
+}
+@media (max-width: 575.5px) {
+	.introduction-section.index .index-title small {font-size: .6em;}
+}
+
+
+
+/* ------------------------- [app index container] -------------------------- */
+.index-container {
+	color: hsla(0, 0%, 7%, 1); 
+	font: 400 13px/20px "Open Sans", 'NanumGothic', Sans-Serif; 
+	padding: 0 0.5rem;
+}
+.index-container h3,
+.member-ranking-section h3 {
+	font-family: 'Open Sans', 'NanumSquare', sans-serif; 
+	color: #1b1f40; 
+	font-weight: 600;
+	padding-bottom: 15px;
+	-webkit-box-shadow: 0 1px 0 0 #fff;
+	box-shadow: 0 1px 0 0 #fff;
+	border-bottom: 1px dashed #d2d2d2;
+	text-shadow: 1px 1px 1px #fff;
+} 
+.index-container h5 {
+	font-family: 'Open Sans', 'NanumSquare', sans-serif; 
+	color: #333; 
+	font-weight: 600;
+	font-size: 1.1rem;
+	padding-bottom: 5px;
+} 
+.index-container h3 small, 
+.index-container h5 small,
+.member-ranking-section h3 small {
+	font-size: 0.6em; 
+	line-height: 1.2;
+	font-weight: 500;
+	color: #444; 
+	font-family: 'Roboto', 'Arial', 'NanumGothic', Sans-Serif;
+}
+.index-container h3 .index-text-color,
+.member-ranking-section h3 .index-text-color {color: #bb1111 !important;}
+.index-container .index-content-section {margin-bottom: 50px;}
+.index-container .alias {
+	color: #555; 
+	font-size: 13.5px; 
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	padding: 8px 0;
+	font-family: 'Open Sans', 'NanumGothic', sans-serif;
+	font-weight: 600;
+}
+
+@media (max-width: 767.5px) {
+	.index-container {padding: 0;}
+	.index-container h3,
+	.member-ranking-section h3 {
+		margin: 0;
+		font-size: 1.7rem;
+		font-family: 'Baloo Bhai', 'PT Serif', '나눔바른고딕', 'Nanum Myeongjo', serif;
+		box-shadow: none;
+		padding-bottom: 0;
+		border-bottom: none; 
+		line-height: 1;
+		color: #1b1f40;
+	}
+	.index-container h3,
+	.index-container h3 .index-text-color,
+	.member-ranking-section h3,
+	.member-ranking-section h3 .index-text-color {
+		font-weight: 500;
+		letter-spacing: -1.5px;
+	}
+	.index-container h3,
+	.index-container h3 .index-text-color {color: #1b1f40 !important;}
+	.index-container h3 i,
+	.member-ranking-section h3 i {display: none;}
+	.index-container h3 small,
+	.member-ranking-section h3 small {
+		font-family: 'apple sd gothic neo', 'Open Sans', '나눔바른고딕', 'NanumGothic', sans-serif;
+		display: block;
+		margin: 0.1rem 0 0.7rem;
+		font-size: 13px;
+		line-height: 1.3;
+		font-weight: 500;
+		letter-spacing: -0.5px;
+	}
+	.index-container h5 {
+		font-family: 'apple sd gothic neo', 'Open Sans', 'NanumGothic', sans-serif;
+	}
+	.index-container .index-content-section {margin-bottom: 2.5rem;}
+	.index-container .alias {
+		font-family: 'apple sd gothic neo', 'Roboto', 'Nunito Sans', 'NanumGothic', sans-serif;
+		color: #303672;
+	}
+}
+@media (max-width: 320px) {
+	.index-container h3,
+	.member-ranking-section h3 {font-size: 20px;}
+}
+
+
+/* -------------------------- [index animal ment] --------------------------- */
+.index-animal {
+	position: relative; 
+	box-shadow: 0 3px 10px 1px #999;
+	border-radius: 15px;
+	font-size: 17px;
+	margin: 2rem 15px;
+	padding: 25px 40px 20px 40px;
+	background-color: #FAFAFA;
+}
+.index-animal .title-cover {
+	background: #27466C;
+	color: #fff;
+	display: inline-block;
+	font-weight: 700;
+	margin: -15px -10px 5px -64px;
+	padding: 12px 50px 10px 64px;
+	position: relative;
+	line-height: 1;
+}
+.index-animal .title-cover .pv-tm {text-shadow: 1px 1px 1px maroon;}
+.index-animal .title-cover .title {
+	height: 20px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.index-animal .title-cover:after, .index-animal .title-cover:before {
+	content: ' ';
+	height: 0;
+	position: absolute;
+	width: 0;
+}
+.index-animal .title-cover:before {
+	border-left: 24px solid transparent;
+	border-top: 20px solid #0883be;
+	left: 0;
+	top: 42px;
+}
+.index-animal .title-cover:after {
+	border-bottom: 21px solid transparent;
+	border-right: 10px solid #FAFAFA;
+	border-top: 21px solid transparent;
+	right: 0;
+	top: 0;
+}
+.index-animal .title-xs {display: none;}
+.index-animal img {width: 75%; margin-top: -105px;}
+.index-animal .wise-saying {
+	color: #900d0d;
+	font-family: 'Nanum Myeongjo', serif;
+	font-size: 1rem;
+	font-weight: 600;
+}
+.index-animal .wise-saying i {
+	position: relative;
+	top: -6px;
+	font-size: 0.7em;
+}
+.index-animal .from {
+	font-size: 0.75rem;
+	padding-top: 5px;
+	font-family: 'NanumGothic', Sans-serif;
+}
+
+@media (max-width: 1199.5px) {
+	.index-animal {
+		margin: 2rem 20px;
+		padding: 30px 30px 20px 30px;
+		-webkit-box-shadow: 0 1px 3px 0px #94a3a7;
+		box-shadow: 0 1px 3px 0px #94a3a7;
+	}
+	.index-animal .title-cover {
+		margin-left: -54px;
+	    padding-left: 54px;
+	}
+}
+@media (max-width: 991.5px) {
+	.index-animal {
+		margin: 2rem 10px 2rem 20px;
+		padding: 30px 20px 20px 20px;
+		-webkit-box-shadow: 0 1px 3px 0px #94a3a7;
+		box-shadow: 0 1px 3px 0px #94a3a7;
+	}
+	.index-animal .title-cover {
+		margin-left: -45px;
+	    padding-left: 45px;
+	}
+	.index-animal img {width: 80%; margin-top: -110px;}
+}
+@media (max-width: 767.5px) {
+	.index-animal {
+		margin: 3rem 0 2rem;
+		padding: 3rem 1rem 1.5rem;
+		-webkit-box-shadow: none;
+		box-shadow: none;
+		background: #f6f7ff !important;
+		position: relative;
+	}
+	.index-animal .title-cover {
+		margin: 0;
+		padding: 0 0 0.5rem;
+		background: transparent !important;
+		color: #1b1f40 !important;
+		text-shadow: none;
+		text-align: center;
+		display: block;
+		width: 100%;
+		position: static;
+	}
+	.index-animal .title-cover .pv-tm {text-shadow: none;}
+	.index-animal .title-cover:before,
+	.index-animal .title-cover:after {content: none;}
+	.index-animal .title-cover .title {
+		font-family: 'Baloo Bhai';
+		line-height: 1;
+		font-weight: 500;
+		letter-spacing: -0.5px;
+	}
+	.index-animal .animal-image {
+		position: absolute;
+		text-align: center;
+		top: -30px;
+		left: calc(50% - 30px);
+	} 
+	.index-animal img {
+		width: 100%; 
+		margin: 0;
+		width: 60px;
+		border-radius: 0.5rem;
+		border: none !important;
+		-webkit-box-shadow: 0 25px 25px -10px rgba(27,31,64,0.35), 
+					0 20px 20px -10px rgba(27,31,64,0.3);
+		box-shadow: 0 25px 25px -10px rgba(27,31,64,0.35), 
+					0 20px 20px -10px rgba(27,31,64,0.3);
+	}
+	.index-animal .wise-saying {
+		font-size: 0.9rem;
+		color: #1b1f40 !important;
+		font-family: 'Nanum Myeongjo','함초롬바탕','NanumGothic', Sans-Serif;
+		font-weight: 600;
+		line-height: 1.4;
+		text-align: center;
+	}
+	.index-animal .wise-saying b {color: #cb2026;}
+	.index-animal .wise-saying i {display: none;}
+	.index-animal .from {
+		color: #303672 !important;
+		padding: 0;
+		font-size: 0.8rem;
+		line-height: 1.3;
+		margin-top: 1rem;
+		text-align: center;
+		font-weight: 500 !important;
+		font-family: 'Open Sans', '나눔바른고딕', 'NanumGothic', sans-serif;
+	}
+	.index-animal .from .kor {font-size: 0.9em;}
+}
+
+
+
+/* ------------------------------[notice board]------------------------------ */
+.notice-board-section {margin-top: 50px;}
+.notice-board-section .fa-bell {color: #f6aa37;}
+.notice-board-section .notice-cover {
+	border: solid 1px #e6e6e6;
+	padding: 10px 10px 5px;
+	border-radius: 10px;
+	position: relative;
+	margin-top: 28px;
+	background-color: #fff;
+}
+.notice-board-section .notice-list, .notice-board-section .notice-header {
+	font-size: 0.9em; 
+	table-layout: fixed;
+	font-family: 'NanumGothic';
+}
+.notice-board-section .notice-header {
+	margin-top: -25px;
+	margin-bottom: 5px;
+	background-color: #ebf1f8;
+	border-radius: 10px;
+	padding: 5px 3px;
+	color: #444;
+	font-weight: 600;
+}
+.notice-board-section .notice-header .title,
+.notice-board-section .notice-header .date,
+.notice-board-section .notice-header .view {text-align: center;}
+.notice-board-section .notice-list:hover {background: #f2f4f7;}
+.notice-board-section .notice-list > div {
+	padding: 0.3rem;
+	border-bottom: solid 1px #e9ecef;
+}
+.notice-board-section .notice-list:last-child > div {border-bottom: none;}
+.notice-board-section .notice-list .title {
+	padding-left: 10px;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+}
+.notice-board-section .notice-list .title label {
+	margin: 0;
+	font-size: 0.5em;
+	padding: 3px 0.5em 4px;
+}
+.notice-board-section .notice-list .title .fa-thumbtack {
+	color: #ee6253; 
+	-webkit-transform: rotate(-30deg);
+	transform: rotate(-30deg);
+	margin-right: 3px;
+}
+.notice-board-section .notice-list .view, 
+.notice-board-section .notice-list .date {text-align: center;}
+.notice-board-section .notice-list .view i {color: #bdbdbd; }
+
+/* 공지 게시글 */
+.notice-board-section .formContainer {
+	margin: 0.5rem 0;
+	padding: 1rem;
+	-webkit-box-shadow: 0 1px 10px rgba(0,0,0,0.19), 0 3px 6px rgba(0,0,0,0.23);
+	box-shadow: 0 1px 10px rgba(0,0,0,0.19), 0 3px 6px rgba(0,0,0,0.23);
+}
+.notice-board-section .article-title-div {
+	font-family: 'Trebuchet MS', '나눔바른고딕', '나눔명조', 'NanumSquare';
+	font-size: 1.2rem;
+	color: #00B4CF;
+	text-align: center;
+	margin-bottom: 1rem;
+}
+.notice-board-section .article-info h5,
+.notice-board-section .article-info h6 {margin: 0;}
+.notice-board-section .article-content {padding: 1rem 0;}
+.notice-board-section .formContainer .fa-quote-left,
+.notice-board-section .formContainer .fa-quote-right {
+	position: relative;
+	top: -2px;
+	font-size: 0.8em;
+}
+.notice-board-section .formContainer .article-info .member-personacon-sm {
+	max-width: 25px;
+}
+.notice-board-section .formContainer .article-info {background-color: #FAFAFA;}
+.notice-board-section .formContainer .article-info h5 {
+	font-size: 14px;
+	padding-bottom: 0;
+	color: #969696;
+}
+.notice-board-section .formContainer .article-info h6 {
+	font-size: 13px;
+	color: Chocolate;
+	padding-bottom: 0;
+	font-family: "Trebuchet MS", Arial, Helvetica, sans-serif, "나눔고딕";
+}
+.notice-board-section .formContainer .article-info .personacon-alias {
+	font-family: 'Nunito Sans', 'NanumGothic', Sans-Serif;
+	font-size: 13px;
+}
+.notice-board-section .formContainer .article-info #reportBtn {display: none;}
+
+
+@media (max-width: 767.5px) {
+	.notice-board-section {display: none;}
+	.notice-board-section .notice-cover {
+		border: none;
+		padding: 0px;
+		border-radius: none;
+		margin-top: 0px;
+	}
+	.notice-board-section .notice-header {display: none;}
+	.notice-board-section .notice-list {border-left: none;}
+	.notice-board-section .notice-list:last-child .view,
+	.notice-board-section .notice-list:last-child .date {
+		border-bottom: solid 1px #e9ecef;
+	}
+	.notice-board-section .notice-list .body {
+		padding: 0;
+		margin: 12px 0;
+	}
+	.notice-board-section .notice-list .title {
+		border-bottom: none;
+		padding-bottom: 0;
+		padding-left: 5px;
+		line-height: 1.5;
+		text-overflow: clip;
+		overflow: visible;
+		white-space: normal;
+		font-size: 13px;
+		font-family: 'Nunito Sans', 'NanumGothic', Sans-Serif;
+	}
+	.notice-board-section .notice-list .title a {
+		-webkit-transition: color .25s ease-in-out;
+	    transition: color .25s ease-in-out;
+	}
+	.notice-board-section .notice-list .title a:hover {color: #ffb927;}
+	.notice-board-section .notice-list .view,
+	.notice-board-section .notice-list .date {font-size: 11px; padding-left: 5px;}
+	.notice-board-section .notice-list .date {color: #a7a7a7; text-align: left;}
+	.notice-board-section .notice-list .view {text-align: right;}
+	.notice-board-section .notice-list .date label.badge {
+		margin: 0;
+		font-size: 0.4em;
+	}
+	
+	/* 공지 게시글 */
+	.notice-board-section .formContainer {
+		margin: 0.5rem 0;
+		padding: 0.5rem 1rem 1rem;
+	}
+	
+}
+

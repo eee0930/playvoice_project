@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="list">
+	<div th:each="translation, iter : ${#numbers.sequence(1,5)}" class="member-trans-div"
+		th:classappend="${iter.index == 0}? 'writer':''">
+		<div class="member-trans-text">
+			데이트할 때 어떻게 신사가 될 수 있을까?<br>
+			답은 데이트가 시작되기도 전에 신사답게 행동하고, 마지막까지 계속하는 것이다.
+		</div>
+		<div class="member-trans-info row no-gutters">
+			<div class="date col-auto align-self-center">2020-02-15</div>
+			<div class="etc col btn-group align-self-center">
+				<a class="dropdown-toggle ml-3" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-h fa-lg fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-left px-3" role="menu">
+				    <li class="dropdown-item text-center">수정</li>
+				    <li class="openReportModal dropdown-item text-center">신고</li>
+				</ul>
+			</div><div class="w-100 d-sm-none"></div>
+			<div class="col-auto align-self-center">
+				<i th:if="${iter.index == 0}" class="fa fa-list-alt fa-fw"></i>
+				translated by <span class="alias">lazyhysong</span>
+			</div>
+			<div class="col-auto align-self-center px-2">
+				<div th:replace="~{/incl/user_personacon::sm_test}"></div>
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+
+
+
+
+
+
+
+
+
+
+

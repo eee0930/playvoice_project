@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout}">
+<head>
+<title>My Test Page of DictationBook - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/public/chart.min.js}"></script>
+<script th:src="@{/js/app/dictationbook.js}"></script>
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	// 음성 재생 변수들 초기화
+	loopSize = 3;
+	audioList = [];
+	// [테마에 대한 나의 시험 내역 열기]---------------------------------------------------
+	// 테마 div가 동적으로 생성되므로 document.on
+	$(document).on("click",".theme-info-cover,.open-my-info",function(){
+		var TestHistoryDiv = $(this).siblings(".my-info-cover");
+		var openButton = $(this).closest(".theme-cover").find(".toggle-button-cover:has(.open-my-info)");
+		var TestHistoryDivParent = $(this).closest(".theme-cover");
+
+		$(".theme-cover").removeClass("active");
+		
+		if(TestHistoryDiv.length > 0){
+			if(TestHistoryDiv.is(":visible")){
+				openButton.show();
+				TestHistoryDiv.hide();
+			}else{
+				openButton.hide();
+				TestHistoryDiv.show();
+				TestHistoryDivParent.addClass("active");
+			}
+		}else {
+			openButton.hide();
+			TestHistoryDivParent.addClass("active");
+			$(this).closest(".theme-cover").find(".spin-icon-cover").show();
+			var obj = {
+					div: $(this).closest(".theme-cover"),
+					themeId: $(this).closest(".theme-cover").attr("data-themeid")
+			};
+			//--------------------
+			getMyTestHistory(obj);
+			//--------------------
+		}
+	});
+	
+
+	// [DSR 포인트 가이드 열고 닫기]----------------------------------------------------
+	$(".dsrPointGuide").click(function(){
+		$(this).closest(".graph-guide").find(".guide-detail").toggle(100);
+	});
+	
+	// [테마 목록 네비게이션 바 클릭 시 해당 페이지의 나의 응시 테마 리스트 열기]-------------------------
+	// 테마 목록 네비게이션 바가 동적으로 생성되므로 document.on
+	$(document).on("click", ".themePageNav", function(){
+		var obj = {
+				div: $(this).closest(".themeListDiv"),
+				themeType: $(this).closest(".themeListDiv").attr("data-themetype"),
+				page: $(this).attr("data-pagenum")
+		};
+		//-------------------
+		getMyTestThemes(obj);
+		//-------------------
+	});
+	
+	
+	
+	// ['나의 랭킹(%) 보기' 버튼 클릭 시 나의 랭킹 바 표시]-------------------------------------
+	// 나의 랭킹 보기 버튼이 시험 내역과 함께 동적으로 생성되므로 document.on
+	$(document).on("click", ".view-my-rank", function(){
+		var obj = {
+				div: $(this).closest(".my-rank-cover"),
+				themeId: $(this).closest(".theme-cover").attr("data-themeid")
+		};
+		//----------------
+		getMyRanking(obj);
+		//----------------
+	});
+	
+	
+	
+	//['내가 틀린 문장들 보기' 버튼 클릭 시 틀린 문장 목록 열기]-----------------------------------
+	// 내가 틀린 문장들 보기 버튼이 시험 내역과 함께 동적으로 생성되므로 document.on
+	$(document).on("click", ".view-my-wrong", function(){
+		var obj = {
+				div: $(this).closest(".my-wrong-cover"),
+				themeId: $(this).closest(".theme-cover").attr("data-themeid"),
+				page: 1
+		};
+		//---------------------------
+		getMyWrongDictationList(obj);
+		//---------------------------
+	});
+	
+	
+	
+	//[내가 틀린 문장 목록의 네비게이션 바 클릭 시 해당 페이지의 내가 틀린 문장 목록 열기]--------------------
+	// 내가 틀린 문장 목록의 네비게이션 바가 시험 내역과 함께 동적으로 생성되므로 document.on
+	$(document).on("click", ".wrongAnswerPageNav", function(){
+		var obj = {
+				div: $(this).closest(".my-wrong-cover"),
+				themeId: $(this).closest(".theme-cover").attr("data-themeid"),
+				page: $(this).attr("data-pagenum")
+		};
+		//---------------------------
+		getMyWrongDictationList(obj);
+		//---------------------------
+	});
+	
+	
+	
+	// [나의 시험 내역  닫기 (버튼으로 동작)]-----------------------------------------------
+	$(document).on("click", ".fold-my-info", function(){
+		var TestHistoryDivParent = $(this).closest(".theme-cover");
+		$(this).closest(".theme-cover").find(".toggle-button-cover:has(.open-my-info)").show();
+		$(this).closest(".my-info-cover").hide();
+		TestHistoryDivParent.removeClass("active");
+		/* 닫기 버튼 클릭 시 스크롤 이동 */
+		var myInfoParentSection = TestHistoryDivParent.offset().top;
+		$('html, body').animate({scrollTop : myInfoParentSection - $("#headerNavbar").height()}, 100);
+	});
+});
+ 
+ 
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+ /**
+ * 불러온 테마 목록을 화면에 표시
+ */
+function successGetMyTestThemes(pageMaker, div) {
+	var themeList = div.find(".theme-list-cover");
+	themeList.empty();
+	pageMaker.result.content.forEach(function(theme, i) {
+		var themeDiv = $("#themeCopy").clone();
+		themeDiv.show();
+		themeDiv.removeAttr("id");
+		themeDiv.find(".theme-cover").attr("data-themeid", theme.tid).attr('data-themeid56', theme.id56);
+		if(div.attr('data-themetype') == /*[[${T(com.varxyz.playvoice.common.Constants).THEME_TYPE_CONTENT}]]*/null){
+			themeDiv.find("img").css("background", "url(\'/images/app/dictationbook/theme_" + i + ".jpg\') no-repeat");
+			themeDiv.find("img").css("background-size", "cover");
+			themeDiv.find("img").css("background-position", "center");
+		}else{
+			themeDiv.find('.img').remove();			
+		}
+		themeDiv.find(".themeTitle").text(theme.title);
+		themeDiv.find(".dsrAvg").text(parseFloat(theme.dsrAvg).toFixed(1));
+		themeDiv.find(".targetAgeGroupAvg").text(theme.targetAgeGroupAvg.toFixed(1));
+		
+		themeDiv.appendTo(themeList);
+	});
+	//--------------------------------------------------------------------------
+	displayPageNavigationForTestThemeList(pageMaker, div.find(".themePagination,.testPagination"));
+	//--------------------------------------------------------------------------
+};
+
+/**
+ * 테마 목록의 네비게이션 바를 표시한다.
+ */
+function displayPageNavigationForTestThemeList(pageMaker, div) {
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var prevDiv = div.children().eq(0);
+	var numDiv = div.children().eq(1);
+	var nextDiv = div.children().eq(2);
+	
+	// [모바일 페이징]
+	var $mobileDiv = $(div).is('.themePagination') ? $('.themePagination-xs') : $('.testPagination-xs');
+	var $mobilePrev = $mobileDiv.children().eq(0);
+	var $mobileNext = $mobileDiv.children().eq(1);
+	if(currentPageNum > 1){
+		$mobilePrev.find('button').attr('data-pagenum', currentPageNum - 1)
+								  .css('visibility', 'visible');
+	}else{
+		$mobilePrev.find('button').css('visibility', 'hidden');
+	}
+	if(currentPageNum < pageMaker.totalPageNum){
+		$mobileNext.find('button').attr('data-pagenum', currentPageNum + 1)
+		  						  .css('visibility', 'visible');
+	}else{
+		$mobileNext.find('button').css('visibility', 'hidden');
+	}
+	
+	// prevPage link
+	prevDiv.empty();
+	if(prevPage != null){
+		var link = $("<a class='themePageNav btn btn-dictation'></a>");
+		link.attr("data-pagenum", parseInt(prevPage.pageNumber + 1));
+		var icon = $('<i class="fa fa-angle-left"></i> prev');
+		icon.appendTo(link);
+		link.appendTo(prevDiv);
+	}
+	
+	// numberPage link
+	var ul = numDiv.find("ul");
+	ul.empty();
+	$.each(pageList, function(index, page) {
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="themePageNav page-link"></a>');
+		link.attr("data-pagenum", parseInt(page.pageNumber + 1));
+		//link.attr('href', 'javascript:void(0)');
+		link.html(parseInt(page.pageNumber + 1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	})
+	
+	// nextPage link
+	nextDiv.empty();
+	if(nextPage != null){
+		var link = $("<a class='themePageNav btn btn-dictation'></a>");
+		link.attr("data-pagenum", parseInt(nextPage.pageNumber + 1));
+		var icon = $('<i class="fa fa-angle-right"></i> prev');
+		icon.appendTo(link);
+		link.appendTo(nextDiv);
+	}
+	
+};
+
+/**
+ * 해당 테마의 내 시험 정보들을 테마 아래에 표시한다.
+ */
+function successGetMyTestHistory(history, div) {
+	div.children(".my-info-cover").remove();
+	
+	var myInfo = $("#myInfoCopy").clone();
+	myInfo.removeAttr("id");
+	myInfo.show();
+	
+	myInfo.find(".dsrPoint").text(history.myDsrAvg.toFixed(1));
+	//myInfo.find(".ranking-percent").text(history.ranking-percent);
+	
+	var recordsDiv = myInfo.find(".test-list-cover");
+	recordsDiv.empty();
+	history.testList.forEach(function(test, index){
+		var rowWrapper = $("<div class='test-colum test-list p-1'></div>");
+		var row = $("<div class='rank-style px-lg-2 px-1 row no-gutters mx-sm-1'></div>");
+		
+		var date = new Date(test.regDate);
+		var dateString = date.getFullYear() 
+				 + "-" + parseInt(date.getMonth() + 1) 
+				 + "-" + date.getDate();
+		var columns = $("<div class='num col-1'>" + (index + 1) + "</div>"
+				  + "<div class='score col'>" + test.result + "</div>"
+				  + "<div class='count col'>" + test.repeat + "</div>"
+				  + "<div class='capacity dsr-point col'>" + test.capacity.toFixed(1) + "</div>"
+				  + "<div class='date col-3'>" + dateString + "</div>");
+		columns.appendTo(row);
+		row.appendTo(rowWrapper);
+		rowWrapper.appendTo(recordsDiv);
+	});
+	if(div.closest('.themeListDiv').attr('data-themetype') 
+			== /*[[${T(com.varxyz.playvoice.common.Constants).THEME_TYPE_TEST}]]*/null){
+		myInfo.find('.tryAgainBtn').parent().remove();
+	}else{
+		myInfo.find('.testGuideDiv').parent().remove();
+	}
+	myInfo.find(".tryAgainBtn").click(function() {
+		location.href = "/dictationBook/theme/view/" + div.attr("data-themeid56");
+	})
+	div.find(".spin-icon-cover").hide();
+	myInfo.appendTo(div)
+	if(history.testList.length >= 3){
+		div.find(".none-graph").hide();
+		getScoreLineGraph(history.testList, div.find("canvas.graph"));
+	}else{
+		div.find('canvas.graph').remove();
+	}
+};
+
+/**
+ * 테마의 내 순위를 '나의 랭킹(%) 보기' 버튼 아래에 표시한다.
+ */
+function successGetMyRanking(ranking, div) {
+	if(div.find('.ranking-percent').length == 0){
+		div.find('.score-rank').remove();
+		var rankingBar = $("#rankingCopy").clone();
+		rankingBar.removeAttr("id");
+		rankingBar.show();
+		
+		rankingBar.find(".rank-percent").css("width", ranking + "%");
+		rankingBar.find(".guide").html(
+				"<i class='fa fa-square fa-fw'></i>"
+			  +	/*[[${session.userContainer?.personacon?.alias}]]*/null
+			  + "님은 <b>상위 " + ranking + "%</b> 입니다.<br class='d-sm-none'>"
+			  + " 다른 플보 멤버들의 " + (100-ranking) + "%보다 더 잘하셨어요! <i class='far fa-lg fa-grin-alt'></i>");
+		rankingBar.appendTo(div);
+	}
+};
+
+/**
+ * 테마의 내가 틀린 문제들을 '내가 틀린 문장들 보기' 버튼 아래에 표시한다.
+ */
+function successGetMyWrongDictationList(pageMaker, div) {
+	div.find('.wrong-answer-list,.none-guide').remove();
+	// 오답이 하나도 없을 때는 메세지 표시
+	if(pageMaker == null || pageMaker.result == null || pageMaker.result.totalElements == 0){
+		div.append('<div class="none-guide">'
+				+ '우와! 틀린 문장이 하나도 없네요! 멋져요 '
+				+ '<i class="far fa-grin-alt"></i></div>');
+		return;
+	}
+	var wrongAnswerList = $("#wrongListCopy").clone();
+	wrongAnswerList.removeAttr("id");
+	wrongAnswerList.show();
+	
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	var total = pageMaker.result.totalElements;
+	var fetchSize = 10;
+	audioList = [];
+	
+	var rowCopy = wrongAnswerList.find(".wrong-answer-cover");
+	pageMaker.result.content.forEach(function(answer, index) {
+		var row = rowCopy.clone().show();
+		
+		var num = total - (fetchSize * (currentPageNum - 1)) - index;
+		row.find(".num").text(num);
+		
+		var button = "<button type='button' class='eng-speak-btn'>"
+					 + "<i class='fa fa-headphones-alt'></i></button>";
+		row.find(".sentence .eng").html(answer.dictation.sentence.eng
+										+ button);
+		row.find(".sentence .kor").text(answer.dictation.sentence.kor);
+		row.find(".sentence .eng-speak-btn").click(function() {
+			//보이스 재생
+			if(currentAudio != null && audioList[index] != null){
+				if(currentVoiceIndex == index){
+					// 재생 중이던 음성이 끝난 시점이면 다시 재생
+					if(currentAudio.ended){
+						timer = null;
+						playCount = 0;
+						nextVoice();
+						playAudio();
+						
+					// 재생 중이던 상태면 일시 정지	
+					}else if(!currentAudio.paused){
+						stopAudio();
+
+					// 일시 정지였던 상태면 이어서 재생
+					}else{
+						playAudio();
+					}
+				}else{
+					// 이전 재생 중이던 음성과 다른 음성이면 이전 음성을 중지하고 음성을 교체 후 재생
+					stopAudio();
+					currentAudio.currentTime = 0;
+					currentAudio = audioList[index];
+					currentVoiceIndex = index;
+					playCount = 0;
+					nextVoice();
+					playAudio();
+				}
+			}else{
+				// 이전 음성은 중지
+				if(currentAudio != null){
+					stopAudio();
+				}
+				// 새로운 음성 파일 로드
+				audioList[index] = new Audio('/dictationBook/sentence/voice/' + answer.dictation.sentence.sid);
+				audioList[index].load();
+				currentAudio = audioList[index];
+				currentVoiceIndex = index;
+				playCount = 0;
+				nextVoice();
+				playAudio();
+			}
+		});
+		row.find(".sentence .wrongAnswer").text(answer.answer);
+		wrongAnswerList.find(".wrong-answer-page").before(row);
+	});
+	rowCopy.remove();
+	
+	wrongAnswerList.appendTo(div);
+	
+	//--------------------------------------------------------------------------
+	displayPageNavigationForMyWrongDictation(pageMaker, div.find(".pagination"));
+	//--------------------------------------------------------------------------
+};
+
+/**
+ * 틀린 문제 목록의 네비게이션 바를 표시한다.
+ */
+function displayPageNavigationForMyWrongDictation(pageMaker, ul) {
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	ul.empty();
+	
+	// prevPage link
+	if(prevPage != null){
+		var li = $("<li class='page-item'></li>");
+		var link = $("<a class='wrongAnswerPageNav page-link'>PREV" + (prevPage.pageNumber + 1) + "</a>");
+		link.attr("data-pagenum", parseInt(prevPage.pageNumber + 1));
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+	
+	// numberPage link
+	$.each(pageList, function(index, page) {
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="wrongAnswerPageNav page-link"></a>');
+		link.attr("data-pagenum", parseInt(page.pageNumber + 1));
+		link.html(parseInt(page.pageNumber + 1));
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	})
+	
+	// nextPage link
+	if(nextPage != null){
+		var li = $("<li class='page-item'></li>");
+		var link = $("<a class='wrongAnswerPageNav page-link'>NEXT" + (nextPage.pageNumber + 1) + "</a>");
+		link.attr("data-pagenum", parseInt(nextPage.pageNumber + 1));
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+};
+
+/**
+ * 최근 5회의 시험 점수의 변화를 그래프로 표시
+ */
+function getScoreLineGraph(testList, canvas) {
+	var ctx = canvas[0].getContext('2d');
+	var labels = [];
+	var datas = [];
+	recentTestList = testList.slice(0, 5);
+	recentTestList.reverse().forEach(function(test, index) {
+		var date = new Date(test.regDate);
+		var dateString = parseInt(date.getMonth() + 1) + "-" + date.getDate();
+		labels.push(dateString);
+		
+		datas.push(test.capacity.toFixed(1));
+	})
+	
+	new Chart(ctx, {
+		type: 'line',
+		data: {
+			labels: labels, //X축 값
+			datasets: [{ 
+				label: 'DSR Point', 
+				data: datas, // Y축 값
+				borderWidth: 2,
+				backgroundColor: 'rgba(255, 99, 132, 0.2)',
+	            borderColor: 'rgba(236,64,122,1)',
+	            lineTension: 0,
+	            radius: [3, 3, 3, 3, 5]
+			}]
+		},
+		options: {
+			scales: {
+				yAxes: [{
+					ticks: {
+						max: 100,
+						stepSize: 20,
+						//reverse: false, //y축 값 뒤집기
+						beginAtZero: true //y축 값을 0부터 나타내기
+					}
+				}]
+			}
+		}
+	});
+}
+
+</script>
+</head>
+<body>
+<section layout:fragment="content" 
+	th:with="yourPersonacon = ${session.userContainer?.personacon},
+			yourAlias = ${yourPersonacon?.alias},
+			yourMemberType = ${yourPersonacon?.memberType},
+			pageMakers = ${ {pageMaker1, pageMaker2} },
+			classes = ${ {'theme','test'} },
+			themeTypes = ${ {
+							T(com.varxyz.playvoice.common.Constants).THEME_TYPE_CONTENT,
+							T(com.varxyz.playvoice.common.Constants).THEME_TYPE_TEST
+						} },
+			guideMsg = ${ {'List of <span class=&quot;index-text-color&quot;>DictationBook Test</span>
+						<i class=&quot;fa fa-cubes fa-fw fa-lg&quot; style=&quot;color: #ee6253;&quot;></i><br>
+						<small>응시한 테스트의 테마를 클릭하여 테스트 통계 정보를 확인해 보세요.</small>',
+						'List of <span class=&quot;index-text-color&quot;>Level Evaluation</span>
+						<i class=&quot;fa fa-cubes fa-fw fa-lg&quot; style=&quot;color: #ee6253;&quot;></i><br>
+						<small>다른 학습 app에서 레벨 평가를 위해 테스트한 결과 목록입니다.</small>'
+						} },
+			noContentMsg = ${ {'응시한 딕테이션북 테마가 아직 없습니다.<br>
+							마음에 드는 테마를 골라 연습한 후 통계정보를 확인해 보세요
+							<i class=&quot;far fa-grin-alt fa-lg&quot;></i>',
+							'테스트 내역이 없습니다.<br>
+							플레이보이스 학습 컨텐츠로 학습하면서 중간중간 실력을 검증해 보세요
+							<i class=&quot;far fa-grin-alt fa-lg&quot;></i>'} }">
+
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/dictationBook/incl/dictationbook_menu::menu}" class="col-lg-10"></div>
+</div>
+
+<div id="dictationMyinfoSection" class="dictation-myinfo-section my-4">
+	
+	
+<!-- ----------------------[my dictation theme list]------------------------ -->
+<th:block th:each="pageMaker,iter0 : ${ {pageMaker1, pageMaker2} }">
+	<div class="themeListDiv dictation-theme-myinfo row no-gutters"
+		th:data-themetype="${themeTypes[iter0.index]}">
+		<div class="col-lg-1"></div>
+		<div class="col-lg-10 px-1 px-lg-3">
+		<h3 th:utext="${guideMsg[iter0.index]}"><!--/* 안내 메세지 */--></h3>
+		<div class="theme-list-cover" th:classappend="${classes[iter0.index]}">
+			<div th:if="${pageMaker.result.hasContent()}" 
+			     th:each="theme,iter1:${pageMaker.result}" class="theme-list">
+				<div class="theme-cover" th:data-themeid="${theme.tid}" 
+					th:data-themeid56="${theme.id56}">
+					<!-- theme info -->
+					<div class="theme-info-cover row no-gutters">
+						<div th:if="${themeTypes[iter0.index] 
+							EQ T(com.varxyz.playvoice.common.Constants).THEME_TYPE_CONTENT}" 
+							class="img col-md-auto col-12">
+							<img src="/images/app/dictationbook/theme_paper3.png"
+								th:style="'background: url(\'/images/app/dictationbook/theme_' + ${iter1.index} + '.jpg\') no-repeat;
+								background-size: cover; background-position: center;'">
+						</div>
+						<div class="theme-title col-md col-12 align-self-center">
+							<div class="title py-1">
+								<span class="sharp">#</span>[[${theme.title}]]
+							</div>
+						</div>
+						<div class="avg-point-info col-sm-auto col-6 p-1 text-center align-self-center">
+							<div class="avg-point-cover">
+								<div class="point-title">
+									전체 평균<br class="d-none d-md-block">
+									DSR Point
+								</div>
+								<div th:text="${#numbers.formatDecimal(theme.dsrAvg,1,1)}" 
+									class="point-content">78</div>
+							</div>
+						</div>
+						<div class="avg-point-info col-sm-auto col-6 p-1 text-center align-self-center">
+							<div class="avg-point-cover">
+								<div class="point-title">
+									<span class="point">[[${ager}]]대</span>
+									평균<br class="d-none d-md-block">
+									DSR Point
+								</div>
+								<div th:text="${#numbers.formatDecimal(theme.targetAgeGroupAvg,1,1)}"
+									class="point-content">82</div>
+							</div>
+						</div>
+						<div class="spin-icon-cover text-center" style="display: none;">
+							<i class="fa fa-spinner fa-spin"></i>
+						</div>
+					</div>
+					<div class="toggle-button-cover text-center">
+						<button type="button" class="open-my-info fold-button">
+							<i class="fa fa-angle-double-down fa-lg"></i>
+						</button>
+					</div>
+					<!-- ------------- my test info copy place ------------- -->
+				</div>
+			</div>
+			
+			<div th:unless="${pageMaker.result.hasContent()}" 
+				class="none-test-guide text-center"
+				th:utext="${noContentMsg[iter0.index]}"><!--/* 내역없음 안내 */--></div>
+				
+				
+			<!-- [mypage sponsor test area]--------------------------------- -->
+			<th:block th:if="${iter0.index == 0}">
+			<!-- sponsor PC -->
+			<div class="theme-list sponsor  d-md-block"><div class="theme-cover">
+				<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-format="fluid"
+				     data-ad-layout-key="-ha+9+3a-du+cw"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="9272644779"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div></div>
+			<!-- sponsor Mobile -->
+			<div class="dictaionbook-mypage-ad-section d-md-none">
+				<!-- <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script> -->
+				<!-- (Mobile) DictationBook mypage test -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="1528696753"
+				     data-ad-format="auto"
+				     data-full-width-responsive="true"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+			</th:block>
+			
+			<!-- [mypage sponsor evaluation area]--------------------------- -->
+			<th:block th:unless="${iter0.index == 0}">
+			<!-- sponsor PC -->
+			<div class="theme-list sponsor  d-md-block"><div class="theme-cover">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-format="fluid"
+				     data-ad-layout-key="-ha+9+3a-du+cw"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="9272644779"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div></div>
+			<!-- sponsor Mobile -->
+			<div class="dictaionbook-mypage-ad-section d-md-none">
+				<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+				<!-- (Mobile) DictationBook mypage level -->
+				<ins class="adsbygoogle"
+				     style="display:block"
+				     data-ad-client="ca-pub-7152306695077047"
+				     data-ad-slot="5159792335"
+				     data-ad-format="auto"
+				     data-full-width-responsive="true"></ins>
+				<script>
+				     (adsbygoogle = window.adsbygoogle || []).push({});
+				</script>
+			</div>
+			</th:block>
+			
+		</div>
+		
+		<!-- page PC & Tablet Ver. -->
+		<div th:if="${pageMaker.result.hasContent()}" class="d-none d-md-block">
+			<div class="themePagination my-test-info-page row no-gutters mb-3">
+				<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+					<a th:if="${pageMaker.prevPage}" 
+					   th:data-pagenum="${pageMaker.prevPage.pageNumber+1}" 
+					   class="themePageNav btn btn-dictation">
+						<i class="fa fa-angle-left"></i> prev
+					</a>
+				</div>
+				<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+					<ul class="pagination pagination-sm justify-content-center">
+						<li th:each="page:${pageMaker.pageList}" class="page-item" 
+						    th:classappend="${page.pageNumber EQ pageMaker.currentPageNum-1}?active">
+							<a class="themePageNav page-link" 
+							   th:text="${page.pageNumber+1}" 
+							   th:data-pagenum="${page.pageNumber+1}">1</a></li>
+					</ul>
+				</div>
+				<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+					<a th:if="${pageMaker.nextPage}" 
+					   th:data-pagenum="${pageMaker.nextPage.pageNumber+1}" 
+					   class="themePageNav btn btn-dictation">
+						next <i class="fa fa-angle-right"></i>
+					</a>
+				</div>
+			</div>
+		</div>
+		
+		<!-- page Mobile Ver. -->
+		<div th:if="${pageMaker.result.hasContent()}" class="d-md-none">
+			<div class="themePagination-xs my-test-info-page row no-gutters mb-3">
+				<div class="col-6 text-left">
+					<button class="themePageNav btn btn-dictation" 
+						th:styleappend="${pageMaker.currentPageNum EQ 1} ? 'visibility:hidden':''"
+						th:data-pagenum="${pageMaker.currentPageNum - 1}">
+						<i class="fa fa-angle-left"></i> prev
+					</button>
+				</div>
+				<div class="col-6 text-right">
+					<button class="themePageNav btn btn-dictation"
+						th:styleappend="${pageMaker.currentPageNum EQ pageMaker.totalPageNum} ? 'visibility:hidden':''"
+						th:data-pagenum="${pageMaker.currentPageNum + 1}">
+						next <i class="fa fa-angle-right"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+		
+		</div>
+	</div>
+</th:block>
+
+</div><!-- end of dictationMyinfoSection -->
+
+
+<!-- -----------------------[ theme div for copy ]-------------------------- -->
+<div id="themeCopy" class="theme-list" style="display: none"><div class="theme-cover">
+	<!-- theme info -->
+	<div class="theme-info-cover row no-gutters">
+		<div class="img col-md-auto col-12">
+			<img src="/images/app/dictationbook/theme_paper3.png"
+				style="background-size: cover; background-position: center;">
+		</div>
+		<div class="theme-title col-md col-12 align-self-center">
+			<div class="title py-1">
+				<span class="sharp">#</span><span class="themeTitle">테마 주제</span>
+			</div>
+		</div>
+		<div class="avg-point-info col-sm-auto col-6 p-1 text-center align-self-center">
+			<div class="avg-point-cover">
+				<div class="point-title">
+					전체 평균<br class="d-none d-md-block">
+					DSR Point
+				</div>
+				<div class="dsrAvg point-content">78</div>
+			</div>
+		</div>
+		<div class="avg-point-info col-sm-auto col-6 p-1 text-center align-self-center">
+			<div class="avg-point-cover">
+				<div class="point-title">
+					<span class="point">[[${ager}]]대</span>
+					평균<br class="d-none d-md-block">
+					DSR Point
+				</div>
+				<div class="targetAgeGroupAvg point-content">82</div>
+			</div>
+		</div>
+		<div class="spin-icon-cover text-center" style="display: none;">
+			<i class="fa fa-spinner fa-spin"></i>
+		</div>
+	</div>
+	<div class="toggle-button-cover text-center">
+		<button type="button" class="open-my-info fold-button">
+			<i class="fa fa-angle-double-down fa-lg"></i>
+		</button>
+	</div>
+	<!-- ----------------------- my info copy place ------------------------ -->
+</div></div>	
+<!-- -------------------------/theme div for copy -------------------------- -->
+
+
+
+
+<!-- ---------------------- [my test info for copy] --------------------------->
+<div id="myInfoCopy" class="my-info-cover" style="display: none">
+	<div class="test-estimate"><div class="row no-gutters">
+		<!-- 테스트 히스토리 -->
+		<div class="my-test-list col-md-6">
+			<div class="test-avg-colum row no-gutters">
+				<div class="col-auto">
+					테스트 히스토리
+					<i class="fa fa-shoe-prints fa-fw fa-lg"></i><br>
+					<small>Check out your test history</small>
+				</div>
+				<div class="col"></div>
+				<div class="col-auto">
+					<div class="avg-point-cover text-left">
+						[[${yourAlias}]]님의<br>
+						평균 DSR Point : 
+						<span class="dsrPoint avg-point">68</span>
+					</div>
+				</div>
+			</div>
+			<div class="test-colum test-header row no-gutters px-lg-3 pl-2 px-1 mx-md-1">
+				<div class="num col-1 align-self-center">Num</div>
+				<div class="score col align-self-center">Score</div>
+				<div class="count col align-self-center">Voice Repeat</div>
+				<div class="dsr-point col align-self-center">DSR Point</div>
+				<div class="date col-3 align-self-center">Date</div>
+			</div>
+			<div class="test-list-cover p-lg-1 mx-md-1">
+				<div class="test-colum test-list p-1">
+					<div class="rank-style px-lg-2 px-1 row no-gutters">
+						<div class="num col-1">1</div>
+						<div class="score col">82</div>
+						<div class="count col">3</div>
+						<div class="dsr-point col">56</div>
+						<div class="date col-3">2018-05-24</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- score graph -->
+		<div class="score-graph-cover col-md-6 px-md-3">
+			<div class="score-graph-title">
+				점수 변화 <i class="fa fa-chart-bar fa-fw fa-lg"></i><br> 
+				<small>Check out the score variations</small>
+			</div>
+			<div class="score-graph text-center">
+				<div class="none-graph">
+					3회 이상 테스트부터 점수 변화 그래프를 제공합니다.<br>
+					<i class="far fa-grin-alt"></i>
+				</div>
+				<canvas class="graph" style="height: 250px"></canvas>
+				<div class="graph-guide">
+					<div class="dsrPointGuide guide-title">
+						DSR Point란 <i class="fa fa-question-circle"></i>
+					</div>
+					<div class="guide-detail">
+						정답 개수와 선택하신 음성 반복 횟수를 함께 고려한 평가 포인트입니다.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<!-- 재 응시 버튼 -->
+	<div class="tryagain-button-section">
+		<button type="button" class="tryAgainBtn btn btn-dictation" title="테스트 다시 도전">
+			Try Again <i class="fa fa-pencil-alt fa-fw"></i>
+		</button>
+	</div>
+	<div class="tryagain-button-section">
+		<div class="testGuideDiv test-guide">
+			<div>
+				Level Evaluation 테마들은 <b>학습 평가를 위한  테스트</b>들입니다.
+				<br class="d-none d-md-inline-block">
+				해당 학습 서비스 어플에서만  재응시할 수 있습니다.<br><br>
+				플레이보이스는 외국어 학습에 대한 증명된 학습 이론들을 시스템을 통해 구현하고 <br>
+				그 기반 위에서 다양한 학습 콘텐츠와 서비스들을 회원들에게 무료로 제공합니다.
+			</div>
+			<div class="guide-small-text">
+				Independent from English on the paper
+			</div>
+		</div>
+	</div>
+	
+	<!-- 나의 상위 위치 퍼센트 & 틀린 문장 불러오기 -->
+	<div class="myinfo-service-section default"
+		th:if="${#strings.containsIgnoreCase('MS', yourMemberType)}">
+		<div class="statistic-rank-section">
+			<h5 class="statistic-title">
+				<i class="forGold fa fa-crown"></i>
+				[[${yourAlias}]]님의 랭킹 위치
+				<i class="fa fa-arrow-circle-down fa-fw fa-lg"></i><br> 
+				<small>아래의 버튼을 클릭하여 현재 나의 위치를 확인해 보세요.</small>
+			</h5>
+			<div class="my-rank-cover row no-gutters">
+				<div class="col-md-auto pb-2 pr-3">
+					<button type="button" class="btn btn-sm btn-dictation jsAction"
+						disabled="disabled">나의 위치 확인</button>
+				</div>
+				<div class="score-rank col-md pb-2" >
+					<div class="rank-cover" align="right">
+						<div class="rank-percent" style="width: 50%;">
+							<div class="rank-bg text-left">
+								<i class="fa fa-child fa-lg fa-fw text-white"></i>
+							</div>
+						</div>
+					</div>
+					<div class="guide mt-2">
+						<i class="fa fa-square fa-fw"></i>
+						[[${yourAlias}]]님은 <b>상위 %</b> 입니다.
+						<br class="d-sm-none">플보 멤버들의 %보다 더 잘하셨어요! 
+						<i class="far fa-lg fa-grin-alt"></i>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="statistic-rank-section">
+			<h5 class="statistic-title">
+				<i class="forGold fa fa-crown"></i>
+				[[${yourAlias}]]님이 틀린 문장들 
+				<i class="fa fa-stream fa-fw fa-lg"></i><br> 
+				<small>아래의 버튼을 클릭하여 틀린 문장들을 확인해 보세요.</small>
+			</h5>
+			<div class="my-wrong-cover">
+				<div>
+					<button type="button" class="btn btn-sm btn-dictation jsAction"
+						disabled="disabled">내가 틀린 문장들 확인</button>
+				</div>
+			</div>
+		</div>
+		<div class="default-guide">
+			<div class="guide-cover jsAction text-center">
+				<a th:href="@{/membership}">
+				<i class="fa fa-crown fa-lg fa-fw" style="color: gold;"></i> 
+				<b>Gold Membership Service</b><br> 나의 랭킹과 틀린 문장들이 궁금한가요?
+				</a>
+			</div>
+		</div>
+	</div>
+
+	<div class="myinfo-service-section"
+		th:if="${#strings.containsIgnoreCase('GP', yourMemberType)}">
+		<div class="statistic-rank-section">
+			<h5 class="statistic-title">
+				<i class="forGold fa fa-crown"></i>
+				[[${yourAlias}]]님의 랭킹 위치 
+				<i class="fa fa-arrow-circle-down fa-fw fa-lg"></i><br>
+				<small>아래의 버튼을 클릭하여 현재 나의 위치를 확인해 보세요.</small>
+			</h5>
+			<div class="my-rank-cover row no-gutters">
+				<div class="col-md-auto pb-2 pr-3">
+					<button type="button" class="view-my-rank btn btn-sm btn-dictation jsAction">
+					나의 위치 확인</button>
+				</div>
+				<!-- ------------- ranking-percent copy place -------------- -->
+				<div class="score-rank col-md">
+					<div class="rank-cover" align="right">
+						버튼을 클릭하여 랭킹 위치를 확인해 보세요
+						<div class="rank-percent" style="width: 0%;">
+							<div class="rank-bg text-left">
+								<i class="fa fa-child fa-lg fa-fw text-white"></i>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- 틀린 문장들 -->
+		<div class="statistic-rank-section">
+			<h5 class="statistic-title">
+				<i class="forGold fa fa-crown"></i>
+				[[${yourAlias}]]님이 틀린 문장들 
+				<i class="fa fa-stream fa-fw fa-lg"></i><br> 
+				<small>아래의 버튼을 클릭하여 틀린 문장들을 확인해 보세요.</small>
+			</h5>
+			<div class="my-wrong-cover">
+				<div>
+					<button type="button" class="view-my-wrong btn btn-sm btn-dictation jsAction">
+					내가 틀린 문장들 확인</button>
+				</div>
+				<!-- ------------ wrong-answer-list copy place ------------- -->
+			</div>
+		</div>
+	</div></div>
+	<div class="toggle-button-cover text-center">
+		<button type="button" class="fold-my-info fold-button2">
+			<i class="fa fa-angle-double-up fa-lg"></i>
+		</button>
+	</div>
+</div>
+<!-- -----------------------/my test info for copy----------------------------->
+
+<!-- ------------------------ ranking-percent for copy --------------------- -->
+<div id="rankingCopy" class="ranking-percent score-rank col-md pb-2" style="display: none;">
+	<div class="rank-cover" align="right">
+		<div class="rank-percent" style="width: 30%;">
+			<div class="rank-bg text-left">
+				<i class="fa fa-child fa-lg fa-fw text-white"></i>
+			</div>
+		</div>
+	</div>
+	<div class="guide mt-2">
+		<i class="fa fa-square fa-fw"></i>
+		[[${yourAlias}]]님은 <b>상위 30%</b> 입니다.<br class="d-sm-none">
+		다른 플보 멤버들의 70%보다 더 잘하셨어요! <i class="far fa-grin-alt"></i>
+	</div>
+</div>
+<!-- ----------------------- /ranking-percent for copy --------------------- -->
+
+<!-- ---------------------- wrong-answer-list for copy --------------------- -->	
+<div id="wrongListCopy" class="wrong-answer-list mt-3" style="display: none;">
+	<div class="wrong-answer-cover row no-gutters" style="display: none;">
+		<div class="num col-md-1 px-3 text-md-center">num</div>
+		<div class="sentence col-md-11 px-3">
+			<div class="eng eng-sentence a-title">
+				English sentence is here.
+				<button type="button" class="eng-speak-btn">
+					<i class="fa fa-volume-up"></i>
+				</button>
+			</div>
+			<div class="kor kor-sentence">한글 해석은 여기</div>
+		</div>
+		<div class="sentence col-md-11 ml-md-auto px-2 pb-2">
+			<div class="my-answer px-2 py-2">
+				<span class="a-title"><i class="fa fa-arrow-alt-circle-right"></i></span>
+				<span class="wrongAnswer eng-sentence">English sentence is here.</span>
+			</div>
+		</div>
+	</div>
+	<div class="wrong-answer-page my-test-info-page">
+		<ul class="pagination pagination-sm justify-content-center">
+			<li class="page-item"><a class="page-link"> PREV</a></li>
+			<li class="page-item active"><a class="page-link">1</a></li>
+			<li class="page-item"><a class="page-link">2</a></li>
+			<li class="page-item"><a class="page-link"> NEXT</a></li>
+		</ul>
+	</div>
+</div>	
+<!-- ---------------------- /wrong-answer-list for copy -------------------- -->	
+</section><!-- end of content -->
+
+
+</body>
+</html>

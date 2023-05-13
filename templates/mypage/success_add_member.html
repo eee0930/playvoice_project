@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_basic_layout}">
+<head>
+<title>The Basecamp for Learning English</title>
+
+<link rel="stylesheet" href="/css/app/member.css">
+<script src="/js/app/masonry.pkgd.min.js"></script>
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [모달창 띄울 때 화면 고정]--------------------------------------------------------
+	$("body").css("overflow", "hidden");
+	
+	// [모달창 종료]----------------------------------------------------------------
+	$("#hiddenWelcomeModal_btn").click(function(){
+		$("body").css("overflow", "visible");
+		$("#welcometoPlayvoiceModalSection").hide();
+	});
+	
+}); //end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**
+ * 모달창 안에서 페이지 넘김
+ */
+function welcomeNextPage(index) {
+	$(".welcome-page").hide();
+	$("#welcomePage" + index).show();
+}
+
+
+</script>
+
+
+</head>
+
+
+<section layout:fragment="content">
+
+<!-- --------------------------[1 welcome ment]----------------------------- -->
+<div id="welcometoPlayvoiceModalSection" class="welcome-modal">
+<div class="welcome-modal-dialog"><div class="welcome-modal-content">
+
+<div id="welcomeMentDiv" class="welcome-ment-section">
+	<div id="welcomePage1" class="welcome-page welcome-member">
+		<h3>
+			Welcome to Playvoice
+			<i class="fa fa-globe-americas fa-lg"></i><br>
+			<small>Playvoice that makes English be part of your life</small>
+		</h3>
+		<div class="welcome-ment">
+			<div>
+				
+			</div>
+			<div>
+				<span class="alias">깨제너레이터</span> 님<br>
+				플레이보이스 가족이 되신 것을 환영합니다!<br>
+			</div>
+			<div class="mt-4">
+				<img src="/images/app/auth/university.jpg" width="65%"><br>
+				<span class="pv-joke">They are excellent universities.</span>
+			</div>
+		</div>
+		<div class="welcome-ment-page mt-3 text-center">
+			<i class="fa fa-circle active"></i>
+			<i onclick="welcomeNextPage(2)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(3)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(4)" class="fa fa-circle"></i>
+		</div>
+		<div class="pt-3 text-center">
+			<button onclick="welcomeNextPage(2)" class="btn btn-main3">다 음</button>
+		</div>
+	</div>
+	<div id="welcomePage2" class="welcome-page introduce-app" style="display: none;">
+		<h3>
+			Playvoice for you
+			<i class="fa fa-gift fa-lg"></i><br>
+			<small>You can study English in various ways on Playvoice</small>
+		</h3>
+		<div class="welcome-ment">
+			플레이보이스에선 각종 학습 애플리케이션들을 무료로 이용할 수 있습니다.<br>
+			( 다양한 애플리케이션 계속 업데이트 중 <i class="far fa-grin-alt"></i> )<br>
+			<a class="guide-link">플레이보이스 학습 애플리케이션 자세히 살펴보기</a>
+		</div>
+		<div class="welcome-ment-page mt-3 text-center">
+			<i onclick="welcomeNextPage(1)" class="fa fa-circle"></i>
+			<i class="fa fa-circle active"></i>
+			<i onclick="welcomeNextPage(3)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(4)" class="fa fa-circle"></i>
+		</div>
+		<div class="pt-3 text-center">
+			<button onclick="welcomeNextPage(3)" class="btn btn-main3">다 음</button>
+		</div>
+	</div>
+	<div id="welcomePage3" class="welcome-page introduce-app" style="display: none;">
+		<h3>
+			Playvoice for you
+			<i class="fa fa-gift fa-lg"></i><br>
+			<small>You can do many things on Playvoice</small>
+		</h3>
+		<div class="welcome-ment">
+			플레이보이스 가족들과 다양한 방법으로 연결해 드립니다.<br>
+			피드백을 받고 플보 가족들의 학습을 도와주세요!<br>
+			<a class="guide-link">플레이보이스의 커뮤니티 신념 살펴보기</a>
+		</div>
+		<div class="welcome-ment-page mt-3 text-center">
+			<i onclick="welcomeNextPage(1)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(2)" class="fa fa-circle"></i>
+			<i class="fa fa-circle active"></i>
+			<i onclick="welcomeNextPage(4)" class="fa fa-circle"></i>
+		</div>
+		<div class="pt-3 text-center">
+			<button onclick="welcomeNextPage(4)" class="btn btn-main3">다 음</button>
+		</div>
+	</div>
+	<div id="welcomePage4" class="welcome-page introduce-ranking-point" style="display: none;">
+		<h3>
+			Playvoice for you
+			<i class="fa fa-gift fa-lg"></i><br>
+			<small>We want to give you everything</small>
+		</h3>
+		<div class="welcome-ment">
+			Group C에 진입하신 모든 분들은 해외여행을 가게 됩니다!<br>
+			이곳에선 여러분의 학습 활동과 커뮤니티 활동을 종합하여 순위가 매겨집니다.<br>
+			활동을 할 때마다 랭킹 포인트가 오르며, 기준치의 랭킹포인트에 다다르면 그룹 이동을 하게됩니다.<br>
+			<a class="guide-link">플레이보이스 랭킹포인트 제도 자세히 보기</a>
+		</div>
+		<div class="welcome-ment-page mt-3 text-center">
+			<i onclick="welcomeNextPage(1)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(2)" class="fa fa-circle"></i>
+			<i onclick="welcomeNextPage(3)" class="fa fa-circle"></i>
+			<i class="fa fa-circle active"></i>
+		</div>
+		<div class="pt-3 text-center">
+			<button id="hiddenWelcomeModal_btn" class="btn btn-main2">Hang Out with Playvoice Family</button>
+		</div>
+	</div>
+	
+</div><!-- end of welcomeMentDiv -->	
+	
+</div></div>
+</div><!-- end of welcometoPlayvoiceModalSection -->
+
+
+
+
+<!-- ----------------------[2 welcome Test Guide]--------------------------- -->
+<div id="welcomeTestGuideSection" class="welcome-testguide-section mt-4">
+<div id="WelcomeTestGuideDiv" class="welcome-test-section">
+	<h3>
+		Playvoice Welcome Test<br>
+		<small>Take a test and check out your English level.</small>
+	</h3>
+	
+	<div class="test-guide">
+		우리는 <span class="alias">깨제너레이터</span>님이 영어를 얼마나 잘하는 지 모릅니다.<br>
+		welcome test로 내 실력이 현재 어느 위치에 있는지 확인해 보세요.<br>
+		
+		처음 한 번만 테스트를 제안합니다.
+	</div>
+	<div class="test-guide-button">
+		<button type="button" class="btn btn-main2">좋아요!</button>
+		<button type="button" class="btn btn-main">안할래요</button>
+	</div>
+</div><!-- end of WelcomeTestGuideDiv -->
+
+
+</div><!-- end of welcometoPlayvoiceSection -->
+	
+	
+</section><!-- end of content -->

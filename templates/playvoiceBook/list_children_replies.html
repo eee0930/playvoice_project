@@ -1,0 +1,89 @@
+﻿<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head></head>
+
+<th:block th:each="reply,iterStat : ${replyList}">
+	<!-- 대댓글 -->
+	<div th:if="${reply.parentId}" th:id="'comment_' + ${reply.rid}" th:class="'child-' + ${reply.parentId}">
+		<div class=" child-comment row no-gutters"><div class="col-sm-1 col-2"></div>
+		<div class="re-comment col-sm-11 col-10"><div class="row">
+			<div class="col-sm-1 col-2" style="padding: 5px;">
+				<div class="member-personacon-sm">
+					<img th:if="${reply.personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+						class="personacon-profile"
+						th:style="'background: url(\'/resource/profile/' +${reply.personacon.iconPath} +'\') no-repeat;
+						background-position: center; background-size: cover;'">
+					<img th:unless="${reply.personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+						class="personacon-profile"
+						style="background: url('/images/app/member/profile_default.png') no-repeat;
+						background-position: center; background-size: cover;">
+					<img th:src="@{/images/app/member/profile_paper.png}" 
+						th:class="'personacon-frame frame-' + ${reply.personacon.memberType}">
+				</div>																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																					
+			</div>
+			<div class="col-sm-11 col-10" style="padding:0;">
+				<div class="nickname pt-lg-0 pt-1"> 
+					<a><span th:id="'alias'+ ${reply.parentId} + '_' + ${iterStat.count}" th:text="${reply.personacon.alias}">
+						작성자 (PC)
+					</span></a>
+					<span class="date" th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}">
+						작성날짜 (PC)
+					</span>
+				</div>
+				<div class="comment-body">
+					<span th:if="${reply.priority < 6}" class="pr-1"><i lang="fa" class="fa fa-trophy" style="color: gold;"></i></span>
+					<span th:utext="'<b>@'+${reply.recipient}+' ◀</b> '+${reply.comment}"></span>
+				</div>
+				<!--/* <div class="nickname d-sm-none"> 
+					<a><span th:id="'alias' + ${reply.parentId} + '_' + ${iterStat.count}" th:text="${reply.personacon.alias}">
+						작성자 (Mobile)
+					</span></a>
+					<span class="date"><b>ㆍ</b> [[${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+				</div> */-->
+				<!--/* 좋아요/싫어요/REPLY/신고/삭제 버튼들 */-->
+				<div class="comment-button">
+					<a data-toggle="tooltip" title="좋아요" data-placement="bottom" th:data-rid="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn like-comment">
+						<i class="thumb-up"></i>
+						<span style="color: #444;" th:text="${reply.likeCount}">12</span>
+					</a> 
+					<a data-toggle="tooltip" title="싫어요" data-placement="bottom" th:data-rid="${reply.rid}" 
+						href="javascript:void(0)" class="like-comment-btn dislike-comment">
+						<i class="thumb-down fa-flip-horizontal"></i>
+						<span style="color: #444;" th:text="${reply.dislikeCount}">3</span>
+					</a> 
+					<a th:data-1="${reply.parentId}" th:data-2="${iterStat.count}" th:onclick="re_reply(this.getAttribute('data-1'), this.getAttribute('data-2'))" 
+						class="like-comment-btn">
+						<span style="color: #444;">REPLY</span>
+					</a>
+					<div class="button-etc float-right btn-group">
+						<button class="btn btn-none dropdown-toggle" type="button" data-toggle="dropdown">
+							<i lang="fa" class="fa fa-ellipsis-v fa-fw"></i>
+						</button>
+						<ul class="dropdown-menu dropdown-menu-right" role="menu">
+						   <li class="dropdown-item text-center" 
+						    	th:if="${session.userContainer.personacon.pid == reply.personacon.pid} 
+						    		or ${session.userContainer.personacon.memberType} == 'A'">
+						    	<a href="javascript:void(0)" class="delete-reply" th:value="${reply.rid}">삭제</a></li>
+						    
+						    <li class="dropdown-item text-center" th:if="${session.userContainer.personacon.memberType} == 'A' " >
+						    	<a href="javascript:void(0)" class="edit-priority" th:value="${reply.rid}">우선순위 수정</a>
+						    	<input type="text" class="priority-value" th:value="${reply.priority}" style="display: none">
+						    	<button class="edit-priority-btn" style="display: none" th:value="${reply.parentId}">수정</button> 
+						    </li>
+						    
+						    <li class="dropdown-item text-center"
+								th:unless="${session.userContainer.personacon.pid == reply.personacon.pid} 
+						    		or ${session.userContainer.personacon.memberType} == 'A'">
+						    	<a href="#">신고</a></li>
+						</ul>
+					</div>
+				</div> 
+			</div>
+			<!--/* 대댓글 입력 폼 들어갈 영역 */-->
+			<div th:id="'re_comment_paste' + ${reply.parentId} + '_' + ${iterStat.count}" 
+				class="re-form child-comment col-12" style="display: none;"></div>
+		</div></div>
+	</div></div><!-- end of 대댓글 영역-->
+</th:block>

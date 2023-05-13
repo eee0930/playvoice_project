@@ -1,0 +1,72 @@
+.hit-the-floor {
+	color: #fff;
+	font-size: 4em;
+	font-weight: bold;
+	font-family: Helvetica, NanumGothic;
+	text-shadow: 0 1px 0 #ccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbb, 0 4px 0
+		#b9b9b9, 0 5px 0 #aaa, 0 6px 1px rgba(0, 0, 0, .1), 0 0 5px
+		rgba(0, 0, 0, .1), 0 1px 3px rgba(0, 0, 0, .3), 0 3px 5px
+		rgba(0, 0, 0, .2), 0 5px 10px rgba(0, 0, 0, .25), 0 10px 10px
+		rgba(0, 0, 0, .2), 0 20px 20px rgba(0, 0, 0, .15);
+}
+
+.hit-the-floor {
+	text-align: center;
+}
+
+
+
+.soft-emboss{
+	color: rgba(0,0,0,0.6);
+	text-shadow: 2px 8px 6px rgba(0,0,0,0.2),
+                 0px -5px 35px rgba(255,255,255,0.3);
+}
+
+.glowing{
+	text-shadow: 0px 0px 6px rgba(255,255,255,0.7);
+}
+
+.gordon-insect{
+	background-color: #666666;
+	-webkit-background-clip: text;
+	-moz-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	text-shadow: rgba(255, 255, 255, 0.5) 0px 3px 3px;
+}
+
+.dark-insect{
+	color: rgba(0,0,0,0.6);
+    text-shadow: 2px 2px 3px rgba(255,255,255,0.1);
+}
+
+.better-quote  {
+	/* color: #999; */
+	border-left: 2px solid #999;
+	padding-left: 1em;
+}
+
+
+
+
+
+
+
+
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    

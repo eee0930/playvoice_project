@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="/js/public/jquery-3.3.1.min.js"></script>
+<script src="/js/common.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	
+	// 텍스트 파일을 입력(css, txt, html, xml,...)
+	$('#inputFile').on('input', function(e){
+		// 파일이 입력 되었을 때만 동작
+		if(e.target.files.length > 0){
+			
+			
+			// 출력부 초기화
+			$('#output').val('');
+			
+			// 파일 텍스트 내용 출력. 한글 제거 체크박스가 체크돼있으면 한글제거를 후처리함.--------------
+			var reader = new FileReader();
+			reader.onload = function(){
+				// 결과 텍스트를 표시
+				if($('#cleanKor').prop('checked')){
+					$('#output').val(replaceQuotes(reader.result.replace(/[\u005B-\u0060|\u007B-\u007F|\u1100-\u11FF|\u3131-\u318E|\uAC00-\uD7A3]/gi,'')));
+				}else{
+					$('#output').val(replaceQuotes(reader.result));
+				}
+			}
+			reader.readAsText(e.target.files[0]);
+			//------------------------------------------------------------------
+		}
+	})
+})
+</script>
+</head>
+<body>
+<label>한글 제거<input id="cleanKor" type="checkbox"></label>
+<input type="file" id="inputFile" accept="text/*">
+<textarea id="output"></textarea>
+</body>
+</html>

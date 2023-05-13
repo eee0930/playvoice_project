@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playboard_layout}">
+
+<head>
+	<title>Index Of Playboard</title>
+	
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+<script th:inline="javascript">
+	
+	$(document).ready(function() {
+		//[게시글 목록]----------------------------------------------------------
+		$('.articleLink').click(function(e){
+			e.preventDefault();
+			var aid = $(this).attr("data-aid");
+			var boardAlias = $(this).attr("data-boardAias");
+			
+			var link = [[@{/board/}]]; <!--/*[[@{/board/{boardAlias}/view/{aid}(boardAlias=boardAlias, aid=aid)}]];*/-->
+			link += boardAlias+'/view/'+aid;
+			location.href=link;
+		});
+	});
+</script>
+</head>
+
+<section layout:fragment="content">
+	<div class="row">
+		<h3>Life is beautiful Panda, Unigque for Retro</h3>
+	</div>
+</section><!-- end of content -->

@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="editRequest">
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [요청된 내용의 잘못 수정했을 시 기존 요청 내용으로 되돌리기]----------------------------------
+	$(document).on("click", ".undoMeaning", function(){
+		var requestOrigin = $(this).closest(".meaning").find(".reportOriginalMeanings").val();
+		var reportInput = $(this).closest(".meaning").find(".reportInput");
+		
+		reportInput.val(requestOrigin);
+	});
+	
+	// [수정 요청 반영]--------------------------------------------------------------
+	$("#applyReportButton").click(function(){
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		updateEditRequest('A', searchType, page, 'list');//pictionary.js
+	});
+	
+	// [수정 요청 미반영]------------------------------------------------------------
+	$("#refuseReportBtn").click(function(){
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		updateEditRequest('R', searchType, page, 'list');//pictionary.js
+	});
+	
+	// [거절/승인 사유에 구분자를 추가함]-------------------------------------------------
+	$('.insertDelimiterBtn').click(function() {
+		//관리자가 거절/승인 사유를 직접 입력할때에도 간편하게 구분자를 추가해주기 위함
+		
+		//회원의 기존 거절 사유가 있다면 덧붙여서 적도록함
+		var originalVerComment = $('.commentArea').val();
+		var delimiter = '[admin]';
+		$('.commentArea').val(originalVerComment + delimiter);
+	});
+
+	// [수청 요청 수락의 선택사유를 선택]--------------------------------------------------
+	$('.acceptSelectDiv .commentSelect').change(function() {
+		var selectedComment = $(this).val();
+		//default선택으로 '미승인 사유선택' 이 들어가있으므로 해당값은 제외함
+		if(! (selectedComment=='defaultVal')){
+			//회원의 기존 거절 사유가 있다면 덧붙여서 적도록함
+			var originalVerComment = $('.commentArea').val();
+			$('.commentArea').val(originalVerComment + '[admin]' + selectedComment);
+		}
+	});
+	
+	// [수청 요청 거절의 선택사유를 선택]--------------------------------------------------
+	$('.rejectSelectDiv .commentSelect').change(function() {
+		var selectedComment = $(this).val();
+		
+		//default선택으로 '미승인 사유선택' 이 들어가있으므로 해당값은 제외함
+		if(! (selectedComment=='defaultVal')){
+			//회원의 기존 거절 사유가 있다면 덧붙여서 적도록함
+			var originalVerComment = $('.commentArea').val();
+			$('.commentArea').val(originalVerComment + '[admin]' + selectedComment);
+		}
+	});
+});   
+   
+</script>
+
+<div class="mt-4">
+<div id="editPictionSection" class="edit-pictionary-word-section admin p-0 px-lg-3">
+
+
+<!-- --------------------------[1. 기존 단어 뜻]-------------------------------- -->
+<div id="editWordDiv" class="add-word-container add">
+	<div class="pictionary-word-section"><div class="word-cover px-md-4 px-2 py-3">
+		<div class="add-word-div px-2 pb-2">
+			<!-- WORD -->
+			<span class="word">
+				<span th:text="${editedVer.title}"></span>
+			</span>
+		</div>
+		<!-- 단어 뜻 -->
+		<div class="origin-meaning" 
+            th:with="wtypeMap=${ {100:'동사',110:'자동사',120:'타동사',200:'명사',
+                           210:'대명사',300:'형용사',400:'부사',500:'전치사',
+                           600:'접속사',700:'감탄사'} }">
+	         <div th:each="wordMeaning:${originalVer}" class="meaning row no-gutters">
+	            <div class="report-select-section col-lg-2 col-md-3 col-auto px-2" 
+	               th:text="${wtypeMap[wordMeaning.wtype]}">
+	            </div>
+	            <div class="col pb-1" th:text="${wordMeaning.meaning}"></div>
+	         </div>
+		</div>
+	</div></div>
+</div><!-- end of editWordDiv -->
+
+
+
+<!-- ---------------------------[2. 단어 수정 요청]------------------------------ -->
+<form id="editWordMeaningForm" th:action="@{/admin/pictionary/word/request/edit}" method="post" class="form-horizontal" >
+<div id="reportWordListDiv" class="report-word-list-section add-word-container add">
+	
+	<!-- 수정 요청 리스트 -->
+	<div class="pictionary-word-section">
+		
+		<div th:if="${editedVer}" class="reportCoverDiv word-cover px-md-4 px-2 py-3" 
+			th:with="wtypeMap=${ {100:'동사',110:'자동사',120:'타동사',200:'명사',
+								210:'대명사',300:'형용사',400:'부사',500:'전치사',
+								600:'접속사',700:'감탄사'} },
+					statusMap=${ {'H':'작성자 미확인','A':'수정 채택','R':'수정 거부'} }">
+			<input type="hidden" class="requestId" id="requestId" th:name="requestId"
+					th:value="${editedVer.rid}">
+			<input type="hidden" class="wordId" id="wordId" th:name="wordId"
+					th:value="${editedVer.wordId}">
+			<input type="hidden" class="alias" th:name="alias"
+					th:value="${editedVer.alias}">
+			<div>
+				<span class="status" th:text="${statusMap[''+editedVer.status]}"></span>
+				<span class="date ml-3" th:text="${#dates.format(editedVer.regDate,'yyyy-MM-dd')}"></span>
+			</div> 
+			<div class="report-owner row no-gutters my-3"> 
+				<!-- <div class="col-auto px-2"> 
+					<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+				</div> -->
+				<div class="col-auto pr-3 align-self-center">
+					수정 요청자 : <span class="alias" th:text="${editedVer.alias}">[[${editedVer.alias}]]</span>
+				</div>
+			</div>
+			<div th:each="additory, iter :${editedVer.additoryList}" class="meaning row no-gutters">
+				<input type="hidden" class="wmid" id="wmid" 
+						th:name="'wordMeaningCommandList['+${iter.index}+'].wmid'"
+						th:value="${additory.wmid}">
+				<input type="hidden" class="alias" id="alias" 
+						th:name="'wordMeaningCommandList['+${iter.index}+'].alias'"
+						th:value="${additory.alias}">
+				<div class="col-lg-2 col-3 px-2">
+					<select th:name="'wordMeaningCommandList['+${iter.index}+'].wtype'" class="form-control">
+						<option th:each="wtype : ${wtypeMap}"
+                                   th:value="${wtype.key}"
+                                   th:utext="${wtype.value}"
+                                   th:selected="${wtype.key} == ${additory.wtype}"/>
+					</select>
+					<div class="py-2">수정 요청자<br>코멘트</div>
+				</div>
+				
+				<div class="col">
+					<!-- 품사 뜻 -->
+					<div class="mb-1">
+						<input type="text" class="reportInput form-control" 
+							th:value="${additory.meaning}"
+							th:name="'wordMeaningCommandList['+${iter.index}+'].meaning'"/>
+						<input type="hidden" class="reportOriginalMeanings" 
+							th:value="${additory.meaning}" />
+					</div>
+					<!-- comment -->
+					
+					<div class="report-msg" th:text="${additory.comment}"></div>
+				</div>
+				<div class="col-lg-auto p-2" style="width: 30px;">
+					<i class="undoMeaning fa fa-undo" title="요청된 내용으로 되돌리기"></i>
+				</div>
+			</div>
+			<!-- 거절/승인 사유 -->
+			<div id="commentDiv" class="refuse-comment-section meaning row no-gutters">
+				<div class="report-select-section col-lg-2 col-3 px-2 py-2">
+					승인/거절 코멘트
+				</div>
+				<div class="col">
+					<textarea class="commentArea form-control" 
+						th:text="${editedVer.comment}" th:name="comment"></textarea>
+				</div><div class="col-lg-auto" style="width: 29.4px"></div>
+			</div>
+			
+			<!-- 승인/거절 사유 선택 -->
+			<div class="adminCommentDiv row no-gutters">
+				<div class="col-lg-2 col-3"></div>
+				<div class="acceptSelectDiv col py-2 pr-2">
+					<select class="commentSelect form-control">
+						<option value="defaultVal">== 승인 사유 선택 ==</option>
+						<option>승인 처리 되었습니다.</option>
+						<option>단어 작성자의 의견을 수렴하여 승인 처리 되었습니다.</option>
+					</select>
+				</div>
+				<div class="rejectSelectDiv col pt-md-2 py-2 pr-2">
+					<select class="commentSelect form-control" >
+						<option value="defaultVal">== 미승인 사유 선택 ==</option>
+						<option>수정 요청한 내용의 품사와 뜻이 일치하지 않거나 일부 틀린 것으로 판단되어 거절 처리 되었습니다.</option>
+						<option>단어와 전혀 관련 없는 내용이 포함되어 거절 처리 되었습니다.</option>
+						<option>기존의 뜻과 크게 차이가 없거나 기존의 뜻이 더 적절하다고 판단되어 거절 처리 되었습니다.</option>
+					</select>
+				</div>
+				<div class="col-auto py-2">
+					<button type="button" class="insertDelimiterBtn btn btn-pictionary2" 
+						style="width: auto;">구분자 넣기</button>
+				</div>
+				<div class="col-auto" style="width: 30px;"></div>
+			</div>
+			
+			
+			<div class="reportBtnDiv row no-gutters">
+				<div class="col-lg-2 col-3"></div>
+				<div class="col-lg-auto pt-md-2 py-2 text-center">
+					<button id="applyReportButton" type="button"
+						class="submit-btn btn btn-pictionary-add mr-2">수정 승인</button>
+					<button id="refuseReportBtn" type="button" 
+						class="btn btn-outline-pictionary">수정 미승인</button>
+				</div>
+			</div>
+			
+		</div>
+	</div>
+</div><!-- end of reportWordListDiv -->
+</form>
+
+
+
+</div><!-- end of editPictionSection -->   
+
+<div class="text-right" style="color:red;">
+	source :: admin/incl/pictionary/edit_word.html	
+</div>
+</div></div>

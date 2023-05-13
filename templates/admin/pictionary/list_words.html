@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List PictionaryWord</title>
+	<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/pictionary.js}"></script>
+	<script th:src="@{/js/app/playvoice_audio.js}"></script> 
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	
+		var tagetLink = $('#editRequestListDiv th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	
+	//[패이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[테이블 컬럼 헤더 클릭시]-----------------------------------------------------
+	$("#editRequestListDiv .thlink, #searchResultTable_list .thlink").click(function(e) {
+		e.preventDefault();
+		var sort = $(this).attr('data-value');
+		$('#sortName').val(sort);
+		
+		var searchType = $('#searchFormHidden_list #searchType').val();
+		var page = $('#searchFormHidden_list #page').val();
+		
+		displaySearchMark($(this));
+		searchPictionaryWord(searchType, page, 'list');
+	});
+	
+	//[테이블 데이터(requestId) 클릭시 상세보기]--------------------------------------------------
+	$('.resultWrapper').on('click', '.wordDetail', function(e) {
+		e.preventDefault();
+		
+		//상세보기 폼 열기
+		$('.editRequestDetailPart').css('display','block');
+		//수정요청 정보 호출. pictionary.js
+		var wordId = $(this).parent().prev().text();
+		
+		//워드 정보 추출
+		pickUpWordInfo($(this));
+		
+		$('.successBtn').css('display', 'none');
+		///상세보기/수정 폼으로 이동
+		//window.scroll(0, getOffsetTop(document.getElementById("editPictionaryWordForm")));
+	});
+	
+	//[예문 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchWordDiv').toggle();
+	});
+	
+	//[악센트 기타 작성부분]------------------------------------------------
+	$(document).on('change','.accent-etc',function(){
+		$(this).siblings(':text').focus();
+	});
+	$(document).on('click','.accent-text',function(){
+		var radio = $(this).siblings(':radio');
+		radio.prop('checked',true);
+	});
+	$(document).on('input','.accent-text',function(){
+		$(this).siblings(':radio').val($(this).val());
+	});	
+	
+})//end of reday
+
+
+/** 
+ * 워드 목록에서 타이틀을 클릭했을 때, 워드의 정보를 상세보기 폼으로 복사
+ */
+function pickUpWordInfo(obj){
+	var wordTr = obj.parent().parent();
+	var wordNo = wordTr.children().first();
+	
+	var wid = wordNo.next();
+	var title = wid.next();
+	var alias = title.next();
+	var prime = alias.next();
+	var voicePath = prime.next();
+	var regDate = voicePath.next();
+	
+	var voiceSource = voicePath.children().attr('data');
+	
+	$('#wid').val(wid.text().trim());	
+	$('#title').val(title.text().trim());
+	$('#alias').text(alias.text().trim());
+	$('#prime').text(prime.text().trim());
+	$('#voicePath').attr('data', voiceSource);
+	$('#regDate').text(regDate.text());
+}
+
+
+/**
+ * 목록 헤더 컬럼 정렬 기능 처리
+ */
+function displaySearchMark(target){
+	
+	//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+	$('#editRequestListDiv .sortMark, #searchResultTable_list .sortMark').css('display', 'none');
+	
+	var dynamicTargets = document.querySelectorAll('#searchResult_list .thlink');
+	
+	var sortName = target.attr('data-value');
+	console.log('sortName ' + sortName);
+	var sortMark = target.next();
+	
+	for(var i = 0; i < dynamicTargets.length; i++){
+		//alert(dynamicTargets[i]);
+		if(dynamicTargets[i].getAttribute("data-value") == sortName){
+			//alert(sortName);
+			sortMark = dynamicTargets[i].nextSibling;
+		}
+	}
+	
+	//현재 선택한 sortName이 이전과 같다면
+	if(sortName == $('#searchFormHidden_list #sortName').val()){
+		//현재 설정된 정렬방향을 가져온다.
+		var direction = $('#searchFormHidden_list #asc').val();
+		
+		//정렬방향을 반대로 변경한다.
+		if(direction == 'false'){
+			$('#searchFormHidden_list #asc').val('true');
+			//sortMark.text('▲');
+			sortMark.innerHTML='▲';
+		}else{
+			$('#searchFormHidden_list #asc').val('false');
+			//sortMark.text('▼');
+			sortMark.innerHTML='▼';
+			
+		}
+		console.log("이전과 동일=");
+		
+	}else{
+		//새로운 sortName으로 교체
+		$('#searchFormHidden_list #sortName').val(sortName);
+		
+		//기본값을 desc로 설정한다.
+		$('#searchFormHidden_list #asc').val('false');
+		
+		console.log("이전과 다름=");
+	}
+	//----------------------------------------
+	//sortMark.css('display', 'inline');
+	
+	target.next().css('display', 'inline');
+	//sortMark.css('display', 'inline');
+	//var st = sortMark.style;
+	//st.display = 'inline'; 
+	//----------------------------------------
+}
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+	
+	<!--/* ----------------[inclule : Search Sentence Form]--------------- */-->
+	<div id="searchWordDiv" 
+		th:insert="~{/admin/pictionary/incl/search_word::search_word}" 
+		style="display: none"></div>
+	<!--/* --------------------------------------------------------------- */-->
+	
+	<h3>워드 목록(Pictionary Word List)</h3> 
+	
+	<!--/* 1. 수정요청 목록 Table  */-->
+	<div id="editRequestListDiv">
+		<!-- table -->
+		<div th:with="result=${pageMaker.result}">
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table class="resultWrapper table table-striped table-sm table-bordered table-hover text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordId'>wordId</a>
+						<span class="sortMark">▼</span></th>
+					<th  style="width: 120px;">
+						<a href="javascript:void(0)" class="thlink" data-value='title'>단어</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">
+						<a href="javascript:void(0)" class="thlink" data-value='alias'>등록자</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">
+						<a href="javascript:void(0)" class="thlink" data-value='prime'>대표자</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink" data-value='voicePath'>보이스</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="word, status : ${result.content}">
+					 <td th:text="${( pageMaker.result.totalElements - status.count+1) 
+					 					- ((pageMaker.currentPageNum -1) * (T(com.varxyz.playvoice.common.Constants).FETCH_SIZE -10))} "></td> 
+					<td class="text-center" th:text="${word.wid}">wordId</td>
+					<td class="text-left"> 
+						<a th:text="${word.title}" href="javascript:void(0)" class="wordDetail">단어</a>
+						<input type='hidden' th:value="${word.meaningText}"/>
+					</td>
+					<td class="text-center" th:text="${word.personacon.alias}">등록자</td>
+					<td class="text-center" th:text="${word.prime.alias}">대표자</td>
+					<td>
+						<i class='fas fa-volume-up' th:data="${word.voicePath}"
+						 	onclick="playVoice('/resource/pictionary/word/voice/',this.getAttribute('data'),this, 3)"></i>
+						<i class='fas fa-stop' onclick='stopVoice(this)' style='display:none'></i>
+						<input type='hidden' th:value="${word.phonetic}"/>
+					</td>
+					<td th:text="${#dates.format(word.regDate, 'yyyy-MM-dd')}">등록일</td>
+				</tr>
+			</table>
+		</div>
+		<!--/* 1.paging */--> 
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">
+							PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">
+							NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	
+	<!--/* 2. 수정요청 목록 Table By Ajax */-->
+	<div id="searchResult_list" style="display: none">
+		<div>
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table id="searchResultTable_list" class="resultWrapper table table-bordered table-striped table-sm table-hover text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 50px;">
+						<a href="javascript:void(0)" class="thlink" data-value='wordId'>wordId</a>
+						<span class="sortMark">▼</span></th>
+					<th  style="width: 120px;">
+						<a href="javascript:void(0)" class="thlink" data-value='title'>단어</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">
+						<a href="javascript:void(0)" class="thlink" data-value='alias'>등록자</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 80px;">
+						<a href="javascript:void(0)" class="thlink" data-value='prime'>대표자</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink" data-value='voicePath'>보이스</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<tbody><!--/* 결과 목록 */--></tbody>
+			</table>
+		</div>
+		<!--/* paging */-->
+		<nav class="row my-333">
+			<div  class="col-12" id="searchResultPageNavi">
+				<ul class="pagination pagination-sm justify-content-center">
+					
+				</ul>
+			</div>
+		</nav>
+	</div> <!-- end of searchResult -->
+	
+	
+	<!-- paging hidden values-->
+	<div class="row">
+	<div class="col-12 text-center" style="display:block; padding:0px 20px 20px 20px;" id="searchFormHidden_list">
+		<form id='pageForm' th:action="@{list}" method="get" th:object="${searchRequest}">
+			Page : <input type='text' th:field="*{page}" th:value="${searchRequest.page}" style="width:5%">
+			Size : <input type='text' th:field="*{size}" th:value="${searchRequest.size}" style="width:7%">
+			S-Type : <input type='text' th:field="*{searchType}" th:value="${searchRequest.searchType}" style="width:10%">
+			Keyword : <input type='text' th:field="*{keyword}" th:value="${searchRequest.keyword}" style="width:20%">
+			S-Name : <input type='text' th:field="*{sortName}" th:value="${searchRequest.sortName}" style="width:10%">
+			ASC : <input type='text' th:field="*{asc}" th:value="${searchRequest.asc}" style="width:5%">
+		</form>
+	</div></div>
+	<!-- error -->
+	<div id="errorDiv" style="display: none;">
+		<pre></pre>
+	</div>
+	
+	
+</div></div> <!--/* end of 예문 목록 */-->
+	
+	
+<!--/* =====================[수정요청 상세 보기/픽셔너리 워드 수정 및 삭제]====================== */-->	
+<div class="row editRequestDetailPart" style="display:none"><div class="col-12">
+	
+	<div class="formContainer" id="editPictionaryWordFormContainer">
+		<h3>
+			View Detail &amp; Editing PictionaryWord Form <button type="button" class="btn btn-info btn-xs successBtn" style="display:none">
+			<span class="glyphicon glyphicon-ok"></span> SUCCESS</button>
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<div class="resMsgs" style="display:none;">
+			<h3>
+				Response Messages
+				<span>Your request was processed.</span>
+			</h3>
+			<pre>[[${resMsgs}]]</pre>
+			
+		</div>
+
+		
+				<!--/*---------------------------- [Pictionary Word 상세 정보 폼]-------------------------------*/-->
+		<form th:action="@{/edit}" method="post" class="form-horizontal" id="editWordForm">
+			<div class="row">
+				<div class="col-12">
+					<div class="form-group row">
+						<label for="wid" class="col-2 control-label headerLabel text-right">wid</label>
+						<div class="col-10">
+							<input type="text" id="wid" name="wid" class="form-control" readonly="readonly"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="title" class="col-2 control-label headerLabel text-right">단어</label>
+						<div class="col-10">
+							<input type="text" id="title" name="title" class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="alias" class="col-2 control-label headerLabel text-right">작성자</label>
+						<div class="col-10">
+							<p id="alias" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="prime" class="col-2 control-label headerLabel text-right">대표자</label>
+						<div class="col-10 ">
+							<p id="prime" class="form-control-static"></p>
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="voicePath" class="col-2 control-label headerLabel text-right">보이스 파일</label>
+						<div class="col-10">
+							<i id="voicePath" class='fas fa-volume-up' onclick="playVoice('/resource/pictionary/word/voice/',this.getAttribute('data'),this, 3)"></i>
+							<i class='fas fa-stop' onclick='stopVoice(this)' style='display:none'></i>
+					
+							<input type="file" id="editVoicePath" name="editVoicePath" class="form-control" />
+						</div>
+					</div>
+					<div class="form-group row">
+						<label for="regDate" class="col-2 control-label headerLabel text-right">등록일</label>
+						<div class="col-10 ">
+							<p id="regDate" class="form-control-static"></p>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row" id="editSubmitDiv">
+				<div class="col-12">
+					<div class="form-group row">
+						<div class="ml-auto col-10">
+							<input type="button" id="editWordBtn" value="Edit" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			</div>
+		</form>
+		
+		
+	</div><!-- editPictionaryWordFormContainer -->
+	
+</div></div><!--/* end of 예문 상세보기 */-->
+
+<div class="text-right" style="color:red;">
+	source :: admin/pictionary/list_words.html	
+</div>
+</section><!-- end of section -->
+

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="topMenu">
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+
+	// [div 링크 메뉴 클릭 처리]-------------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	})
+	
+	// [현재 선택된 픽셔너리 네비게이션 메뉴에 menu-active 적용]-------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.menuTab').addClass('menu-active');
+		}
+	});
+	
+});	
+</script>
+
+<!-- [1. PC ver.] -->	
+<div class="menu-cover d-none d-lg-block"><div class="row no-gutters menu">
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="home">
+		<a th:href="@{/myteam}" class="menuTab menu-item home"
+			data-reg="/myteam$">
+			<i class="fa fa-home fa-fw"></i>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col-auto text-center align-self-center" data-tab="addTrunk">
+		<a th:href="@{/myteam/trunk/add}" data-reg="/myteam/trunk/add" 
+			class="menuTab menu-item addTrunk">
+			<i class="fa fa-child fa-fw"></i>
+			<span>친구 추가</span>
+		</a>
+	</div>
+	<div class="col text-right d-none d-lg-inline menu-flages align-self-center">
+		<img src="/images/common/flags/FR.png">
+		<img src="/images/common/flags/AU.png">
+		<img src="/images/common/flags/DE.png">
+		<img src="/images/common/flags/US.png">
+		<img src="/images/common/flags/IT.png">
+	</div>
+</div></div>
+
+<!-- [2. Mobile & Tablet ver.] -->
+<div class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/myteam}" data-reg="/myteam$" 
+			class="menuTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="addTrunk">
+		<a th:href="@{/myteam/trunk/add}" data-reg="/myteam/trunk/add" 
+			class="menuTab menu-item addTrunk">
+			<i class="fa fa-child fa-fw"></i><br>
+			<span>친구 추가</span>
+		</a>
+	</div>
+</div></div>
+
+</div>
+
+
+
+
+

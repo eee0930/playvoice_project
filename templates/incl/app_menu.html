@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- ------------------------[1. app menu PC ver.]-------------------------- -->
+<div th:fragment="app_menu" class="playvoice-menu row">
+	<div class="menu Pictionary col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/pictionary}">
+			<label class="icon"></label><br>
+			픽셔너리<br><font>Pictionary</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu DetectiveJulie kick col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/pictionary/kick/detective}">
+			<label class="icon"></label><br>
+			탐정 줄리<br><font>DetectiveJulie</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu PlayvoiceBook col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/playvoiceBook}">
+			<label class="icon"></label><br>
+			플레이보이스북<br><font>PlayvoiceBook</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu JohnnyDeck kick col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/playvoiceBook/kick/deck}">
+			<label class="icon"></label><br>
+			죠니 덱<br><font>JohnnyDeck</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu EggShot kick col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/playvoiceBook/kick/egg}">
+			<label class="icon"></label><br>
+			에그 샷<br><font>EggShot </font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu DictationBook col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/dictationBook}">
+			<label class="icon"></label><br>
+			딕테이션북<br><font>DictationBook</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu BabelEng col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/square/babel/list/eng}">
+			<label class="icon"></label><br>
+			잉글리시 스택<br><font>EnglishStack</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu BabelKor col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/square/babel/list/kor}">
+			<label class="icon"></label><br>
+			코리안 스택<br><font>KoreanStack</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu Digest col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/square/digest/list}">
+			<label class="icon"></label><br>
+			다이제스트<br><font>Digest</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu GrammarBook col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/square/grammarBook/list}">
+			<label class="icon"></label><br>
+			그래머북<br><font>GrammarBook</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu SmallTalk col-lg col-sm-3 col-4 text-center">
+		<a th:href="@{/square/smalltalk}">
+			<label class="icon"></label><br>
+			스몰톡<br><font>SmallTalk</font>
+			<label class="middle-icon"></label>
+		</a>
+	</div>
+	<div class="menu NeverEnding col-lg col-sm-3 col-4 text-center">
+		<label class="icon-section"></label><br>
+		<label class="text-section">
+			<font>Apps</font> to be..
+		</label>
+	</div>
+</div>
+
+
+<!-- -----------------[2. app menu Tablet n Mobile ver.]-------------------- -->
+<div th:fragment="app_menu_mobile" class="playvoice-menu">
+	<!-- [2.1 픽셔너리] -->
+	<div class="sort-of-menu row no-gutters">
+		<div class="menu icon-section Pictionary col-3 text-center">
+			<a th:href="@{/pictionary}">
+				<label class="icon"></label>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/pictionary}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">픽셔너리</div>
+			</div>
+			<div class="detail-app">이미지 단어 학습</div>
+		</div>
+		<div class="kick-section"></div>
+		<div class="menu DetectiveJulie kick col-auto text-center">
+			<a th:href="@{/pictionary/kick/detective}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+				<label>탐정 줄리</label>
+			</a>
+		</div>
+		<div class="menu TracerQuiz kick col-auto text-center">
+			<a th:href="@{/pictionary/tracer/quiz}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+				<label>트레이서 퀴즈</label>
+			</a>
+		</div>
+	</div>
+	<!-- [2.2 플레이보이스북] -->
+	<div class="sort-of-menu row no-gutters">
+		<div class="menu icon-section PlayvoiceBook col-3 text-center">
+			<a th:href="@{/playvoiceBook}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/playvoiceBook}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">플레이보이스북</div>
+			</div>
+			<div class="detail-app">패턴 회화 연습</div>
+		</div>
+		<div class="kick-section"></div>
+		<div class="menu JohnnyDeck kick col-auto text-center">
+			<a th:href="@{/playvoiceBook/kick/deck}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+				<label>죠니 덱</label>
+			</a>
+		</div>
+		<div class="menu EggShot kick col-auto text-center">
+			<a th:href="@{/playvoiceBook/kick/egg}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+				<label>에그 샷</label>
+			</a>
+		</div>
+	</div>
+	<!-- [2.3 딕테이션북] -->
+	<div class="sort-of-menu row no-gutters">
+		<div class="menu icon-section DictationBook col-3 text-center">
+			<a th:href="@{/dictationBook}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/dictationBook}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">딕테이션북</div>
+			</div>
+			<div class="detail-app">테마별 듣기 연습</div>
+		</div>
+	</div>
+	<!-- [2.4 플레이스퀘어] -->
+	<!-- 펍 -->
+	<div class="sort-of-menu play-square row no-gutters">
+		<div class="menu icon-section SmallTalk col-3 text-center">
+			<a th:href="@{/square/smalltalk}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/square/smalltalk}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">스몰톡</div>
+			</div>
+			<div class="detail-app">AI와 독해 연습</div>
+		</div>
+	</div>
+	<!-- 바벨 -->
+	<div class="sort-of-menu play-square row no-gutters">
+		<div class="menu icon-section BabelEng col-3 text-center">
+			<a th:href="@{/square/babel/list/eng}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/square/babel/list/eng}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">잉글리시 스택</div>
+			</div>
+			<div class="detail-app">해석해 주세요</div>
+		</div>
+		<div class="menu icon-section BabelKor col-3 text-center">
+			<a th:href="@{/square/babel/list/kor}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/square/babel/list/kor}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">코리안 스택</div>
+			</div>
+			<div class="detail-app">번역해 주세요</div>
+		</div>
+	</div>
+	<!-- 북스토어 -->
+	<div class="sort-of-menu play-square row no-gutters">
+		<div class="menu icon-section Digest col-3 text-center">
+			<a th:href="@{/square/digest/list}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/square/digest/list}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">다이제스트</div>
+			</div>
+			<div class="detail-app">영어 아티클</div>
+		</div>
+		<div class="menu icon-section GrammarBook col-3 text-center">
+			<a th:href="@{/square/grammarBook/list}">
+				<label class="icon"></label><br>
+				<label class="middle-icon"></label>
+			</a>
+		</div>
+		<div class="menu name-section col text-left" th:href="@{/square/grammarBook/list}"
+			onclick="location.href=$(this).attr('href')">
+			<div class="app-title-x">
+				<div class="title-kor">그래머북</div>
+			</div>
+			<div class="detail-app">문법 학습</div>
+		</div>
+	</div>
+</div>
+
+
+
+</html>

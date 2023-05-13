@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+
+<div th:fragment="search_member">
+
+<!-----------------------/* 1. Search Member Form */------------------------->
+<div class="row"><div class="col-12">
+<div class="formContainer" style="margin-top: 12px;">
+<h3>
+	Searching Members Form
+	<span>Please fill the text in the field.</span>
+</h3>
+<div>
+	<form id="searchMemberForm" th:action="@{/admin/member/search}" 
+			th:object="${searchRequest}" method="get" class="form-horizontal">
+			
+		<div id="memberDiv0" class="row"><div class="col-12">
+		<div class="form-group row">
+			<!--/* 선택박스 */-->
+			<div class="col-3 headerLabel" id="searchOptionDiv">
+				<!-- <select th:field="*{searchType}" class="form-control"> -->
+				<select id="searchTypeSelect" name="searchType" class="form-control">
+					<option value=""> --선택-- </option>
+					<option th:each="searchOption : ${searchOptions}"
+                          		th:value="${searchOption.value}"
+                          		th:utext="${searchOption.name}"/>
+               	</select>
+			</div>
+			<!--/* 키워드 텍스트 div */-->
+			<div class="col-7" id="keywordDiv" >
+				<input type="text" th:field="*{keyword}" placeholder="검색어를 입력하세요."  class="form-control"/>
+			</div>
+			
+			<!--/* 등록기간 설정 div */-->
+			<div class="col-7" id="regDateDiv" style="display: none;"><div class="row no-gutters">
+				<div class="col-5 text-left lp0" id="fromDateDiv" > 
+					<input type="text" th:field="*{fromDate}" placeholder="시작날짜"  class="form-control"/>
+				</div>
+				
+				<div class="col-1 text-center lp0">
+					<i class="fas fa-window-minimize" style="color: #999999"></i>
+				</div>
+				
+				<div class="col-5 lp0" id="toDateDiv">
+					<input type="text" th:field="*{toDate}" placeholder="종료날짜"  class="form-control"/>
+				</div>
+				<div class="col-1 text-center"></div>
+			</div></div>
+			
+			<!--/* 검색버튼 */-->
+			<div class="col-1">
+				<input type="button" id="searchBtn" class="btn btn-default" value="Search"/>
+			</div>
+			
+			<!--/* 히든필드 */-->
+			<div class="col-1 text-center" id="searchFormHiddenData">
+	 			<div class="checkbox" style="padding: 1px 0px 0px 10px;">
+		            <label style="font-size: 1.5em">
+		                <input type="checkbox" value="" checked disabled="disabled" class="showView">
+		                <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+		            </label>
+	      		</div>
+				<input type="hidden" th:field="*{page}" th:value="${searchRequest.page}"/>
+				<input type="hidden" th:field="*{sortName}" th:value="${searchRequest.sortName}"/>
+				<input type="hidden" th:field="*{asc}" th:value="${searchRequest.asc}"/>
+				<input type="hidden" id="searchTypeForDynamic"/>
+			</div>
+		</div>
+		</div></div>
+	</form>
+</div>
+<div class="errorMsgs" style="display: none;">
+ 	<h3>
+		Error Messages
+		<span>Error Occured while processing the request.</span>
+	</h3>
+	<pre></pre>
+</div>
+
+</div> <!-- end of formContainer -->
+</div></div>
+
+<!-------------------------/* 2. Result Table */------------------------------->
+<div id="searchResult" style="display: none">
+	<h3>검색 결과 </h3>
+	<div>
+		<table id="searchResultTable"
+			class="resultWrapper table table-striped table-bordered table-hover table-sm text-center admin-member-board" >
+			<thead>
+			<tr class="thead">
+				<th style="width: 70px;">번호</th>
+				<th style="width: 70px;">MID<span class="sortMark" data-orderBy="default">▼</span></th>
+				<th style="width: 80px;">로그인 Id</th>
+				<th style="width: 80px;">별명</th>
+				<th style="width: 80px;">email</th>
+				<th style="width: 80px;">유료회원</th>
+				<th style="width: 80px;">가입경로</th>
+				<th style="width: 90px;">레벨</th>
+				<th style="width: 90px;">등록일</th>
+			</tr></thead>
+			<tbody>
+				<!--/* 검색결과 */-->
+				<!--/* 검색결과와 관련된 목록처리는 member.js의 
+						searchMember()함수(검색 처리)와 
+						displayMemberList() 함수(목록 출력)를 참고하라. */-->
+			</tbody>
+		</table>
+	</div>
+	
+	<!-- paging -->
+	<nav id="searchResultPageNavi" class="row my-3">
+		<div class="col-12">
+			<ul class="pagination pagination-sm justify-content-center"></ul>
+		</div>
+	</nav>
+	
+
+</div><!-- end of searchResult -->
+
+
+
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	adjustSearchForm();			//[select 검색 타입 설정]
+	adjustDateForm();			//[datepicker 설정]
+	
+	//[select : 검색타입 선택]--------------------------------------------------
+	$("#searchTypeSelect").change(function(){
+		$("#keyword").val('');
+		adjustSearchForm();
+	});
+	
+	
+	
+	//[ajax 전송 : 1)버튼을 통한 검색 ]------------------------------------------------------
+	$('#searchBtn').click(function(event) {
+		//---------[폼 초기화] ----------
+		
+		//sortMark ▲ 리셋 및 디폴트 설정
+		$('#searchResultTable .sortMark').css('display', 'none');
+		$('#searchResultTable span[data-orderBy=default]').css('display', 'inline');
+		
+		//히든값 재설정
+		$('#searchFormHiddenData #page').val("1");
+		$('#searchFormHiddenData #sortName').val("");
+		$('#searchFormHiddenData #asc').val("false");
+		
+		//----------------------------------------------------------
+		doSearchRequest();
+		//----------------------------------------------------------
+		$('#searchFormHiddenData .showView').prop( "disabled", false);
+	});
+	
+	//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]------------------------------------------------------
+	$("#searchResult_search .thlink").click(function(e) {
+		
+		//alert($(this).parent().parent().parent().children().first().children().first().text());
+		var target = $(this);
+		var sortName = target.attr('data-value');
+		var sortMark = target.next();
+		var searchType=$('#searchTypeForDynamic').val();
+		var page=1;
+		
+		//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+		$('#searchResultTable .sortMark').css('display', 'none');
+		
+		//현재 선택한 sortName이 이전과 같다면
+		if(sortName == $('#searchFormHiddenData #sortName').val()){
+			//현재 설정된 정렬방향을 가져온다.
+			var direction = $('#searchFormHiddenData #asc').val();
+			
+			//정렬방향을 반대로 변경한다.
+			if(direction == 'false'){
+				$('#searchFormHiddenData #asc').val('true');
+				sortMark.text('▲');
+			}else{
+				$('#searchFormHiddenData #asc').val('false');
+				sortMark.text('▼');
+				
+			}
+			console.log("이전과 동일=");
+			
+		}else{
+			//새로운 sortName으로 교체
+			$('#searchFormHiddenData #sortName').val(sortName);
+			
+			//기본값을 desc로 설정한다.
+			$('#searchFormHiddenData #asc').val('false');
+			
+			console.log("이전과 다름=");
+		}
+		
+		sortMark.css('display', 'inline');
+		searchMember(searchType, page, 'search');
+	});
+	
+	//결과 테이블 보이기/숨기기
+	$("#searchFormHiddenData .showView").click(function(e){
+		if($("#searchFormHiddenData .showView").prop("checked")==true){
+			$('#searchResult_search').css("display", "block");
+		}else{
+			$('#searchResult_search').css("display", "none");
+		}
+	});
+	
+});//end of ready
+
+/**
+ * select박스의 선택 항목에 따른 폼의 구성요소를 조정한다.
+ */
+function adjustSearchForm(){
+	var search = $("#searchTypeSelect");
+	$('#searchTypeForDynamic').val(search.val());
+	
+	if(search.val() == 'regDate'){
+		$("#regDateDiv").css("display","inline-block");
+		$("#keywordDiv").css("display","none");
+	}
+	else{
+		$("#regDateDiv").css("display","none");
+		$("#keywordDiv").css("display","inline-block");
+		$("#keyword").prop("disabled", false);
+	}
+}
+
+/**
+ * 검색 폼을 통한 검색
+ */
+function doSearchRequest(page){
+	if(page < 1) page = 1;
+	
+	var searchRequest = {
+		searchType : $('#searchTypeSelect').val(),
+		keyword : $('#keyword').val().trim(),
+		fromDate : $('#fromDate').val(),
+		toDate : $('#toDate').val(),
+		page : page,
+		sortName : $('#searchFormHiddenData #sortName').val(),
+		asc : $('#searchFormHiddenData #asc').val()	
+	}
+	//----------------------------
+	searchMember(searchRequest);
+	//----------------------------
+}
+
+/**
+ * 검색결과를 테이블에 표시
+ */
+function displayMemberList(pageObj, currentPageNum){
+	var memberList = pageObj.content;
+	var pageSize = pageObj.totalElements;
+	
+	$('#searchResultTable').children('tbody').children("tr").remove();
+	
+	var page = $("#page").val();
+	var num=1;	
+	var fetchSize = 20;//$('#h_size').val();
+	var output = ''
+	
+	$.each(memberList, function(index, member){
+		num = (pageSize-index)-(currentPageNum-1)*fetchSize;
+		
+		var regDate = new Date(member.regDate);
+		output += '<tr>';
+		/* output += '<td>'+parseInt(index+(currentPageNum-1)* 20)+'</td>'; */
+		output += '<td>'+num+'</td>';
+		output += '<td>'+member.mid+'</td>';
+		output += '<td><a href="javascript:void(0)" class="memberDetail">'+member.loginId+'</a>';
+		output += '<td>'+member.alias+'</td>';
+		output += '<td>'+member.email +'</td>';
+		output += '<td>'+member.gold+'</td>';
+		output += '<td>'+member.site+'</td>';
+		output += '<td>'+member.group.level+'</td>';
+		output += '<td>'+regDate.getFullYear()+"-"+parseInt(regDate.getMonth() +1)+"-"+regDate.getDate()+'</td>';
+		output += '</tr>';
+		$('#searchResultTable > tbody:last').append(output)
+		output =''; 
+	});
+}
+
+function displayPageNavigation(pageMaker){
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var ul = $('#searchResultPageNavi ul');
+	ul.empty();
+	
+	if(prevPage != null){
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+			html('PREV'+parseInt(prevPage.pageNumber+1));
+		link.attr('onclick','doSearchRequest('+parseInt(prevPage.pageNumber+1)+')');
+		link.appendTo(li);
+		li.appendTo(ul);
+		
+	}
+	
+	$.each(pageList, function(index, page){
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber) == (currentPageNum-1)){
+			li.addClass("active");
+		}
+		var link = $('<a class="page-link"></a>');
+		link.attr('href', 'javascript:void(0)');
+		link.attr('onclick','doSearchRequest('+parseInt(page.pageNumber+1)+')');
+		link.html(parseInt(page.pageNumber + 1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	});
+	
+	if(nextPage != null){
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+		html('NEXT'+parseInt(nextPage.pageNumber+1));
+		link.attr('onclick','doSearchRequest('+parseInt(nextPage.pageNumber+1)+')');
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+}
+
+
+</script>
+
+
+</div><!-- end of search_member fragment -->

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>파일 등록 (TTS) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"></th:block>
+
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [1. 화면 진입 세팅]-----------------------------------------------------------
+	// [1.1 url에 따라 해당 파일 확장자로 화면 변환]-----------------------------------------
+	var queryString = location.search;
+	var searchName = "?extension=";
+	if(queryString.length > 0 && queryString.indexOf(searchName) > -1){
+		queryString = queryString.substring(searchName.length);
+		switch(queryString){
+			case "text":
+				$(".extensionTxt, .extensionPdf, .extensionImg").remove();
+				setfileTextSection();
+				$("#content").val("");
+				break;
+			case "txt":
+				$(".extensionText, .extensionPdf, .extensionImg").remove();
+				break;
+			case "pdf":
+				$(".extensionText, .extensionTxt, .extensionImg").remove();
+				break;
+			case "image":
+				$(".extensionText, .extensionPdf, .extensionTxt").remove();
+				break;
+		}
+	}
+	// [1.2 화면 진입 시 파일 value 리셋 (뒤로가기할 경우)]------------------------------------
+	$("#sourceFile").val("");
+	// [1.3 뒤로가기 버튼 세팅 (main 으로)]----------------------------------------------
+	$("#historyBackBtn, #functionBackBtn").hide();
+	$("#mainBackBtn").show();
+	// [1.4 헤더 제목, 스텝 세팅]------------------------------------------------------
+	setHeaderTitle("Text Upload", 1);
+	
+	
+	// [파일 경로 표시]--------------------------------------------------------------
+	$(document).on("change", "#sourceFile", function(){
+		var filePath = $(this).val();
+		var guideSection = $(this).closest(".add-file-link-cover").find(".guide-section");
+		guideSection.hide();
+		$(".inputFileName").show().text(filePath);
+		$(".file-input-button-section").show();
+	});
+	  
+	// [파일을 text로 읽어오기]-------------------------------------------------------
+	$("#addFileBtn").click(function(){
+		setfileTextSection();
+		// 헤더의 뒤로가기 버튼 변경
+		$("#mainBackBtn, #functionBackBtn").toggle();
+	});
+	
+	// [읽어온 text 편집 시 textarea 높이 조정]------------------------------------------
+	$(document).on("keyup", "#content", function(){
+		$(this).css("height", "70px");
+		var text = $(this).val();
+		getSizeOfText(text);
+	});
+	
+	
+	// [이전으로 (파일 등록 폼으로 이동)]--------------------------------------------------
+	$("#functionBackBtn").click(function(){
+		$("#viewFileTextSection, #listParcingButtonsSection").hide();
+		$(".file-input-button-section").hide();
+		
+		$(".inputFileName").text("").hide();
+		$(".add-file-link-cover").find(".guide-section").show();
+		$("#sourceFile").val(""); // 파일 리셋
+		$("#addFileSection").show();
+		
+		// 헤더의 뒤로가기 버튼 변경
+		$("#mainBackBtn, #functionBackBtn").toggle();
+	});
+	
+	// [text 편집 화면으로 이동]------------------------------------------------------
+	$("#viewParaListBtn").click(function(){
+		location.href="/tts/text/add";
+	});
+	
+	
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * header title settion
+ */
+function setHeaderTitle(title, index) {
+	var titleSection = $("#playvoiceMobileHeader").find(".tts-logo");
+	var indexSection = $("#playvoiceMobileHeader").find(".index");
+	titleSection.text(title);
+	indexSection.text(index);
+}
+
+/**
+ * 읽어온 text 보기 화면 세팅
+ */
+function setfileTextSection() {
+	$("#addFileSection").hide();
+	// text 파일을 읽어온후 view div 열기
+	$("#viewFileTextSection, #listParcingButtonsSection").show();
+	// 읽어온 파일 글자 수 세기
+	getSizeOfText($("#content").text(), ".fileTextSize");
+}
+ 
+/**
+ * 글자 수 센 후 표시
+ */
+function getSizeOfText(text) {
+	var textSize = text.length;
+	if(textSize == null || textSize < 1) {
+		textSize = 0;
+	}
+	$(".fileTextSize").text("").text(textSize);
+};
+
+/**
+ * textarea 높이 자동 조정 (예문을 수정할 때 예문 전체를 보이게 하기 위해)
+ */
+function adjustHeight(obj) {
+   var textEleHeight = $(obj).prop('scrollHeight');
+   $(obj).css("height", textEleHeight);
+};
+</script>
+
+</head>
+
+
+<section layout:fragment="content" class="edit-parcing-sentence-list-section mobile-container-mode">
+<!-- tts header -->
+<header id="playvoiceMobileHeader" th:with="headerFixed = 'fixedStatic bgMain'" 
+	th:insert="~{/tts/incl/tts_header2::editing_header}"></header>
+
+<!-- tts PC top menu -->
+<div th:replace="~{/tts/incl/tts_menu2::pcTopMenu}"></div>
+<!-- tts Mobile top menu -->
+<div th:replace="~{/tts/incl/tts_menu2::topMenu}"></div>	
+
+<div class="file-add-container-section">
+<!-- ---------------------------[1. 파일 등록 영역]------------------------------ -->
+<div id="addFileSection" class="add-file-link-section">
+	<div class="add-file-link-cover"><div class="add-file-link-back bg-tts-main">
+		<!-- [1.1 등록 가이드] -->
+		<label for="sourceFile" class="file-input-text-section">
+			<span class="inputFileName file-name-section" style="display: none;"></span>
+			<span class="guide-section">
+				<span class="guide-text extensionTxt">메모장 txt 파일을 업로드해 주세요.</span>
+				<span class="guide-text extensionPdf">PDF 또는 WORD 파일을 업로드해 주세요.</span>
+				<span class="guide-text extensionImg">영문이 적혀있는 이미지를 업로드해 주세요.</span>
+			</span>
+			<i class="far fa-file-alt extensionTxt"></i>
+			<i class="far fa-file-pdf extensionPdf"></i>
+			<i class="far fa-file-image extensionImg"></i>
+			<span class="guide-section">
+				<span class="click-guide">click</span>
+			</span>
+		</label>
+		
+		<input id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionTxt" accept="text/plain"/>
+		<input id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionPdf" 
+			accept="application/pdf, .doc,.docx,.xml,application/msword,
+			application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
+		<input id="sourceFile" name="sourceFile" type="file"  
+			class="attachedFiles file-hidden extensionImg" accept="image/*"/>
+		
+		<!-- [1.2 등록 버튼] -->
+		<div class="file-input-button-section" style="display: none;">
+			<div class="remove-kor-text-section">
+				<label class="my-0">
+					<input type="checkbox" class="option-input checkbox"
+						checked="checked"/> 한글은 지우겠습니다.
+				</label>
+			</div>
+			<button id="addFileBtn" type="button" class="btn btn-main2">
+				텍스트 읽어오기
+			</button>		
+		</div>
+	</div></div>
+	
+</div><!-- end of addFileSection -->
+
+<!-- ------------------------[2. 읽어온 텍스트 확인 영역]--------------------------- -->
+<div id="viewFileTextSection" class="view-file-text-section" style="display: none;">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label>
+				<i class="fa fa-pencil-alt extensionText"></i>
+				<i class="far fa-file-alt extensionTxt"></i>
+				<i class="far fa-file-pdf extensionPdf"></i>
+				<i class="far fa-file-image extensionImg"></i>
+			</label>
+		</div>
+		<div class="detail col">
+			<div class="inputFileName guide-cover">직접 작성하기</div>
+			<div>
+				<span class="fileTextSize num"></span>
+				<span class="ment">/ 1000자</span>
+			</div>
+		</div>
+	</div>
+	<div class="view-file-text-cover formEdit">
+		<textarea id="content" name="content" class="text-cover formEdit"
+			placeholder="음성으로 만들 영어 문장을 입력해 주세요."
+			th:utext="${fileText}"></textarea>
+	</div>
+</div><!-- end of viewFileTextSection -->
+
+<!-- -----------------------------[3. 버튼 영역]------------------------------- -->
+<div id="listParcingButtonsSection" class="list-parcing-buttons-section" style="display: none;">
+	<!-- 다음으로 (text 파싱) -->
+	<div class="button-cover">
+		<button id="viewParaListBtn" class="btn btn-next" type="button">
+			next
+		</button>
+	</div>
+</div><!-- end of listParcingButtonsSection -->
+</div>	
+
+<!-- tts bottom menu -->
+<div th:replace="~{/tts/incl/tts_menu2::bottomMenu}"></div>	
+
+</section><!-- end of content -->
+</html>

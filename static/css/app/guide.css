@@ -1,0 +1,1255 @@
+
+/* 구름 */
+.cloud-gather-section {
+	position: relative;
+	height: 80px;
+	max-width: 100%;
+}
+.cloud-gather-section .cloud-image {
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	position: absolute;
+	opacity: 0.5;
+	z-index: -1;
+}
+.cloud-gather-section .cloud1 {
+	background-image: url('/images/common/images/cloud1.png');
+	width: 200px;
+	height: 180px;
+	bottom: 0;
+	left: 50px;
+	animation: bungbung 1.5s infinite linear;
+}
+.cloud-gather-section .cloud2 {
+	background-image: url('/images/common/images/cloud2.png');
+	width: 180px;
+	height: 150px;
+	bottom: 120px;
+	left: -10px;
+	animation: bungbung 0.8s infinite linear;
+}
+.cloud-gather-section .cloud3 {
+	background-image: url('/images/common/images/cloud3.png');
+	width: 150px;
+	height: 120px;
+	bottom: 200px;
+	left: 200px;
+	animation: bungbung 1.2s infinite linear;
+}
+.cloud-gather-section .cloud4 {
+	background-image: url('/images/common/images/cloud4.png');
+	width: 120px;
+	height: 100px;
+	bottom: -50px;
+	left: 175px;
+	animation: bungbung 1.8s infinite linear;
+}
+
+@media (max-width: 767.5px) {
+	.cloud-gather-section {height: 50px;}
+}
+
+/**********************************************************
+ *						index.html
+ **********************************************************/
+.playvoice-guide-section:first-child {margin: 2rem 0 10rem;}
+.playvoice-guide-section.title {
+	margin-bottom: 0;
+	position: relative;
+	height: 20vw;
+}
+.playvoice-guide-section.title .playvoice-title {
+	position: absolute;
+	left: calc(50% - 555px);
+	bottom: 2rem;
+	text-align: left;
+}
+.playvoice-guide-section.title .playvoice-title h1 {
+	font-size: 4rem;
+	font-family: 'Baloo Bhai', 'PT Serif', '나눔바른고딕', 'Nanum Myeongjo', serif;
+	box-shadow: none;
+	padding-bottom: 0;
+	border-bottom: none; 
+	line-height: 1;
+	font-weight: 500;
+	color: #1b1f40;
+	letter-spacing: -2.2px;
+	position: relative;
+}
+.playvoice-guide-section.title .playvoice-title h1 span {position: relative;}
+.playvoice-guide-section.title .playvoice-title h1 i {
+	position: absolute;
+	top: 0;
+	left: 0;
+	text-decoration: none;
+	font-style: normal;
+	white-space: nowrap;
+}
+.playvoice-guide-section.title .playvoice-title h1 .fa-plane {
+	top: 56%;
+	left: unset;
+	right: 0vw;
+	font-size: 3rem;
+	color: #303672;
+	-webkit-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+.playvoice-guide-section.title .playvoice-title h1 i span {visibility: hidden;}
+.playvoice-guide-section.title .playvoice-title h1 .hr {
+	height: 7px;
+	border-radius: 6px;
+	width: 1000px;
+	display: block;
+	background-color: #c0e4fe;
+	position: absolute;
+	margin-bottom: 0;
+	top: 56%;
+	right: 4.5vw;
+	-webkit-transform: translateY(-50%);
+	-ms-transform: translateY(-50%);
+	transform: translateY(-50%);
+}
+.playvoice-guide-section.title .playvoice-title .sub {
+	font-size: 17px;
+	line-height: 1.6;
+	font-family: 'Cafe24Simplehae','Graphik', 'NanumSquare';
+	font-weight: 600;
+}
+.playvoice-guide-section.title .playvoice-title .sub b {
+	color: #303672;
+	font-weight: 600;
+}
+
+.playvoice-guide-section.title .playvoice-title .b-title {
+	color: #e94169;
+	font-weight: 600;
+}
+.playvoice-guide-section.title .playvoice-title span.eng-title {
+	font-size: 20px;
+	color: #e94169;
+	font-weight: 600;
+	font-family: 'Baloo Bhai';
+	font-weight: 500;
+	letter-spacing: -0.5px;
+}
+.playvoice-guide-section.title .playvoice-title .episode {
+	font-family: 'PT Serif';
+	font-weight: 600;
+}
+@media (max-width: 1199.5px) {
+	.playvoice-guide-section.title {height: 30vw;}
+	.playvoice-guide-section.title .playvoice-title {
+		left: calc(50% - 465px);
+		bottom: 40px;
+	}
+	.playvoice-guide-section.title .playvoice-title h1 {font-size: 3.5rem;}
+	.playvoice-guide-section.title .playvoice-title h1 .hr {right: 9vw;}
+	.playvoice-guide-section.title .playvoice-title h1 .fa-plane {right: 1vw;}
+}
+@media (max-width: 991.5px) {
+	.playvoice-guide-section.title {
+		margin-bottom: 1rem;
+		height: auto;
+	}
+	.playvoice-guide-section.title .playvoice-title {
+		position: relative;
+		left: 50%;
+		bottom: 0;
+		transform: translateX(-50%);
+		text-align: center;
+		width: 600px;
+	}
+	.playvoice-guide-section.title .playvoice-title h1 i {
+		left: 50%;
+		transform: translateX(-50%);
+	}
+	.playvoice-guide-section.title .playvoice-title h1 .fa-plane {display: none;}
+	.playvoice-guide-section.title .playvoice-title h1 .hr {
+		display: none;
+	}
+	
+}
+@media (max-width: 767.5px) {
+	.playvoice-guide-section.title .playvoice-title {width: 100%;}
+	.playvoice-guide-section.title .playvoice-title span.eng-title {font-size: 15px;}
+	.playvoice-guide-section.title .playvoice-title h1 {font-size: 7vw;}
+	.playvoice-guide-section.title .playvoice-title .sub {
+		padding: 0 0.5rem;
+		font-size: 13px;
+		font-weight: 600;
+		font-family: 'Open Sans', 'NanumGothic';
+	}
+}
+@media (max-width: 575.5px) {
+	.playvoice-guide-section.title .playvoice-title h1 {font-size: 10vw;}
+}
+
+/* go to new york image */
+.playvoice-journey-image-section {
+	position: absolute;
+	top: 50%;
+	right: calc(50% - 555px);
+	padding: 2rem;
+	border-radius: 50%;
+	-webkit-transform: translateY(-30%);
+	-ms-transform: translateY(-30%);
+	transform: translateY(-30%);
+	background-color: #1b1f40;
+	box-shadow: -10px -10px 20px 0 #fff, 
+				10px 10px 30px 0 rgba(13,39,80,0.26), 
+				inset -7px -5px 15px 0 rgba(0,0,0,0.5), 
+				inset 5px 5px 10px 0 rgba(255,255,255,0.2);
+}
+.playvoice-journey-image-cover {
+	width: 270px;
+	height: 270px;
+	background-color: #f5f6fa;
+	border-radius: 50%;
+	position: relative;
+}
+.playvoice-journey-image-cover:after {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: inherit;
+	height: inherit;
+	border-radius: 50%;
+	box-shadow: -5px -5px 10px 0 rgba(0,0,0,0.3), 
+				5px 5px 10px 0 rgba(0,0,0,0.5), 
+				inset -5px -5px 5px 0 rgba(13,39,80,0.16), 
+				inset 5px 5px 5px 0 rgba(255,255,255,0.3);
+}
+.playvoice-journey-image-cover .journey-image-cover {
+	width: 100%;
+	height: 100%;
+	border-radius: 50%;
+	overflow: hidden;
+	position: relative;
+}
+.playvoice-journey-image-cover .go-to-newyork {
+	width: 100%;
+	height: 100%;
+	background: url('/images/common/characters/aust_newyork.png') no-repeat;
+	background-size: 120% auto;
+	background-position: center;
+}
+.playvoice-journey-image-cover .heoeok-journey {
+	width: 60%;
+	height: 65%;
+	position: absolute;
+	bottom: -0.5rem;
+	left: 0;
+	background: url('/images/common/characters/korean_travel.png') no-repeat;
+	background-size: contain;
+	background-position: left bottom;
+	animation: bungbung 1.2s infinite linear;
+}
+@keyframes bungbung {
+	0%, 100% {bottom: -0.5rem;}
+	50% {bottom: 0;}
+}
+.guide-flag-section {margin-left: 5px;}
+.guide-flag-section img {
+	width: 30px;
+	margin-right: 3px;
+}
+
+@media (max-width: 1199.5px) {
+	.playvoice-journey-image-section {right: calc(50% - 465px);}
+	.playvoice-journey-image-cover {
+		width: 250px;
+		height: 250px;
+	}
+}
+@media (max-width: 991.5px) {
+	.playvoice-journey-image-section {
+		left: 50%;
+		transform: translateX(-50%);
+		top: 0;
+		width: calc(250px + 4rem);
+		position: relative;
+	}
+}
+@media (max-width: 767.5px) {
+	.playvoice-journey-image-section {
+		width: calc(200px + 2rem);
+		padding: 1rem;
+	}
+	.playvoice-journey-image-cover {
+		width: 200px;
+		height: 200px;
+	}
+}
+
+.playvoice-guide-menu {
+	display: block;
+	position: -webkit-sticky;
+	position: sticky;
+	z-index: 3;
+	top: 45px;
+	padding: 0.5rem 0;
+}
+.playvoice-guide-menu .guide-menu-div {
+	border-radius: 10px;
+	width: 100%;
+	max-width: 400px;
+	margin: 0 -0.25rem;
+	text-align: center;
+	position: relative;
+	left: calc(50% - 555px);
+}
+.playvoice-guide-menu .menu-dependent-section {
+	padding: 0.15rem !important;
+	text-align: center;
+}
+.playvoice-guide-menu .menu-dependent-section .menu-dependent {
+	border-radius: 6px;
+	border: none;
+	cursor: pointer;
+	margin: 0;
+	padding: 5px 2px 5px 18px;
+	font-size: 17px;
+	text-align: center;
+	width: 100%;
+	min-height: 40px;
+	color: #fff;
+	font-size: 13px;
+	font-weight: 600;
+	line-height: 1.2;
+	font-family: 'Graphik', 'NanumSquare';
+	transition: all 0.3s ease;
+	background-color: #1b1f40;
+	position: relative;
+	box-shadow: 2px 2px 4px 0 rgba(13,39,80,0.4), 
+				inset -3px -3px 5px 0 rgba(27,31,64,0.8), 
+				inset 3px 3px 5px 0 rgba(255,255,255,0.4);
+}
+.playvoice-guide-menu .menu-dependent-section.active .menu-dependent,
+.playvoice-guide-menu .menu-dependent-section .menu-dependent:hover {
+	background-color: #e94169;
+	color: #fff;
+	border-color: transparent;
+	position: relative;
+	box-shadow: 2px 2px 4px 0 rgba(13,39,80,0.36), 
+				inset -3px -3px 5px 0 #9f1728, 
+				inset 3px 3px 5px 0 #ee8a97;
+}
+.playvoice-guide-menu .menu-dependent-section .menu-dependent i {
+	position: absolute;
+	top: 50%;
+	left: 0.5rem;
+	transform: translateY(-50%);
+	font-size: 1.2em;
+}
+
+@media (max-width: 1199.5px) {
+	.playvoice-guide-menu .guide-menu-div {left: calc(50% - 465px);}
+}
+@media (max-width: 991.5px) {
+	.playvoice-guide-menu .guide-menu-div {
+		transform: translateX(-50%);
+		left: 50%;
+	}
+	.playvoice-guide-menu {top: 20px;}
+}
+@media (max-width: 767.5px) {
+	.playvoice-guide-menu {top: 0;}
+	.playvoice-guide-menu .guide-menu-div {
+		padding: 0 0.5rem;
+		margin: 0;
+	}
+	.playvoice-guide-menu .menu-dependent-section .menu-dependent {
+		font-size: 12px;
+		padding-left: 1rem;
+	}
+}
+
+
+/* 타이틀과 div 섹션 */
+.intro-playvocie-section {
+	min-height: 50vh;
+	position: relative;
+}
+.playvoice-guide-section {margin-bottom: 8rem;}
+.playvoice-guide-section .title-section {text-align: center;}
+.playvoice-guide-section .title-section h3 {
+	font-size: 2.5rem;
+	font-family: 'Baloo Bhai', 'PT Serif', '나눔바른고딕', 'Nanum Myeongjo', serif;
+	box-shadow: none;
+	padding-bottom: 0;
+	border-bottom: none; 
+	line-height: 1;
+	font-weight: 500;
+	color: #1b1f40;
+	letter-spacing: -1.8px;
+}
+.playvoice-guide-section .title-section h3 i {
+	font-size: 0.6em;
+	color: #e94169;
+	margin-left: 5px;
+}
+.playvoice-guide-section .title-section .sub {
+	font-size: 13.5px;
+	font-family: 'Open Sans', 'NanumGothic', sans-serif;
+	margin: 0.1rem 0 1rem;
+	line-height: 1.5;
+	font-weight: 600;
+	letter-spacing: -0.5px;
+}
+
+.guide-title-section {
+	position: relative;
+	height: 60px;
+	line-height: 60px;
+	background: 0 0;
+	font-family: 'Baloo Bhai';
+	display: inline-block;
+	color: #fff;
+}
+.guide-title-section .num {
+	margin-left: calc(50vw - 560px);
+	margin-right: 2rem;
+	font-size: 38px;
+	font-weight: 500;
+	color: #e94169;
+}
+.guide-title-section .dot {
+	margin: 10px 2rem 10px 0;
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: #e94169;
+	display: inline-block;
+}
+.guide-title-section .title-text {
+	margin: 0 20px 0 0;
+	font-size: 30px;
+	font-weight: 300;
+	font-weight: 400;
+	letter-spacing: -1px;
+}
+.guide-title-section .title-back,
+.guide-title-section .title-back2 {
+	background-color: #1b1f40;
+	position: absolute;
+    z-index: -1;
+    top: 0;
+    left: -3000px;
+    width: 3000px;
+    height: 100%;
+    border-radius: 10px;
+    transition: transform 0.5s linear;
+    -webkit-transform: translate3d(0,0,0);
+    transform: translate3d(0,0,0);
+}
+.guide-title-section .title-back.active {transform: translate(calc(50vw - 570px + 310px), 0px);}
+.guide-title-section .title-back2.active {transform: translate(calc(50vw - 570px + 380px), 0px);}
+.playvoice-guide-body-cover {margin-top: 1.5rem;}
+
+@media (max-width: 1199.5px) {
+	.guide-title-section .num {margin-left: calc(50vw - 470px);}
+	
+	.guide-title-section .title-back.active {transform: translate(calc(50vw - 480px + 310px), 0px);}
+	.guide-title-section .title-back2.active {transform: translate(calc(50vw - 480px + 380px), 0px);}
+	
+	.playvoice-guide-body-cover.app-content {overflow: hidden;}
+}
+@media (max-width: 991.5px) {
+	.guide-title-section .num {margin-left: calc(50vw - 350px);}
+	.guide-title-section .title-back.active {transform: translate(calc(50vw - 360px + 310px), 0px);}
+	.guide-title-section .title-back2.active {transform: translate(calc(50vw - 360px + 380px), 0px);}
+	
+}
+@media(max-width: 767.5px) {
+	.playvoice-guide-body-cover .meerkat-shape-section {transform: scale(0.8);}
+	
+	.playvoice-guide-body-cover {padding: 0 15px;}
+	.guide-title-section {
+		height: 56px;
+		margin-bottom: 0;
+		width: auto;
+	}
+	.guide-title-section .num {
+		font-size: 24px;
+		line-height: 56px;
+		margin-left: 20px;
+	}
+	.guide-title-section .dot {margin: 25px 7px 3px;}
+	.guide-title-section .title-text {
+		font-size: 20px;
+		font-weight: 400;
+		line-height: 56px;
+		margin: 1px 20px 0 0;
+	}
+	.guide-title-section .title-back.active {transform: translate(calc(50vw - 270px + 310px), 0px);}
+	.guide-title-section .title-back2.active {transform: translate(calc(50vw - 270px + 380px), 0px);}
+}
+@media (max-width: 320px) {
+	.guide-title-section .title-back.active {transform: translate(230px, 0px);}
+	.guide-title-section .title-back2.active {transform: translate(285px, 0px);}
+}
+
+
+/* sub 타이틀과 이미지 cover */
+.playvoice-guide-body-cover .sub-title-section {
+	position: relative;
+	width: 100%;
+	max-width: 450px;
+	text-align: center;
+	margin: 3rem auto;
+}
+.playvoice-guide-body-cover.membership .sub-title-section {margin-top: 0;} 
+.playvoice-guide-body-cover .sub-title-section .quote-section {
+	display: inline-block;
+	font-family: '-apple-system', 'apple sd gothic neo', 'Cafe24Simplehae', 'NanumSquare';
+	font-weight: 600;
+	padding: 1rem 0 !important;
+	text-align: center;
+	font-size: 1.2rem;
+}
+.playvoice-guide-body-cover .sub-title-section .quote-section i {
+	position: relative;
+	top: -3px;
+	font-size: 0.7em;
+	color: #303672;
+}
+
+/* 미어켓 옆 물음표 */
+.playvoice-guide-body-cover .question-section {
+	width: 50px;
+	height: 77px;
+	font-size: 3rem;
+	color: #e94169;
+	transform: rotate(30deg);
+	position: absolute;
+	top: -2rem;
+	left: 25%;
+}
+
+/* 설명 텍스트 */
+.playvoice-guide-body-cover .introduce-text-section {
+	font-family: '-apple-system', 'apple sd gothic neo', 'Graphik', 'NanumSquare';
+	font-weight: 600;
+	font-size: 14px;
+	text-align: center;
+	margin: 3.5rem 0;
+	color: #000;
+	letter-spacing: -0.5px;
+	line-height: 1.7;
+}
+.playvoice-guide-body-cover .introduce-text-section b {color: #dd2138;}
+.playvoice-guide-body-cover .introduce-text-section a {color: #3834a9;}
+.playvoice-guide-body-cover .introduce-text-section a:before {
+	content: '\300E';
+	margin-left: 2px;
+}
+.playvoice-guide-body-cover .introduce-text-section a:after {
+	content: '\300F';
+	margin-right: 2px;
+}
+.playvoice-guide-body-cover .introduce-text-section .emp {font-size: 1.2em;}
+.playvoice-guide-body-cover .introduce-text-section .wordGuide:after {
+	content: '\003F';
+	font-size: 8px;
+	position: relative;
+	top: -8px;
+	color: #1b1f40;
+}
+.playvoice-guide-body-cover .introduce-text-section .wordGuide {cursor: pointer;}
+.playvoice-guide-body-cover .introduce-text-section .wordGuide:hover {color: #dd2138;}
+
+/* 설명 이미지들 */
+.playvoice-guide-body-cover .intro-images-section {
+	width: 80%;
+	max-width: 300px;
+	height: 300px;
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	margin: 3.5rem auto;
+}
+/* 시작하기 */
+.playvoice-guide-body-cover .intro-images-section.go-to-travel {
+	width: 100%;
+	height: 250px;
+	max-width: 600px;
+	background-image: url('/images/common/characters/goto_travel.png');
+}
+.playvoice-guide-body-cover .intro-images-section.kang-newyork {
+	height: 180px;
+	max-width: 300px;
+	background-image: url('/images/common/characters/aust_newyork.png');
+}
+.playvoice-guide-body-cover .intro-images-section.bird-study {
+	height: 220px;
+	max-width: 350px;
+	background-image: url('/images/common/characters/bird_study.png');
+}
+.playvoice-guide-body-cover .intro-images-section.bird-content {
+	height: 220px;
+	max-width: 350px;
+	background-image: url('/images/common/characters/bird_content.png');
+}
+.playvoice-guide-body-cover .intro-images-section.bird-ranking {
+	height: 250px;
+	max-width: 300px;;
+	background-image: url('/images/common/characters/bird_ranking.png');
+}
+.playvoice-guide-body-cover .intro-images-section.city {
+	width: 100%;
+	height: 220px;
+	max-width: 500px;
+	background-image: url('/images/common/images/city.png');
+}
+.playvoice-guide-body-cover .intro-images-section.passport {
+	height: 220px;
+	max-width: 300px;
+	background-image: url('/images/app/guide/passport.png');
+}
+.playvoice-guide-body-cover .intro-images-section.diary {
+	height: 220px;
+	max-width: 300px;
+	background-image: url('/images/app/guide/diary.png');
+}
+.playvoice-guide-body-cover .intro-images-section.birds-study {
+	width: 100%;
+	height: 150px;
+	max-width: 400px;
+	background-image: url('/images/common/characters/birds.png');
+}
+.playvoice-guide-body-cover .intro-images-section.mearkat-gold-box {
+	height: 150px;
+	max-width: 400px;
+	background-image: url('/images/common/characters/empty_plate.png');
+}
+/* welcome */
+.playvoice-guide-body-cover .intro-images-section.korean {
+	background-image: url('/images/common/characters/korean_struggle.png');
+}
+.playvoice-guide-body-cover .intro-images-section.academy {
+	background-image: url('/images/common/characters/mearkat_aca.png');
+}
+.playvoice-guide-body-cover .intro-images-section.output {
+	max-width: 200px;
+	height: 200px;
+	background-image: url('/images/app/membership/membership_bird.png');
+}
+.playvoice-guide-body-cover .intro-images-section.all-dance {
+	max-width: 330px;
+	height: 220px;
+	background-image: url('/images/common/characters/all_dance.png');
+}
+.playvoice-guide-body-cover .intro-images-section.sky {
+	width: 100%;
+	max-width: 450px;
+	position: relative;
+	background-image: url('/images/common/characters/skyparty_characters.png');
+	animation: bungbung 1.5s infinite linear;
+}
+.playvoice-guide-body-cover .intro-images-section.bird {
+	width: 70%;
+	max-width: 150px;
+	height: 200px;
+	background-image: url('/images/common/characters/popular_bird.png');
+}
+.playvoice-guide-body-cover .intro-images-section.cake {
+	width: 70%;
+	max-width: 200px;
+	height: 200px;
+	background-image: url('/images/app/membership/membership_night.png');
+}
+
+@media (max-width: 767.5px) {
+	.playvoice-guide-body-cover .sub-title-section {margin: 2rem auto;}
+	.playvoice-guide-body-cover .sub-title-section .quote-section {font-size: 1.1rem;}
+	.playvoice-guide-body-cover .introduce-text-section {margin: 2.5rem 0;}
+	.playvoice-guide-body-cover .intro-images-section {
+		height: 160px;
+		margin: 2rem auto;
+	}
+	/* 시작하기 */
+	.playvoice-guide-body-cover .intro-images-section.go-to-travel {height: 160px;}
+	.playvoice-guide-body-cover .intro-images-section.kang-newyork,
+	.playvoice-guide-body-cover .intro-images-section.bird-study,
+	.playvoice-guide-body-cover .intro-images-section.bird-content,
+	.playvoice-guide-body-cover .intro-images-section.bird-ranking,
+	.playvoice-guide-body-cover .intro-images-section.city,
+	.playvoice-guide-body-cover .intro-images-section.passport,
+	.playvoice-guide-body-cover .intro-images-section.diary {height: 150px;}
+	.playvoice-guide-body-cover .intro-images-section.birds-study {height: 100px;}
+	.playvoice-guide-body-cover .intro-images-section.mearkat-gold-box {height: 130px;}
+	/* welcome */
+	.playvoice-guide-body-cover .intro-images-section.korean {height: 180px;}
+	.playvoice-guide-body-cover .intro-images-section.output {height: 200px;}
+	.playvoice-guide-body-cover .intro-images-section.all-dance {height: 180px;}
+	.playvoice-guide-body-cover .intro-images-section.sky {height: 200px;}
+	.playvoice-guide-body-cover .intro-images-section.bird {height: 200px;}
+	.playvoice-guide-body-cover .intro-images-section.cake {height: 200px;}
+	
+}
+
+/* 골드 포인트 */
+.gold-point-section {
+	height: 150px;
+	width: 150px;
+	position: relative;
+	transform: scale(0.8);
+	margin: 0 auto;
+}
+.gold-point-section div {position: absolute;}
+.gold-point-cover {
+	height: 150px;
+	width: 150px;
+	background: #ffbd0b;
+	border-radius: 50%;
+	border-top: 7px solid #ffd84c;
+	border-left: 7px solid #ffd84c;
+	border-right: 7px solid #d57e08;
+	border-bottom: 7px solid #d57e08;
+	transform: rotate(44deg);
+}
+.gold-point-cover:before {
+	content: "";
+	margin: 33.5px 33.5px;
+	position: absolute;
+	width: 70px;
+	height: 70px;
+	background: #f0a608;
+	border-radius: 50%;
+	border-bottom: 5px solid #ffd84c;
+	border-right: 5px solid #ffd84c;
+	border-left: 5px solid #d57e08;
+	border-top: 5px solid #d57e08;
+	z-index: 2;
+}
+.gold-point-cover .currency {
+	overflow: hidden;
+	color: #ffbd0b;
+	font-size: 35px;
+	transform: rotate(-44deg);
+	line-height: 4;
+	width: 100%;
+	height: 100%;
+	text-align: center;
+	text-shadow: 0 3px 0 #cb7407;
+	z-index: 3;
+	border-radius: 50%;
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+}
+.gold-point-cover .currency:after {
+	content: "";
+	position: absolute;
+	height: 200px;
+	width: 40px;
+	margin: 20px -65px;
+	box-shadow: 50px -23px 0 -10px rgba(255, 255, 255, 0.22), 
+				85px -10px 0 -16px rgba(255, 255, 255, 0.19);
+	transform: rotate(-50deg);
+	animation: shine 1.5s infinite ease;
+}
+.gold-point-cover .shape {
+	transform: rotate(-44deg);
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+	letter-spacing: -1px;
+}
+.gold-point-cover .top {
+	font-size: 20px;
+	color: #d67f08;
+	text-align: center;
+	width: 100%;
+	left: 0;
+	top: 6px;
+}
+.gold-point-cover .bottom {
+	font-size: 20px;
+	color: #d67f08;
+	text-align: center;
+	width: 100%;
+	left: 0;
+	bottom: 0;
+	bottom: 4px;
+}
+
+@keyframes shine {
+	0% {margin: 20px -65px;}
+	50% {margin: 70px -85px;}
+	100% {margin: 20px -65px;}
+}
+
+/* 부족 seal */
+.tribe-seal-section {text-align: center;}
+.tribe-seal-section .pride {
+	background-image: url('/images/app/mypage/seal_pride.png');
+}
+.tribe-seal-section .horde {
+	background-image: url('/images/app/mypage/seal_horde.png');
+}
+.tribe-seal-section .troop {
+	background-image: url('/images/app/mypage/seal_troop.png');
+}
+.tribe-seal-section .gang {
+	background-image: url('/images/app/mypage/seal_gang.png');
+}
+.tribe-seal-section .flock {
+	background-image: url('/images/app/mypage/seal_flock.png');
+}
+.tribe-seal-section .tribe-image {
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center;
+	width: 100px;
+	margin: 0 3px;
+}
+
+
+/* 플레이보이스 앱 특징 */
+.icon-desc-section {
+	text-align: center;
+	line-height: 1.4;
+	max-width: 950px;
+	margin: 0 auto;
+}
+.icon-desc-section .icon-desc {padding: 0 5px 1.5rem !important;}
+.icon-desc-section .icon-section {
+	font-size: 2.5rem;
+	color: rgba(255,255,255,0.8);
+	padding: 5px 0;
+	position: relative;
+}
+.icon-desc-section .icon-section:before {
+	content: '';
+	width: 88px;
+	height: 88px;
+	top: -30%;
+	position: absolute;
+	left: 50%;
+	border: solid 2px transparent;
+	transform: translateX(-50%);
+	border-radius: 50%;
+	z-index: -1;
+}
+.icon-desc-section .icon-desc:nth-child(1) .icon-section,
+.icon-desc-section .icon-desc:nth-child(7) .icon-section {color: rgba(101,139,96,1);}
+.icon-desc-section .icon-desc:nth-child(1) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(7) .icon-section:before {
+	border-color: rgba(101,139,96,0.5);
+}
+.icon-desc-section .icon-desc:nth-child(2) .icon-section,
+.icon-desc-section .icon-desc:nth-child(8) .icon-section {color: rgba(112,75,67,1);}
+.icon-desc-section .icon-desc:nth-child(2) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(8) .icon-section:before {
+	border-color: rgba(112,75,67,0.5);
+}
+.icon-desc-section .icon-desc:nth-child(3) .icon-section,
+.icon-desc-section .icon-desc:nth-child(9) .icon-section {color: rgba(73,89,139,1);}
+.icon-desc-section .icon-desc:nth-child(3) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(9) .icon-section:before {
+	border-color: rgba(73,89,139,0.5);
+}
+.icon-desc-section .icon-desc:nth-child(4) .icon-section,
+.icon-desc-section .icon-desc:nth-child(10) .icon-section {color: rgba(195,100,75,1);}
+.icon-desc-section .icon-desc:nth-child(4) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(10) .icon-section:before {
+	border-color: rgba(195,100,75,0.5);
+}
+.icon-desc-section .icon-desc:nth-child(5) .icon-section,
+.icon-desc-section .icon-desc:nth-child(11) .icon-section {color: rgba(43,121,100,1);}
+.icon-desc-section .icon-desc:nth-child(5) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(11) .icon-section:before {
+	border-color: rgba(43,121,100,0.5);
+}
+.icon-desc-section .icon-desc:nth-child(6) .icon-section,
+.icon-desc-section .icon-desc:nth-child(12) .icon-section {color: rgba(160,91,138,1);}
+.icon-desc-section .icon-desc:nth-child(6) .icon-section:before,
+.icon-desc-section .icon-desc:nth-child(12) .icon-section:before {
+	border-color: rgba(160,91,138,0.5);
+}
+.icon-desc-section .icon-title-section {
+	margin-top: 1.5rem;
+	font-size: 14px;
+	color: #1b1f40;
+	font-weight: 600;
+	line-height: 1.4;
+	font-family: 'Open Sans', 'NanumSquare' !important;
+}
+.icon-desc-section .playvoice-menu .menu  {
+	width: 20% !important;
+	min-width: 20% !important;
+}
+.icon-desc-section .playvoice-menu .middle-icon {top: 20px;}
+.icon-desc-section .playvoice-menu .menu.NeverEnding {display: none;}
+
+.newyork-image-section {position: relative;}
+.newyork-image-cover {
+	background: url('/images/common/images/new_york.png') no-repeat;
+	background-size: contain;
+	background-position: center bottom;
+	width: 100%;
+	max-width: 300px;
+	height: 250px;
+	position: absolute;
+	left: -15px;
+	bottom: -2rem;
+}
+
+@media (max-width: 767.5px) {
+	/* 설명 텍스트 */
+	.playvoice-guide-body-cover .introduce-text-section {
+		font-size: 14px;
+		word-break: keep-all;
+		word-wrap: break-word;
+	}
+	
+	.newyork-image-section {margin-top: 12rem;}
+	.newyork-image-cover {
+		left: 50%;
+		height: 200px;
+		transform: translateX(-50%);
+	}
+}
+
+/* 자세히 설명하기 */
+.detail-guide-section h5 {
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+	font-size: 1.2rem;
+	color: #1b1f40;
+	letter-spacing: -1px;	
+}
+.detail-guide-menu-section {
+	width: 100%;
+	max-width: 800px;
+	margin: 0 auto;
+}
+.detail-guide-menu-section .menu-section {
+	margin-bottom: 0.5rem;
+	background-color: #f5f6fa;
+	margin-top: 0;
+	position: relative;
+	border-radius: 0.5rem;
+	color: #1b1f40;
+}
+.detail-guide-menu-section .menu-section.point {background-color: #dce4f6;}
+.detail-guide-menu-section .menu-cover {
+	padding: 1rem;
+	position: relative;
+	margin-top: 0;
+	cursor: pointer;
+	font-size: 16px;
+	font-family: 'Graphik', 'Cafe24Simplehae','NanumSquare';
+}
+.detail-guide-menu-section .menu-cover i.fa,
+.detail-guide-menu-section .menu-cover i.far {
+	font-size: 1.5em;
+	color: #e94169;
+	position: absolute;
+	top: 50%;
+	left: 3rem;
+	transform: translateY(-50%);
+}
+.detail-guide-menu-section .menu-cover i.fa.gold {color: #ffc107;}
+.detail-guide-menu-section .menu-section .menu-cover .title-text:before {
+	content: '\f107';
+	position: absolute;
+	top: 50%;
+	right: 3rem;
+	font-size: 2rem;
+	color: #bdbdbd;
+	transform: translateY(-50%);
+	font-weight: 800;
+	font-family: 'Font Awesome 5 Free';
+}
+.detail-guide-menu-section .menu-section.active .menu-cover .title-text:before {
+	content: '\f106';
+}
+.detail-guide-menu-section .menu-section .essential-detail {display: none;}
+.detail-guide-menu-section .menu-section .essential-detail ul {padding-left: 1rem;}
+.detail-guide-menu-section .menu-section.active .essential-detail {
+	display: block;
+	padding: 1rem 2rem;
+	text-align: left;
+	font-size: 13.5px;
+	font-weight: 500;
+	font-family: 'Open Sans', 'NanumGothic';
+	border-top: solid 1px #e3e3e3;
+}
+.detail-guide-menu-section .menu-section.point.active .essential-detail {
+	border-top-color: #daefff;
+}
+
+/* 노트북형 소개 div */
+.intro-membership-section {
+	height: 750px;
+	position: relative;
+}
+.intro-membership-section .laptop .carousel,
+.intro-membership-section .laptop .carousel .carousel-inner,
+.intro-membership-section .laptop .carousel .carousel-item {height: 100%;}
+.intro-membership-section .app-menu-section:after {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	z-index: 2;
+}
+.intro-membership-section .app-menu-section {
+	max-width: 600px;
+	margin: 0 auto 1rem;
+}
+.intro-membership-section .app-menu-section .playvoice-menu .menu {min-width: 100px;}
+.intro-membership-section .laptop {
+	position: relative;
+	width: 600px;
+	height: 400px;
+	-webkit-transform-origin: 0 40px;
+	transform-origin: 0 40px;
+	margin: 0 auto;
+}
+.intro-membership-section .laptop .shadow {
+	left: 17px;
+	right: 17px;
+	top: 90px;
+	height: 450px;
+	opacity: .3;
+	background: #7692b3;
+	-webkit-filter: blur(30px);
+	filter: blur(30px);
+	position: absolute;
+}
+.intro-membership-section .laptop .lid {
+	width: 100%;
+	height: 100%;
+	background: linear-gradient(45deg, #e5ebf2, #f3f8fb);
+	border-radius: 20px;
+	-webkit-box-shadow: inset 1px -4px 6px rgba(145,161,181,0.3);
+	box-shadow: inset 1px -4px 6px rgba(145,161,181,0.3);
+	position: absolute;
+}
+.intro-membership-section .laptop .screen {
+	top: 25px;
+	bottom: 25px;
+	left: 25px;
+	overflow: hidden;
+	right: 25px;
+	border-radius: 4px;
+	-webkit-box-shadow: -1px 1px 6px rgba(171,183,204,0.2);
+	box-shadow: -1px 1px 6px rgba(171,183,204,0.2);
+	background: /* #f2f6fa */ #fff;
+	position: absolute;
+}
+.intro-membership-section .laptop .bottom {
+	width: 100%;
+	height: 142px;
+	top: calc(100% - 11px);
+	border-radius: 8px 8px 14px 14px;
+	-webkit-transform: perspective(880px) rotateX(40deg);
+	transform: perspective(880px) rotateX(40deg);
+	-webkit-transform-origin: 50% 0;
+	transform-origin: 50% 0;
+	background: linear-gradient(rgba(145,161,181,0.2), rgba(145,161,181,0)),linear-gradient(45deg, #e5ebf2, #f3f8fb);
+	-webkit-box-shadow: inset 0 -2px 3px rgba(145,161,181,0.5), inset -1px -6px 4px rgba(253,255,255,0.9);
+	box-shadow: inset 0 -2px 3px rgba(145,161,181,0.5), inset -1px -6px 4px rgba(253,255,255,0.9);
+	position: absolute;
+}
+.intro-membership-section .laptop .bottom .keyboard, 
+.intro-membership-section .laptop .bottom .trackpad {
+	opacity: .3;
+	background: linear-gradient(45deg, #b2bdcc, #c1ccd8);
+	-webkit-box-shadow: 1px 1px 1px rgba(255,255,255,0.75);
+	box-shadow: 1px 1px 1px rgba(255,255,255,0.75);
+	position: absolute;
+}
+.intro-membership-section .laptop .keyboard {
+	left: 28px;
+	right: 28px;
+	top: 8px;
+	height: 66px;
+	border-radius: 2px 2px 4px 4px;
+	position: absolute;
+}
+.intro-membership-section .laptop .trackpad {
+	left: 165px;
+	right: 165px;
+	top: 80px;
+	height: 52px;
+	border-radius: 4px 4px 6px 6px;
+	position: absolute;
+}
+
+@media (max-width: 991.5px) {
+	.intro-membership-section .laptop .shadow {height: 350px;}
+}
+@media (max-width: 767.5px) {
+	.detail-guide-menu-section .menu-cover i.fa {left: 1.5rem;}
+	.detail-guide-menu-section .menu-section .menu-cover .title-text:before {right: 1.5rem;}
+	.detail-guide-menu-section .menu-section.active .essential-detail {padding: 1rem;}
+	
+	.intro-membership-section {height: auto;}
+	.intro-membership-section .laptop {display: none;}
+}
+@media (max-width: 575.5px) {
+	.intro-membership-section .app-menu-section .playvoice-menu .menu {min-width: 50px;}
+	.intro-membership-section .app-menu-section .playvoice-menu {margin: 0 !important;}
+}
+@media (max-width: 320px) {
+	.detail-guide-menu-section .menu-cover i.fa {left: 1rem;}
+	.detail-guide-menu-section .menu-section .menu-cover .title-text:before {right: 1rem;}
+}
+
+
+
+
+
+
+
+
+/* ---------------------------[FAQ]------------------------------- */
+.playvoice-guide-body-cover.faq-content-list {
+	margin-bottom: 2rem;
+	padding: 2rem;
+	border-radius: 1rem;
+	background-color: #f5f6fa;
+	color: #1b1f40;
+	font-size: 13.5px;
+	position: static;
+	display: block;
+	font-family: 'Open Sans', 'NanumGothic';
+}
+.playvoice-guide-body-cover .faq-title {
+	font-family: 'Graphik', 'NanumSquare';
+	font-weight: 600;
+	font-size: 16px;
+	color: #303672;
+	background-color: #fff;
+	padding: 0.5rem 1.3rem;
+	border-radius: 0.5rem;
+	display: inline-block;
+	line-height: 1.5;
+}
+.playvoice-guide-body-cover .faq-title i {
+	color: #1b1f40;
+	margin-right: 5px;	
+}
+.memership-faq-guide {
+	font-family: 'Graphik', 'NanumSquare';
+	font-size: 14px;
+	font-weight: 600;
+	color: #303672;
+}
+.memership-faq-guide a {
+	color: #b01a2c;
+	margin-left: 5px;
+}
+.faq-content-list .question-div {padding: 1rem 0;}
+.faq-content-list .question-div ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+.faq-content-list .question-div .question-li {
+	padding: 1rem 0;
+	border-bottom: solid 1.5px #d8d8d8;
+	color: #1b1f40;
+}
+.faq-content-list .question-div .question-li:last-child {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+.faq-content-list .question-div .icon-section {
+	padding: 0.3rem 1rem 0.2rem 0 !important;
+	color: #303672;
+}
+.question-answer-section .question {
+	font-size: 15px;
+	font-family: 'apple sd gothic neo','PT Sans', 'NanumSquare', Sans-Serif;
+	font-weight: 600;
+	cursor: pointer;
+}
+.question-answer-section .answer {
+	margin-top: 1rem;
+	border-top: solid 1px #e5e5e5;
+	padding-top: 1rem;
+	font-size: 12.5px;
+	font-family: 'apple sd gothic neo', 'Open Sans', 'NanumGothic', Sans-Serif;
+}
+.question-answer-section .answer ol,
+.question-answer-section .answer ul {
+	padding-left: 1rem;
+	margin: 0;
+}
+.question-answer-section .answer li {
+	margin-bottom: 0.5rem;
+}
+.question-answer-section .answer .fa-li {color: #e94169;}
+.question-answer-section .answer a {color: #4650a8;}
+.question-answer-section .answer b {color: #b01a2c;}
+.question-answer-section .answer .m {color: #303672;}
+.question-answer-section .answer .m:before,
+.question-answer-section .answer .m:after {font-family: 'PT Serif';}
+.question-answer-section .answer .m:before {
+	content: '\201C';
+	margin-right: 1px;
+}
+.question-answer-section .answer .m:after {
+	content: '\201D';
+	margin-left: 1px;
+}
+.question-answer-section .answer .kick {
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+	font-size: 1.1em;
+	letter-spacing: -0.5px;
+}
+.question-answer-section .answer .title {
+	font-size: 1.15em;
+	color: #b01a2c;
+}
+.question-answer-section .answer .sub-title {
+	font-size: 1.05em;
+	font-weight: 600;
+	color: #1b1f40;
+}
+.question-answer-section .answer .play-english {
+	font-family: 'NanumSquare';
+	font-weight: 600;
+	font-size: 14px;
+	margin: 0 2px;
+}
+.question-answer-section .answer .play-english i {color: #dd2138;}
+.question-answer-section .mobile-only {display: none;}
+
+@media(max-width: 991.5px) {
+	.playvoice-guide-body-cover.faq-content-list {padding: 1.5rem;}
+	.question-answer-section .answer .play-english {
+		font-family: 'Baloo Bhai';
+		font-weight: 400;
+		letter-spacing: -0.8px;
+		font-size: 17px;
+	}
+	.question-answer-section .pc-only {display: none;}
+	.question-answer-section .mobile-only {display: block;}
+}
+
+@media(max-width: 767.5px) {
+	.playvoice-guide-body-cover.faq-content-list {padding: 0.7rem;}
+	.faq-content-list .question-div {padding-top: 0;}
+	.question-answer-section .question {font-size: 14px;}
+}
+
+@media (max-width: 575.5px) {
+	.memership-faq-guide a {margin-left: 0;}
+}
+
+
+

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="board">
+
+<div class="notice-board-section px-md-3 px-2">
+	<h3 class="row no-gutters">
+		<span class="col-auto">
+			PlayvoiceBook <span class="index-text-color">Notice</span>
+			<i lang="fa" class="fa fa-bell fa-fw" style="color: #f6aa37;"></i><br>
+			<small>Don't miss the latest news about PlayvoiceBook</small>
+		</span>
+		<span class="col text-right align-self-end">
+			<a style="font-size: 0.7em; ">
+				더보기 <i lang="fa" class="far fa-arrow-alt-circle-right fa-lg"></i>
+			</a>
+		</span>
+	</h3>
+	<div class="notice-cover">
+		<div class="notice-header row no-gutters">
+			<div class="title col-md-9">
+				Title
+			</div>
+			<div class="date col-md-2 col-6">
+				Date
+			</div>
+			<div class="view col-md-1 col-6">
+				View
+			</div>
+		</div>
+		
+		<div class="notice-board">
+			<div class="notice-list row no-gutters">
+				<div class="title col-md-9">
+					<i lang="fa" class="fa fa-thumbtack"></i>
+					<a>board title</a>
+				</div>
+				<div class="date col-md-2 col-6">
+					2019-08-17
+				</div>
+				<div class="view col-md-1 col-6">
+					<i lang="fa" class="fa fa-paw"></i>
+					1234
+				</div>
+			</div>
+			<div class="notice-content" style="display: none;"></div>
+		</div>
+		
+	</div>
+</div>	
+
+</div>

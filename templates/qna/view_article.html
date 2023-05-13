@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<head>
+<title>[[${article.title}]] - 플레이보이스(playvoice)</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<script th:src="@{/js/app/playboard.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	const isLogin = true;
+	const boardAlias = /*[[${board.alias}]]*/'app';
+	const articleId56 = /*[[${board.articleId56}]]*/null;
+	const articleId = /*[[${article.aid}]]*/0;
+	var destPage = '/qna/' + boardAlias + '/view/' + articleId56;
+	destPage = '/qna/' + boardAlias + '/list/' + articleId56;
+	
+	// [댓글 페이지 가져오기]----------------------------------------------------------
+	var next = '/reply/board/list/' + articleId;
+	$('#commentPage').load(next,function(){
+		// qna 화면에서는 댓글의 컨트롤버튼을 모두 없앤다.
+		$('#commentPage .comment-button').remove();
+		
+		// 답변 댓글이 달려 있으면 수정 및 삭제 버튼을 없앤다.
+		if($('#commentList .comment-cover').length > 0){
+			$('#editArticleBtn_xs').closest('div')
+			.add('#editArticleBtn,#deleteArticleBtn').remove();
+		}
+	});
+	
+	
+	// [삭제 처리]-----------------------------------------------------------------
+	$('#deleteArticleBtn, #deleteArticleBtn_xs').click(function(e) {
+		e.preventDefault();
+		if(false){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = "/auth/login?destPage=" + destPage;
+			}
+			return;
+		}
+		
+		if(confirm("삭제할까요?")){
+			if(boardAlias == null){
+				var pathname = window.location.pathname;	//pathname=/board/notice/list
+				var index = pathname.indexOf('/board/')+7;
+				var lastIndex = pathname.lastIndexOf('/');
+				boardAlias = pathname.substring(index, lastIndex);
+			}
+			var obj = {
+				boardAlias:boardAlias, 
+				articleId:articleId
+				//csrf:csrf
+			};
+			if(boardAlias == 'report'){
+				delReport(articleId);
+			}
+			else {
+				$.ajax({
+					type:'post',
+					url: '/qna/article/del/'+ obj.articleId,
+					data:JSON.stringify(obj), 
+					dataType: 'text',
+					contentType: "application/json",
+					success:function(){
+						alert("해당 게시글이 삭제되었습니다.");
+						location.href='/qna/'+boardAlias+'/list';
+					},
+					error: function(e){
+						alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+						console.log("ERROR : ", e);
+					}
+				});
+			}
+		}
+	});
+	
+	
+	// [수정 처리]-----------------------------------------------------------------
+	$('#editArticleBtn, #editArticleBtn_xs').click(function(e) {
+		e.preventDefault();
+		if(isLogin == null){
+			if(confirm("로그인 페이지로 이동합니다.")){
+				self.location = "/auth/login?destPage=" + destPage;
+			}
+			return;
+		}
+		var boardAlias = /* [[${board.alias}]] */'report';
+		var articleId = /*[[${article.aid}]]*/0;
+		
+		if(boardAlias == null){
+			var pathname = window.location.pathname;	//pathname=/board/notice/list
+			var index = pathname.indexOf('/qna/')+5;
+			var lastIndex = pathname.lastIndexOf('/');
+			boardAlias = pathname.substring(index, lastIndex);
+		}
+		
+		if(boardAlias == 'report'){
+			//신고창 표시-------------------------------
+			displayEditReportModal(articleId);
+		}
+		else{
+			location.href='/qna/'+boardAlias+'/edit/'+articleId;
+		}
+	});
+	
+	
+	
+}); /* end of ready */
+
+/**
+ * 코멘트 가져오기
+ */
+
+function displayCommentList(articleId){
+	var next = '/reply/qna/list/'+articleId;
+	
+	$('#comment').val('');			//코멘트 영역 초기화
+	$('#commentPage').load(next+' #commentList');
+}
+
+</script>
+</head>
+
+
+
+<div id="viewArticleContent" class="view-article-section contact-us">
+
+<h5 class="qna-title"><i class="fa fa-square fa-fw"></i> Question</h5>
+
+<div id="detailBoardArticleSection">
+<!--/* -------------------------[1.2 게시글 상세 정보]-------------------------- */-->
+<div id="viewArticleFormContainer" class="formContainer"
+	th:with="yourId = ${session.userContainer?.personacon?.pid},
+			personacon = ${article.personacon}">
+	<div class="article-title-div">
+		<i class="fa fa-quote-left"></i>
+		<span th:text="${article.title}">타이틀</span>
+		<i class="fa fa-quote-right"></i>
+	</div>
+	<div id="articleDiv" class="article-content-div">
+		<!-- ****************[PC ver.] -->
+		<div class="d-none d-md-block"><div class="article-info row no-gutters">
+			<h5 class="col-1 align-self-center">작성자 :</h5> 
+			<h6 class="col-auto align-self-center">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</h6>
+			<h6 class="col align-self-center">
+				<span class="personacon-alias" th:text="${personacon.alias}"></span>
+			</h6>
+			
+			<h5 class="col-1 align-self-center">등록일 :</h5> 
+			<h6 class="date col-3 align-self-center">
+				[[${#dates.format(article.regDate, 'yyyy-MM-dd (E) HH:mm')}]]
+			</h6>
+			
+			<h5 class="col-1 align-self-center">조회수 :</h5> 
+			<h6 class="col-1 align-self-center">[[${article.hits}]]</h6>
+			<h5 class="col-1 my-0 px-2 align-self-center">
+			</h5> 
+		</div></div>
+		
+		<!-- ****************[Mobile ver.] -->
+		<div class="d-md-none"><div class="article-info row no-gutters">
+			<div class="personacon-section col-auto align-self-center">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</div>
+			<div class="writer-info-section col align-self-center">
+				<div class="personacon-alias">[[${personacon.alias}]]</div>
+				<div class="article-date-info">
+					<span>[[${#dates.format(article.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+					<span>조회 [[${article.hits}]]</span>
+				</div>
+			</div>
+			<div class="etc-section col-auto p-2 btn-group align-self-center">
+				<a class="dropdown-toggle" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-v fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
+					<th:block th:if="${(session.userContainer != null) && (personacon.pid == yourId)}">
+						<li id="editArticleBtn_xs" 
+							class="dropdown-item text-center">수정</li>
+						<li id="deleteArticleBtn_xs"
+							class="dropdown-item text-center">삭제</li>
+					</th:block>
+				</ul>
+			</div>
+		</div></div>
+			
+		<!-- 아티클 내용 -->
+		<div class="article-content" th:utext="${#strings.replace(article.content, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"></div>
+	</div><!-- end of articleDiv -->
+
+	<!--/* ---------------------[좋아요/삭제/편집 컨트롤 ]----------------------- */-->
+	<form id="modifyForm" class="article-control-button-section">
+		<div id="submitDiv"><div class="formGroup row no-gutters">
+			<div class="col-md-8 d-none d-md-inline"></div>
+			<div class="col-md-4 text-right d-none d-md-inline"
+				th:if="${personacon.pid == yourId}">
+				<button id="editArticleBtn" class="btn btn-sm btn-primary">
+					<i class="fa fa-edit fa-fw"></i> Edit
+				</button>
+				<button id="deleteArticleBtn" class="btn btn-sm btn-danger">
+					<i class="fa fa-trash fa-fw"></i> Delete
+				</button>
+			</div>
+		</div></div>
+		<div>
+			<input type="hidden" id="articleId" th:value="${article.aid}"/>
+			<input type="hidden" id="personaconId" th:value="${personacon.pid}"/>
+			<input type="hidden" id="yourId" th:if="${session.userContainer}" th:value="${yourId}"/>
+		</div>
+	</form>
+	
+</div>
+</div><!-- end of detailBoardArticleSection -->
+
+
+<!--/* ----------------------------[댓글 보기]------------------------------- */-->
+<div id="boardCommentSection" class="article-comment-section">
+	<h5 class="qna-title"><i class="fa fa-square fa-fw"></i> Answer</h5>
+	<div class="article-comment-cover">
+	<form id="replyForm" method="post">
+		<!-------------------------/* 2. 댓글 영역 */------------------------------>
+		<div id="commentPage"></div>
+	</form>
+	</div>
+</div>
+</div><!-- end of viewArticleContent -->
+</html>

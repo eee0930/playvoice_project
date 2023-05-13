@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout2}">
+<head>
+<title>group test - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/pointbook.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	$("#alertModal").modal({
+		show : true
+	});
+});
+</script>
+</head>
+
+<section layout:fragment="content">
+<!--/* -------------------------------[Modal] -----------------------------*/-->
+<div id="alertModal" class="modal fade common-alert-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="alert-msg">
+				수정이 완료되었습니다
+			</div>
+			<div class="button-section">
+				<button class="btn btn-main2" type="button" data-dismiss="modal">확인</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<div id="playPointSection" class="play-point-guide-section row no-gutters mt-4">
+	<th:block th:each="group, iter : ${groupList}">
+	<div class="col-12 pt-3 text-center">
+		<span th:text="${groupNation[iter.index]}" style="font-size: 16px; color: #1b1f40;
+			font-family: 'PT Serif'; font-weight: 600; line-height: 1.8;"></span>
+	</div>
+	<div th:each="num: ${#numbers.sequence(0,3)}" class="col-md-6 text-center p-1">
+		<img src="/images/app/playsquare/reading_paper.png"
+			th:style="'background: url(\'/images/app/mypage/cities/group' + ${group} + ${num} + '_index.jpg\') no-repeat;
+			background-size: cover; background-position: center; width: 100%;'">
+	</div>
+	</th:block>
+</div><!-- end of playPointSection -->
+
+</section><!-- end of content -->

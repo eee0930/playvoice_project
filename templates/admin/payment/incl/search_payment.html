@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+
+<div th:fragment="search_payment">
+
+<!-----------------------/* 1. Search Sentence Form */------------------------->
+<div class="row"><div class="col-12">
+<div class="formContainer" style="margin-top: 12px;">
+<h3>
+	Searching Membership Order Form
+	<span>Please fill the text in the field.</span>
+</h3>
+<div>
+	<form id="searchPaymentForm" th:action="@{/admin/payment/search}" 
+			th:object="${searchRequest}" method="get" class="form-horizontal">
+			
+		<div id="sentenceDiv0" class="row"><div class="col-12">
+		<div class="form-group row">
+			<!--/* 선택박스 */-->
+			<div class="col-3 headerLabel" id="searchOptionDiv">
+				<select id="searchTypeSelect" name="searchType" class="form-control">
+					<option value=""> --선택-- </option>
+					<option th:each="searchOption : ${searchOptions}"
+                          		th:value="${searchOption.value}"
+                          		th:utext="${searchOption.name}"/>
+               	</select>
+			</div>
+			<!--/* 키워드 텍스트 div */-->
+			<div class="col-7" id="keywordDiv" >
+				<input type="text" th:field="*{keyword}" placeholder="검색어를 입력하세요."  class="form-control"/>
+			</div>
+			
+			<!--/* 결제수단 선택 div */-->
+			<div class="col-7" id="methodDiv" style="display: none;"><div class="row no-gutters">
+				<select th:field="*{keyword}" class="form-control">
+					<option value=""> --선택-- </option> 
+					<option value="card"> 신용카드 </option> 
+					<option value="trans"> 계좌이체 </option> 
+					<option value="vbank"> 무통장입금 </option> 
+					<option value="phone"> 폰결제 </option> 
+               		</select>
+			</div></div>
+			
+			<!--/* 결제상태 선택 div */-->
+			<div class="col-7" id="statusDiv" style="display: none;"><div class="row no-gutters">
+				<select th:field="*{keyword}" class="form-control">
+					<option value=""> --선택-- </option> 
+					<option value="ready"> 결제 대기중 </option> 
+					<option value="paid"> 결제 완료 </option> 
+					<option value="canceled"> 결제 취소 </option> 
+					<option value="failed"> 결제 실패 </option> 
+               		</select>
+			</div></div>
+			
+			<!--/* 등록기간 설정 div */-->
+			<div class="col-7" id="regDateDiv" style="display: none;"><div class="row no-gutters">
+				<div class="col-5 text-left lp0" id="fromDateDiv" > 
+					<input type="text" th:field="*{fromDate}" placeholder="시작날짜"  class="form-control"/>
+				</div>
+				
+				<div class="col-1 text-center lp0">
+					<i class="fas fa-window-minimize" style="color: #999999"></i>
+				</div>
+				
+				<div class="col-5 lp0" id="toDateDiv">
+					<input type="text" th:field="*{toDate}" placeholder="종료날짜"  class="form-control"/>
+				</div>
+				<div class="col-1 text-center"></div>
+			</div></div>
+			
+			<!--/* 검색버튼 */-->
+			<div class="col-1">
+				<input type="button" id="searchBtn" class="btn btn-default" value="Search"/>
+			</div>
+			
+			<!--/* 히든필드 */-->
+			<div class="col-1 text-center" id="searchFormHidden_search">
+	 			<div class="checkbox" style="padding: 1px 0px 0px 10px;">
+		            <label style="font-size: 1.5em">
+		                <input type="checkbox" value="" checked disabled="disabled" class="showView">
+		                <span class="cr"><i class="cr-icon fa fa-check"></i></span>
+		            </label>
+	      		</div>
+				<input type="hidden" th:field="*{page}" th:value="${searchRequest.page}"/>
+				<input type="hidden" th:field="*{sortName}" th:value="${searchRequest.sortName}"/>
+				<input type="hidden" th:field="*{asc}" th:value="${searchRequest.asc}"/>
+				<input type="hidden" id="searchTypeForDynamic"/>
+			</div>
+		</div>
+		</div></div>
+	</form>
+</div>
+<div class="errorMsgs" style="display: none;">
+ 	<h3>
+		Error Messages
+		<span>Error Occured while processing the request.</span>
+	</h3>
+	<pre></pre>
+</div>
+
+</div> <!-- end of formContainer -->
+</div></div>
+
+<!-------------------------/* 2. Result Table */------------------------------->
+<div id="searchResult_search" style="display: none">
+	<h3>검색 결과 </h3>
+	<div>
+		<table id="searchResultTable_search"
+			class="resultWrapper table table-striped table-bordered table-hover table-sm text-center admin-sentencebook-board" >
+			<thead>
+				<tr class="thead">
+					<th style="width: 30px;">
+						<a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;">
+						<a href="javascript:void(0)" class="thlink" data-value='pid'>PID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 100px;"> 
+						<a href="javascript:void(0)" class="thlink" data-value='orderNum'>주문ID</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 150px;"> 
+						<a href="javascript:void(0)" class="thlink" data-value='amount'>결제금액</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" data-value='method'>결제수단</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 100px;">
+						<a href="javascript:void(0)" class="thlink" data-value='status'>결제단계</a>
+						<span class="sortMark">▼</span></th>
+					<th style="width: 90px;">
+						<a href="javascript:void(0)" class="thlink" data-value='txDate'>결제일</a>
+						<span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+			<tbody>
+				<!--/* 검색결과 */-->
+				<!--/* 검색결과와 관련된 목록처리는 payment.js의 
+						searchPayment()함수(검색 처리)와 
+						displayPaymentList() 함수(목록 출력)를 참고하라. */-->
+			</tbody>
+		</table>
+	</div>
+	
+	<!-- paging -->
+	<nav id="searchResultPageNavi" class="row my-3">
+		<div class="col-12">
+			<ul class="pagination pagination-sm justify-content-center"></ul>
+		</div>
+	</nav>
+	
+
+</div><!-- end of searchResult -->
+
+
+
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	adjustSearchForm();			//[select 검색 타입 설정]
+	adjustDateForm();			//[datepicker 설정]
+	
+	//[select : 검색타입 선택]--------------------------------------------------
+	$("#searchTypeSelect").change(function(){
+		$("#keyword").val('');
+		adjustSearchForm();
+	});
+	
+	
+	
+	//[ajax 전송 : 1)버튼을 통한 검색 ]------------------------------------------------------
+	$('#searchBtn').click(function(event) {
+		//---------[폼 초기화] ----------
+		
+		//sortMark ▲ 리셋 및 디폴트 설정
+		$('#searchResultTable_search .sortMark').css('display', 'none');
+		$('#searchResultTable_search span[data-orderBy=default]').css('display', 'inline');
+		
+		//히든값 재설정 
+		$('#searchFormHidden_search #page').val("1");
+		$('#searchFormHidden_search #sortName').val("");
+		$('#searchFormHidden_search #asc').val("false");
+		
+		//----------------------------------------------------------
+		searchPayment($('#searchTypeSelect').val(), 1, 'search');
+		//----------------------------------------------------------
+		$('#searchFormHidden_search .showView').prop("disabled", false);
+	});
+	
+	//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]------------------------------------------------------
+	$("#searchResult_search .thlink").click(function(e) {
+		
+		//alert($(this).parent().parent().parent().children().first().children().first().text());
+		var target = $(this);
+		var sortName = target.attr('data-value');
+		var sortMark = target.next();
+		var searchType=$('#searchTypeForDynamic').val();
+		var page=1;
+		
+		//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+		$('#searchResultTable_search .sortMark').css('display', 'none');
+		
+		//현재 선택한 sortName이 이전과 같다면
+		if(sortName == $('#searchFormHidden_search #sortName').val()){
+			//현재 설정된 정렬방향을 가져온다.
+			var direction = $('#searchFormHidden_search #asc').val();
+			
+			//정렬방향을 반대로 변경한다.
+			if(direction == 'false'){
+				$('#searchFormHidden_search #asc').val('true');
+				sortMark.text('▲');
+			}else{
+				$('#searchFormHidden_search #asc').val('false');
+				sortMark.text('▼');
+				
+			}
+			console.log("이전과 동일=");
+			
+		}else{
+			//새로운 sortName으로 교체
+			$('#searchFormHidden_search #sortName').val(sortName);
+			
+			//기본값을 desc로 설정한다.
+			$('#searchFormHidden_search #asc').val('false');
+			
+			console.log("이전과 다름=");
+		}
+		target.next().css('display', 'inline');
+		//sortMark.css('display', 'inline');
+		searchPayment(searchType, page, 'search');
+	});
+	
+	//결과 테이블 보이기/숨기기
+	$("#searchFormHidden_search .showView").click(function(e){
+		if($("#searchFormHidden_search .showView").prop("checked")==true){
+			$('#searchResult_search').css("display", "block");
+		}else{
+			$('#searchResult_search').css("display", "none");
+		}
+	});
+	
+});//end of ready
+
+/**
+ * select박스의 선택 항목에 따른 폼의 구성요소를 조정한다.
+ */
+function adjustSearchForm(){
+	var search = $("#searchTypeSelect");
+	$('#searchTypeForDynamic').val(search.val());
+	
+	if(search.val() == 'txDate'){
+		$("#regDateDiv").css("display","inline-block");
+		$("#keywordDiv").css("display","none");
+		$("#methodDiv").css("display","none");
+		$("#statusDiv").css("display","none");
+	}
+	
+	else if(search.val() == 'method'){
+		$('#keywordDiv #keyword').prop("disabled", true); 
+		
+		$("#regDateDiv").css("display","none");
+		$("#keywordDiv").css("display","none");
+		$("#methodDiv").css("display","inline-block");
+		$("#statusDiv").css("display","none");
+	}
+	else if(search.val() == 'status'){
+		$('#keywordDiv #keyword').prop("disabled", true);
+		
+		$("#regDateDiv").css("display","none");
+		$("#keywordDiv").css("display","none");
+		$("#methodDiv").css("display","none");
+		$("#statusDiv").css("display","inline-block");
+	}
+	
+	else{
+		$("#regDateDiv").css("display","none");
+		$("#methodDiv").css("display","none");
+		$("#statusDiv").css("display","none");
+		$("#keywordDiv").css("display","inline-block");
+		$('#keywordDiv #keyword').prop("disabled", false); 
+	}
+}
+
+function adjustDateForm(){
+	var fromDate = $('#fromDate');
+	var toDate = $('#toDate');
+	var today = new Date();
+	
+	fromDate.datepicker({ 
+		language : 'kr', 	//한국
+		pickTime : false, 	//시간표시
+		format: "yyyy-mm-dd"
+	}); 
+	
+	toDate.datepicker({ 
+		language : 'kr', 
+		pickTime : false, 
+		format: "yyyy-mm-dd"
+	});
+	
+	var pattern = /[^(0-9)]/gi;
+	fromDate.keyup(function(){
+		var from = fromDate.val();
+		fromDate.val(from.replace(pattern, ""));
+	});
+	toDate.keyup(function(){
+		var to = toDate.val();
+		toDate.val(to.replace(pattern, ""));
+	});
+	
+	
+	fromDate.datepicker("setDate", firstDay() );
+	toDate.datepicker("setDate", today);
+}
+
+/*startDate의 기본값으로 한달 전인 지난 달로 설정시*/
+function lastMonth(){
+	var startDate = new Date();
+	startDate.setMonth(startDate.getMonth()-1);
+	return startDate;// star기본값으로 오늘 날짜  
+}
+
+/*startDate의 기본값으로 이 달의 첫째날을 기본값으로 설정시 */
+function firstDay(){
+	var startDate = new Date();
+	startDate.setDate(1);
+	return startDate;// 기본값으로 오늘 날짜  
+}
+
+
+</script>
+
+
+</div><!-- end of search_sentence fragment -->

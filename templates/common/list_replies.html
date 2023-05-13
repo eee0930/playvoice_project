@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+		
+<!-------------------------------------/* 댓글 영역 */---------------------------------------->
+
+<div class="commentList" th:fragment="list">
+	<input class="replyType" type="hidden" th:value="${replyType}">	
+<div class="comment-area">
+	<th:block th:each="reply, iterStat : ${replyList}">
+	<!-- 부모 댓글 -->
+	<div th:unless="${reply.parentId}" th:id="'comment_' + ${reply.rid}" 
+		class="parent-comment comment-cover row no-gutters">
+		<input class="parentId" type="hidden" th:value="${reply.rid}">
+		<div class="col-md-auto col-2" th:with="personacon=${reply.personacon}">
+			<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+		</div>
+		<div class="comment-content-div col-md col-10 pl-md-2">
+			<div class="nickname pt-lg-0 pt-1"> 
+				<span th:text="${reply.personacon.alias}" class="alias">댓글 별명</span>
+				<span th:text="${#dates.format(reply.regDate, 'yyyy-MM-dd (E) HH:mm')}" 
+					class="date"></span>
+			</div>
+			<div class="comment-body">
+				<span th:if="${reply.priority < 6}" class="pr-1"><i class="fa fa-trophy" style="color: gold;"></i></span>
+				<span th:if="${#strings.length(reply.comment) > 0}" class="comment-text" 
+					th:utext="${#strings.replace(reply.comment, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}"></span>
+				<span th:unless="${#strings.length(reply.comment) > 0}" 
+					class="comment-text">삭제된 댓글입니다.</span>
+			</div>
+			<!-- /* 좋아요/싫어요/REPLY/신고/삭제 버튼들 */ -->
+			<div class="comment-button">
+				<a data-toggle="tooltip" title="좋아요" data-placement="bottom" 
+					th:data-rid="${reply.rid}" href="javascript:void(0)" 
+					class="like-comment-btn like-comment">
+					<i class="thumb-up"></i>
+					<span style="color: #444;" th:text="${reply.likeCount}">12</span>
+				</a> 
+				<a data-toggle="tooltip" title="싫어요" data-placement="bottom" 
+					th:data-rid="${reply.rid}" href="javascript:void(0)" 
+					class="like-comment-btn dislike-comment">
+					<i class="thumb-down"></i>
+					<span style="color: #444;" th:text="${reply.dislikeCount}">3</span>
+				</a> 
+				<a th:onclick="'displayReplyForm(\'' + ${reply.rid} + '\',this)'" 
+					class="like-comment-btn" style="padding-top: 4px;">
+					<span style="color: #444;">REPLY</span>
+				</a>
+				<div class="button-etc float-right btn-group" 
+					th:if="${session.userContainer}">
+					<button class="btn btn-none dropdown-toggle" type="button" 
+						data-toggle="dropdown">
+						<i class="fa fa-ellipsis-v fa-fw"></i>
+					</button>
+					<ul class="dropdown-menu dropdown-menu-right jsAction" role="menu">
+					    <li th:value="${reply.rid}" class="delete-reply dropdown-item text-center" 
+					    	th:if="${session.userContainer?.personacon?.pid == reply.personacon.pid} 
+					    	or ${session.userContainer?.personacon?.memberType} == 'A'">
+					    	삭제</li>
+					    
+					    <li class="dropdown-item text-center" th:if="${session.userContainer?.personacon?.memberType} == 'A' " >
+					    	<a href="javascript:void(0)" class="edit-priority" th:value="${reply.rid}">우선순위 수정</a>
+					    	<input type="text" class="priority-value" th:value="${reply.priority}" style="display: none">
+					    	<button class="edit-priority-btn" style="display: none" th:value="${reply.parentId}">수정</button> 
+					    </li>
+					    
+					    <li class="dropdown-item text-center"
+							th:unless="${session.userContainer?.personacon?.pid == reply.personacon.pid} 
+					    		or ${session.userContainer?.personacon?.memberType} == 'A'">
+					    	<a href="#">신고</a></li>
+					</ul>
+				</div>
+			</div> 
+			<!--/* 대댓글 입력 폼 들어갈 영역 */-->
+			<div class="re-form" style="display: none;"></div>
+		</div>
+	</div> <!--/* end of 부모댓글 영역 */-->
+	
+
+	<!-- 대댓글보기/숨기기 텍스트 -->
+	<div th:unless="${reply.parentId}" th:id="'displayBtn_' + ${reply.rid}" 
+		class="row no-gutters">
+		<div class="personacon-size-empty col-md-auto col-2"></div>
+		<div class="display-child-btn col-md col-10 pl-2">
+			<div>
+				<th:block th:if="${reply.childrenNum != 0}">
+				<button type="button" class="btn-none" th:id="'display_' + ${reply.rid}" 
+					th:onclick="'displayChild(\'' + ${reply.rid} + '\')'">
+					View [[${reply.childrenNum}]] replies
+					<i class="fa fa-angle-down"></i>
+				</button>
+				</th:block>
+				<button type="button" class="btn-none" th:id="'disappear_' + ${reply.rid}" 
+					th:onclick="'disappearChild(\'' + ${reply.rid} + '\')'" style="display: none;">
+					Hide replies <i class="fa fa-angle-up"></i>
+				</button>
+			</div>
+			<div th:id="'loading_' + ${reply.rid}" class="spin-icon-section" style="padding: 10px; display: none;">
+				<i class="fa fa-spinner fa-spin fa-2x"></i>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 대댓글이 표시될 영역-->
+	<div th:id="'children' + ${reply.rid}" class="recomment-area">
+	<!-- list_children_replies.html -->
+	</div>
+
+	
+	</th:block>
+</div> 
+
+<!-- 댓글 더보기 버튼 -->
+<div th:if="${nextPage} == null OR ${nextPage} > 1" class="col-12 text-center mt-3 mb-5">
+	<button th:value="${nextPage}" type="button"
+		class="more_replies_btn btn btn-sm btn-block btn-light jsAction" 
+		style="letter-spacing: 8px;" >
+		더보기 <i class="fa fa-angle-double-down fa-lg"></i>
+	</button>
+</div><!-- end of more_replies_btn -->
+<div class="loadingMoreReplies" style="text-align: center; display: none;">
+	<i class="fa fa-spinner fa-spin fa-2x"></i>
+</div>
+<!--/* <div class="text-right" style="color:red;">
+	source :: common/list_replies.html	
+</div> */-->
+</div> <!-- end of commentList -->
+
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoicebook_layout2}">
+
+<head>
+<title>Congratulations! - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<script th:inline="javascript">
+$(document).ready(function() {
+
+	
+});
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}"></div>
+
+<div id="EndOfPlayKickSection" class="play-kick-end-result-section my-4">
+	
+</div><!-- end of EndOfPlayKickSection -->
+
+
+</section>
+</html>

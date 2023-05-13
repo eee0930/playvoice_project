@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/pictionary_layout2}">
+
+<head>
+<title>Play Detective Julie - 플레이보이스 (playvoice)</title>
+	
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/app/playkick2.js}"></script>
+<script th:inline="javascript">
+var rightTimes = /*[[${rightTimes}]]*/0;
+var testedTimes = /*[[${testedTimes}]]*/0;
+var blankEng = /*[[${blankEng}]]*/null;
+var questionKorList = /*[[${questionKorList}]]*/[];
+var randomAnswerText = /*[[${randomAnswerText}]]*/[];
+var answerNum = /*[[${answerNum}]]*/0;
+var answerText = /*[[${answerText}]]*/null;
+var wordView = /*[[${wordView}]]*/null;
+var julieQuestion = [rightTimes, testedTimes, blankEng, questionKorList, randomAnswerText, answerNum, answerText, wordView];
+var detective = detectiveJs(julieQuestion);
+
+var totalSolveQSize = 0;
+var rightCount = 0;
+var wrongCount = 0;
+
+$(document).ready(function() {
+	
+	// [화면 진입 시 테스트 start 영역으로 스크롤 이동]---------------------------------------
+	var topHeight = 0;
+	if($(window).width() > 767) {
+		topHeight = 111.6;
+	} else if ($(window).width() > 575) {
+		topHeight = 103.6;
+	} else {
+		topHeight = 71.6;
+	}
+	var quizBeforeDiv = $("#quizBeforeDiv").offset().top - topHeight;
+    $('html, body').animate({scrollTop : quizBeforeDiv}, 300);
+   
+    // [인트로 퀴즈 시작]-------------------------------------------------------------
+	$("#startBtn").click(function(){
+		$(this).closest(".detective-dimention-section").addClass("active");
+		setTimeout(function() {
+			$(window).scrollTop(0);
+			$("#quizBeforeDiv").hide();
+			$("#tracerQuizDiv").fadeIn(200);
+			$("html").addClass("modalOpen");
+		}, 500);
+		
+		sentenceLevelRate(); // 첫 문제 난이도 세팅
+	});
+    
+	// [검거율 확인 후 퀴즈 시작]--------------------------------------------------------
+	$("#showQuizDiv").click(function(){
+		$("#korQuestionDiv").show();
+		$(this).hide();
+		totalSolveQSize++;
+		if((totalSolveQSize == 2) || (totalSolveQSize == showGuideIndex)) {
+			$("#showJulieGuide").addClass("active");
+		} 
+	});
+	
+	// [마이 컨텐츠 테스트일 경우 문제의 랜덤 index번째에 줄리 가이드 보여주기]-------------------------
+	var path = location.pathname;
+	path = path.substring(path.lastIndexOf("/")+1);
+	var showGuideIndex = Math.floor(Math.random() * 3 + 3);
+	if(path == 'm') {
+		$("#showJulieGuide").addClass("mycontents");
+	} else if (path == 't') {
+		$("#showJulieGuide").addClass("reviewcontents");
+	}
+	
+	// [한글 선택지 정답 확인하기]-------------------------------------------------------
+	$("#sherlockQuizDiv").on("click", ".korQuestion", function(){
+		var questionNum = $(this).attr("data-questionNum"); // 예문 번호
+		$("#myAnswerKor").text($(this).text()); // 선택한 한글 문장 결과화면에 프린트함
+		
+		detective.displayQuestionVoiceHint(); // 예문 음성 힌트, 결과화면 음성 세팅
+		detective.checkDetectiveKorAnswer(questionNum, $(this)); // 정답 확인
+	});
+	
+	// [영어 빈칸 글자 타이핑 시 칸 이동]---------------------------------------------------
+	$(document).on('input', '.engForm', function(e){
+		e.preventDefault();
+		var val = e.originalEvent.data;
+		var parent = $(this).closest(".sentence-break");
+		var $nextForm = $(this).closest("label").next("label").find(".engForm");
+		if($nextForm != null && val != null) {
+			$(this).val(val);
+				$nextForm.focus();
+		}
+		if(!parent.is(".active")) {
+			parent.addClass("active");
+		}
+	});
+	
+	// ['x'버튼 클릭 시 해당 테두리 안의 입력 글자를 모두 초기화]----------------------------------
+	$("#sherlockQuizDiv").on('click', '.resetWord', function(){
+		$(this).closest('.sentence-break').find('.engForm').val(null);
+		$(this).closest('.sentence-break').removeClass('active')
+										  .find('.engForm:eq(0)').focus();
+	});
+	
+	// [영어 빈칸 퀴즈 정답 확인하기]-----------------------------------------------------
+	$("#confirmAnswerBtn").click(function(){
+		var userAnswer = '';
+		$("#engTextFormDiv .engForm").each(function(i, element) {
+			userAnswer += $(element).val();
+		});
+		detective.checkDetectiveEngAnswer(userAnswer);
+
+		// 입력한 정답 결과화면에 프린트함
+		$("#myAnswer").empty();
+		var $userAnswerDiv = $("#engTextFormDiv").clone();
+		$("#myAnswer").append($userAnswerDiv);
+	});
+	
+	// [다음 문제로 넘어가기 (퀴즈 세팅)]--------------------------------------------------
+	$("#nextQuestionBtn").click(function(){
+		var cuffNum = $("#sherlockLifeDiv .lifeIcon").length; // 현재 수갑 개수
+		
+		$(".kor-question-cover").removeClass("active");
+		$(".sherlock-quiz-question-cover").removeClass("active");
+		$("#kissAndCrySection").removeClass("rightAnswer wrongAnswer");
+		$("#hintButtonDiv .clue-cover").prop("disabled", true);
+		$("#myAnswer").empty();
+		$(".hideSetting").hide();
+		$(".showSetting").show();
+		
+		if(cuffNum == 0) {
+			$("#playKick_modal #modalText").text("검거 실패");
+			$("#playKick_modal .modal-footer").hide();
+			$("#playKick_modal").modal("show");
+			setTimeout(function() {
+				$(window).off('beforeunload');
+				$("#playKick_modal").on('hidden.bs.modal', function(){
+					location.href='/pictionary/kick/detective';
+				});
+				//-------------------
+				detective.quitQuiz();
+				//-------------------
+			}, 1000);
+		} else if(cuffNum < 10 && cuffNum > 0) {
+			//--------------------------------
+			detective.submitHandcuff(cuffNum);
+			//--------------------------------
+		} else {
+			//-----------------------------------------
+			detective.endDetective($('#submitResult'));
+			//-----------------------------------------
+		}
+		
+	});
+
+	// [퀴즈 도중 종료]--------------------------------------------------------------
+	$("#endQuizBtn").click(function(){
+		$("#playKick_modal").modal("show");
+	});
+	$('#endDeck_btn').click(function(){
+		$(window).off('beforeunload');
+		$("#playKick_modal").on('hidden.bs.modal', function(){
+			location.href='/pictionary/kick/detective';
+		});
+		//-------------------
+		detective.quitQuiz();
+		//-------------------
+	});
+	// [페이지를 벗어날 경우 퀴즈 종료를 호출]-----------------------------------------------
+	$(window).on('beforeunload', function(){
+		//-------------------------
+		return detective.quitQuiz();
+		//-------------------------
+	});
+	
+});
+
+/* ----------------------------------------------------------------------------- 
+*							동작 관련 스크립트
+* --------------------------------------------------------------------------- */
+
+/**
+ * 정답 여부에 따라  키스앤크라이 열기
+ */
+function openKissAndCry(answer) {
+	//검거 난이도
+	var arrestRate = $("#sentenceLevel .rate-count-cover").text();
+	$("#resultArrestRate").text(arrestRate);
+	
+	$("#showJulieGuide").removeClass("active");
+	
+	if(answer == true) {
+		rightCount++;
+		getSherlockLife(true);
+		$("#kissAndCrySection").addClass("rightAnswer");
+		$("#resultMsg").html("Success! <i class=\'far fa-laugh-squint\'></i>");
+	} else {
+		wrongCount++
+		getSherlockLife(false);
+		$("#kissAndCrySection").addClass("wrongAnswer");
+		$("#resultMsg").html("Fail! <i class=\'far fa-sad-cry\'></i>");
+	}
+	
+	detective.displayWordView();
+	detective.displayAnswer();
+	
+	$("#sherlockQuizDiv").hide();
+	$("#kissAndCrySection").show();
+}
+
+/**
+ * 정답 여부에 따라 수갑 지급 or 차감하기
+ */
+function getSherlockLife(answer) {
+	var lifeIconSize = $("#sherlockLifeDiv .lifeIcon").length;
+	if(answer == true) {
+		var lifeIcon = $('<img class="lifeIcon" src="/images/common/icon/icon_paper.png">');
+		$("#sherlockLifeDiv").append($(lifeIcon));
+	} else {
+		var lifeIcon = $("#sherlockLifeDiv").find(".lifeIcon").last();
+		lifeIcon.addClass("break");
+		setTimeout(function() {
+			lifeIcon.remove();
+		}, 300);
+	}
+}
+
+/**
+ * 한국어 선택지 선택 시 영어 예문 문제 폼 생성
+ */
+function displayEngQuestion(sentence) {
+	$("#answerResult, #myAnswer").empty();
+	
+	// 정답 문장 세팅
+	var sentenceText = sentence.replace(/★/g, '<span></span>');
+	$("#hiddenEngQuestionForm").html(sentenceText);
+	
+	// 영어 문제 세팅	
+	var textForm = '<label><input type="text" class="engForm eng-form"/></label>';
+	sentence = sentence.split(' ');
+	var sentenceForm = '';
+	for(var i = 0; i < sentence.length; i++) {
+		sentenceForm += '<div class="sentence-break col-auto">' + sentence[i] 
+		+ '<button type="button" class="resetWord btn btn-remove">'
+		+ '<i class="fa fa-times"></i></button></div>'
+	}
+	sentenceForm = sentenceForm.replace(/★/g, textForm);
+	$("#engTextFormDiv").addClass("row no-gutters").html(sentenceForm).show();
+	$("#engTextFormDiv label").first().find("input").focus();
+	
+}
+
+/**
+ * 한글 퀴즈 정답표시 
+ */
+function displayKorCheck($selectedDiv){
+	$selectedDiv.closest(".kor-question-cover").addClass("active");
+	displayDivAfterKorQuestion();
+}
+
+/**
+ * 한국어 선택지 정답 선택 후 화면 이벤트 처리
+ */
+function displayDivAfterKorQuestion() {
+	$("#hintButtonDiv").show(); // 힌트 버튼 영역
+	$("#hintButtonDiv .clue-cover").eq(0).prop("disabled", false);
+	$("#confirmButtonDiv").show(); // 확인 버튼 영역
+	$(".quiz-guide-cover .guide1, .quiz-guide-cover .guide2").toggle(); //가이드 메세지 변경
+	$(".sherlock-quiz-question-cover").addClass("active");
+}
+
+/**
+ * 힌트 보여주기
+ */
+function displayHint(index, obj) {
+	if(index == 0) {
+		// 알파벳 두 자 보여주기
+		var hintText = detective.displayAlphabetHint();
+		$("#engTextFormDiv label").eq(0).find("input").addClass("active").val(hintText[0]);
+		$("#engTextFormDiv label").eq(1).find("input").addClass("active").val(hintText[1]);
+		var offsetTop = $("#engTextFormDiv label").eq(0).find("input").offset().top;
+		var offsetLeft = $("#engTextFormDiv label").eq(0).find("input").offset().left;
+		$("#searchHintIcon").show().css("top",offsetTop).css("left", offsetLeft);
+		setTimeout(function() {
+			$("#searchHintIcon").hide(200);
+		}, 1000);
+		if($("#engTextFormDiv label").eq(2) != null) {
+			$("#engTextFormDiv label").eq(2).find("input").focus();
+		}
+		$(obj).addClass("first");
+	} else if (index == 1) {
+		// 스펠링 랜덤 보여주기
+		detective.displayRandomSpellingHint();
+		$("#displayRandomSpelling").show();
+	} else if (index == 2) {
+		$(obj).prop("disabled", true);
+	}
+	$(obj).attr("onclick", "displayHint(" + (index + 1) + ", this)");
+	$(obj).find("span").text(2 - index);
+	$(obj).addClass("active");
+	setTimeout(function() {
+		$(obj).removeClass("active first");
+	}, 1000);
+}
+
+/**
+ * 퀴즈 정답 픽셔너리의 단어 뜻 파싱하여 정렬
+ */
+function displayParseMeaning(meaningText) {
+	var meanings = JSON.parseEscape(meaningText);
+	var $meaningsDiv = $("#wordDiv .meaning");
+	$meaningsDiv.empty();
+	for(var i = 0; i < meanings.length; i++) {
+		var category = meanings[i][0];	//	품사
+		var meaning = meanings[i][1];	//	뜻
+		
+		var $categoryDiv = $("<div></div>").text(category);
+		var $meaningDiv = $("<div></div>").text(meaning);
+		$meaningsDiv.append($categoryDiv.clone().addClass("part col-2"))
+					.append($meaningDiv.clone().addClass("mean col-10"));
+	}
+}
+
+/**
+ * end화면에 보낼 문제 수 정보 저장
+ */
+function setJulieSessionStorage() {
+	sessionStorage.setItem('detectiveJulieTotalQCount', totalSolveQSize);
+	sessionStorage.setItem('detectiveJulieRightCount', rightCount);
+	sessionStorage.setItem('detectiveJulieWrongCount', wrongCount); 
+}
+
+
+/**
+ * 검거 난이도 표시
+ */
+function sentenceLevelRate() {
+	var total = $("#testedTimes").val();
+	var sumRp = $("#sumRp").val();
+
+	// 실제 난이도의 범위가 -2~4이므로 범위를 0~100으로 맞춰 조정한다
+	var ratePersent = 100-(sumRp/total + 2)*16.66;
+	ratePersent = ratePersent.toFixed(1);
+
+	var rateDeg = 180*(ratePersent/100) - 45;
+	var rateText;
+	if(ratePersent <= 10) {
+		rateText = 'super easy';
+	} else if (ratePersent <= 30) {
+		rateText = 'easy';
+	} else if (ratePersent <= 50) {
+		rateText = 'normal';
+	} else if (ratePersent <= 80) {
+		rateText = 'hard';
+	} else {
+		rateText = 'very hard';
+	}
+	$("#sentenceLevel .difficulty-rate").css("transform", "rotate(" + rateDeg + "deg)");
+	$("#sentenceLevel .rate-text-cover").text(rateText);
+	$("#sentenceLevel .rate-count-cover").text(ratePersent);
+}
+
+
+/* ----------------------------------------------------------------------------- 
+*							퀴즈 화면 세팅
+* --------------------------------------------------------------------------- */
+function displayJulieQuestion(julieQ) {
+	var testedTimes = julieQ[1];
+	var sumRp = julieQ[0]
+	if(testedTimes > 0) {
+		$("#testedTimes").val(testedTimes);
+		$("#sumRp").val(sumRp);
+		$("#sentenceLevel, .arrest-rate-cover").removeClass("none");
+		/* var arrestRate = julieQ.rightTimes*100.0/julieQ.testedTimes;
+		$("#arrestRate").text(arrestRate.toFixed(1));
+		$("#showQuizDiv .guide2").hide(); */
+	} else {
+		$("#testedTimes").val("1");
+		$("#sumRp").val("-2");
+		$("#sentenceLevel, .arrest-rate-cover").addClass("none");
+		/* $("#arrestRate").text("0");
+		$("#showQuizDiv .guide2").show(); */
+	}
+	sentenceLevelRate(); // 난이도 세팅
+	
+	var pictionImage = 'url(/images/app/profile/7.jpg)';
+	$(".questionImage").css("background-image", pictionImage);
+	var $korQuestionDiv = $("#korQuestionDiv");
+	$korQuestionDiv.empty();
+	var korQuestionList = julieQ[3];
+	for(var i = 0; i < korQuestionList.length; i++) {
+		var $korQuestionCover = $('<div class="kor-question-cover col-md-6"></div>');
+		var $korQuestion = $('<div></div>').clone();
+		$korQuestion.addClass("korQuestion kor-question").attr("data-questionNum", i);
+		var $korText = $('<div></div>').text(korQuestionList[i]);
+		$korQuestion.append($korText);
+		$korQuestionCover.append($korQuestion);
+		$korQuestionDiv.append($korQuestionCover);
+	}
+}
+
+</script>
+
+<style>
+@media (max-width: 767.5px) {
+	.playvoice-layout-content-section {min-height: 200px;}
+}
+</style>
+</head>
+
+<section layout:fragment="content">
+<div class="play-play-kick">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::menu}"></div>
+
+<!--/* -------------------------------[Modal] -----------------------------*/-->
+<div id="playKick_modal" class="play-kick-modal modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div class="modal-body text-center">
+				<div class="row no-gutters">
+					<div class="col-sm text-center">
+						<img class="julie" src="/images/common/icon/icon_paper.png" width="100px">
+					</div>
+					<div id="modalText" class="col-sm-auto px-2 align-self-center">
+						테스트가 아직 끝나지 않았습니다.<br>종료하겠습니까?
+					</div>
+					<div class="col-sm"></div>
+				</div>
+			</div>
+			<div class="modal-footer justify-content-center">
+				<button type="button" class="btn btn-outline-info btn-sm" 
+					data-dismiss="modal">계속하기</button>
+				<button id="endDeck_btn" type="button" class="btn btn-info btn-sm" 
+					data-dismiss="modal">종료하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<th:block th:if="${sufficientPoint == true}">
+
+<div id="playKickQuizSection" th:if="${julieQuestion != null}" 
+	class="playvoice-play-kick-section detective my-4">
+
+<!-- -----------------------[1. 테스트 시작 전]---------------------------------- -->	
+<div id="quizBeforeDiv" class="before-quiz-section detective">
+	<div class="row no-gutters">
+	<!-- ----------------------------[1.1 검거율]------------------------------ -->
+	<div class="round-section col-lg">
+		<label class="round-cover arrest-round">
+			<span class="arrest-icon">
+				<img alt="플레이보이스" src="/images/common/icon/icon_paper.png">
+			</span> 
+			검거 지수 <span class="num">25</span>
+		</label>
+	</div>
+	<div class="detective-dimention-section col-lg-auto">
+		<!-- ------------------------[1.2 시작 버튼]---------------------------- -->
+		<div id="startBtn" class="julie-curious-section jsAction">
+			<div class="julie-animation-section">
+				<div class="curious-cover"></div>
+			</div>
+			<div class="click-text infi-blink">click</div>
+		</div>
+	</div>
+	<div class="col-lg"></div></div>
+</div><!-- end of quizBeforeDiv -->
+
+
+<!-- -------------------------[2. 테스트 영역]---------------------------------- -->	
+<div id="tracerQuizDiv" class="play-kick-section detective" 
+	style="display: none;">
+	
+	<!-- play 광고 영역 (Mobile) -->
+	<div th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+		class="detective-julie-ad-section">
+		<img src="/images/common/ads/320_50.jpg" width="100%" height="50px">
+	</div>
+	
+	<div class="detective-background-cover">
+	<!-- -----------------------[2.1 가이드, 종료 버튼]--------------------------- -->
+	<div class="tracer-quiz-guide-section container"><div class="row no-gutters">
+		<div class="quiz-life-section col-auto text-left align-self-center">
+			<div id="sherlockLifeDiv" class="quiz-life-cover">
+				<img class="lifeIcon" src="/images/common/icon/icon_paper.png">
+				<img class="lifeIcon" src="/images/common/icon/icon_paper.png">
+				<img class="lifeIcon" src="/images/common/icon/icon_paper.png">
+			</div>
+		</div>
+		<div class="col align-self-center">
+			<!-- [discard & keep progress] -->
+			<div class="discard-keep-sign-section">
+				<div class="loading-line-section"><div class="discardProgress row no-gutters">
+					<div class="count-cover col-auto discard" style="width: 10%"><div></div></div>
+					<div class="count-cover col-auto keep" style="width: 10%"><div></div></div>
+				</div></div>
+			</div>
+		</div>
+		<div class="quiz-guide-div col-auto text-right align-self-center">
+			<button id="endQuizBtn" class="btn btn-main2 end-quiz-btn" title="그만하기">
+				<i class="fa fa-power-off"></i> 
+				<span class="d-none d-md-inline-block">
+					<span class="button-msg1">Quit</span>
+				</span>
+			</button>
+		</div>
+	</div></div>
+	
+	<!-- -------------------------[2.2 테스트 영역]----------------------------- -->
+	<div id="sherlockQuizDiv" class="sherlock-quiz-section showSetting container">
+		<!-- [문제 가이드] -->
+		<div class="quiz-guide-cover">
+			<div class="guide1 showSetting">
+				<i class="fas fa-search"></i> 
+				<label class="clue-cover">단서 1</label> 이미지에 적합한 문장을 고르고
+				<br class="d-sm-none">영어로 말해보세요.
+			</div>
+			<div class="guide2 hideSetting" style="display: none;">
+				<i class="fas fa-search"></i>
+				빈칸에 들어갈 알맞은 알파벳을 작성하여<br class="d-sm-none">
+				범인이 남긴 메시지를 맞혀 보세요.
+				<div class="emp-text">
+					<i class="fa fa-caret-right"></i>
+					선택한 문장을 영어로 말해보세요.
+					<i class="fa fa-caret-left"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- [테스트 문제 영역] -->
+		<div class="sherlock-quiz-question-cover row no-gutters">
+			<div class="col"></div>
+			<!-- 픽션 이미지 -->
+			<div class="piction-image-cover col-lg-auto">
+				<div class="image-section">
+					<div class="image-cover">
+						<img class="questionImage piction-img" 
+							src="/images/app/pictionary/piction_paper.png"
+							style="background-image: url('/images/app/profile/4.jpg');">
+					</div>
+					<label class="clue-cover">단서 1</label>
+				</div>
+			</div>
+			<!-- 한국어 예문 선택지 -->
+			<div id="korQuestionDiv" class="kor-question-div hideSetting col-lg-6 
+				row no-gutters" style="display: none;">
+				<div th:each="questionKor, iter : ${questionKorList}" 
+					class="kor-question-cover col-md-6">
+					<div class="korQuestion kor-question"
+						th:data-questionNum="${iter.index}">
+						<div th:text="${questionKor}"></div>	
+					</div>
+				</div>
+			</div>
+			<div class="col"></div>
+		</div>
+		
+		<!-- 랜덤 스펠링 힌트 영역 -->
+		<div id="displayRandomSpelling" class="random-spelling-section hideSetting" style="display: none;">
+			<span class="guide">랜덤 스펠링</span>
+		</div>
+		
+		<!-- 영어 예문 문제 -->
+		<div id="engTextFormDiv" class="eng-text-form-div hideSetting" style="display: none;"></div>
+		
+		<div id="confirmButtonDiv" class="confirm-button-section hideSetting row no-gutters"
+			 style="display: none;">
+			<div class="col"></div>
+			<!-- 정답 확인 -->
+			<div class="col-auto align-self-center">
+				<button id="confirmAnswerBtn" class="btn next-btn" type="button">정답 확인</button>
+			</div>
+			<!-- 힌트 버튼 -->
+			<div id="hintButtonDiv" class="hint-button-section col align-self-center">
+				<button onclick="displayHint(0, this)" type="button" class="btn clue-btn">
+					단서 <i class="fa fa-search"></i><span>3</span>
+				</button>
+			</div>
+		</div>
+		<!-- 문제 검거율 / 테스트 시작 -->
+		<div id="showQuizDiv" class="show-quiz-div showSetting">
+			<div class="arrest-rate-section">
+				<div class="guide">단서를 보고 범인이 남긴 메세지를 맞추시오</div>
+				<div class="arrest-rate-cover">
+					<div id="sentenceLevel" class="difficulty-rating-section style3"
+						th:classappend="${testedTimes > 0}? '':'none'" title="검거 난이도">
+						<div class="difficulty-rate-cover">
+							<div class="rate-boundary super-hard"></div>
+							<div class="rate-boundary hard"></div>
+							<div class="rate-boundary difficult"></div>
+							<div class="rate-boundary normal"></div>
+							<div class="difficulty-rate" style="transform: rotate(-45deg);"></div>
+						</div>
+						<div class="rate-text-section">
+							<div class="rate-count-cover"></div>
+							<div class="rate-text-cover"></div>
+						</div>
+						<div class="none-tested">난이도 정보가<br>없습니다</div>
+					</div>
+					<input id="testedTimes" type="hidden" 
+						th:value="${testedTimes > 0}? ${testedTimes} : '1'"/>
+					<input id="sumRp" type="hidden" 
+						th:value="${testedTimes > 0}? ${sumRp} : '-2'"/>
+				</div>
+				<div class="start-text">
+					<i class="fa fa-caret-right"></i>
+					start
+					<i class="fa fa-caret-left"></i>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 줄리 메세지 (마이 케이스, 리뷰 케이스일 경우) -->
+		<div id="showJulieGuide" class="julie-guide-section">
+			<div class="juile-guide-image"></div>
+			<div class="juile-guide-ment my-case">
+				같은 문제가 반복된다면<br>더 많은 픽셔너리를<br>직접 등록해 보세요. 
+			</div>
+			<div class="juile-guide-ment review-case">
+				같은 문제가 반복된다면<br>더 많은 픽셔너리 단어를<br>학습해 보세요. 
+			</div>
+		</div>
+	</div><!-- end of sherlockQuizDiv -->
+	
+	
+	<!-- ------------------------[2.3 kiss & cry 영역]----------------------- -->
+	<div id="kissAndCrySection" class="kiss-and-cry-section hideSetting container" style="display: none;">
+		<!-- [정답 단어] -->
+		<div id="wordDiv" class="word-view-section">
+			<!-- 단어 -->
+			<span class="word">
+				<i class="fas fa-cube fa-fw"></i>
+				<span id="wordTitle">word</span>
+			</span>
+			<!-- 발음 기호 -->
+			<span id="wordPron" class="pron">미국식 [wɜːrd]</span>
+			<!-- 단어 음성 -->
+			<button id="wordVoice" data-path="" 
+				class="btn btn-outline-pictionary jsAction">
+				<i class="fa fa-volume-up"></i>
+			</button>
+			<!-- 단어 뜻 -->
+			<div class="meaning row no-gutters text-left">
+				<div id="meaning00" class="part col-2">[동사]</div>
+				<div id="meaning01" class="mean col-10">놀다, 경기를 하다, 연주하다 </div>
+				<div id="meaning00" class="part col-2">[자동사]</div>
+				<div id="meaning01" class="mean col-10">파티하다, 악기를 연주하다 </div>
+				<div id="meaning10" class="part col-2">[타동사]</div>
+				<div id="meaning11" class="mean col-10">장난을 치다, 속이다, 연기하다</div>
+				<div id="meaning20" class="part col-2">[명사]</div>
+				<div id="meaning21" class="mean col-10">놀이, 연극, 경기</div>
+				<div id="meaning20" class="part col-2">[형용사]</div>
+				<div id="meaning21" class="mean col-10">놀기 좋아하는</div>
+			</div>
+		</div>
+		
+		<!-- 폭죽 (Tablet & Mobile ver.) -->
+		<div class="firework-effect">
+			<div class="firework-start"></div>
+			<div class="firework-during"></div>
+		</div>
+		<!-- [정답 픽션] -->
+		<div class="row no-gutters"><div class="col-lg"></div>
+			<div class="result-image-section col-lg-auto">
+				<!-- 문제 난이도 -->
+				<div class="arrest-rate-cover" 
+					th:classappend="${testedTimes > 0}? '':'none'">
+					<div class="arrest-rate-info">
+						<span class="num">100</span>명 중 
+						<span id="resultArrestRate" class="num"></span>명이 틀린 문제입니다.
+					</div>
+					<div class="none-tested">
+						난이도 정보가 없는 문제입니다.
+					</div>
+				</div>
+				<!-- 이미지 -->
+				<div class="image-body">
+					<div class="image-legs">
+						<div class="hip-r"><div class="hip-r-leg-upper">
+							<div class="knee-r"><div class="knee-r-leg-lower">
+								<div class="sock-r"></div>
+								<div class="foot-r"></div>
+							</div></div>
+						</div></div>
+						<div class="hip-l"><div class="hip-l-leg-upper">
+							<div class="knee-l"><div class="knee-l-leg-lower">
+								<div class="sock-l"></div>
+								<div class="foot-l"></div>
+							</div></div>
+						</div></div>
+					</div>
+					<div class="image-cover">
+						<img class="questionImage piction-img" 
+							src="/images/app/pictionary/piction_paper.png"
+							style="background-image: url('/images/app/profile/4.jpg');">
+					</div>
+					<div class="hahaha">
+						<span>ㅋ</span> <span>ㅋ</span>
+						<span>ㅋ</span> <span>ㅋ</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-auto align-self-center">
+				<!-- 정답 문장 -->
+				<div class="result-text-form-div answer">
+					<div id="answerResult" class="eng-answer"></div>
+					<div id="answerResultKor" class="kor-answer"></div>
+					<div class="title">
+						정답
+						<button id="sentenceVoice" data-path="" 
+							class="btn btn-outline-pictionary jsAction">
+							<i class="fa fa-headphones-alt"></i>
+						</button>
+					</div>
+				</div>
+				<!-- 나의 정답 -->
+				<div class="result-text-form-div myanswer">
+					<div id="myAnswer" class="eng-answer"></div>
+					<div id="myAnswerKor" class="kor-answer"></div>
+					<div class="title">나의 답</div>
+				</div>
+			</div>
+			<div class="col-lg"></div>
+		</div>
+		<!-- 결과 메세지 애니메이션 -->
+		<div class="quiz-result-section">
+			<div id="resultMsg" class="result-message"></div>
+		</div>
+		<div class="next-button-section">
+			<button id="nextQuestionBtn" type="button" class="btn next-btn">NEXT</button>
+		</div>
+		<!-- 결과 줄리 이미지 -->
+		<div class="quiz-result-character"></div>
+	</div>
+	</div>
+	<div style="display: none;"><div id="hiddenEngQuestionForm"></div></div>
+	<!-- 두자 힌트 아이콘 -->
+	<i id="searchHintIcon" class="fa fa-search search-hint-icon" style="display: none;"></i>
+	
+	<!-- play 광고 영역 (PC) -->
+	<div th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+		class="detective-julie-ad-section">
+		<img src="/images/common/ads/728_90.jpg" width="728px" height="90px">
+	</div>
+	
+</div><!-- end of tracerQuizDiv -->
+
+</div><!-- end of playKickQuizSection -->
+
+<div id="playKickQuizSection" th:unless="${julieQuestion != null}" 
+	class="playvoice-play-kick-section detective my-4">
+	<div id="quizBeforeDiv" class="before-quiz-section none-sufficientPoint row no-gutters">
+		<div class="detective-dimention-section col-lg-auto">
+			<div class="julie-curious-section">
+				<div class="julie-animation-section">
+					<div class="curious-cover"></div>
+				</div>
+				<div class="click-text infi-blink">Short Of Cases</div>
+			</div>
+		</div>
+		<div class="play-kick-guide-message col-lg">
+			<div class="play-kick-guide-cover">
+				<div class="play-kick-guide-title">
+					<label class="title-border">
+						테스트를 위한 문제 수가 부족합니다.
+					</label>
+				</div>
+				<!-- 마이 케이스 -->
+				<div class="play-kick-guide my-case-gudie">
+					자신이 등록한 픽셔너리 단어나 픽셔너리 이미지와 예문에 대해 테스트를 제공합니다.<br>
+					<a th:href="@{/pictionary/word/add}" class="study add">
+						<i class="fa fa-pen fa-fw"></i> 단어 등록
+					</a>
+					메뉴에서 자신만의 이미지와 예문들을 등록해 보세요.<br><br>
+					탐정 줄리는 등록한 픽셔너리에 대해 문장 구성에 대한 이해력과 효과적인 기억력 향상을 제공합니다.<br>
+				</div>
+				<!-- 리뷰 케이스 -->
+				<div class="play-kick-guide review-case-guide">
+					<a th:href="@{/pictionary/word/list/new}" class="study app-title">
+						<i class="fa fa-book"></i> 단어 학습
+					</a>
+					메뉴에서 멤버들이 등록한 다양한 단어를 학습해 주세요.<br><br>
+					탐정 줄리는 학습한 픽셔너리에 대해 문장 구성에 대한 이해력과 효과적인 기억력 향상을 제공합니다.<br>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+</th:block>
+
+<!-- ----------------------------[포인트 부족]--------------------------------- -->
+<th:block th:unless="${sufficientPoint == true}">
+<div id="playKickQuizSection" class="playvoice-play-kick-section detective my-4">
+	<div id="quizBeforeDiv" class="before-quiz-section none-sufficientPoint row no-gutters">
+		<div class="detective-dimention-section col-lg-auto">
+			<div class="julie-curious-section">
+				<div class="julie-animation-section">
+					<div class="curious-cover"></div>
+				</div>
+				<div class="click-text infi-blink">
+					<a th:href="@{/pictionary/word/add}">Community activity required</a>
+				</div>
+			</div>
+		</div>
+		<div class="play-kick-guide-message col-lg">
+			<div class="play-kick-guide-cover">
+				<div class="play-kick-guide-title">
+					<label class="title-border">
+						테스트를 위한 플레이 포인트가 부족합니다.
+					</label>
+				</div>
+				<div class="play-kick-guide">
+					<a th:href="@{/pictionary/word/add}" 
+						class="study add"><i class="fa fa-pen fa-fw"></i> 단어 등록</a>
+					메뉴에서 단어, 이미지, 예문을 등록하여 플레이 포인트를 획득해 보세요.<br><br>
+					픽셔너리 컨텐츠를 등록할수록 단어를 더욱 풍부하게 이해하고 오래 기억할 수 있으며
+					탐정 줄리에서 다양한 문제를 만날 수 있습니다.
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</th:block>
+
+
+<!-- sponsor section -->
+<div id="detectiveJulieAdSection" class="detective-julie-ad-section">
+	<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+		<img src="/images/common/ads/728_90.jpg" width="728px" height="90px">
+	</th:block>
+	<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+		<img src="/images/common/ads/320_50.jpg" width="100%" height="50px">
+	</th:block>
+</div>
+
+</div>
+</section>

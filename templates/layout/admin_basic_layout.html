@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<!-- Use of admin_basic_layout -->
+
+<!-- [head 정보]============================================================ -->
+<head>
+<!-- meta -->
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta th:if="${#session}" name="_csrf_header" th:content="${_csrf.headerName}"/>
+<meta th:if="${#session}" name="_csrf" th:content="${_csrf.token}"/>	
+<meta name="robots" content="noindex,nofollow,nosnippet"/>
+
+<title>Placevoice.org</title>
+<!-- favicon -->
+<link rel="shortcut icon" th:href="@{/images/logo/playvoice_favicon.ico}"> 
+<link rel="icon" th:href="@{/images/logo/logo_seonbi_short.png}">
+
+<!-- css -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap.min.css}">
+<link rel="stylesheet" th:href="@{/css/bootstrap/bootstrap-theme.min.css}">
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/fontawesome/css/all.css}">
+<link rel="stylesheet" th:href="@{/css/cr.css}">
+<link rel="stylesheet" th:href="@{/css/playvoice_icon.css}">
+<link rel="stylesheet" th:href="@{/css/style.css}">
+<link rel="stylesheet" th:href="@{/css/custom.css}">
+<link rel="stylesheet" th:href="@{/css/etc.css}">
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+<link rel="stylesheet" th:href="@{/css/app/admin.css}">
+<link rel="stylesheet" th:href="@{/css/app/admin_header_color.css}">
+<!-- js -->
+<script th:src="@{/js/public/modernizr-3.6.0.min.js}"></script>
+<script th:src="@{/js/public/jquery-3.3.1.min.js}"></script>
+<script th:src="@{/js/public/jquery.serializejson.js}"></script>
+<script th:src="@{/js/plugins.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/public/popper.min.js}"></script>
+<script th:src="@{/js/public/bootstrap.min.js}"></script>
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:inline="javascript" 
+	th:replace="~{/incl/layout_scripts_fragment::basic_setting}"></script>
+<script th:inline="javascript" 
+	th:replace="~{/incl/layout_scripts_fragment::quote_setting}"></script>
+<script th:inline="javascript" 
+	th:replace="~{/incl/layout_scripts_fragment::ajax_setting}"></script>
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	
+	$(document).on('click','#headerLogout, #headerLogout_xs',function(e){
+		$('#headerLogout').parent().submit();
+	})
+	.on('click','#headerLogin',function(e){
+		if($('#loginStatus').text() == 'true'){
+			return;
+		}else{
+			e.preventDefault();
+			location.href="/auth/login?destPage="+$(this).attr("href");
+		}
+	});
+	
+});
+</script>
+</head>
+<!-- [end of head 정보]===================================================== -->
+
+<body>
+<div>
+
+<header th:insert="~{/incl/admin_header::header}" ></header>
+  
+<div class="container-fluid"><div class="row">
+	<!-- left menu -->
+	<div th:insert="~{/admin/incl/admin_menu::menu}" 
+		class="admin-menu-list-section col-lg-3"></div>
+	<!-- 메인 콘텐츠 -->
+	<section layout:fragment="content" class="col-lg-9"></section>
+</div></div>
+  
+<footer th:insert="~{/incl/footer::footer}"></footer>
+
+	
+</div>
+
+</body>
+</html>

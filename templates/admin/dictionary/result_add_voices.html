@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Words</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/sentencebook.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	
+	
+})//end of reday
+
+
+
+</script>
+</head>
+
+
+<section layout:fragment="content">
+<div class="row"><div class="col-12">
+	
+	<h3 th:text="${tableTitle}">단어 목록(Word List)</h3> 
+	
+</div></div> <!--/* end of 예문 목록 */-->
+	
+
+	
+
+
+<div class="text-right" style="color:red;">
+	source :: list_words.html	
+</div>
+</section><!-- end of section -->
+

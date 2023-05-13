@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_basic_layout}">
+<head>
+<title>Playvoice | The Basecamp for Learning English</title>
+
+<link rel="stylesheet" th:href="@{/css/playvoice_characters.css}">
+<link rel="stylesheet" th:href="@{/css/app/error.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [에러 메세지 보여주기]----------------------------------------------------------
+	$("#showError_btn").click(function(){
+		$("#showErrorSection").toggle();
+	});
+	
+	// [미어캣 클릭 시 움직임]---------------------------------------------------------
+	$(".meerkatAni").click(function(){
+		$(this).addClass("active");
+		setTimeout(function() {
+			$(".meerkatAni").removeClass("active");
+		}, 1000);
+	});
+	
+	// [플보 카 클릭 시 메인 페이지로 이동]--------------------------------------------------
+	$("#getInTheCar").click(function(){
+		$(this).closest(".login-car-section").css("right", "-100%");
+		setTimeout(function() {
+			location.href="/main";
+		}, 500);
+	});
+	
+});
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<div id="errorCharacterSection" class="session-error-page-section">
+	<div class="sun-circle"></div>
+	<!-- 메세지 -->
+	<div class="error-character-ment-section row no-gutters">
+		<div class="col-xl-1"></div>
+		<div class="col-xl-10">
+			<div class="error-character-ment-cover">
+				You're lost! <i class="far fa-grin-tears fa-lg"></i>
+			</div>
+			<div class="error-character-ment">
+				<span id="showError_btn">길</span>을 잃었군요! 태워드릴게요.
+			</div>
+		</div>
+	</div> 
+	
+	<div id="errorPageClientSection" class="error-character-section">
+	<!-- 동산 -->
+	<div class="ground-section">
+		<!-- 플보 car -->
+		<div class="login-car-section">
+			<div id="getInTheCar" class="car">
+				<div class="body">
+					<div></div>
+				</div>
+				<div class="decos">
+					<div class="line-bot"></div>
+					<div class="door">
+						<div class="handle"></div>
+					</div>
+					<div class="window"></div> 
+					<div class="light-front"></div>
+					<div class="antenna"></div>
+					<div class="playvoice-logo" 
+						th:insert="~{/incl/playvoice_logo::white_personacon_logo}"></div>  
+				</div>
+				<div>
+					<div class="wheel"></div>
+					<div class="wheel"></div>
+				</div>    
+				<div class="wind">
+					<div class="p"></div>
+				</div>
+				<div class="click-text">get in</div>
+			</div>
+		</div>
+	</div>
+	<div class="error-character-cover">
+		<!-- 플보 여행 케이스 -->
+		<div class="carpet-section"></div>
+		<!-- 암스트롱 -->
+		<div class="amstrong-section">
+			<div class="dog">
+				<div class="dog-paws">
+					<div class="dog-bl-leg leg">
+						<div class="dog-bl-top top"></div>
+					</div>
+					<div class="dog-fl-leg leg">
+						<div class="dog-fl-top top"></div>
+					</div>
+					<div class="dog-fr-leg leg">
+						<div class="dog-fr-top top"></div>
+					</div>
+				</div>
+				<div class="dog-body">
+					<div class="dog-tail"></div>
+				</div>
+				<div class="dog-ear-cover-l"></div>
+				<div class="dog-head">
+					<div class="dog-snout">
+						<div class="dog-nose"></div>
+						<div class="dog-eyes">
+							<div class="dog-eye-l"></div>
+							<div class="dog-eye-r"></div>
+						</div>
+					</div>
+				</div>
+				<div class="dog-ear-cover-r"></div>
+			</div>
+		</div>
+		<!-- 미어캣 -->
+		<div class="meerkatAni meerkat-shape-section">
+			<div class="back-pack"></div>
+			<div class="body">
+				<div class="leg-section">
+					<div class="leg"></div><div class="leg second"></div>
+				</div>
+				<div class="tail-section">
+					<div class="tail"><div class="tail">
+						<div class="tail"><div class="tail">
+							<div class="tail last"></div>
+						</div></div>
+					</div></div>
+				</div>
+			</div>
+			<div class="arm-section">
+				<div class="arm first"></div><div class="arm second"></div>
+			</div>
+			<div class="ear-section">
+				<div class="ear"></div><div class="ear second"></div>
+			</div>
+			<div class="head">
+				<div class="hair"></div>
+				<div class="eye"></div><div class="eye second"></div>
+				<div class="mouse"></div>
+				<div class="nose"></div>
+			</div>
+		</div>
+	</div>
+	</div>
+</div><!-- end of errorCharacterSection -->
+
+<!------------------------ [error message section] ---------------------------->
+<div id="showErrorSection" class="error-msg-section" style="display: none;">
+	<div>
+		<table>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-calendar-alt"></i>
+					Date
+				</td>
+				<td th:text="${timestamp}"/>
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-shoe-prints"></i>
+					Path
+				</td>
+				<td th:text="${path}" />
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-bug"></i>
+					Error
+				</td>
+				<td th:text="${error}" />
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-thermometer-empty"></i>
+					Status
+				</td>
+				<td th:text="${status}" />
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="far fa-fw fa-sticky-note"></i>
+					Message
+				</td>
+				<td th:text="${message}" />
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-exclamation-triangle"></i>
+					Exception
+				</td>
+				<td th:text="${exception}" />
+			</tr>
+			<tr>
+				<td class="t-title">
+					<i class="fa fa-fw fa-route"></i>
+					Trace
+				</td>
+				<td><pre th:text="${trace}"></pre></td>
+			</tr>
+		</table>
+	</div>
+</div><!-- end of showErrorSection -->
+	
+</section>
+
+
+

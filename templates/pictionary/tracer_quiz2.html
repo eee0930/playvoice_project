@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>트레이서 퀴즈 (Pictionary) - 플레이보이스 | Playvoice</title>
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<link rel="stylesheet" th:href="@{/css/footer.css}">
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:src="@{/js/app/text.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	
+	// [트레이서 퀴즈 시작 버튼 클릭 시 문제를 보여준다]-----------------------------------------
+	$("#quizStartBtn").click(function(){
+		$(this).closest(".beforeQuizStart").hide();
+		$(window).scrollTop(0);
+		$("#tracerQuizDiv").show();
+		$("html").addClass("modalOpen");
+	});
+	
+	// [퀴즈 음성 클릭 ]-------------------------------------------------------------
+	$(".quizVoiceBtn").click(function(){
+		$(".quiz-sentence").hide();
+		$(".quizSync").show();
+	});
+	
+	// [보기 이미지 클릭시 정답여부, 정답, next버튼 보여준다]----------------------------------
+	$(".answerImg").click(function(){
+		$(".show-word-detail-section").show();
+		$(".quizSync").hide();
+		$(".quiz-sentence").show(); //정답 보이기
+		$(".quizRecord").show();
+		$(".quiz-guide").hide();
+		$(".quizResultSection").fadeIn(100);
+		$("#endQuizBtn, #endQuizBtn_xs").show();
+		
+		// 정답 여부 보이기
+		var answerCheck = $(this).siblings(".answerCheck").val();
+		if(answerCheck == 'true') {
+			$("#rightAnswer").show();
+			$(this).addClass("trueAnswer");
+		} else {
+			$("#wrongAnswer").show();
+			$(".answerCheck.true").siblings(".answerImg").addClass("trueAnswer");
+		}
+		
+	});
+	
+	// [다음 퀴즈 가져오기]-----------------------------------------------------------
+	$(".nextQuizBtn").click(function(){
+		$(".show-word-detail-section").hide();
+		$(".quiz-sentence").hide();
+		$(".quizResultSection").hide();
+		$(".quizCheckAnswer").hide();
+		$(".quizRecord").hide();
+		$(".quiz-guide").show();
+		$("#endQuizBtn, #endQuizBtn_xs").hide();
+		$(".answerImg").removeClass("trueAnswer");
+		
+		$(".quizVoiceBtn").click();
+		
+	});
+	
+	// [단어 정보 보기]--------------------------------------------------------------
+	$("#showWordDetailBtn").click(function(){
+		$("#quizWordDetail_modal").modal({
+			show : true
+		});
+	});
+	
+	// [퀴즈 종료하기]--------------------------------------------------------------
+	$("#endQuizBtn, #endQuizBtn_xs").click(function(){
+		$(".beforeQuizStart").show();
+		$(this).closest("#tracerQuizDiv").hide();
+		$("#endQuizBtn, #endQuizBtn_xs").hide();
+		$("html").removeClass("modalOpen");
+	});
+	
+	
+}); // end of ready
+
+</script> 
+</head>
+
+<div layout:fragment="content">
+<!-- [header]============================================================== -->
+<header th:replace="~{/incl/header2::header}" ></header>
+<div th:replace="~{/incl/nav_header::nav_header}"></div>
+<section>
+
+<!--/* ----------------------[word request Modal]------------------------ */-->
+<div id="quizWordDetail_modal" class="piction-word-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+	<div class="quiz-word-info">
+		<!-- 단어 정보 영역 -->
+		<div class="quiz-word-info-cover">
+			<div class="word">
+				<a class="wordLink" target="_sub"><span>know</span></a>
+				<a class="wordAudio"><i class="fa fa-volume-up"></i></a>
+			</div>
+			<div class="meaning">
+				<div class="meaning0">동사</div>
+				<div>알다, 알고 있다, 알(게 되)다, 깨닫다, 이해하다</div>
+			</div>
+			<div class="meaning">
+				<div class="meaning0">타동사</div>
+				<div>(사람장소물건 등에 대해) 알다[알고 지내다/익숙하다], ~을 ~으로 알다, ~을 ~와 구별하다</div>
+			</div>
+		</div>
+		<!-- 픽션 이미지 영역 -->
+		<div class="other-piction-images text-center row no-gutters">
+			<div class="choice-image-cover col-6"><div class="frame">
+				<img src="/images/app/pictionary/piction_paper.png"
+					class="answerImg piction-img"
+					style="background: url('/images/app/pictionary/contents/1.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<input type="hidden" class="answerCheck true" value="true"/>
+			</div></div>
+			<div class="choice-image-cover col-6"><div class="frame">
+				<img src="/images/app/pictionary/piction_paper.png" 
+					class="answerImg piction-img"
+					style="background: url('/images/app/pictionary/contents/2.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<input type="hidden" class="answerCheck" value="false"/>
+			</div></div>
+			<div class="choice-image-cover col-6"><div class="frame">
+				<img src="/images/app/pictionary/piction_paper.png" 
+					class="answerImg piction-img"
+					style="background: url('/images/app/pictionary/contents/3.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<input type="hidden" class="answerCheck" value="false"/>
+			</div></div>
+			<div class="choice-image-cover col-6"><div class="frame">
+				<img src="/images/app/pictionary/piction_paper.png" 
+					class="answerImg piction-img"
+					style="background: url('/images/app/pictionary/contents/4.jpg') no-repeat;
+					background-size: cover; background-position: center;">
+				<input type="hidden" class="answerCheck" value="false"/>
+			</div></div>
+		</div>
+	</div>
+	<i class="close-modal-btn fa fa-times" data-dismiss="modal"></i>
+	<div class="mobile-close-section d-md-none" data-dismiss="modal">close</div>
+	</div>
+</div>
+
+
+
+<div class="container">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::menu}"></div>
+<div id="menuSection" th:insert="~{/pictionary/incl/mypictionary_menu2::myPictionaryMenu}"></div>
+</div>
+
+
+
+<div class="tab-content mt-4">
+
+<div id="pictionaryTracerQuizSection" class="pictionary-tracer-quiz-section 
+	pictionarylist-container my">
+<!-- -----------------------------[골드회원일 경우]------------------------------ -->	
+<!-- -----------------------------[트레이서 퀴즈]------------------------------- -->
+<div id="tracerQuizAreaDiv" class="pictionary-list-row quiz">
+	<!-- ---------------------------[1. 퀴즈 시작 전]--------------------------- -->
+	<div class="beforeQuizStart container"><div class="view-word-list-guide">
+		<div class="sub-title">
+			<span class="alias"><i class="fa fa-quote-left"></i>
+			lazyhysong
+			<i class="fa fa-quote-right"></i></span>
+			<span class="d-none d-md-inline-block">님이 학습한 단어로 구성된 트레이서 퀴즈입니다</span>
+			<span class="d-md-none">님 전용 트레이서 퀴즈</span>
+		</div>
+		<div class="row no-gutters">
+			<div class="col-md-3 text-center">
+				<img src="/images/common/images/43_paper.png" 
+					class="tracer-quiz" alt="플레이보이스 픽셔너리">
+			</div>
+			<div class="col-md-9">
+				<div class="detail-body mt-md-0 mt-3">
+					<span class="d-none d-md-block">우리 뇌는 문자보다 이미지에 더 잘 반응합니다.<br></span>
+					트레이서 퀴즈는 단어를 다시 보여주는 식의 단순한 퀴즈가 아닌,
+					<br class="d-none d-md-block">
+					음성과 이미지를 이용하여 <b>뇌의 인출(output)을 최대한 이끌어내는 복습 퀴즈</b>입니다.<br>
+					<span class="d-none d-md-block">
+						Quiz Start 버튼을 클릭하여 지금 시작해 보세요 
+						<i class="far fa-grin-alt"></i>
+					</span>
+				</div>
+				<div class="quiz-button-div">
+					<button id="quizStartBtn" class="quiz-start-btn btn btn-pictionary2" type="button">
+						Quiz Start <i class="fa fa-paper-plane fa-fw"></i>
+					</button>
+				</div>
+			</div>
+		</div>
+		<div class="tracer-introduction-img bottom-button d-md-none">
+			<img src="/images/app/pictionary/tracer_introduction.jpg" alt="플레이보이스">
+		</div>
+	</div></div>
+	
+	<!-- ------------------------[2. 트레이서 퀴즈 영역]-------------------------- -->
+	<div id="tracerQuizDiv" class="tracer-quiz-back" style="display: none;">
+		<h3 class="quiz-title row no-gutters"><span class="end-button-section col-md col-auto"></span>
+			<span class="col-md-auto col align-self-center text-center">
+				<i class="fa fa-paper-plane fa-fw"></i>
+				<span class="pv-tm">Tracer Quiz</span>
+			</span>
+			<span class="end-button-section col-md col-auto text-center align-self-center">
+				<button id="endQuizBtn" type="button"
+					class="quiz-end-btn btn btn-pictionary2" style="display: none;">
+					<span class="d-none d-md-block">End Quiz</span>
+					<i class="fa fa-power-off fa-fw"></i>
+				</button>
+			</span>
+		</h3>
+		<!-- 퀴즈 문제 / 정답 -->
+		<div class="quiz-question-section row no-gutters"><div class="col"></div>
+			<!-- 음성 버튼 -->
+			<div class="quiz-speaker col-auto align-self-center" style="display: none;">
+				<i class="quizVoiceBtn fa fa-volume-up"></i>
+			</div>
+			<div class="quizSync quiz-answer col-auto align-self-center">
+				<div class="quizSync-inner"></div>
+			</div>
+			<!-- 정답 -->
+			<div class="quiz-sentence quiz-answer col-auto align-self-center" 
+				style="display: none;">
+				<div class="quizVoiceSentence">
+					I am not the only one. But I don't <b>know</b> that.
+					I am not the only one. But I don't <b>know</b> that.
+					I am not the only one. But I don't <b>know</b> that.
+					I am not the only one. But I don't <b>know</b> that.
+					I am not the only one. But I don't <b>know</b> that.
+				</div>
+				<div class="kor-answer">나만 그런게 아냐. 그치만 잘 모르겠는 걸.</div>
+			</div>
+		<div class="col"></div></div>
+		<div class="quiz-guide">
+			<i class="fa fa-square fa-lg fa-fw"></i>
+			예문의 음성을 듣고 관련된 이미지를 선택해 주세요
+		</div>
+		
+		<!-- 정답률 / 응시 횟수 -->
+		<div class="quizRecord" style="display: none;">
+			<span class="stastic mr-3">
+				<i class="fa fa-square text-danger"></i>
+				정답률 <i class="fa fa-caret-right"></i>
+				<span class="num">87</span>%
+			</span>
+			<span class="stastic">
+				<i class="fa fa-square text-primary"></i>
+				응시 횟수 <i class="fa fa-caret-right"></i> 
+				<span class="num">1314</span>회
+			</span>
+			<!-- <br><span class="inform">
+				<i class="fa fa-quote-left"></i>
+				단어는 <b>예문과 문맥</b> 속에서 기억해야 합니다.
+				<i class="fa fa-quote-right"></i>
+			</span> -->
+		</div>
+		
+		<!-- [2.2 퀴즈 보기 이미지 / 단어 정보와 픽션 이미지] -->
+		<div class="quiz-choice-images-section row no-gutters">
+			<div class="col-xl col-lg-2"></div>
+			<!-- 퀴즈 이미지 -->
+			<div class="col-xl-auto col-lg-8 row no-gutters">
+				<div class="choice-image-cover col-6"><div class="frame">
+					<img src="/images/app/pictionary/piction_paper.png"
+						class="answerImg piction-img" alt="플레이보이스 픽셔너리"
+						style="background: url('/images/app/pictionary/contents/1.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+					<input type="hidden" class="answerCheck true" value="true"/>
+				</div></div>
+				<div class="choice-image-cover col-6"><div class="frame">
+					<img src="/images/app/pictionary/piction_paper.png" 
+						class="answerImg piction-img" alt="플레이보이스 픽셔너리"
+						style="background: url('/images/app/pictionary/contents/2.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+					<input type="hidden" class="answerCheck" value="false"/>
+				</div></div>
+				<div class="choice-image-cover col-6"><div class="frame">
+					<img src="/images/app/pictionary/piction_paper.png" 
+						class="answerImg piction-img" alt="플레이보이스 픽셔너리"
+						style="background: url('/images/app/pictionary/contents/3.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+					<input type="hidden" class="answerCheck" value="false"/>
+				</div></div>
+				<div class="choice-image-cover col-6"><div class="frame">
+					<img src="/images/app/pictionary/piction_paper.png" 
+						class="answerImg piction-img" alt="플레이보이스 픽셔너리"
+						style="background: url('/images/app/pictionary/contents/4.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+					<input type="hidden" class="answerCheck" value="false"/>
+				</div></div>
+			</div>
+			<div class="col-xl col-lg-2"></div>
+			
+			<!-- 다른 픽션 이미지들 / 정답 여부 / 단어 정보 -->
+			<div class="quizResultSection quiz-result-position" style="display: none;">
+				<div class="row no-gutters">
+				<!-- 다른 픽션 이미지들 -->
+				<div class="quiz-picture-info-section text-right col-xl col-lg-2 d-none d-xl-inline-block">
+					<div class="other-piction-images text-center">
+						<div class="answerImg piction-img"
+							style="background: url('/images/app/profile/4.jpg') no-repeat;
+							background-size: cover; background-position: center;"></div>
+						<div class="answerImg piction-img"
+							style="background: url('/images/app/profile/2.jpg') no-repeat;
+							background-size: cover; background-position: center;"></div>
+						<div class="answerImg piction-img"
+							style="background: url('/images/app/profile/3.jpg') no-repeat;
+							background-size: cover; background-position: center;"></div>
+						<div class="answerImg piction-img"
+							style="background: url('/images/app/profile/1.jpg') no-repeat;
+							background-size: cover; background-position: center;"></div>
+					</div>
+				</div>
+				<!-- 정답 여부 -->
+				<div class="quiz-check-answer col-xl-auto col-12">
+					<div id="rightAnswer" class="quizCheckAnswer" style="display: none;">
+						<div class="icon-section">
+							<img src="/images/common/icon/redcircle.png">
+						</div>
+					</div>
+					<div id="wrongAnswer" class="quizCheckAnswer" style="display: none;">
+						<div class="icon-section">
+							<img src="/images/common/icon/redtimes.png">
+						</div>
+					</div>
+				</div>
+				<!-- 단어 정보 -->
+				<div class="quiz-word-info-section col-xl col-lg-2 d-none d-xl-inline-block">
+					<div class="quiz-shadow"><div class="quiz-word-info-cover">
+						<div class="word">
+							know
+							<a><i class="fa fa-volume-up"></i></a>
+						</div>
+						<div class="meaning">
+							<span class="meaning0">동사</span><br>
+							<span>알다, 알고 있다, 알(게 되)다, 깨닫다, 이해하다</span>
+						</div>
+						<div class="meaning">
+							<span class="meaning0">타동사</span><br>
+							<span>(사람장소물건 등에 대해) 알다[알고 지내다/익숙하다], ~을 ~으로 알다, ~을 ~와 구별하다</span>
+						</div>
+					</div></div>
+				</div>
+				</div>
+			</div>
+		</div>
+		<!-- 단어 정보 모달 버튼 / 문제 음성 다시 듣기 (tablet, mobile ver.) -->
+		<div class="show-word-detail-section row no-gutters" 
+			style="display: none;">
+			<div class="col d-xl-none align-self-center">
+				<!-- 단어 정보 보기 -->
+				<button id="showWordDetailBtn" class="show-word-detail" type="button">
+					<i class="fa fa-cube"></i>
+				</button>
+			</div>
+			<div class="col-xl-4 ml-xl-auto col-auto align-self-center">
+				<button class="nextQuizBtn next-button-mobile" type="button">
+					next
+				</button>
+			</div>
+			<div class="col-xl-4 col text-xl-left align-self-center">
+				<!-- 음성 다시 듣기 -->
+				<button class="playAnswerBtn btn btn-answer" 
+					title="다시 듣기" type="button">
+					<i class="fa fa-headphones-alt"></i>
+				</button>
+			</div>
+		</div>
+		
+		<!-- pictionary sponsor -->
+		<div class="pictionary-tracer-quiz-ad-section">
+			<!-- mobile ver. -->
+			<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+				<img src="/images/common/ads/320_50.jpg" width="100%" height="50px">
+			</th:block>
+			<!-- PC ver. -->
+			<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+				<img src="/images/common/ads/728_90.jpg" width="728px" height="90px">
+			</th:block>
+		</div>
+		
+	</div>
+</div><!-- end of tracerQuizAreaDiv -->
+
+
+<div class="container">
+<!-- ------------------------[3. review 목록이 없을 경우]------------------------- -->
+<div class="view-word-list-guide quiz"  style="display: none;">
+	<div class="sub-title d-none d-sm-block">
+		<span>『트레이서 퀴즈』를 위한 </span>최근 학습된 단어가 없습니다
+	</div>
+	<div class="sub-title d-sm-none">
+		먼저 단어를 학습해 주세요 <i class="far fa-grin-alt"></i>
+	</div>
+	<div class="row no-gutters">
+		<!-- 가이드 메세지 -->
+		<div class="col-md-3 align-self-start text-center">
+			<img src="/images/common/images/43_paper.png" class="no-content" alt="플레이보이스 픽셔너리">
+		</div>
+		<div class="col-md-9">
+			<div class="detail-body">
+				외우고 싶은 단어를 먼저 학습해 주세요.<br><br>
+				트레이서 퀴즈는 단순히 단어를 다시 보여주는 식의 단순한 복습 퀴즈가 아닌,<br class="d-none d-md-block">
+				음성과 이미지를 이용하여 <b>뇌의 인출(output)을 최대한 이끌어내는 복습 퀴즈</b>입니다.<br><br>
+				위의 알파벳 메뉴를 클릭하여 단어 학습을 충분히 한 후 트레이서 퀴즈를 즐겨보세요!
+			</div>
+		</div>
+	</div>
+	
+</div>
+
+<!-- ---------------------------[골드회원이 아닐 경우]----------------------------- -->		
+<div class="view-word-list-guide no-gold" style="display: none;">
+	<div class="sub-title">
+		<span class="d-none d-sm-inline-block">『트레이서 퀴즈』 </span>
+		<span class="gold-guide">
+			<i class="fa fa-crown text-warning"></i>
+			Gold Membership 서비스입니다
+		</span>
+	</div>
+	<div class="row no-gutters">
+		<div class="ex-image-section col-md-5">
+			<img src="/images/common/icon/icon_paper.png" alt="플레이보이스">
+		</div>
+		<div class="col-md-7 align-self-start"><div class="detail-body">
+			<div class="row no-gutters">
+				<div class="col-auto d-none d-xl-block pr-3">
+					<img src="/images/common/icon/icon_paper.png" alt="플레이보이스 골드멤버쉽"
+						class="gold-ticket small">
+				</div>
+				<div class="col align-self-center">
+					픽셔너리 트레이서는 회원이 학습한 단어들을 시스템이 검색하여
+					<br class="d-none d-lg-block">
+					퀴즈 형식으로 제공함으로써  <b>학습 기억</b>을 높여 주도록 설계되었습니다.
+				</div>
+			</div>
+			<div class="tracer-introduction-img d-md-none">
+				<img src="/images/app/pictionary/tracer_introduction.jpg" 
+					alt="플레이보이스 픽셔너리">
+			</div>
+			<div class="mb-3">
+				트레이서 퀴즈는 단순한 체크 시험이나 복습 퀴즈가 아닌<br class="d-none d-lg-block">
+				음성과 이미지를 이용하여 <b>학습 인출(output)</b>을 최대한 이끌어 줍니다.
+				<br><br class="d-none d-lg-block">
+				음성을 듣고 이미지의 스토리를 파악하는 연습을 함으로써 <br class="d-none d-lg-block">
+				기본적인 <b>토익(TOEIC) 듣기 연습</b>으로 사용할 수도 있습니다.
+				<i class="far fa-grin-squint"></i> 
+			</div>
+			<div class="pictionary-tracer-info">
+				픽셔너리 트레이서는 회원이 기억한 것을 <b>반복적으로 인출</b>하도록 하는 기능을 제공합니다.
+				<br class="d-none d-lg-block">
+				효과적인 암기법은 반복해서 보는 것보다 기억하는 것을 인출하는 것에 초점을 두어야 합니다.
+			</div>
+		</div>
+		<div class="button-section">
+			<a th:href="@{/membership}" class="go-goldmembership">
+				Gold Membership 자세히 알아보기 <i class="fa fa-arrow-right fa-fw"></i>
+			</a>
+		</div></div>
+	</div>
+</div>	
+</div>
+</div><!-- end of pictionaryTracerQuizSection -->
+
+
+
+</div>
+
+<div id="pictionaryTracerAdSection" class="pictionary-tracer-quiz-ad-section">
+	<!-- mobile ver. -->
+	<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+		<img src="/images/common/ads/320_50.jpg" width="100%" height="50px">
+	</th:block>
+	<!-- PC ver. -->
+	<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+		<img src="/images/common/ads/728_90.jpg" width="728px" height="90px">
+	</th:block>
+</div>
+
+</section>
+
+
+<footer th:insert="~{incl/footer2::footer}"></footer>
+
+</div>
+
+</html>

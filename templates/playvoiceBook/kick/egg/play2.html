@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoicebook_layout2}">
+
+<head>
+<title>에그 샷 (Egg shot) - 플레이보이스 | Playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/app/playvoicebook.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [화면 진입 시 테스트 start 영역으로 스크롤 이동]---------------------------------------
+	var playKickBeforeDiv = $("#playKickBeforeDiv").offset().top - 88;
+    $('html, body').animate({scrollTop : playKickBeforeDiv}, 300);
+	
+	// [달걀 스타일 랜덤 세팅]---------------------------------------------------------
+	var styleIndex = Math.floor(Math.random() * 3 + 1);
+	$("#playKickBeforeDiv").addClass("egg-" + styleIndex);
+	
+	// [퀴즈 세팅/ 시작]------------------------------------------------------------
+	$(".startBtn").click(function(){
+		$(this).closest(".egg-dimention-section").addClass("active");
+		setTimeout(function() {
+			$("#playKickBeforeDiv").hide();
+			$("#playKickQuizDiv").fadeIn(1000);
+			$("html").addClass("modalOpen");
+		}, 500);
+	});
+	
+	
+	// [단어 힌트 보기]--------------------------------------------------------------
+	$("#showHint").click(function(){
+		$(this).fadeOut(100);
+		$(".egg-shot-test-div").addClass("active");
+	});
+	
+	
+	$(".answer-word-cover .blank").click(function(){
+		$("#eggProducer").addClass("active");
+		setTimeout(function() {
+			$("#eggProducer").removeClass("active");
+		}, 1000);
+	});
+	
+	// [문제 결과 보여주기]-----------------------------------------------------------
+	$(".clearOneSentence").click(function(){
+		var answerResult = $(this).attr("data-answer");
+		
+		$("#resultDiv").addClass(answerResult).show();
+		$(".hideInResult").hide();
+		if(answerResult == 'right') {
+			$("#success").html('Awesome !! <i class="far fa-grin-stars"></i>');
+		} else {
+			$("#success").html('Fail <i class="far fa-sad-cry"></i>');
+		}
+		$("#showHint").show();
+		increaseProgress();
+		sentenceLevelRate(120, 10);
+	});
+	
+	// [다음 문제로 넘어가기]----------------------------------------------------------
+	$("#next").click(function(){
+		$("#resultDiv").removeClass("right wrong");
+		$(".egg-shot-test-div").removeClass("active");
+		$("#resultDiv").hide();
+		$(".hideInResult").show();
+
+		sentenceLevelRate(120, 0);
+	});
+	
+	// [퀴즈 종료]-----------------------------------------------------------------
+	$("#endQuizBtn").click(function(){
+		location.href="/playvoiceBook/kick/egg/end";
+	});
+	
+	// [토일레또로 이동]-------------------------------------------------------------
+	$("#moveToList").click(function(){
+		location.href="/playvoiceBook/kick/egg/toiletto";
+	});
+
+	
+});
+
+var testIndex = 1;
+function increaseProgress() {
+	var testSize = 20;
+	var progressSize = 100/testSize * testIndex;
+	$("#progressBar").css("width", progressSize + "%");
+	$(".progress-text .num").text(testIndex);
+	testIndex++;
+}
+
+/**
+ * 예문 난이도 표시
+ */
+function sentenceLevelRate(total, wrong) {
+	if(wrong < 1) {
+		wrong = 1;
+	}
+	var rateDeg = 180*(wrong/total) - 45;
+	var ratePersent = Math.round(100*(wrong/total));
+	var rateText = 'Super Easy';
+	if(ratePersent <= 10) {
+		rateText = 'Super Easy';
+	} else if (ratePersent <= 30) {
+		rateText = 'Easy';
+	} else if (ratePersent <= 50) {
+		rateText = 'Normal';
+	} else if (ratePersent <= 75) {
+		rateText = 'Hard';
+	} else {
+		rateText = 'Super Hard';
+	}
+	
+	$("#sentenceLevel .difficulty-rate").css("transform", "rotate(" + rateDeg + "deg)");
+	$("#sentenceLevel .rate-text-cover").text(rateText);
+	$("#sentenceLevel .rate-count-cover").text(ratePersent);
+}
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/playvoiceBook/incl/playvoicebook_menu2::menu}"></div>
+
+<!--/* -------------------------------[Modal] -----------------------------*/-->
+<div id="playKick_modal" class="play-kick-modal modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div class="modal-body text-center">
+				<div class="row no-gutters">
+					<div class="col-sm text-center">
+						<img src="/images/common/characters/africa_sad.png" width="100px">
+					</div>
+					<div class="col-sm-auto px-2 align-self-center">
+						테스트가 아직 끝나지 않았습니다.<br>종료하겠습니까?
+					</div>
+					<div class="col-sm"></div>
+				</div>
+			</div>
+			<div class="modal-footer justify-content-center">
+				<button type="button" class="btn btn-outline-info btn-sm" 
+					data-dismiss="modal">계속하기</button>
+				<button id="endDeck_btn" type="button" class="btn btn-info btn-sm" 
+					data-dismiss="modal">종료하기</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+<th:block th:if="${sufficientPoint == true}">
+<div id="playKickQuizSection" th:if="${numOfQuestions >= 20}" 
+	class="playvoice-play-kick-section egg-shot my-4">
+	
+<!-- -----------------------[1. 테스트 시작 전]---------------------------------- -->	
+<div id="playKickBeforeDiv" class="before-quiz-section">
+	<div class="round-section">
+		<label class="round-cover protein-round">
+			<span class="protein-icon">
+				<img alt="플레이보이스" src="/images/common/icon/icon_paper.png">
+			</span> 
+			프로틴 지수 <span class="num">125</span>
+		</label>
+	</div>
+	<div class="egg-dimention-section">
+		<!-- behind eggs -->
+		<div class="behind-eggs">
+			<div class="egg-wrapper">
+				<div class="shadow">
+					<div class="main"></div><div class="decondary"></div>
+				</div>
+				<div class="startBtn egg">
+					<div class="fill"></div><div class="shading"></div>
+					<div class="key"></div><div class="highlight"></div>
+					<div class="egg-shadow"></div>
+				</div>
+				<div class="egg-wrapper rotate">
+					<div class="egg">
+						<div class="fill"></div><div class="shading"></div>
+						<div class="key"></div><div class="highlight"></div>
+						<div class="egg-shadow"></div>
+					</div>
+				</div>
+			</div>
+			<div class="egg-wrapper">
+				<div class="shadow">
+					<div class="main"></div><div class="decondary"></div>
+				</div>
+				<div class="startBtn egg">
+					<div class="fill"></div><div class="shading"></div>
+					<div class="key"></div><div class="highlight"></div>
+				</div>
+				<div class="egg-wrapper rotate">
+					<div class="egg">
+						<div class="fill"></div><div class="shading"></div>
+						<div class="key"></div><div class="highlight"></div>
+						<div class="egg-shadow"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!-- main egg -->
+		<div class="main-egg">
+			<div class="egg-wrapper">
+				<div class="shadow">
+					<div class="main"></div><div class="decondary"></div>
+				</div>
+				<div class="startBtn egg">
+					<div class="fill"></div><div class="shading"></div>
+					<div class="key"></div><div class="highlight"></div>
+				</div>
+				<div class="egg-wrapper rotate">
+					<div class="egg">
+						<div class="fill"></div><div class="shading"></div>
+						<div class="key"></div><div class="highlight"></div>
+						<div class="egg-shadow"></div>
+					</div>
+				</div>
+			</div>
+			<div class="startBtn egg-click-text">click</div>
+		</div>
+	</div>
+</div><!-- end of playKickBeforeDiv -->
+
+<!-- -------------------------[2. 테스트 영역]---------------------------------- -->	
+<div id="playKickQuizDiv" class="play-kick-section" style="display: none;">
+	<!-- [2.1 가이드, 테스트 로딩바, 종료 버튼] -->
+	<div class="tracer-quiz-guide-section container "><div class="row no-gutters">
+		<div class="quiz-guide-div col-auto text-left align-self-center">
+			<!-- 기회 -->
+			<div class="hideInResult heart-section">
+				<i class="fa fa-heart blost"></i><i 
+					class="fa fa-heart"></i><i class="fa fa-heart"></i>
+			</div>
+		</div>
+		<div class="col align-self-center">
+			<div class="kick-progress-bar">
+				<div id="progressBar" class="progress" style="width: 0%;">
+					<div class="progress-text">
+						<b class="right" title="맞은 개수">5</b> : 
+						<b class="wrong" title="틀린 개수">1</b>
+						<span class="total">(20 / 20)</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="quiz-guide-div col-auto text-right align-self-center">
+			<button id="endQuizBtn" class="btn btn-main2 end-quiz-btn" title="퀴즈 종료">
+				<i class="fa fa-power-off"></i> 
+				<span class="d-none d-md-inline-block">End Quiz</span>
+			</button>
+		</div>
+	</div></div>
+	<!-- [2.2 테스트 영역] -->
+	<div class="egg-shot-test-section">
+		<div class="egg-shot-test-div">
+			<!-- 타이머 -->
+			<div class="hideInResult playkick-timer-section row no-gutters">
+				<div id="countTimer" class="ready col-auto align-self-center">
+					<div class="glass">
+						<div class="sand top"></div>
+					</div>
+					<div class="glass bottom">
+					 	<div class="sand bottom"></div>
+					</div>
+				</div>
+				<div class="time-set-cover col align-self-center">
+					제한 시간 : <span id="time" class="time-num">30000</span>초
+				</div>
+			</div>
+			<!-- 한글 문제 -->
+			<div class="kor-question">
+				<i class="fa fa-quote-left"></i>
+				<span class="kor-text">나는 엄마에게 용돈을 주었다.</span>
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<!-- 빈칸 영역 -->
+			<div class="blank-question-section">
+				<div id="blankDiv" class="blank-question-cover">
+					<div class="blank"><div></div></div>
+					<div class="target blank"><div></div></div>
+					<div class="blank"><div></div></div>
+					<div class="blank right"><div>am</div></div>
+					<div class="blank right"><div>I</div></div>
+					<div class="blank right"><div>different</div></div>
+					<div class="target blank"><div></div></div>
+					<div class="blank right"><div>get</div></div>
+				</div>
+			</div>
+			<!-- 단어 영역 -->
+			<div class="hideInResult answer-word-section">
+				<div class="answer-word-cover">
+					<div class="blank"><button>different</button></div>
+					<div class="blank"><button>I</button></div>
+					<div class="blank"><button>different</button></div>
+					<div class="blank"><button>get</button></div>
+					<div class="blank"><button>lovely</button></div>
+					<div class="blank"><button>I</button></div>
+					<div class="blank"><button>different</button></div>
+					<div class="clearOneSentence blank" data-answer="right">
+						<button>get</button>
+					</div>
+					<div class="clearOneSentence blank" data-answer="wrong">
+						<button>lovely</button>
+					</div>
+				</div>
+				<div id="showHint" class="word-blind-cover">
+					<div class="blind-text">
+						<div>게임을 시작하기 전에 먼저 영어로 말해보세요.</div>
+						<div class="start-text">
+							<i class="fa fa-caret-right"></i> Start <i class="fa fa-caret-left"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+			
+			<!-- 달걀 제공 닭 -->
+			<div class="hideInResult egg-producer-section">
+				<div class="chicken-div">
+					<div class="chicken-leg"></div>
+					<div class="chicken-leg"></div>
+					<div id="eggProducer" class="chicken-body">
+						<div class="chicken-head">
+							<div class="chicken-crest"></div>
+							<div class="chicken-eye"></div>
+							<div class="chicken-eye"></div>
+						</div>
+						<div class="eggWrapper">
+							<div class="eggDiv"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<!-- 풀이 결과 화면 -->
+		<div id="resultDiv" class="quiz-result-section" style="display: none;">
+			<div class="firework-effect">
+				<div class="firework-start"></div>
+				<div class="firework-during"></div>
+			</div>
+			<!-- 음성, 영어 영역 -->
+			<div class="blank-question-section">
+				<button id="answerVoice" class="btn voice-btn">
+					<i class="fa fa-headphones-alt"></i>
+				</button>
+				<span id="answerEng">
+					I <b>gave</b> my mother money.
+				</span>
+			</div>
+			<div id="success" class="result-message">
+				Awesome !! <i class="far fa-grin-stars"></i>
+			</div>
+			<div class="next-btn-section">
+				<!-- 예문 난이도 -->
+				<div id="sentenceLevel" class="difficulty-rating-section style3 mb-3">
+					<div class="difficulty-rate-cover">
+						<div class="rate-boundary super-hard"></div>
+						<div class="rate-boundary hard"></div>
+						<div class="rate-boundary difficult"></div>
+						<div class="rate-boundary normal"></div>
+						<div id="rate3" class="difficulty-rate" style="transform: rotate(-45deg);"></div>
+					</div>
+					<div class="rate-text-section">
+						<div class="rate-count-cover"></div>
+						<div class="rate-text-cover"></div>
+					</div>
+				</div>
+				
+				<button id="next" type="button" class="btn next-btn">Next</button>
+			</div>
+			<div class="egg-producer-section">
+				<div class="chicken-div">
+					<div class="chicken-leg"></div>
+					<div class="chicken-leg"></div>
+					<div class="chicken-body">
+						<div class="chicken-head">
+							<div class="chicken-crest"></div>
+							<div class="chicken-eye"></div>
+							<div class="chicken-eye"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 에그샷 플레이 광고 영역 -->
+	<div class="egg-shot-ad-section">
+		<img src="/images/common/ads/320_50.jpg" width="320px">
+	</div>
+</div><!-- end of playKickQuizDiv -->
+	
+</div><!-- end of playKickQuizSection -->
+
+
+<div id="cardQuizSection" th:unless="${numOfQuestions >= 20}" 
+	class="playvoice-play-kick-section egg-shot my-4">
+	<div id="playKickBeforeDiv" class="before-quiz-section empty-quiz">
+		<div class="egg-dimention-section active">
+			<!-- main egg -->
+			<div class="main-egg">
+				<div class="egg-wrapper">
+					<div class="shadow">
+						<div class="main"></div><div class="decondary"></div>
+					</div>
+					<div class="egg">
+						<div class="fill"></div><div class="shading"></div>
+						<div class="key"></div><div class="highlight"></div>
+					</div>
+					<div class="egg-wrapper rotate">
+						<div class="egg">
+							<div class="fill"></div><div class="shading"></div>
+							<div class="key"></div><div class="highlight"></div>
+							<div class="egg-shadow"></div>
+						</div>
+					</div>
+				</div>
+				<div th:if="${numOfQuestions >= 0}" class="egg-click-text">
+					<a th:href="@{/playvoiceBook/level}" title="학습하기 바로가기">Short of Eggs</a>
+				</div>
+				<div th:unless="${numOfQuestions >= 0}" class="egg-click-text">
+					<a th:href="@{/playvoiceBook/level}" title="학습하기 바로가기">The egg basket<br>is Empty</a>
+				</div>
+			</div>
+		</div>
+		
+		<!-- --------------[카드를 모두 discard하여 테스트 할 문제가 없는 경우]------------- -->
+		<div th:if="${numOfQuestions >= 0}" class="play-kick-guide-message">
+			<div class="play-kick-guide-cover d-flex align-content-between flex-wrap">
+				<div class="play-kick-guide-title">
+					<label class="title-border">
+						<span class="johnny-deck">
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+							Egg Shot
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+						</span>
+						테스트할 예문이 부족합니다.<br>
+						<a class="study" th:href="@{/playvoiceBook/kick/deck}">
+							<i class="fa fa-layer-group"></i> 죠니덱
+						</a>
+						게임을 start하여 스테이지를 열어주세요.
+					</label>
+				</div>
+				<div class="play-kick-guide">
+					<button th:href="@{/playvoiceBook/kick/deck}" type="button"
+						onclick="location.href=$(this).attr('href')" 
+						class="btn btn-mobile btn-goto-study">
+						<i class="fa fa-layer-group"></i> 죠니덱
+					</button>
+				</div>
+				<div class="precautions">
+					<ul>
+						<li>Egg Shot 테스트에 필요한 최소 문장 수는 
+							<b class="point">15개</b>입니다.</li>
+						<li>Johnny Deck에서 <b>Discard한 문장</b>은 출제되지 않습니다.</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- -------------[플보북을 한번도 학습하지 않아서 테스트 할 문제가 없는 경우]----------- -->
+		<div th:unless="${numOfQuestions >= 0}" class="play-kick-guide-message">
+			<div class="play-kick-guide-cover d-flex align-content-between flex-wrap">
+				<div class="play-kick-guide-title">
+					<label class="title-border">
+						<span class="johnny-deck">
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+							Egg Shot
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+						</span>
+						출제 가능한 예문이 없습니다.<br>
+						<a class="study" th:href="@{/playvoiceBook/level}">
+							<i class="fa fa-book-open"></i> 학습하기
+						</a>
+						메뉴에서 스테이지를 학습해 주세요.
+					</label>
+				</div>
+				<div class="play-kick-guide">
+					<button th:href="@{/playvoiceBook/level}" type="button"
+						onclick="location.href=$(this).attr('href')" 
+						class="btn btn-mobile btn-goto-study">
+						<i class="fa fa-book-open"></i> 학습하기
+					</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</th:block>
+
+
+<!-- [포인트 부족] -->
+<th:block th:unless="${sufficientPoint == true}">
+<div id="cardQuizSection" class="playvoice-play-kick-section egg-shot my-4">
+	<div id="playKickBeforeDiv" class="before-quiz-section empty-quiz">
+		<div class="egg-dimention-section active">
+			<!-- main egg -->
+			<div class="main-egg">
+				<div class="egg-wrapper">
+					<div class="shadow">
+						<div class="main"></div><div class="decondary"></div>
+					</div>
+					<div class="egg">
+						<div class="fill"></div><div class="shading"></div>
+						<div class="key"></div><div class="highlight"></div>
+					</div>
+					<div class="egg-wrapper rotate">
+						<div class="egg">
+							<div class="fill"></div><div class="shading"></div>
+							<div class="key"></div><div class="highlight"></div>
+							<div class="egg-shadow"></div>
+						</div>
+					</div>
+				</div>
+				<div class="egg-click-text">
+					Community activity required
+				</div>
+			</div>
+		</div>
+		
+		<div class="play-kick-guide-message">
+			<div class="play-kick-guide-cover">
+				<div class="play-kick-guide-title">
+					<label class="title-border">
+						<span class="johnny-deck">
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+							Egg Shot
+							<span class="card-icon"><i class="fa fa-egg"></i></span>
+						</span>
+						달걀을 던지기 위한 플레이 포인트가 부족합니다.
+					</label>
+				</div>
+				<div class="play-kick-guide">
+					
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</th:block>
+
+
+
+<div class="egg-shot-ad-bottom-section">
+	<img src="/images/common/ads/320_50.jpg" width="100%" height="50px">
+</div>
+</section>

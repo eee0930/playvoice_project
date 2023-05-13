@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoicebook_layout}">
+
+<head>
+<title>회화 연습 플레이보이스북 (PlayvoiceBook) - 플레이보이스 | Playvoice</title>
+   
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '회화 연습 플레이보이스북 (PlayvoiceBook) - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스북은 영어 문장의 패턴과 구조 이해를 위한 체계화된 예문을 
+	전 세계인의 멀티 보이스 (Multi voice)로 제공합니다.', 
+	metaImage = '/images/common/characters/playvoicebook.jpg',
+	metaKeyword = '플레이보이스북, Playvoice Book, 패턴 영어, 멀티 보이스, 초보 영어, 실생활 영어 '"></th:block>
+<!-- schema org -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment::schemaBread}"
+	th:with="breadList = ${ {'/playvoiceBook'} },
+	breadName = ${ {'플레이보이스북'} }"></th:block>]
+</script>	
+	 	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<!-- datepicker -->
+<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<script th:src="@{/js/app/masonry.pkgd.min.js}"></script>
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/playvoicebook.js}"></script>	   
+
+<script th:inline="javascript">
+var practicePageNo = 1;
+$(document).ready(function() {
+	
+	// [practice comment masonry 정렬]-------------------------------------------
+	var practiceListDiv = $('#practiceListDiv')
+	practiceListDiv.masonry({
+		itemSelector: '.comment-cover',
+		isAnimated: !Modernizr.csstransitions
+	});
+	
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var rankerSize = $(".ranker-cover").length; // 랭커 수
+	var currenRankPageIndex = 1;
+	var rankPageLength;
+	var windowWidth = $(window).width();
+	if(windowWidth < 1200) {
+		rankPageLength = Math.ceil(rankerSize/3);
+	} else {
+		rankPageLength = Math.ceil(rankerSize/4);
+	}
+	for(var i = 1; i <= rankPageLength; i++) {
+		var page = '<span class="rank-page">' + i + '</span>';
+		$(".rank-page-list").append(page);
+		if(i == 1) {
+			$(".rank-page").addClass("active");
+		}
+	}
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+
+	// [Practice 댓글 추가 불러오기]--------------------------------------------------
+	$('#scrollPracticeListDiv').on("scroll", loadAdditionalReply);
+
+	
+	//오디오 자동 로딩 테스트 for 크롬 브라우저
+	/* var audio = new Audio("/resource/voice/1.mp3")
+	var played = false
+	var start = function(){
+		if(played) return;
+		played = true
+		audio.load();
+		audio.play();
+		messagediv.innerHTML = "Playing audio. <button style='font-size:inherit' onclick='audio.pause()'>Stop</button>"
+		alldiv.onclick = ''
+	}
+
+	audio.addEventListener('canplaythrough', start, false);
+
+	if(audio.readyState > 3){
+		start()
+	}
+
+	var loop = function() {
+		readystatediv.innerHTML = "readyState="+audio.readyState;
+		setTimeout(loop, 16);
+	}
+	loop();
+
+	alldiv.onclick = function() {
+		start()
+	}
+
+	alldiv.addEventListener('touchstart', start, false); */
+});
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+/**
+ * practice 댓글 영역에서 스크롤을 내리면
+ * 스크롤 핸들러를 잠시 비활성화하고
+ * 다음 댓글들을 가져옴.
+ */
+function loadAdditionalReply(e) { 
+	$(e.target).off("scroll");
+    if (e.target.scrollHeight <= e.target.scrollTop + e.target.offsetHeight + 240) { 
+    	//------------------------------
+    	getPracticeCommentList(practicePageNo);
+    	//------------------------------
+    	practicePageNo++;
+    }else{
+    	$(e.target).scroll(loadAdditionalReply);
+    }	
+};
+
+/**
+ * practice 댓글 추가 불러오기 성공 후 
+ * 현재 댓글 리스트에 추가.
+ * 스크롤 핸들러 다시 활성화.
+ */
+function successGetPracticeCommentList(appReplyList) {
+	var appReplies = "";
+	
+	appReplyList.forEach(function(reply, i) {
+		var regDate = new Date(reply.regDate);
+		appReplies += "<div class='comment-cover px-md-2'>"
+			+ "<div class='comment mt-md-2'>"
+			+ "<i lang='fa' class='fa fa-quote-left'></i>"
+			+ "<div class='eng'>" + reply.comment + "</div></div>"
+			+ "<div class='row no-gutters px-md-1 mx-2'><div class='col-auto'>"
+			+ "<div class='member-personacon'>"
+			+ "<img src='/images/app/member/profile_paper.png'"
+			+ " class='personacon-profile";
+		if(reply.personacon.iconPath == null){
+			appReplies += " profile-default'>";
+		}else{
+			appReplies += "' style='background: url(\"/resource/profile/" + reply.personacon.iconPath + "\") no-repeat;background-position: center; background-size: cover;'>";
+		}
+		appReplies
+			+= "<img src='/images/app/member/profile_paper.png'" 
+			+ " class='personacon-frame frame-" + reply.personacon.memberType + "'></div></div><div class='col px-3'>"
+			+ "<div class='alias'>" + reply.personacon.alias + "</div>"
+			+ "<div class='date'>" + regDate.getFullYear() + "-"
+            + parseInt(regDate.getMonth() + 1) + "-" + regDate.getDate() 
+            + "</div></div></div></div>";
+	});
+	var $appReplies = $(appReplies);
+	$("#practiceListDiv").append($appReplies).masonry('appended',$appReplies);
+	$('#scrollPracticeListDiv').on("scroll", loadAdditionalReply);
+}
+
+/**
+ * practice 댓글 불러오기에 실패할 경우
+ * 더이상 practice 댓글 영역에서 스크롤을 내려도 댓글을 불러오기 호출을 하지 않는다.
+ */
+function failGetPracticeCommentList() {
+	$('#scrollPracticeListDiv').off("scroll", loadAdditionalReply);
+}
+
+
+
+</script>
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" class="row no-gutters"><div class="col-lg-1"></div>
+	<div th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}" class="col-lg-10"></div>
+</div>
+
+<div id="indexContentSection"><div class="row">
+<!-- /*---------------------[playvoiceBook introDiv]---------------------- */-->
+<div class="col-lg-1"></div>
+<div id="introDiv" class="col-lg-10">
+
+<div class="index-animal d-md-none">
+	<div class="title-cover">
+		<div class="title">Welcome to <span class="pv-tm">Playvoice Book</span></div>
+	</div>
+	<div class="row no-gutters pt-2">
+		<div class="body col-lg-9 col">
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				혹시나 해서 말하지만 <b>말</b>은 원래 <b>귀</b>와 <b>입</b>으로 배우는 것이다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from"><span class="kor">
+				<span class="d-none d-sm-inline-block">- </span>
+				자식에게 한번도 문법을 가르쳐 준 적이 없다는 <br class="d-sm-none">
+				<b>어느 늙은 오랑우탄</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</span></div>
+		</div>
+	</div>
+	<div class="animal-image">
+		<img th:src="@{'/images/app/playvoicebook/old_oran.jpg'}"
+			class="rounded-circle" alt="플레이보이스북 (PlayvoiceBook)">
+	</div>	
+</div>
+
+<div class="d-none d-md-block">
+<div id="introductionDiv" class="introduction-section index animal-saying row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice members and Create your contents for study.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png" class="level-img"
+			style="background: url('/images/common/characters/playvoicebook.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;" 
+			alt="플레이보이스북 (PlayvoiceBook)">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			<div>Welcome to <span class="pv-tm">Playvoice Book</span></div>
+			<div class="wise-saying">
+				<i class="fa fa-quote-left"></i>
+				혹시나 해서 말하지만 <b>말</b>은 원래 <b>귀</b>와 <b>입</b>으로 배우는 것이다.
+				<i class="fa fa-quote-right"></i>
+			</div>
+			<div class="from">
+				<span class="d-none d-sm-inline-block">- </span>
+				자식에게 한번도 문법을 가르쳐 준 적이 없다는 <br class="d-sm-none">
+				<b>어느 늙은 오랑우탄</b>
+				<span class="d-none d-sm-inline-block"> -</span>
+			</div>
+		</div>
+	</div>
+</div><!-- end of introductionDiv -->
+</div>
+
+<div class="index-container">
+
+<!-- ------------------------[PlayvoiceBook Notice]------------------------- -->
+<div class="notice-board-section index-content-section">
+	<div th:replace="~{/incl/list_notices::board}"></div>
+</div>	
+
+
+<!-- -------------------[PlayvoiceBook practice comment]-------------------- -->
+<div class="member-practice-section index-content-section">
+	<h3>
+		PlayvoiceBook <span class="index-text-color">Practice</span>
+		<i class="fas fa-utensils fa-fw" style="color: #f6aa37;"></i><br>
+		<small>The expressions in everyday life with playvoicebook</small>
+	</h3>
+	<div class="practice-List-cover">
+		<div id="scrollPracticeListDiv" class="practice-list"><div id="practiceListDiv">
+			<div class="comment-cover" th:each="reply:${appReplyList}">
+				<div class="comment">
+					<i class="fa fa-quote-left"></i>
+					<div class="eng" th:utext="${reply.comment}"></div>
+				</div>
+				<div class="writer-section row no-gutters"
+					 th:with="personacon = ${reply.personacon}">
+					<div class="col-auto align-self-center">
+						<div th:replace="~{/incl/user_personacon::user_md}"></div>
+					</div>
+					<div class="alias-section col align-self-center">
+						<div class="alias" th:text="${personacon.alias}"></div>
+						<div class="date" th:text="${#dates.format(reply.regDate,'yyyy-MM-dd')}"></div>
+					</div>
+				</div>
+			</div></div>
+			<div class="loading text-center py-3">
+				<i class="fa fa-spinner fa-spin fa-3x" style="color: #27466C;"></i>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- -----------------------[PlayvoiceBook ranking]------------------------- -->
+<div class="member-ranking-section index-content-section">
+	<h3>
+		PlayvoiceBook<br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">최다 학습 랭커</span> Top 10</span>
+		<i class="fas fa-medal fa-fw" style="color: #f6aa37;"></i><br>
+		<small>PlayvoiceBook Stage Top Ranker</small>
+	</h3>
+	
+	<div class="ranking-bg">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">[[${rankingUpdate}]]</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="topRanker, iter:${topRankerList}"
+					th:with="personacon = ${topRanker.personacon}">
+					<div class="ranker-cover"><div class="rank-style">
+						<div th:text="(${iter.count} < 10) ? ('0' + ${iter.count}) : ${iter.count}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>[[${personacon.alias}]]</div>
+						</div>	
+						<div class="openProfile personacon"
+							th:data-mid="${personacon.id56}">
+							<img th:if="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div th:if="${personacon.memberType} == 'M'">Play</div>
+							<div th:if="${personacon.memberType} == 'S'">Silver</div>
+							<div th:if="${personacon.memberType} == 'G'">Gold</div>
+							<div th:if="${personacon.memberType} == 'P'">Platinum</div>
+							<div class="openProfile" th:data-mid="${personacon.id56}">
+								<i class="far fa-address-card fa-fw"></i>
+							</div>
+						</div>
+					</div></div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+</div>
+	
+	
+	
+	
+</div></div><!-- end of introDiv -->
+
+</div><!-- end of indexContentSection's boundary -->
+</div><!-- end of indexContentSection -->
+
+
+
+
+<div id="alldiv" style="display: none;">
+	<div id=messagediv style="font-style: italic">Loading…</div>
+	<div id=readystatediv style="font-style: italic"></div>
+
+	<div style="height: 70vh; background: #EFE">The rest of the webpage
+		takes up all of this space. On Safari audio will start on the first tap
+		anywhere.</div>
+</div>
+
+
+
+</section><!-- end of content -->

@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playsquare_layout}">
+<head>
+<title>GrammarBook - playvoice</title>
+<link rel="stylesheet" th:href="@{/css/app/app_add.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/summernote/summernote.min.css}">
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/summernote/summernote-bs4.min.js}"></script>
+<script th:src="@{/summernote/plugin/br.summernote.js}"></script>
+<script th:src="@{/summernote/plugin/semanticroles.summernote.js}"></script>
+<script th:src="@{/summernote/lang/summernote-ko-KR.js}"></script>
+<script th:src="@{/js/app/playsquare.js}"></script>
+
+
+<script th:inline="javascript" type="text/javascript">
+var writer; // 작성 본문 임시저장 시 소유자 정보
+$(document).ready(function(){
+	writer = btoa($("#writerId").val());
+	initSessionMonitor(120);
+	// [썸머노트 에디터 로드]-----------------------
+	insertGrammarEditor($("#summernote"));
+	//---------------------------------------
+	
+	// [가이드 닫기]----------------------------------------------------------------
+	$("#closeGuide_btn").click(function(){
+		$(this).closest(".addGrammarGuideDiv").hide(100);
+		$(".openGuideBtn").show();
+	});
+	
+	// [가이드 열기]---------------------------------------------------------------
+	$(".openGuideBtn").click(function(){
+		$(this).hide();
+		$(".addGrammarGuideDiv").show(100);
+	});
+	
+	// [힌트 가이드 열기]------------------------------------------------------------
+	$(".openHintGuideBtn").click(function(){
+		var hintType = $(this).attr("data-hintType");
+		var hintDiv = $(".hintGuide" + hintType + "Div");
+		if(hintDiv.is(":visible")) {
+			hintDiv.hide();
+		} else {
+			$(".hintGuideDiv").hide();
+			hintDiv.show(100);
+		}
+	});
+	$(".closeGuide_btn").click(function(){
+		$(this).closest(".hintGuideDiv").hide();
+	});
+	
+	// [그래머 작성 완료]----------------------------------------------------------
+	$("#grammarFormDiv #save").click(function(e){
+		e.preventDefault();
+		var errorMsgs = [];
+		$("#scriptMsgs > ul").empty();
+		
+		if( $('#title').val().length == 0 ) {
+			errorMsgs[0] ="Title is required";
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[0]+"</li>");
+		}
+		//------------------------------------------------------
+		var content = filterSummernoteContent($("#summernote"));
+		//------------------------------------------------------
+		
+		var len = content.length;
+		if( len == 0 || len > 65000) {
+			errorMsgs[1] ="Content length must be between 0 and 65,000."
+			+" Total Length : "
+			+ content.length +" characters";
+			
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[1]+"</li>");
+		}else{
+			$("textarea[name='content']").val(content);
+		}
+		
+		
+		if($(".parentCategorySelect option:selected").val().length == 0){
+			errorMsgs[2] ="Category is required";
+			$("#scriptMsgs > ul").append("<li>"+errorMsgs[2]+"</li>");
+		}
+		
+		if(errorMsgs.length > 0){
+			$("#resMsgs").show();
+			return;
+		}else{
+			$("#resMsgs").hide();
+			sessionStorage.removeItem('tempGrammarArticle_' + writer);
+			$("#addArticleForm").submit();
+		}
+	});
+	// [작성 취소]-----------------------------------------------------------------
+	$("#addArticleForm").on("reset", function(){
+		$("#summernote").summernote('reset');
+	});
+	
+	// [썸머노트 에디터가 로드된 후 임시저장된 작성글 불러오기]------------------------------------
+	var tempGrammarArticle = sessionStorage.getItem('tempGrammarArticle_' + writer);
+	if(tempGrammarArticle != null && tempGrammarArticle.length > 0
+		&& confirm("작성 중이던 내용이 있습니다. 다시 불러올까요?")){
+		setTimeout(() => {
+			$("#summernote").val(tempGrammarArticle)
+			.summernote('pasteHTML',tempGrammarArticle);
+		}, 100);
+	}
+	
+	//[1차 카테고리 선택 시 2차 카테고리 목록 보여주기]-----------------------------------------
+	var categoryList = /*[[${categoryList}]]*/ [] ; 
+	$(".parentCategorySelect").change(function(){
+		var parentCategoryId = $(this).find(':selected').val();
+		
+		$(".childrenCategorySelect").hide();
+		$("#parentCategory_"+parentCategoryId).show();
+	});
+});
+
+/**
+ * 세션이 만료되어 자동 로그아웃하기 직전에 작성 중이던 본문 내용을 브라우저에 저장
+ */
+function beforeLogout() {
+	var content = filterSummernoteContent($("#summernote"));
+	sessionStorage.setItem('tempGrammarArticle_' + writer, content);
+	alert("작성 제한 시간이 만료되어 자동 로그아웃 합니다.\n작성 중이던 내용은 브라우저를 종료하실 때까지 보관됩니다.");
+}
+
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+<div id="introductionSection" class="article-introduction-section grammar mt-lg-5 mt-4">
+	<h3><span>Adding New Grammar Form</span></h3>
+	<!-- 작성 목적 -->
+	<div class="add-purpose-info cha2 row no-gutters">
+		<div class="character-section col-auto">
+			<img class="character" src="/images/common/icon/icon_paper.png">
+		</div>
+		<div class="col">
+			<img class="character d-sm-none" src="/images/common/icon/icon_paper.png">
+			<div class="purpose-title">나만의 영문법 정리하기</div>
+			<div>
+				그래머북에서는 자신이 알고 있거나 학습한 문법 내용들을 정리하고 공유함으로써 함께 학습하는 공간을 마련합니다.<br class="d-none d-md-block">
+				또한 학습 팁을 정리하여 영문법을 자신만의 체계로 습득할 수 있습니다.<br class="d-none d-md-block">
+				글과 사진 영상 등을 이용하여 개성이 담긴 설명과 다양한 학습 방법들을 남겨보세요.
+			</div>
+		</div>
+	</div>
+</div>
+<!--/* 힌트 경고 모달창*/-->
+<div id="alertModal" class="modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div  class="modal-body text-center py-3">
+				<div class="py-2">
+					힌트가 많이 중첩되면 독해하는데 혼란스러울 수 있어요
+					<i class="far fa-dizzy fa-lg fa-fw"></i>
+				</div>
+				<div class="text-center pt-2">
+					<button class="btn btn-sm btn-smalltalk2" data-dismiss="modal" type="button">확 인</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="addGrammarSection" class="add-grammar-section">
+	<!-- -----------------------[1. 작성 가이드]-------------------------------- -->
+	<div class="text-right">
+		<div class="open-guide-section mb-3 d-none d-md-block">
+		<a class="openGuideBtn" style="display: none;">
+			<i class="fa fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+		</div>
+	</div>
+	<div class="open-guide-section d-md-none">
+		<a class="openGuideBtn" style="display: none;">
+			<i class="far fa-lightbulb fa-fw"></i> 
+			작성 가이드 보기 <i class="fa fa-angle-down fa-fw"></i>
+		</a>
+	</div>
+	<div class="addGrammarGuideDiv add-digest-guide-cover row no-gutters">
+		<div class="guide col-md px-md-3 align-self-center">
+			<div class="title">
+				<span>작성 가이드</span>
+				<span class="guide-icon"><i class="far fa-lightbulb fa-lg"></i> </span>
+				<i id="closeGuide_btn" class="fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<ul>
+					<li><span class="num">1.</span> 
+						하나의 문법 주제에 대한 회원들의 지식과 다양한 공부법 교환이 그래머북의 목적입니다.</li>
+					<li><span class="num">2.</span> 
+						따라서 작성하고자 하는 <b>동일 주제가 있는지 먼저 검색하거나 카테고리 별로 확인해 주세요.</b></li>
+					<li><span class="num">3.</span> 
+						작성하고자 하는 유사 문법 주제가 있다면 해당 주제 아래에 새로운 아티클을 추가해 주세요.</li>
+					<li><span class="num">4.</span> 
+						문법 설명을 위한 영어 예문에 주어부, 동사부, 목적어부 등 <b>예문 구조를 표시</b>할 수 있습니다.
+						<br>※ 예문 구조 표시는 버튼을 클릭 후 표시하고 싶은 곳을 부분 선택해 주세요. 
+						예문 구조 표시 가이드는 아래를 참고해 주세요.</li>
+					<li><span class="num">5.</span> 
+						특정 주제에 자신의 견해를 좀 더 명시하고자 한다면 부제를 설정해 보세요.</li>
+					<li><span class="num">6.</span> 
+						작성을 마치면 작성한 내용과 관련된 카테고리를 설정해 주세요.</li>
+				</ul>
+			</div>
+			<div class="guide-text precaution">
+				회원들의 요청 및 관리상의 목적으로 작성된 아티클은 특정 주제로 예고 없이 이동될 수 있습니다.<br>
+				다른 회원이 추가 아티클을 작성하면 주제를 수정할 수 없으니 <b>주제를 다시 한번 확인해 주세요</b>.
+			</div>
+		</div>
+	</div>
+	<!-- 주어부 선택 가이드 -->
+	<div class="hintGuideSubjectDiv add-digest-guide-cover grammar hintGuideDiv subject" style="display: none;">
+		<div class="guide px-md-3">
+			<div class="title">
+				<span>주어부 선택 가이드 </span>
+				<span class="guide-icon"><i class="fa fa-pen fa-lg" style="color: #ffc107;"></i></span>
+				<i class="closeGuide_btn fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> 문장에서 주어에 해당하는 부분을 선택해 주세요.<br>
+				<span class="num">2.</span> 주어부는 문장에서 <b>주어 역할을 하는 명사 또는 명사구(절)</b>을 의미합니다.<br>
+				<span class="num">3.</span> 주어부 안에 수식어 또는 비수식어 등 다른 힌트를 표시할 수 있습니다.<br>
+				<div class="example">
+					<span class="eng">
+						<span class="num">ex 1)</span>
+						<span class="subject-role">What I said about Tom</span>
+						goes for you, too.<br>
+					</span>
+					<span class="eng">
+						<span class="num">ex 2)</span>
+						<span class="subject-role">That the situation was serious</span> 
+						was evident.<br>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 동사부 선택 가이드 -->
+	<div class="hintGuideActionDiv add-digest-guide-cover grammar hintGuideDiv action" style="display: none;">
+		<div class="guide px-md-3">
+			<div class="title">
+				<span>동사부 선택 가이드 </span>
+				<span class="guide-icon"><i class="fa fa-pen fa-lg" style="color: #BA2828;"></i></span>
+				<i class="closeGuide_btn fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> '주절의 동사(메인 동사)'를 가장 먼저 선택해 주세요.<br>
+				<span class="num">2.</span> '메인 동사'란 <b>주절에서만 사용된 조동사+본동사(동사구)</b>를 의미합니다.<br>
+					※ '메인 동사'는 기존의 문법과 무관하게 
+					<span class="pv-tm">SmallTalk Community</span>에서 사용하는 용어입니다.<br>
+				<span class="num">3.</span> '수식어'나 '비수식어' 안에 동사를 표시하고 싶은 경우, 
+					'수식어' 및 '비수식어'를 먼저 표시한 후 '동사'를 선택해 주세요.
+				<div class="example">
+					<span class="eng">
+						<span class="num">ex)</span> I 
+						<span class="action-role">would like to get into</span> 
+						the car that is coming in first in the racing.<br>
+					</span>
+					<span>'메인동사'는 주절에서 사용된 'would like to get into' 를 
+					'하나의 동사'처럼 취급해 버립니다.</span>
+				</div>
+			</div>
+			<div class="guide-added-info"><div class="added-info">
+				<div class="added-title btn-verb">
+					<i class="fa fa-pen"></i> 메인동사 개념을 사용하는 이유
+				</div>
+				<div>
+					1. 기존 문법의 과도한 구문 분석으로 인한 구조의 복잡성을 줄이기 위해<br>
+					2. 한 번에 말할 수 있는 의미 단위로 기억하기 위해<br>
+				</div>
+			</div></div>	
+		</div>
+	</div>
+	
+	<!-- 목적어부 선택 가이드 -->
+	<div class="hintGuideObjectDiv add-digest-guide-cover grammar hintGuideDiv object" style="display: none;">
+		<div class="guide px-md-3">
+			<div class="title">
+				<span>목적어부 선택 가이드 </span>
+				<span class="guide-icon"><i class="fa fa-pen fa-lg" style="color: #76cc05;"></i></span>
+				<i class="closeGuide_btn fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> 문장에서 목적어에 해당하는 부분을 선택해 주세요.<br>
+				<span class="num">2.</span> 목적어부는 문장에서 <b>목적어 역할을 하는 명사(구, 절)</b>을 의미합니다.<br>
+				<span class="num">3.</span> 목적어부 안에 수식어 또는 비수식어 등 다른 힌트를 표시할 수 있습니다.<br>
+				<div class="example">
+					<span class="eng">
+						<span class="num">ex 1)</span>
+						I don't know <span class="object-role">why he was so sad.</span><br>
+					</span>
+					<span class="eng">
+						<span class="num">ex 2)</span>
+						Tom said <span class="object-role">Jane had left.</span> 
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<!-- 수식어 선택 가이드 -->
+	<div class="hintGuideModDiv add-digest-guide-cover grammar hintGuideDiv mod" style="display: none;">
+		<div class="guide px-md-3">
+			<div class="title">
+				<span>수식어 선택 가이드</span>
+				<span class="guide-icon"><i class="fa fa-pen fa-lg" style="color: #F9A825;"></i></span>
+				<i class="closeGuide_btn fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> 명사(구, 절)나 형용사(구, 절)를 수식하는 부분은 문장에서
+					<b>형용사 역할 (형용사구[절])</b> 또는 <b>부사 역할 (부사구[절])</b>을 합니다.<br>
+				<span class="num">2.</span> <b>수식어구(절)</b> 버튼을 눌러 
+					수식하는 역할을 하는 부분을 표시해 주세요.<br>
+				<span class="num">3.</span> 수식어 내부에 또 '동사, 수식어, 비수식어'가 존재한다면, 
+					해당 펜을 선택하여 표시하면 됩니다.<br>
+				<div class="example">
+					<span class="eng">
+						<span class="num">ex 1)</span> I would like to get into the car 
+						<span class="empMod-f">that is coming in first in the racing.</span>
+					</span><br>
+					<span>명사를 수식하는 '형용사 역할 부분'을 후치수식으로 표시한 경우</span><br>
+					<span class="eng">
+						<span class="num">ex 2)</span>
+						The <span class="empMod-b">shocking</span> news remains a mystery.
+					</span><br>
+					<span>명사를 수식하는 '형용사 역할 부분'을 전치수식'으로 표시한 경우</span><br>
+					<span class="eng">
+						<span class="num">ex 3)</span> This book is hard
+						<span class="empMod-f">to read</span>.
+					</span><br>
+					<span>형용사를 수식하는 '부사 역할 부분'을 후치수식으로 표시한 경우</span><br>
+				</div>
+			</div>
+			<div class="guide-added-info"><div class="added-info">
+				<div class="added-title btn-mod">
+					<i class="fa fa-pen"></i> 수식어를 힌트에 포함시킨 이유
+				</div>
+				<div>
+					1. 수식어는 문장을 복잡하게 만드는 원인입니다.<br>
+					2. 수식어만 잘 이해하더라도 독해 실력을 늘릴 수 있습니다.<br>
+					3. 수식어로 단어 사이의 이해관계를 살펴보며 독해할 수 있습니다.
+				</div>
+			</div></div>	
+		</div>
+	</div>
+	
+	<!-- 보충 설명어 선택 가이드 -->
+	<div class="hintGuideAdvDiv add-digest-guide-cover grammar hintGuideDiv adv" style="display: none;">
+		<div class="guide px-md-3">
+			<div class="title">
+				<span>비수식어 선택 가이드</span>
+				<span class="guide-icon"><i class="fa fa-pen fa-lg" style="color: #0dae04;"></i></span>
+				<i class="closeGuide_btn fa fa-times float-right fa-lg" title="가이드 닫기"></i>
+			</div>
+			<div class="guide-text">
+				<span class="num">1.</span> 명사 또는 형용사 수식을 제외한
+					<b>부사 역할 부분 (부사구[절])</b>을 선택해 주세요.<br>
+					※ (부사구[절])은 문장에서 생략되어도 해석하는데 무리가 없으므로 (1형식 제외)<br>
+					<span class="pv-tm">SmallTalk Community</span>에선 
+					'비수식어'란 용어를 사용합니다.<br>
+				<span class="num">2.</span> 비수식어 내부에 또 '동사, 수식어, 비수식어'가 존재한다면, 
+					해당 펜을 선택하여 표시하면 됩니다.<br>
+				<div class="example">
+					<span class="eng">
+						<span class="num">ex 1)</span>
+						<span class="empAdv">While I clean the room</span>, 
+						please receive the parcel instead of me.
+					</span><br>
+					<span>기존 문법에선 문장 전체를 수식하는 부사구 부분이지만, 
+						문장에서 제외되어도 해석하는 데 무리가 없습니다.</span><br>
+					<span class="eng">
+						<span class="num">ex 2)</span> He walked the street
+						<span class="empAdv">listening to music</span>.</span><br>
+					<span>기존 문법에선 동사 walked를 수식하는 부사구 부분이지만,
+						문장에서 제외되어도 해석하는 데 무리가 없습니다.</span><br>
+				</div>
+			</div>
+			<div class="guide-added-info"><div class="added-info">
+				<div class="added-title btn-adv">
+					<i class="fa fa-pen"></i> 비수식어를 힌트에 포함시킨 이유
+				</div>
+				<div>
+					1. 일반적으로 부사구(절)은 형용사, 동사, 부사, 문장 전체를 수식합니다.<br> 
+					그중 형용사 수식을 제외하고는 대부분의 문장에서 부사구(절)이 생략되어도 
+					해석하는 데 지장이 없습니다. (1형식 문장 제외)<br>
+					2. 긴 문장에서 구나 절을 묶어주는 것만으로 문장 구조를 한눈에 볼 수 있습니다.
+				</div>
+			</div></div>	
+		</div>
+	</div>
+	
+	<!-- 힌트 가이드 버튼 -->
+	<div class="hint-guide-btn-section">
+		<button class="openHintGuideBtn btn btn-sm btn-subject" data-hintType="Subject">
+			<i class="fa fa-pen fa-fw"></i> 
+			주어부 가이드 <i class="far fa-question-circle fa-fw"></i>
+		</button>
+		<button class="openHintGuideBtn btn btn-sm btn-action" data-hintType="Action">
+			<i class="fa fa-pen fa-fw"></i> 
+			동사부 가이드 <i class="far fa-question-circle fa-fw"></i>
+		</button>
+		<button class="openHintGuideBtn btn btn-sm btn-object" data-hintType="Object">
+			<i class="fa fa-pen fa-fw"></i> 
+			목적어부 가이드 <i class="far fa-question-circle fa-fw"></i>
+		</button>
+		<button class="openHintGuideBtn btn btn-sm btn-mod" data-hintType="Mod">
+			<i class="fa fa-pen fa-fw"></i> 
+			수식어 가이드 <i class="far fa-question-circle fa-fw"></i>
+		</button>
+		<button class="openHintGuideBtn btn btn-sm btn-adv" data-hintType="Adv">
+			<i class="fa fa-pen fa-fw"></i> 
+			비수식어 가이드 <i class="far fa-question-circle fa-fw"></i>
+		</button>
+	</div>
+	
+	<div class="translation-bg">
+		
+		<!--/*응답메세지 박스*/-->
+		<div id="resMsgs" class="respond-msg" style="display:none;">
+			<h4>Respond Messages</h4>
+			<ul th:each="msg:${resMsgs}">
+				<li th:text="${msg}"></li>
+			</ul>
+			<div id="scriptMsgs">
+			<ul></ul>
+			</div>
+		</div>
+		
+		<form id="addArticleForm" th:action="@{/square/grammarBook/add}" method="post">
+		
+		<div id="grammarFormDiv" class="digest-form-div">
+			<!--/*주제 */-->
+			<div class=" form-group row">
+				<label for="title" class="col-md-1 control-label pl-md-0">주제</label>
+				<div class="col-md-11">
+					<input id="title" name="title" type="text" placeholder="주제를 입력해 주세요." class="form-control"/>
+				</div>
+				<!--/* 주제가 정해진 경우(그래머 수정 혹은 아티클 수정/추가) */-->
+				<div class="added-title col-md-11" style="display: none;">
+					<i class="fas fa-quote-left fa-fw"></i>
+					<span>그래머 주제</span>
+					<i class="fas fa-quote-right fa-fw"></i>
+				</div>
+			</div> 
+			
+			<!--/*부제 */-->
+			<div class="form-group row">
+				<label for="subtitle" class="col-md-1 control-label pl-md-0">부제</label>
+				<div class="col-md-11">
+					<input id="subtitle" name="subtitle" type="text" placeholder="부제를 입력해 주세요.(선택 사항)" class="form-control"/>
+				</div>
+			</div>
+			
+			<!--/*내용 */-->
+			<div class="form-group row">
+				<label for="content" class="col-md-1 control-label pl-md-0">내용</label>
+				<div class="article-default-font-style hint-active col-md-11">
+					<textarea id="summernote" name="content" class="form-control" style="display: none;" th:text="${content}"></textarea>
+				</div>
+			</div>
+			 
+			<!--/*카테고리 */-->
+			<div class="categorySelect form-group row">
+				<label for="title" class="col-md-1 control-label pl-md-0">카테고리</label>
+				<div class="col-md-11 row no-gutters">
+					<div class="col-sm-6 pr-sm-1 py-sm-0 py-1">
+						<select name="categoryId" class="parentCategorySelect form-control" size="8">
+							<option value="" disabled>== 1차 카테고리 ==</option>
+							<th:block th:each="category, iter:${categoryList}">
+								<option th:value="${category.cid}">[[${category.name}]]</option>
+							</th:block>
+						</select>
+					</div>
+					<th:block th:each="category, iter:${categoryList}">
+						<div th:id="'parentCategory_'+${category.cid}" 
+							class="childrenCategorySelect col-sm-6 pl-sm-1 py-sm-0 py-1" style="display: none">
+							<select name="categoryId" class="form-control" size="8">
+								<option value="" disabled>== 2차 카테고리 ==</option>
+								<th:block th:each="childrenCategory, iter2:${category.childrenCategoryList}">
+									<option th:value="${childrenCategory.cid}">[[${childrenCategory.name}]]</option>
+								</th:block>
+							</select>
+						</div>
+					</th:block>
+				</div>
+			</div>
+			
+			<!--/*작성자 */-->
+			<div class="form-group row">
+				<label for="writer" class="col-md-1 col-auto control-label pl-md-0">작성자</label>
+				<div class="form-alias col-md-10 col">
+					<span>[[${session.userContainer.personacon.alias}]]</span>
+					<input type="hidden" id="writerId" name="memberId"  th:value="${session.userContainer.personacon.pid}" class="form-control"/>
+				</div>
+			</div>
+			
+			<!--/*submit 컨트롤 박스*/-->
+			<div class="form-group row">
+				<div class="add-button-section col-md-11 ml-auto text-md-left text-center">
+					<button id="save" type="submit" class="btn btn-grammar mr-3">Register</button>
+					<button type="reset" class="btn btn-playsquare2">Reset</button>
+				</div>
+			</div>
+			
+		</div><!-- end of grammarFormDiv -->
+		
+		</form>
+		
+		<div class="errorMsgs" style="display: none;">
+			<h3>
+				Error Messages
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre></pre>
+		</div>
+	</div>
+
+</div><!-- end of addGrammarSection -->
+
+<div class="text-right" style="color:red;">
+   source :: square/grammarBook/add_grammar.html  
+</div> 
+</section>
+</html>

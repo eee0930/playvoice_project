@@ -1,0 +1,183 @@
+
+
+/* contact button icon */
+
+
+
+
+/*------------------------------------------------------------------------------
+ 								business_menu.html 
+ -----------------------------------------------------------------------------*/
+.business-menu-section {
+	display: block;
+	position: -webkit-sticky;
+	position: sticky;
+	z-index: 1;
+	top: 0;
+	background-color: #fff;
+	color: #1b1f40;
+}
+.business-menu-trigger-section {position: relative;}
+.business-menu-cover {height: 40px;}
+.business-menu-trigger-section.active .business-menu-cover {
+	border-bottom: solid 1px #e8e8e8;
+}
+.business-menu-cover .business-menu {
+	font-size: 15px;
+	font-family: 'Nunito Sans', 'NanumSquare';
+	font-weight: 600;
+	color: #1b1f40;
+	padding: 0.4rem 1.5rem !important;
+	text-align: center;
+}
+.business-menu-cover .business-menu:nth-child(2) {padding-left: 0 !important;}
+.business-menu-cover .business-menu a {padding: 0.2rem 0.5rem;}
+.business-menu-cover .business-menu a:hover,
+.business-menu-cover .business-menu a.active {color: #dd2138 !important;}
+
+.second-menu-section {
+	background-color: #fff;
+	min-height: 100px;
+	width: 100%;
+	display: none;
+	position: absolute;
+	top: 40px;
+	left: 0;
+	transition: visibility 1s ease;
+}
+.business-menu-trigger-section:hover .second-menu-section {
+	display: flex;
+}
+
+ 
+/*------------------------------------------------------------------------------
+ 								index.html 
+ -----------------------------------------------------------------------------*/
+.playvoice-business-intro-section {overflow: hidden;}
+.business-carel-section {
+	background: url('/images/app/member/registration_back2.jpg') no-repeat;
+	background-size: cover;
+	background-position: center bottom;
+	height: calc(100vh - 150px);
+	position: relative;
+}
+.business-carel-section:after {
+	content: '';
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	border-bottom: solid 7rem #fff;
+	border-top: solid 7rem transparent;
+	border-left: solid 50vw transparent;
+	border-right: solid 50vw #fff;
+}
+.business-carel-cover {
+	background-color: rgba(10, 13, 42, 0.7);
+	height: 100%;
+	padding: 15px;
+}
+.playvoice-business-intro-cover {padding: 80px 0;}
+.playvoice-business-intro-cover .playvoice {
+	padding: 0.3rem;
+	border-radius: 0.5rem;
+	background-color: #1b1f40;
+	color: #fff;
+	font-family: 'Baloo Bhai';
+	font-weight: 400;
+	font-size: 1.8rem;
+	letter-spacing: -1.5px;
+	width: 150px;
+	text-align: center;
+	box-shadow: rgba(200,200,200, 0.05) 0 2px 2px, rgba(27,31,64,0.05) 0 4px 4px, 
+				rgba(200,200,200,0.05) 0 4px 8px, rgba(27,31,64,0.05) 0 6px 16px;
+}
+.playvoice-business-intro-cover .jumbo-title {
+	margin-top: 1rem;
+	font-family: 'PT Serif';
+	color: #fff;
+	font-size: 3rem;
+	line-height: 1.2;
+}
+.playvoice-business-intro-cover .playvoice-title {
+	margin-top: 1rem;
+	font-family: 'Graphik','NanumSquare';
+	color: #fff;
+	font-size: 0.9rem;
+	line-height: 1.2;
+	font-weight: 600;
+}
+.playvoice-business-intro-cover .playvoice-title.kor {font-size: 0.85rem;}
+.business-carel-cover .image-poistion1 {
+	position: absolute;
+	bottom: 1rem;
+	right: 5rem;
+	z-index: 1;
+}
+.business-carel-cover .image-poistion2 {
+	position: absolute;
+	bottom: 250px;
+	right: 2rem;
+	z-index: 2;
+}
+.business-carel-cover .image-poistion1 div {
+	width: 300px;
+	height: 300px;
+	background-image: url('/images/app/business/business_image3.jpg');
+}
+.business-carel-cover .image-poistion2 div {
+	width: 150px;
+	height: 150px;
+	background-image: url('/images/app/business/business_image.jpg');
+}
+.business-carel-cover .image-poistion1 div,
+.business-carel-cover .image-poistion2 div {
+	border-radius: 0.5rem;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat; 
+	box-shadow: rgba(27,31,64, 0.05) 0 2px 2px, rgba(27,31,64,0.05) 0 4px 10px, 
+				rgba(27,31,64,0.15) 0 4px 15px, rgba(27,31,64,0.25) 0 6px 20px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

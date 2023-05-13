@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoicebook_layout}">
+
+<head>
+<title>End of Johnny Deck - playvoice</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playkick.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:inline="javascript">
+$(document).ready(function() {
+
+	// [테스트 결과 정보 세팅]---------------------------------------------------------
+	var johnnyDeckRankingPoint = sessionStorage.getItem('johnnyDeckRankingPoint');
+	var johnnyDeckCompleteRound = sessionStorage.getItem('johnnyDeckCompleteRound');
+	var johnnyDeckChipCount = Number(sessionStorage.getItem('johnnyDeckChipCount'));
+	var johnnyDeckRoundNumber = sessionStorage.getItem('johnnyDeckRoundNumber');
+	var johnnyDeckconsToBingo = Number(sessionStorage.getItem('johnnyDeckconsToBingo'));
+	sessionStorage.removeItem('johnnyDeckRankingPoint');
+	sessionStorage.removeItem('johnnyDeckCompleteRound');
+	sessionStorage.removeItem('johnnyDeckChipCount');
+	sessionStorage.removeItem('johnnyDeckRoundNumber');
+	sessionStorage.removeItem('johnnyDeckconsToBingo');
+	
+	$("#johnnyDeckconsToBingo").text(johnnyDeckconsToBingo);
+	$("#johnnyDeckChipCount").text(johnnyDeckChipCount);
+	
+	if(johnnyDeckRankingPoint > 0) {
+		$("#johnnyDeckRankingPoint").text("+ " + johnnyDeckRankingPoint);
+	} else {
+		$("#johnnyDeckRankingPoint").text(johnnyDeckRankingPoint);
+	}
+	
+	// [라운드를 완성 했을 경우만 라운드완성 가이드 div를 보여줌]----------------------------------
+	if(johnnyDeckCompleteRound == 'false') {
+		moveNextDiv('discard', 'roundComplete');
+	} else {
+		$(".johnnyDeckRound").text(johnnyDeckRoundNumber);
+	}
+	// [discard를 했는 경우만 포커칩 갯수 div를 보여줌]--------------------------------------
+	if(johnnyDeckChipCount < 1) {
+		$("#getPokerChipDiv").hide();
+	}
+	
+	// [index로 돌아가기]-----------------------------------------------------------
+	$("#moveToIndex").click(function(){
+		location.href="/playvoiceBook/kick/deck";
+	});
+	
+	
+});
+/**
+ * 다음 결과 정보 div로 이동
+ */
+function moveNextDiv(targetDiv, obj) {
+	$("#" + obj + 'Div').closest(".play-kick-end-result-cover").hide();
+	$("#" + targetDiv + 'Div').show();
+}
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}"></div>
+
+<div id="EndOfPlayKickSection" class="play-kick-end-result-section my-4">
+	<!-- [1. 라운드 완성] -->
+	<div id="roundCompleteDiv" class="play-kick-end-result-cover">
+		<div class="result-gauge-bar-section">
+			<div class="gauge"><div class="meter"></div></div>
+			<div class="johnnyDeckRound round-info"></div>
+			<div class="poker-icon">&#9827;</div>
+		</div>
+		<div class="result-guide-title">
+			축하합니다!<br class="d-sm-none">  
+			라운드를 완성하였습니다
+		</div>
+		<div class="result-guide-detail">
+			<span class="guide-detail">진입 라운드</span>
+			<span class="guide-detail-num">
+				<span class="johnnyDeckRound">0</span> Round
+			</span>
+		</div>
+		<div class="result-guide-button-section">
+			<button class="btn btn-mobile keep-result-btn" type="button"
+				onclick="moveNextDiv('discard', 'roundComplete')" >계속</button>
+		</div>
+	</div>
+	<!-- [2. 포커칩, 랭킹 포인트] -->
+	<div id="discardDiv" class="play-kick-end-result-cover" style="display: none;">
+		<div class="result-image-section poker">
+			<div class="chip-image-cover">
+				<div class="pokerchip red"></div>
+			</div>
+			<div class="chip-image-cover">
+				<div class="pokerchip blue"></div>
+			</div>
+			<ul class="twinkle-effect">
+				<li></li><li></li><li></li>
+				<li></li><li></li><li></li>
+			</ul>
+		</div>
+		<div id="getPokerChipDiv">
+			<div class="result-guide-title">멋져요!<br>자신있게 말할 수 있는 문장이 늘었습니다!</div>
+			<div class="result-guide-detail">
+				<span class="guide-detail">Discard 개수</span>
+				<span class="guide-detail-num">
+					+ <span id="johnnyDeckChipCount">0</span>
+				</span>
+			</div>
+		</div>
+		<div class="result-guide-detail">
+			<span class="guide-detail">랭킹 포인트</span>
+			<span class="guide-detail-num">
+				<span id="johnnyDeckRankingPoint">0</span> RP
+			</span>
+		</div>
+		<div class="result-guide-button-section">
+			<button class="btn btn-mobile keep-result-btn" type="button" 
+				onclick="moveNextDiv('bingo', 'discard')">계속</button>
+		</div>
+	</div>
+	<!-- [3. 빙고 판] -->
+	<div id="bingoDiv" class="play-kick-end-result-cover" style="display: none;">
+		<div class="result-image-section size-small">
+			<div class="playvoice-chest">
+				<div class="playvoice-chest_keyholeBG">
+					<div class="playvoice-chest_keyhole"></div>
+				</div>
+			</div>
+			<ul class="twinkle-effect">
+				<li></li><li></li><li></li>
+			</ul>
+		</div>
+		<div class="result-gauge-bar-section"></div>
+		<div class="result-guide-title">빙고 완성을 위해 덱콘 상자가 대기중이에요</div>
+		<div class="result-guide-detail">
+			<span class="guide-detail">다음 라운드까지 남은 빙고 수</span>
+			<span class="guide-detail-num">
+				<span id="johnnyDeckconsToBingo">0</span>
+			</span>
+		</div>
+		<div class="result-guide-button-section">
+			<button id="moveToIndex" class="btn btn-mobile keep-result-btn" 
+				type="button">확인</button>
+		</div>
+	</div>
+	
+	<div class="play-kick-end-ad-section">
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+		<!-- (Mobile) Johnnydeck end bottom -->
+		<ins class="adsbygoogle"
+			style="display:block"
+			data-ad-client="ca-pub-7152306695077047"
+			data-ad-slot="9495866430"
+			data-ad-format="horizontal"
+			data-full-width-responsive="false"></ins>
+		<script>
+			$(document).ready(function(){(adsbygoogle = window.adsbygoogle || []).push({})})
+		</script>
+	</div>
+	
+	
+</div><!-- end of EndOfPlayKickSection -->
+
+
+</section>
+</html>

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+
+<div th:fragment="piction" class="piction-used-modal"><div class="row no-gutters">
+<div class="pictionary-piction-list-section col-12">
+	<!-- [2.1 픽션 리스트] -->
+	<div class="piction-cover row no-gutters">
+		<!-- [픽션 사진] -->
+		<div class="col-lg-4"><div class="piction-picture">
+			<div class="piction-picture-cover ver2">
+				<div class="display-piction-picture piction-img" data-dismiss="modal" 
+					style="background-repeat: no-repeat; background-size: cover;
+					background-position: center;"></div>
+			</div>
+			<div class="modal-guide">
+				바깥 영역이나 이미지를 클릭하면 창이 닫힙니다.
+			</div>
+		</div></div>
+		
+		<!-- [픽션 예문] -->
+		<div class="piction-sentence col-lg-8"><div class="sentence-back">
+			<div class="piction-sentence-one pl-md-3 row no-gutters" 
+				th:each="picSent, iterStat : ${picSentenceList}"><div class="col">
+				<!-- piction sentence input hidden -->
+				<input id="size_sentence" type="hidden" th:value="${iterStat.size}"/> 
+				<input th:id="'re_sentence' + ${iterStat.index}" 
+					type="hidden" th:value="${picSent.eng}" />
+				<input th:id="'emp_sentence' + ${iterStat.index}" 
+					type="hidden" th:value="${picSent.emLoc}"/>
+				
+				<!-- 영어 예문 -->
+				<div class="eng">
+					<span th:id="'en_sentence' + ${iterStat.index}"></span>
+				</div>
+				<!-- 한국어 해석 -->
+				<div class="kor">
+					<span th:text="${picSent.kor}"></span>
+				</div>
+				<!-- 등록자 정보 (Mobile ver.) / 수정, 삭제 버튼, 좋아요 -->
+				<div class="owner pt-2"><div class="row no-gutters">
+					<div class="col-auto align-self-center d-md-none" 
+						th:with="personacon=${picSent.personacon}">
+						<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+					</div>
+					<div class="alias col-auto align-self-center px-2 d-md-none">
+						<span th:text="${picSent.personacon.alias}">예문 등록자 별명</span>
+					</div>
+					<div th:if="${picSent.jungleSentence != null}"
+						class="sentence-button-section col-md-auto col 
+						text-md-left text-right align-self-center">
+						<button th:id="'vo_sentence' + ${iterStat.index}" 
+							th:data-path="${picSent.jungleSentence?.jid}" 
+							onclick="playVoice('/pictionary/sentence/voice/',$(this).attr('data-path'),3,this)" 
+							class="btn btn-outline-pictionary btn-xs jsAction" title="예문 음성">
+							<i class="fa fa-headphones-alt"></i>
+						</button>
+					</div>
+				</div></div>
+				</div><div class="owner col-auto pl-1 d-none d-md-inline" 
+					th:with="personacon=${picSent.personacon}" align="center">
+					<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+					<div class="alias pt-1" th:text="${personacon.alias}">예문 등록자 별명</div>
+				</div>
+			</div>
+			
+		</div></div>
+	</div>
+</div>
+</div></div>

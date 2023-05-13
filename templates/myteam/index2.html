@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/myteam_layout2}">
+<head>
+<title>Index Of My Team - playvoice</title>	
+<link rel="stylesheet" th:href="@{/css/app/app_index.css}">
+<link rel="stylesheet" th:href="@{/css/app/myteam.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function(){
+	// [랭킹 리스트에 페이지 세팅]-------------------------------------------------------
+	var windowWidth = $(window).width();
+	$(".member-ranking-section").each(function(i, section) {
+		var rankerSize = $(section).find(".rank-slide li").length;
+		var rankingPageIndex = 1;
+		var rankingPageLength;
+		if(windowWidth < 1200) {
+			rankingPageLength = Math.ceil(rankerSize/3);
+		} else {
+			rankingPageLength = Math.ceil(rankerSize/4);
+		}
+		for(var i = 1; i <= rankingPageLength; i++) {
+			var page; 
+			if(i == 1) {
+				page = '<span class="rank-page active">' + i + '</span>';
+			}else{
+				page = '<span class="rank-page">' + i + '</span>';
+			}
+			$(section).find(".rank-page-list").append(page);
+		}
+	});
+	
+	// [랭킹 리스트 페이지 넘기기]-------------------------------------------------------
+	$(".next.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, 540);
+	});
+	$(".prev.ranking-slide").on("click",function(){
+		var section = $(this).closest(".member-ranking-section");
+		changePageNav(section, -540);
+	});
+	$(".ranking-list").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount,
+					   fingerData, allowPageScroll) {
+			var rankingSection = $(this).closest(".member-ranking-section");
+			if(direction == "left") {
+				rankingSection.find(".next.ranking-slide").click();
+			} else if(direction == "right") {
+				rankingSection.find(".prev.ranking-slide").click();
+			}
+		},
+		allowPageScroll:"auto"
+		//threshold:17 //슬라이드 길이
+	});
+	
+	
+	// [초대 링크 클립보드로 복사]-------------------------------------------------------
+	$("#copyInvitationLink").click(function(){
+		$("#clipLink").select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			$(".link-notice .completeLinkCopy").show();
+			$(".link-notice .noticeLinkCopy").hide();
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+	});
+	
+}); //end of ready
+
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+/**  
+ * 랭킹리스트 페이지 선택 이동<br>
+ * listSection : 슬라이드 영역과 페이지번호 영역을 포함하는 Element <br>
+ * moveLength : 슬라이드 영역이 이동할 거리. 오른쪽 방향이면 양수, 왼쪽 방향이면 음수 <br>
+ * <br>
+ * [listSection] 영역 내부의 클래스명 구조 <br>
+ * 슬라이딩으로 넘겨질 영역 : .ranking-list <br>
+ * 페이지번호 영역 : .rank-page-list 영역 내부 .rank-page <br>
+ * 선택되는 페이지번호 : 페이지번호 영역 + .active <br>
+ */
+function changePageNav(listSection, moveLength) {
+	if($(window).width() < 768) {
+		return;
+	}
+	var slideArea = $(listSection).find(".ranking-list");
+	slideArea.animate({
+		scrollLeft :slideArea.scrollLeft() + moveLength
+	}, 500);
+	var pageNavigations = $(listSection).find(".rank-page-list .rank-page");
+	var active = $(listSection).find(".rank-page-list .active");
+	
+	if(moveLength > 0){
+		if(pageNavigations.index(active) < pageNavigations.length - 1) {
+			active.next().addClass("active");
+			active.removeClass("active");
+		}
+	}else{
+		if(pageNavigations.index(active) > 0) {
+			active.prev().addClass("active");
+			active.removeClass("active");
+		}
+	}
+};
+
+
+</script>
+<style>
+@font-face { 
+	font-family: 'Chosunilbo_myungjo'; 
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_one@1.0/Chosunilbo_myungjo.woff') format('woff'); 
+	font-weight: normal; 
+	font-style: normal; 
+}
+</style>
+
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div class="row"><div class="col-lg-1"></div>
+	<div th:insert="~{/myteam/incl/myteam_menu2::topMenu}" class="col-lg-10"></div>
+</div>
+
+<div id="myTeamIndexSection" class="row"><div class="col-lg-1"></div>
+<div class="col-lg-10">
+
+<div id="introductionDiv" class="introduction-section index row no-gutters">
+	<div class="index-ment col-md-4 pr-md-2">
+		Playvoice that makes English be part of your life.<br class="d-md-none d-xl-block">
+		Enjoy with Playvoice Crew, creating your own study contents.
+	</div>
+	<div class="col-md-8 pt-md-0 pt-2">
+		<img src="/images/app/playsquare/reading_paper.png" class="level-img"
+			style="background: url('/images/app/mypage/cities/groupG1_index.jpg') no-repeat;
+			background-size: cover; background-position: center; width: 100%;">
+	</div>
+	<div class="col-md-7">
+		<div class="index-title">
+			<span>If you want to go far, go together.</span><br>
+			<small>Your mission is to <b>share and grow</b> 
+			English knowledge with your friends.</small>
+		</div>
+	</div>
+</div><!-- end of introductionDiv -->
+
+
+<div id="introDiv" class="index-container">
+
+<!-- -------------------------[1. My Trunk List]---------------------------- -->
+<div class="my-trunk-section member-ranking-section index-content-section">
+	<h3>
+		My <span class="index-text-color">Trunk</span>
+		<i class="fa fa-share-alt fa-fw" style="color: green;"></i><br>
+		<small>lazyhysong님의 트렁크 친구들을 만들고 친구들과 다양한 학습 활동을 해보세요</small>
+	</h3>
+	
+	<div class="ranking-bg">
+		<div class="trunk-cover-title text-right">
+			<a th:href="@{/myteam/trunk/add}" class="add-friend-button">
+				친구 추가 <i class="fa fa-child fa-lg"></i>
+			</a>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li>
+					<div class="ranker-cover member-G"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">리프1leafleaf</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/1.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Gold</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover member-P"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">lazyhysong</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/7.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Platinum</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover member-M"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">lazyhysong</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/4.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Play</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover member-S"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">lazyhysong</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/5.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Silver</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover member-M"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">lazyhysong</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/8.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Play</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover member-M"><div class="rank-style">
+						<div class="alias">
+							<div class="pb-1">lazyhysong</div>
+							<div class="info" title="lazyhysong님이 쌓은 최근 랭킹 포인트">
+								[최근 RP] <span class="num">564</span>
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								style="background: url('/images/app/profile/10.jpg');
+								background-size: cover; background-position: center;">
+						</div>
+						<div class="buttons row no-gutters">
+							<div class="col-md">Play</div>
+							<div class="col-md-auto">
+								<a title="trunk 목록에서 삭제"><i class="fa fa-times"></i></a>
+							</div>
+						</div>
+					</div></div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+				<li>
+					<div class="ranker-cover">
+						<div class="rank-style">
+							<div class="recoment-ment"></div>
+						</div>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		<div class="trunk-list-footer row no-gutters">
+			<div class="my-invitation-link col-md-8">
+				<div id="copyInvitationLink" class="invitation-link-cover row no-gutters">
+					<div class="link-section col align-self-center">
+						<span class="link-title">초대 링크</span>
+						<i class="fa fa-link fa-fw"></i>
+						<span>www.playvoice.org/lazyhysong</span>
+					</div>
+					<div class="link-notice col-auto align-self-center">
+						<input id="clipLink" type="text" value="www.playvoice.org/lazyhysong" 
+							class="hide-input"/>
+						<span class="noticeLinkCopy link-guide">클릭해서 복사</span>
+						<span class="completeLinkCopy link-guide" 
+							style="display: none;">복사됨</span>
+					</div>
+				</div>
+			</div>
+			<div class="rank-page-list col pb-2 pl-2 text-right" style="display: none;"></div>	
+		</div>
+	</div>
+	
+	<div class="invitation-link-guide">
+		<div class="guide-title">긴 여정을 함께 할 친구를 등록해 보세요</div>
+		<div class="guide-detail">
+			외국어 학습을 혼자 외롭게 하지 마세요.<br class="d-none d-md-block">
+			플레이보이스는 함께 경쟁하고 성장할 수 있는 학습 환경을 만들어 갑니다.<br>
+			<span class="alias">lazyhysong</span>님 전용 초대 링크로 가입한 회원들은 trunk 목록에 포함됩니다.
+		</div>
+	</div>
+</div>
+
+
+<!-- ------------------------[2. My Siblings List]-------------------------- -->
+<div class="my-trunk-section index-content-section">
+	<h3>
+		My <span class="index-text-color">Siblings</span>
+		<i class="fa fa-walking fa-fw" style="color: #9e610f;"></i><br>
+		<small>lazyhysong님과 여정을 함께 시작한 운명의 멤버들을 확인해 보세요</small>
+	</h3>
+	
+	
+	<div class="trunk-list-cover row no-gutters">
+		<!-- 2.1 시블링 리스트 -->
+		<div class="trunk-list-item col-lg-2 col-md-3 col-4">
+			<div class="trunk-item-cover">
+				<div class="personacon-section">
+					<!-- 퍼스나콘 -->
+					<div class="siblings-personacon-div" 
+						style="background-image: url('/images/app/profile/6.jpg');"></div>
+					<!-- 멤버 타입 -->
+					<div class="member-type-secion type-G" title="Gold Membership"></div>
+				</div>
+				<div class="trunk-info-section">
+					<!-- 별명 -->
+					<div class="alias">lazyhysong</div>
+					<!-- 오늘의 스터디 포인트 -->
+					<div class="todays-ranking-point" title="lazyhysong님이 쌓은 전체 랭킹 포인트">
+						<i class="fa fa-fire-alt"></i>
+						<span class="todays-title">TRP</span>
+						<span class="detail">56</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="trunk-list-item col-lg-2 col-md-3 col-4">
+			<div class="trunk-item-cover">
+				<div class="personacon-section">
+					<!-- 퍼스나콘 -->
+					<div class="siblings-personacon-div" 
+						style="background-image: url('/images/app/profile/7.jpg');"></div>
+					<div class="member-type-secion type-S" title="Silver Membership"></div>
+				</div>
+				<div class="trunk-info-section">
+					<!-- 별명 -->
+					<div class="alias">lazyhysong</div>
+					<!-- 오늘의 스터디 포인트 -->
+					<div class="todays-ranking-point" title="어제와 오늘 lazyhysong님이 쌓은 랭킹 포인트">
+						<i class="fa fa-fire-alt"></i>
+						<span class="todays-title">TRP</span>
+						<span class="detail">56</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="trunk-list-item col-lg-2 col-md-3 col-4">
+			<div class="trunk-item-cover">
+				<div class="personacon-section">
+					<!-- 퍼스나콘 -->
+					<div class="siblings-personacon-div" 
+						style="background-image: url('/images/app/profile/8.jpg');"></div>
+					<div class="member-type-secion type-P" title="Platinum Membership"></div>
+				</div>
+				<div class="trunk-info-section">
+					<!-- 별명 -->
+					<div class="alias my">lazyhysong</div>
+					<!-- 오늘의 스터디 포인트 -->
+					<div class="todays-ranking-point" title="어제와 오늘 lazyhysong님이 쌓은 랭킹 포인트">
+						<i class="fa fa-fire-alt"></i>
+						<span class="todays-title">TRP</span>
+						<span class="detail">56</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="trunk-list-item col-lg-2 col-md-3 col-4">
+			<div class="trunk-item-cover" th:with="alias=''">
+				<div class="personacon-section">
+					<!-- 퍼스나콘 -->
+					<div class="siblings-personacon-div" 
+						style="background-image: url('/images/app/profile/5.jpg');"></div>
+					<div class="member-type-secion type-M" title="Play Membership"></div>
+				</div>
+				<div class="trunk-info-section">
+					<!-- 별명 -->
+					<div class="alias my">lazyhysong</div>
+					<!-- 오늘의 스터디 포인트 -->
+					<div class="todays-ranking-point" title="어제와 오늘 lazyhysong님이 쌓은 랭킹 포인트">
+						<i class="fa fa-fire-alt"></i>
+						<span class="todays-title">TRP</span>
+						<span class="detail">56</span>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<div class="invitation-link-guide">
+		<div class="guide-title">여정을 함께 시작한 운명적인 멤버들을 확인하세요.</div>
+		<div class="guide-detail">
+			<!-- 비슷한 시기에 여정을 함께 출발한 회원들입니다.한 날 에피소드 1 여정을 출발한 멤버들입니다.<br>
+			플레이보이스는 함께 경쟁하고 성장할 수 있는 학습 환경을 만들어 갑니다.<br> -->
+			외국어 학습은 꾸준함만으로도 그 성과를 이뤄낼 수 있습니다. <br>
+			타인들의 비법에 곁눈질하지 마세요. 모국어를 비법 없이 배웠다는 걸 기억하세요.<br>
+			자신의 목표와 의지를 함께 하는 사람들에게 보여주세요.<br>
+		</div>
+	</div>
+	
+	
+</div>	
+
+
+
+<!-- -----------------------[3. Siblings PP Ranking]------------------------ -->
+<div class="member-ranking-section index-content-section">
+	<h3>
+		My Siblings<br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">플레이 포인트 랭커</span> Top 10</span>
+		<i class="fa fa-trophy fa-fw" style="color: #ffdb4d;"></i><br>
+		<small>My Siblings Play Point Ranker Top 10</small>
+	</h3>
+
+	<div class="ranking-bg">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="num: ${#numbers.sequence(1,10)}"><div class="ranker-cover">
+					<div class="rank-style">
+						<div th:text="(${num} < 10) ? ('0' + ${num}) : ${num}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>별명[[${num}]]</div>
+							<div class="info" title="좋아요 수">
+								<i class="fa fa-heart"></i> 3345
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div title="Gold Membership">Gold</div>
+							<div><i class="far fa-address-card fa-fw"></i></div>
+						</div>
+					</div>
+				</div></li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+
+</div>
+
+
+<!-- -----------------------[4. Siblings RP Ranking]------------------------ -->
+<div class="member-ranking-section index-content-section">
+	<h3>
+		My Siblings<br class="d-sm-none">
+		<span class="index-text-color"><span class="kor">랭킹 포인트 랭커</span> Top 10</span>
+		<i class="fa fa-trophy fa-fw" style="color: #ffdb4d;"></i><br>
+		<small>My Siblings Ranking Point Ranker Top 10</small>
+	</h3>
+
+	<div class="ranking-bg">
+		<div class="ranking-date text-md-right text-center">
+			<i class="far fa-clock fa-fw"></i> Updated 
+			<span class="date">16 June</span>
+		</div>
+		<div id="rankingSwipe" class="ranking-list">
+			<ul class="rank-slide">
+				<li th:each="num: ${#numbers.sequence(1,10)}"><div class="ranker-cover">
+					<div class="rank-style">
+						<div th:text="(${num} < 10) ? ('0' + ${num}) : ${num}" 
+							class="rank-num-cover">01</div>
+						<div class="alias">
+							<div>별명[[${num}]]</div>
+							<div class="info" title="좋아요 수">
+								<i class="fa fa-heart"></i> 3345
+							</div>
+						</div>	
+						<div class="personacon">
+							<img src="/images/app/member/profile_paper.png" 
+								class="profile-default">
+						</div>
+						<div class="buttons">
+							<div title="Gold Membership">Gold</div>
+							<div><i class="far fa-address-card fa-fw"></i></div>
+						</div>
+					</div>
+				</div></li>
+			</ul>
+		</div>
+		<div class="direction-button">
+			<span class="prev ranking-slide">
+				<i class="fa fa-angle-left fa-4x fa-fw"></i>
+			</span>
+			<span class="next ranking-slide">
+				<i class="fa fa-angle-right fa-4x fa-fw"></i>
+			</span>
+		</div>
+		
+		<div class="rank-page-list pb-2 text-right"></div>	
+	</div>
+
+</div>
+
+
+
+
+</div><!-- end of introDiv -->
+
+</div></div><!-- end of myTeamIndexSection -->
+
+
+</section>
+
+</html>

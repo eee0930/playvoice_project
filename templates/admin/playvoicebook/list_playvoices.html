@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Sentence</title>
+	<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/sentencebook.js}"></script>
+	
+<script th:inline="javascript">
+
+$(document).ready(function() {
+	//[플레이보이스 목록 조회]----------------------------------------------------------
+	$('.stageDetail').click(function(e){
+		$('#playvoiceListSection').empty();
+
+		var stageId = $(this).attr("data-stageId");
+		
+		var url=[[@{'/admin/playvoiceBook/'}]]+stageId;
+		//alert("url="+url);
+		
+		var scrollPosition = $('html, body').offset().top;			
+		$("html, body").animate({
+			scrollTop: scrollPosition
+		}, 0);
+
+		$('#playvoiceListSection').load(url);
+	});
+	
+})//end of reday
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div id="playvoiceListSection"></div>
+
+<div id="stageListSection">
+	<h3 th:text="${tableTitle}">스테이지 목록(Stage List)</h3> 
+	
+	<!--/* 1. 스테이지 목록 Table  */-->
+	<div id="stageListDiv">
+		<!-- table -->
+		<div th:with="result=${stageList}">
+			<div class="text-left"><i class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+			<table class="table table-striped table-sm table-bordered table-hover text-center resultWrapper snip-table">
+				<thead>
+				<tr class="thead">
+					<th style="width: 70px;"><a href="javascript:void(0)" class="thlink">번호</a></th>
+					<th style="width: 70px;"><a href="javascript:void(0)" class="thlink" data-value='stageId'>stageId</a><span class="sortMark">▼</span></th>
+					<th><a href="javascript:void(0)" class="thlink" data-value='eng'>대표문장</a><span class="sortMark">▼</span></th>
+					<th style="width: 250px;">학습목표</th>
+					<th style="width: 70px;">levelId</th>
+					<th style="width: 90px;"><a href="javascript:void(0)" class="thlink" data-value='regDate'>등록일</a><span class="sortMark" data-orderBy="default">▼</span></th>
+				</tr></thead>
+				<!--/* 1.결과 목록 */-->
+				<tr th:each="stage, status : ${stageList}">
+					<!-- <td th:text="${(status.count) + ((pageMaker.currentPageNum -1) * 20)} "></td> -->
+					<td th:text="${#lists.size(stageList)-(status.index) } ">
+					</td>
+					
+					<td th:text="${stage.stageId}">stageId</td>
+					<td class="text-left">
+						<a href="javascript:void(0)" class="stageDetail" th:text="${stage.rep}" th:data-stageId="${stage.stageId}"></a></td>
+					<td th:text="${stage.objective}" class="t-reference" >Objective</td>
+					<td th:text="${stage.level.lid}">levelId</td>
+					<td th:text="${#dates.format(stage.regDate, 'yyyy-MM-dd')}">날짜</td>
+				</tr>
+			</table>
+		</div>
+		<!--/* 1.paging */-->
+		<nav class="row my-3">
+			<div class="col-12">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item" th:if="${pageMaker.prevPage}">
+						<a class="page-link" th:href="@{/admin/playvoiceBook/{levelIndex}/stage/list(levelIndex=${pageMaker.prevPage.pageNumber} + 1)}">PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:each="p:${pageMaker.pageList}"
+						th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+						<!--/* <a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a> */-->
+						<a class="page-link" th:href="@{/admin/playvoiceBook/{levelIndex}/stage/list(levelIndex=${p.pageNumber} +1)}">[[${p.pageNumber}+1]]</a>
+					</li>
+					<li class="page-item" th:if="${pageMaker.nextPage}">
+						<!--/* <a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a> */-->
+						<a class="page-link" th:href="@{/admin/playvoiceBook/{levelIndex}/stage/list(levelIndex=${pageMaker.nextPage.pageNumber})}">NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+					</li>
+				</ul>
+			</div>
+		</nav>
+	</div>
+	
+</div> <!--/* end of stageListSection */-->
+	
+<div class="text-right" style="color:red;">
+	source :: list_playvoices.html	
+</div>	
+	
+</section><!-- end of section -->
+

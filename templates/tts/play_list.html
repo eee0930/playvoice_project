@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsrecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout}">
+<head>
+<title>나의 앨범 (Playvoice TTS) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '나의 앨범 (Playvoice TTS) - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 TTS는 영어 전문 TTS MP3 파일 변환 서비스입니다. 플레이보이스에는
+	수십명의 다양한 성우들의 목소리가 있으며, 자신이 원하는 문장들을 고품질 음성 파일로 쉽고 간편하게 만들 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = 'TTS, MP3, 영어 듣기, 받아쓰기, 딕테이션, 스피킹 '"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+<script src="/js/app/playvoice_webaudio.js"></script>
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+<script th:inline="javascript">
+$(document).ready(function(){
+	var audioJs = webAudioJs(playEnded);
+
+	// [앨범 수정 드롭다운 열기 (헤더 버튼)]------------------------------------------------
+	$("#editAlbumInfoBtn").click(function(){
+		var menu = $("#editAlbumInfoMenu");
+		if(menu.is(":visible")) {
+			menu.hide();
+		} else {
+			menu.fadeIn(200);
+		}
+	});
+	$(".closeAlbumInfoMenu").click(function(){
+		$("#editAlbumInfoMenu").hide();
+	});
+	
+	// [플레이 컨텐츠 화면 메뉴 이동]-----------------------------------------------------
+	$(".moveAlbumDiv").click(function(){
+		var target = $(this).attr("data-target");
+		$(".moveAlbumDiv").removeClass("active");
+		$(this).addClass("active");
+		$(".my-album-content-div").hide();
+		$("#myAlbum" + target + "Div").show();
+	});
+	
+	// [재생. 한 번 재생한 파일은 메모리에 저장]---------------------------------------------
+	var textOpen = false; // 재생하는 문장을 펼칠 것인지 여부(이전 재생 문장의 상태를 이어받음)
+	var voices = {}; // Map<path(음성 경로): byte[] String(바이트매열문자열화)>
+	$('#playBtn').on('click', function(){
+		var paths = Object.keys(voices);
+		var pathToPlay = $('#playingPath').val();
+		var indexToPlay = $('#myAlbumListPlayerDiv .path')
+							.index($('#myAlbumListPlayerDiv .path[value="'
+								+ pathToPlay + '"]'));
+		var vid = $('#myAlbumListPlayerDiv .vid:eq(' + indexToPlay + ')').val();
+		
+		
+		// 재생할 문장을 플레이 리스트에서 활성화 표시
+		var $list = $('#myAlbumListPlayerDiv .list-player-cover');
+		var $playTarget = $list.eq(indexToPlay);
+		var $others = $list.not($playTarget);
+		
+		// 재생할 문장을 플레이어에 교체하여 표시
+		$('#myAlbumPlayerDiv .tts-player-cover')
+			.html($playTarget.html());
+		
+		
+		$others.removeClass('active open');
+		$playTarget.addClass('active');
+		if(textOpen){
+			$playTarget.addClass('open');
+		}
+		// 재생할 문장이 초기 헤더+메뉴위치보다 30px 아래에 있으면 스크롤
+		var headerHeight = window.innerHeight * 0.25 + 40;
+		if($playTarget.offset().top > headerHeight + 30){
+			window.scrollTo(window.scrollX, $playTarget.offset().top - headerHeight);
+		}
+		// 오디오 스트림을 메모리에 저장
+		if(paths.indexOf(pathToPlay) == -1){
+			try {
+				// 기기 내에서 파일을 찾아서 바이트정보를 메모리에 저장---------------------
+				voices[pathToPlay] = AndroidJS.getByteString(pathToPlay, vid);
+				//-------------------------------------------------------
+			} catch (e) {
+				alert('파일이 삭제되거나 읽을 수 없습니다.');
+				return;
+			}
+		}
+		
+		// 재생 컨트롤러에 성우 정보 변경
+		var actorName = $playTarget.find('.actor').val();
+		$('#myAlbumAudioControlSection .actor-image img')
+			.attr('src','/images/common/actors/' + actorName + '.jpg');
+		$('#myAlbumAudioControlSection .actor-name').text(actorName);
+		
+		// 메모리에 저장된 오디오 재생-----------------------------------------------
+		var repeatNum = $("#repeatNum").find(".option.selected").attr("data-count");
+		audioJs.playVoiceByteStr(voices[pathToPlay], repeatNum);
+		//-----------------------------------------------------------------
+		$('#playBtn').hide();
+		$('#pauseBtn').show();
+	});
+	
+	// [일시 정지]-----------------------------------------------------------------
+	$('#pauseBtn').on('click', function(){
+		//--------------
+		audioJs.pause();
+		//--------------
+		$('#playBtn').show();
+		$('#pauseBtn').hide();
+	});
+	
+	// [선택한 문장을 재생]-----------------------------------------------------------
+	$('#myAlbumListPlayerDiv .list-player-cover').on('click', function(){
+		// 활성화된 문장을 또 누르면 문장 확대
+		if($(this).is('.active')){
+			textOpen = !textOpen;
+			$(this).toggleClass('open');
+		}else{
+			// 이전의 재생을 멈춤
+			//-------------
+			audioJs.stop();
+			//-------------
+			// 재생 타겟을 교체 후 재생버튼 클릭
+			$('#playingPath').val($(this).find('.path').val());
+			$('#playBtn').trigger('click');
+		}
+	});
+	
+	// [플레이 횟수 선택]-------------------------------------------------------------
+	$("#playCountOption .option").click(function(){
+		var repeatCount = $(this).attr("data-count");
+		var countView = $("#setPlayCountBtn");
+		$("#playCountOption .option").removeClass("selected");
+		$(this).addClass("selected");
+		
+		countView.text(repeatCount);
+		$("#playCountOption").hide();
+		
+		showControlMsg(repeatCount + "회 반복 재생");
+	});
+	
+	// [플레이어 : 앨범 전체 반복 재생]---------------------------------------------------
+	$("#replayBtn").click(function(){
+		if($(this).is(".active")) {
+			$(this).removeClass("active");
+			showControlMsg("앨범 반복 재생 취소");
+		} else {
+			$(this).addClass("active");
+			showControlMsg("앨범 전체 반복 재생");
+		}
+		
+		
+	});
+	
+	// [플레이 리스트: 예문 클릭 시 예문 전체 보기]--------------------------------------------
+	$("#myAlbumPlayListDiv .eng-text").click(function(){
+		var parentDiv = $(this).closest(".list-sentences-cover");
+		if(parentDiv.is(".active")) {
+			parentDiv.removeClass("active");
+		} else {
+			parentDiv.addClass("active");
+		}
+	});
+	
+	var longtouchTimer;
+	$(document)
+	// [플레이 리스트 : 삭제 모드 활성화]--------------------------------------------------
+	.on('touchstart','#myAlbumPlayListDiv .list-player-sentence div:not(.move-button-section)', function(e){
+		if($(this).closest('.deleteMode,.orderMode').length == 0){
+			e.stopPropagation();
+			var $checkbox = $(this).closest('.list-player-sentence').find(':checkbox');
+			longtouchTimer = setTimeout(function(){
+				$("header, .my-album-audio-control-section").hide();
+				$("#myAlbumContentSection").addClass("deleteMode");
+				$checkbox.prop('checked', !$checkbox.prop('checked'))
+						 .trigger('change');
+			}, 300);
+		}
+	})
+	// [플레이 리스트 : 순서 변경 모드 활성화]-----------------------------------------------
+	.on('touchstart','#myAlbumPlayListDiv .move-button-section', function(e){
+		if($(this).closest('.deleteMode,.orderMode').length == 0){
+			e.stopPropagation();
+			longtouchTimer = setTimeout(function(){
+				$("header, .my-album-audio-control-section").hide();
+				$("#myAlbumContentSection").addClass("orderMode");
+				$('html,body').addClass("scrollBlock");
+			}, 300);
+		}
+	})
+	// [롱터치 취소]----------------------------------------------------------------
+	.on('touchmove touchend', '#myAlbumPlayListDiv .list-player-sentence div', function(e){
+		clearTimeout(longtouchTimer);
+	});
+	// [기기의 기본 우클릭 메뉴를 막는다]---------------------------------------------------
+	$('#myAlbumPlayListDiv .list-player-sentence').on('contextmenu', function(e){
+		e.preventDefault();
+	});
+	
+	// [수정 컨트롤러 취소]-----------------------------------------------------------
+	$('.cancelEdit').on('click', function(){
+		$("#myAlbumPlayListDiv .del-check").prop('checked', false).trigger('change');
+		$("header, .my-album-audio-control-section").show();
+		$('#myAlbumContentSection').removeClass('deleteMode orderMode');
+		$('html,body').removeClass("scrollBlock");
+		//-------------
+		restoreOrder();
+		//-------------
+	})
+	
+	// [삭제할 예문 체크박스 선택시 컨트롤러에 개수 표시]----------------------------------------
+	$("#myAlbumPlayListDiv .del-check").on("change", function(){
+		var selected = $("#myAlbumPlayListDiv .del-check:checked");
+		$("#deleteFileController .select-count").find(".num").text(selected.length);
+	});
+	
+	// [순서 변경 대상 예문을 선택, 이동]--------------------------------------------------
+	var prevIndex, pad;
+	$(document).on('touchstart touchmove touchend', '.orderMode .list-sentences-cover', function(e){
+		switch(e.type){
+		case 'touchstart':
+			// 이동할 예문을 선택
+			prevIndex = $(this).index();
+			$(this).after('<div class="empty list-sentences-cover empty-section"></div>');
+			$(this).addClass('selected');
+			$('html').addClass('modalOpen');
+			pad = e.touches[0].clientY - $(this).offset().top;
+			break;
+		case 'touchmove':
+			// 예문을 손가락 따라 이동
+			var y = e.touches[0].clientY;
+			$(this).offset({top:y - pad});
+			
+			// 빈 칸 이동
+			var $empty = $('.orderMode .list-sentences-cover.empty');
+			if(y > $empty.offset().top + $empty.height() && $empty.next().length > 0){
+				// 아래로
+				$empty.next().after($empty);
+			}else if(y < $empty.offset().top && $empty.prev().length > 0){
+				// 위로
+				$empty.prev().before($empty);
+			}
+			break;
+		case 'touchend':
+			// 예문을 이동 완료
+			$('.orderMode .list-sentences-cover.empty').replaceWith($(this));
+			
+			// 이전과 위치가 변경됐을 경우
+			if($(this).index() != prevIndex){
+				var $prev = $(this).prev(), $next = $(this).next(),
+					$order = $(this).find('.orderNum');
+				
+				$order.attr('data-org', $order.val());
+				// 첫 순서로 이동
+				if($(this).index() == 0){
+					var nextOrder = Number($(this).next().find('.orderNum').val());
+					$(this).find('.orderNum').val(nextOrder / 2);
+				// 이웃 노드들 사이에 끼워져 이동
+				}else if($(this).next().length > 0){
+					var prevOrder = Number($(this).prev().find('.orderNum').val()),
+						nextOrder = Number($(this).next().find('.orderNum').val());
+					$(this).find('.orderNum').val((prevOrder + nextOrder) / 2);
+				// 마지막 순서로 이동
+				}else{
+					var prevOrder = Number($(this).prev().find('.orderNum').val());
+					$(this).find('.orderNum').val(prevOrder + 10000000);
+				}
+			}
+			
+			$(this).removeAttr('style').removeClass('selected');
+			$('html').removeClass('modalOpen');
+			break;
+		}
+	});
+	
+	// [예문 삭제 완료]--------------------------------------------------------------
+	$('#deleteFileController .submitEdit').on('click', function(){
+		var $sentences = $('#myAlbumPlayListDiv :checked').parents('.list-player-sentence');
+		var data = [];
+		$sentences.each(function(i, sentence) {
+			data.push(Number($(sentence).find('.vid').val()));
+		});
+		//---------------------------------------------------
+		deletePlayList({cloudVoiceIdList: data}, $sentences);
+		//---------------------------------------------------
+		
+		$("header, .my-album-audio-control-section").show();
+		$('#myAlbumContentSection').removeClass('deleteMode orderMode');
+	});
+	
+	// [예문 이동 완료]--------------------------------------------------------------
+	$('#editOrderFileController .submitEdit').on('click', function(){
+		var $sentences = $('#myAlbumPlayListDiv .list-sentences-cover');
+		var data = [], dataEmpty = true;
+		$sentences.filter(function(i, elem){
+			return ($(elem).find('.orderNum').attr('data-org') != null
+					&& $(elem).find('.orderNum').attr('data-org') != $(elem).find('.orderNum').val());
+		}).each(function(i, elem) {
+			data.push({vid: Number($(elem).find('.vid').val())
+					 , orderNum: Number($(elem).find('.orderNum').val())});
+		})
+		
+		if(data.length > 0){
+			//-----------------------------------
+			editPlayList({cloudVoiceList: data});
+			//-----------------------------------
+		}
+		
+		$("header, .my-album-audio-control-section").show();
+		$('#myAlbumContentSection').removeClass('deleteMode orderMode');
+	});
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*					editing sentence Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 컨트롤러 작동시 이벤트 메제지 보여주기
+ */
+function showControlMsg(msg) {
+	var modal = $("#controlMsgModal");
+	modal.find(".msg-section").html(msg);
+	
+	modal.fadeIn(200);
+	setTimeout(function(){
+		$("#controlMsgModal").fadeOut(400);
+	}, 800);
+}
+
+// 순차 재생 활성화된 상태면 다음 파일 재생
+function playEnded(){
+	var $audios = $('#myAlbumListPlayerDiv .path');
+	var $currentAudio = $('#myAlbumListPlayerDiv .path[value="'
+						+ $('#playingPath').val() + '"]');
+	var currentIndex = $audios.index($currentAudio);
+	if($audios.index($currentAudio) < $audios.length - 1){
+		$('#playingPath').val($audios.eq(currentIndex + 1).val());
+		$('#playBtn').trigger('click');
+	}else{
+		$('#playBtn').show();
+		$('#pauseBtn').hide();
+	}
+}
+
+/**
+ * 삭제된 문장들을 DOM에서 제거한다.
+ * @author LGM
+ */
+function successDeletePlayList($doms){
+	$doms.each(function(i, elem) {
+		var vid = $(elem).find('.vid').val();
+		$('.my-album-content-div .vid[value="' + vid + '"]')
+			.closest('.list-sentences-cover,.list-player-cover').remove();
+	});
+	//--------
+	reorder();
+	//--------
+}
+
+/**
+ * 순서가 변경된 문장들을 플레이어와 동기화.
+ * @author LGM
+ */
+function successEditPlayList(){
+	$('#myAlbumPlayListDiv .list-sentences-cover .orderNum').removeAttr('data-org');
+	$('#myAlbumPlayListDiv .list-sentences-cover').each(function(i, elem) {
+		var vid = $(elem).find('.vid').val();
+		$('#myAlbumListPlayerDiv .list-player-cover .vid[value="' + vid + '"]')
+		.appendTo($('#myAlbumListPlayerDiv'));
+	});
+	//--------
+	reorder();
+	//--------
+}
+
+/**
+ * 문장 순서 변경 취소 및 실패로 원래대로 순서를 되돌린다.
+ * @author LGM
+ */
+function restoreOrder(){
+	// 원래 순서로 재 정렬
+	var $orderNums = $('#myAlbumContentSection .orderNum[data-org]');
+	for(var i=0; i<$orderNums.length; i++){
+		var org = $orderNums.eq(i).attr('data-org');
+		$orderNums.eq(i).val(org).removeAttr('data-org');
+	}
+	var sorted = $('#myAlbumContentSection .list-sentences-cover').get().sort(function(a, b) {
+		return Number($(a).find('.orderNum').val())
+				- Number($(b).find('.orderNum').val());
+	});
+	$('#myAlbumContentSection .list-sentences-cover-back').empty().append(sorted);	
+	$('html,body').removeClass("scrollBlock");
+}
+
+/**
+ * 플레이어와 문장 목록에서 문장들 순서에 맞게 번호를 다시 매긴다.
+ * @author LGM
+ */
+function reorder(){
+	$('#myAlbumPlayListDiv .list-sentences-cover .count').each(function(i, elem) {
+		$(elem).text(i + 1);
+	});
+	$('#myAlbumListPlayerDiv .list-player-cover .num').each(function(i, elem) {
+		$(elem).text(i + 1);
+	})
+	$('html,body').removeClass("scrollBlock");
+}
+</script>
+
+</head>
+
+
+<section layout:fragment="content" class="playvoice-tts-player-section mobile-container-mode"
+	th:with="memberType = ${session?.userContainer}? 
+	${session?.userContainer?.personacon?.memberType}:'M'">
+	
+<!-- -----------------------------[1. 앨범 정보]------------------------------- -->
+<header id="playvoiceMobileHeader" class="playvocie-mobile-header-position">
+	
+	<!-- [1.1 player header] -->
+	<div th:replace="~{/tts/incl/tts_header::player_header}"></div>
+		
+	<!-- [1.2 앨범 정보] -->
+	<div class="mobile-index-background-section album-info-cover">
+		<!-- 앨범 타이틀 -->
+		<span class="album-title-cover" th:text="${album.title}"></span>
+	</div>
+	<div id="editAlbumInfoMenu" style="display: none;">
+		<div class="closeAlbumInfoMenu edit-album-info-back"></div>
+		<ul class="edit-album-info-cover">
+			<li><i class="far fa-image fa-fw"></i> 커버 이미지 수정</li>
+			<li><i class="fa fa-heading fa-fw"></i> 앨범 타이틀 수정</li>
+			<li><i class="far fa-sticky-note fa-fw"></i> 앨범 설명 수정</li>
+		</ul>
+	</div>
+</header><!-- end of albumHeaderSection -->	
+
+
+<!-- ---------------------------[2. 앨범 컨텐츠 영역]----------------------------- -->	
+<div id="myAlbumContentSection" class="tts-my-album-info-section">
+	<!-- [2.1 메뉴] -->
+	<div id="myAlbumMenuDiv" class="my-album-menu-div divide-line2 row no-gutters">
+		<div class="moveAlbumDiv menu-cover col-auto" 
+			data-target="Information"><i class="fa fa-compact-disc fa-fw"></i> 앨범 정보</div>
+		<div class="moveAlbumDiv menu-cover col-auto active" 
+			data-target="ListPlayer"><i class="fa fa-play-circle fa-fw"></i> 플레이어</div>
+		<div class="moveAlbumDiv menu-cover col-auto" 
+			data-target="PlayList"><i class="fa fa-bars fa-fw"></i> 플레이 리스트</div>
+	</div><!-- end of myAlbumMenuDiv -->
+
+	<div class="tts-my-album-player-section">
+		<!-- [2.2 앨범 정보] -->
+		<div id="myAlbumInformationDiv" class="my-album-content-div" 
+			style="display: none;">
+			<!-- 발매일 -->
+			<span class="date"><i class="fa fa-calendar-alt"></i> [[${album.regDate}]]</span>
+			<!-- 수록 파일 수 -->
+			<span class="file-size"><i class="fa fa-compact-disc"></i> [[${album.cloudVoiceList.size()}]]</span>
+		</div><!-- end of myAlbumInfoDiv -->
+	
+		<!-- [2.3 리스트 플레이어] -->
+		<div th:replace="~{/tts/list_player_incl::player}"></div>
+		
+		<!-- [2.4 플레이 리스트] -->
+		<div th:replace="~{/tts/list_sentences_incl::list}"></div>
+		
+		<!-- [오디오 플레이어] -->
+		<!--/* <div th:replace="~{/tts/audio_player_incl::player}"></div> */-->
+	</div>
+</div><!-- end of myAlbumContentSection -->
+
+
+
+<!-- ---------------------------[3. 오디오 컨트롤]------------------------------- -->
+<div id="myAlbumAudioControlSection" class="my-album-audio-control-section"
+	th:with="initVoice = ${album.cloudVoiceList[0]}">
+	<div class="my-album-audio-control-cover row no-gutters">
+		<!-- [3.1 성우] -->
+		<div class="actor-section col-auto align-self-center"
+			th:with="actor=${initVoice?.voiceActor}">
+			<div class="actor-image">
+				<img th:src="@{/images/common/actors/{actor}.jpg(actor=${actor.name})}">
+			</div>
+			<div class="actor-name" th:text="${actor.name}">Erica</div>
+		</div>
+		<!-- [3.2 반복 재생 횟 수] -->
+		<div class="replay-count-section col-auto align-self-center">
+			<button id="setPlayCountBtn" type="button" class="btn btn-play">3</button>
+			<div id="playCountOption" style="display: none;">
+				<div class="closeCountOption play-count-option-back"></div>
+				<div class="play-count-option-cover">
+					<ul id="repeatNum" class="play-count-option">
+						<li class="option" data-count="1">1</li>
+						<li class="option" data-count="2">2</li>
+						<li class="selected option" data-count="3">3</li>
+						<li class="option" data-count="5">5</li>
+						<li class="option" data-count="10">10</li>
+					</ul>
+				</div>
+			</div>
+		</div>
+		<!-- [3.3 앨범 다시 재생] -->
+		<div class="redo-control-section col-auto align-self-center">
+			<button id="replayBtn" class="btn btn-play" type="button">
+				<i class="fa fa-redo-alt"></i><span class="icon-text">all</span>
+			</button>
+		</div>
+		<div class="col"></div>
+		<!-- [3.3 재생, 일시정지] -->
+		<div class="play-control-section col-auto align-self-center">
+			<!-- 재생 파일 경로 -->
+			<input type="hidden" id="playingPath" th:value="${initVoice.path}">
+			<!-- 재생 -->
+			<button id="playBtn" class="btn btn-play" type="button">
+				<i class="fa fa-play"></i>
+			</button>
+			<!-- 일시정지 -->
+			<button id="pauseBtn" class="btn btn-play" type="button" style="display: none;">
+				<i class="fa fa-pause"></i>
+			</button>
+		</div>
+		<div class="col-auto"></div>
+	</div>
+</div><!-- end of myAlbumAudioControlSection -->
+
+
+</section><!-- end of content -->
+</html>

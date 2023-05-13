@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="menu">
+<div id="topMenuSection">
+<!--/***********************************************************************/-->
+<!--/* 				  		 	  menu PC ver. 	 						   */--> 
+<!--/***********************************************************************/-->
+<div class="menu-cover d-none d-lg-block"><div class="row no-gutters menu">
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/mypage}" class="menu-item home">
+			<i class="fa fa-home fa-fw"></i>
+			<br class="d-sm-none"><span>HOME</span>
+		</a>
+	</div>
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/mypage/study/today}" class="menu-item pointInfo">
+			<i class="fa fa-comment-dollar fa-fw"></i>
+			<br class="d-sm-none"><span>Account</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/mypage/study/today}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-chalkboard-teacher"></i>오늘의 학습</div>
+			</div>
+			<div th:href="@{/mypage/study/mypoint}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-comment-dollar"></i>플레이 어카운트</div>
+			</div>
+		</div>
+	</div>
+	<div class="menu-b big-wide col-md-auto col text-center align-self-center">
+		<a th:href="@{/mypage/journey/study}" class="menu-item passportInfo">
+			<i class="fa fa-passport fa-fw"></i>
+			<br class="d-sm-none"><span>Journey</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/mypage/journey/study}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-plane"></i>학습 여정</div>
+			</div>
+			<div th:href="@{/mypage/journey/log}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fas fa-pen-nib"></i>여정 로그</div>
+			</div>
+			<div th:href="@{/mypage/passport}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-passport"></i>학습 여권</div>
+			</div>
+			<div th:href="@{/mypage/journey/welcome}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-compass"></i>입국 도시</div>
+			</div>
+		</div>
+	</div>
+	<div class="menu-b big-wide col-md-auto col text-center align-self-center">
+		<a th:href="@{/mypage/profile/view}" class="menu-item profile">
+			<i class="far fa-id-card fa-fw"></i>
+			<br class="d-sm-none"><span>Profile</span>
+		</a>
+		<div class="second-menu row no-gutters">
+			<div th:href="@{/mypage/profile/view}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-universal-access"></i>프로필 정보</div>
+			</div>
+			<div th:href="@{/mypage/profile/edit}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-edit"></i>프로필 수정</div>
+			</div>
+			<div th:href="@{/mypage/member/edit}" class="sub-menu col"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-cog"></i>정보 수정</div>
+			</div>
+			<div onclick="displayMemberProfile()" class="sub-menu col">
+				<div><i class="fa fa-user-astronaut"></i>프로필 팝업</div>
+			</div>
+		</div>
+	</div>
+	<div class="menu-b col-md-auto col text-center align-self-center">
+		<a th:href="@{/mypage/payment/list}" class="menu-item purchase">
+			<i class="far fa-credit-card fa-fw"></i>
+			<br class="d-sm-none"><span>Purchase</span>
+		</a>
+	</div>
+	<div class="menu-b wide col-md-auto col text-center align-self-center">
+		<a th:href="@{/qna/app/list}" class="menu-item contact">
+			<i class="fa fa-bell fa-fw"></i>
+			<br class="d-sm-none"><span>Contact Us</span>
+		</a>
+		<div class="second-menu row no-gutters"><div class="col"></div>
+			<div th:href="@{/qna/app/list}" class="sub-menu col-auto"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-mobile-alt"></i>앱 서비스 문의</div>
+			</div>
+			<div th:href="@{/qna/order/list}" class="sub-menu col-auto"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fas fa-credit-card"></i>주문, 결제 문의</div>
+			</div>
+			<div th:href="@{/qna/report/list}" class="sub-menu col-auto"
+		 		onclick="location.href=$(this).attr('href')">
+				<div><i class="fa fa-flag-checkered"></i>신고 문의</div>
+			</div>
+		<div class="col"></div></div>
+	</div>
+	<div class="col text-right d-none d-xl-inline menu-flages align-self-center">
+		<img src="/images/common/flags/PT.png">
+		<img src="/images/common/flags/CA.png">
+		<img src="/images/common/flags/FR.png">
+		<img src="/images/common/flags/AU.png">
+		<img src="/images/common/flags/PH.png">
+	</div>
+</div></div>
+
+</div><!-- end of menuSection -->
+
+
+<script th:inline="javascript" type="text/javascript">
+// [마이페이지 좌측 메뉴가 로드되면 활성화된 좌측 메뉴에 따라 상단 메뉴 활성화]----------------------------
+$("#menuContainer").ready(function() {
+	const $leftMenuGroup = $("#myPageMenuSection .mypage-menu li.active").prevAll(".title");
+	if($leftMenuGroup.length == 0){
+		$("#topMenuSection a.home").addClass("menu-active");
+	}else{
+		/* 상단메뉴 PC 활성화 */
+		$("#topMenuSection a." + $leftMenuGroup.attr('data-group')).addClass("menu-active");
+		/* 상단메뉴 Mobile 활성화 */
+		$("#mobileMenuSection a[href='" + location.pathname + "']").closest(".menu-dependent-section").addClass("active");
+	}
+});
+
+</script>
+</div>
+
+
+
+
+
+<!--/***********************************************************************/-->
+<!--/* 				   	  menu Tablet & Mobile ver. 	 				   */--> 
+<!--/***********************************************************************/-->
+<!-- -------------------------[1. MyPage Index]----------------------------- -->
+<div th:fragment="menuMyPage">
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [서브메뉴 열기 (mobile ver.)]-------------------------------------------------
+	$(".secondMenuToggle").click(function(e){
+		var secondMenu = $(this).find(".secondMenuMobile");
+		if(secondMenu.is(":visible")) {
+			$(this).removeClass("subMenuActive");
+			secondMenu.slideUp(200);
+		} else {
+			$(".secondMenuToggle").removeClass("subMenuActive");
+			$(this).addClass("subMenuActive");
+			$(".secondMenuMobile").hide();
+			secondMenu.slideDown(200);
+		}
+	});
+	$(document).mouseup(function (e){
+		var container = $(".secondMenuMobile, .secondMenuToggle");
+	    if(container.has(e.target).length == 0){
+	    	container.removeClass("subMenuActive");
+	    	$(".secondMenuMobile").hide();
+		}
+	});
+	
+	// [마이페이지 링크 메뉴 클릭 처리]----------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	// [현재 선택된 마이페이지 네비게이션 메뉴에 menu-active 적용]------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.mypageTab').addClass('menu-active');
+		}
+	});
+});
+</script>
+<div id="mobileMenuSection" class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/mypage}" data-reg="/mypage$" 
+			class="mypageTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span>HOME</span>
+		</a>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center" 
+		data-tab="study">
+		<div class="mypageTab menu-item study" 
+			data-reg="/mypage/study">
+			<i class="fa fa-comment-dollar fa-fw"></i><br>
+			<span>나의 계좌<i class="fa fa-caret-down"></i></span>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/mypage/study/today}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-chalkboard-teacher"></i>오늘의 학습</div>
+			</div>
+			<div th:href="@{/mypage/study/mypoint}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-cube"></i>플레이 어카운트</div>
+			</div>
+		</div>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center" 
+		data-tab="study">
+		<div class="mypageTab menu-item study" 
+			data-reg="/mypage/journey|/mypage/passport">
+			<i class="fa fa-plane fa-fw"></i><br>
+			<span>나의 여정<i class="fa fa-caret-down"></i></span>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/mypage/journey/study}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-plane"></i>학습 여정</div>
+			</div>
+			<div th:href="@{/mypage/journey/log}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-pen-nib"></i>여정 로그</div>
+			</div>
+			<div th:href="@{/mypage/passport}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-passport fa-fw"></i>여권</div>
+			</div>
+			<div th:href="@{/mypage/journey/welcome}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-compass fa-fw"></i>입국 도시</div>
+			</div>
+		</div>
+	</div>
+	<div class="secondMenuToggle mainTab menu-b col text-center align-self-center" 
+		data-tab="study">
+		<div class="mypageTab menu-item study" 
+			data-reg="/mypage/profile|/mypage/member/edit">
+			<i class="fa fa-universal-access fa-fw"></i><br>
+			<span>프로필<i class="fa fa-caret-down"></i></span>
+		</div>
+		<div class="secondMenuMobile second-menu row no-gutters" style="display: none;">
+			<div th:href="@{/mypage/profile/view}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-universal-access"></i>프로필 정보</div>
+			</div>
+			<div th:href="@{/mypage/profile/edit}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-edit"></i>프로필 수정</div>
+			</div>
+			<div th:href="@{/mypage/member/edit}" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-cog fa-fw"></i>정보 수정</div>
+			</div>
+			<div onclick="displayMemberProfile()" 
+				class="linkMove loginRequired sub-menu col">
+				<div><i class="fa fa-image fa-fw"></i>프로필 팝업</div>
+			</div>
+		</div>
+	</div>
+</div></div>
+</div>
+
+
+
+
+<!-- -------------------------[2. Account Info]----------------------------- -->
+<div th:fragment="menuAccount">
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [마이페이지 링크 메뉴 클릭 처리]----------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	// [현재 선택된 마이페이지 네비게이션 메뉴에 menu-active 적용]------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.mypageTab').addClass('menu-active');
+		}
+	});
+});
+</script>
+<div id="mobileMenuSection" class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/mypage}" data-reg="/mypage$" 
+			class="mypageTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span><i class="fa fa-arrow-left"></i> MY PAGE</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="today">
+		<a th:href="@{/mypage/study/today}" data-reg="/mypage/study/today" 
+			class="mypageTab menu-item today">
+			<i class="fa fa-chalkboard-teacher fa-fw"></i><br>
+			<span>오늘의 학습</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="account">
+		<a th:href="@{/mypage/study/mypoint}" data-reg="/mypage/study/mypoint" 
+			class="mypageTab menu-item account">
+			<i class="fa fa-comment-dollar fa-fw"></i><br>
+			<span>플레이 어카운트</span>
+		</a>
+	</div>
+</div>	
+</div>
+</div>
+
+
+
+
+<!-- -------------------------[3. Journey Info]----------------------------- -->
+<div th:fragment="menuJourney">
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [마이페이지 링크 메뉴 클릭 처리]----------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	// [현재 선택된 마이페이지 네비게이션 메뉴에 menu-active 적용]------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.mypageTab').addClass('menu-active');
+		}
+	});
+});
+</script>
+<div id="mobileMenuSection" class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/mypage}" data-reg="/mypage$" 
+			class="mypageTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span><i class="fa fa-arrow-left"></i> MY PAGE</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="study">
+		<a th:href="@{/mypage/journey/study}" data-reg="/mypage/journey/study" 
+			class="mypageTab menu-item study">
+			<i class="fa fa-plane fa-fw"></i><br>
+			<span>학습 여정</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="log">
+		<a th:href="@{/mypage/journey/log}" data-reg="/mypage/journey/log" 
+			class="mypageTab menu-item log">
+			<i class="fa fa-pen-nib fa-fw"></i><br>
+			<span>여정 로그</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="passport">
+		<a th:href="@{/mypage/passport}" data-reg="/mypage/passport" 
+			class="mypageTab menu-item passport">
+			<i class="fa fa-passport fa-fw"></i><br>
+			<span>여권</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="journey">
+		<a th:href="@{/mypage/journey/welcome}" data-reg="/mypage/journey/welcome" 
+			class="mypageTab menu-item journey">
+			<i class="fa fa-compass fa-fw"></i><br>
+			<span>입국 도시</span>
+		</a>
+	</div>
+</div>	
+
+</div>
+</div>
+
+
+
+
+<!-- --------------------------[4. Profile Info]---------------------------- -->
+<div th:fragment="menuProfile">
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [마이페이지 링크 메뉴 클릭 처리]----------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	// [현재 선택된 마이페이지 네비게이션 메뉴에 menu-active 적용]------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.mypageTab').addClass('menu-active');
+		}
+	});
+});
+</script>
+<div id="mobileMenuSection" class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+<div class="row no-gutters menu">
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="home">
+		<a th:href="@{/mypage}" data-reg="/mypage$" 
+			class="mypageTab menu-item home">
+			<i class="fa fa-home fa-fw"></i><br>
+			<span><i class="fa fa-arrow-left"></i> MY PAGE</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="profile">
+		<a th:href="@{/mypage/profile/view}" data-reg="/mypage/profile/view" 
+			class="mypageTab menu-item profile">
+			<i class="fa fa-universal-access fa-fw"></i><br>
+			<span>프로필 정보</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="edit">
+		<a th:href="@{/mypage/profile/edit}" data-reg="/mypage/profile/edit" 
+			class="mypageTab menu-item edit">
+			<i class="fa fa-edit fa-fw"></i><br>
+			<span>프로필 수정</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="member">
+		<a th:href="@{/mypage/member/edit}" data-reg="/mypage/member/edit" 
+			class="mypageTab menu-item member">
+			<i class="fa fa-cog fa-fw"></i><br>
+			<span>정보 수정</span>
+		</a>
+	</div>
+	<div class="mainTab menu-b col text-center align-self-center" data-tab="popup">
+		<a onclick="displayMemberProfile()" class="mypageTab menu-item popup">
+			<i class="fa fa-user-astronaut fa-fw"></i><br>
+			<span>프로필 팝업</span>
+		</a>
+	</div>
+</div>	
+</div>
+</div>
+
+
+
+
+<!-- ---------------------------[5. Contact US]----------------------------- -->
+<div th:fragment="menuContact">
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [모바일 로고 섹션에 앱 이름 변경]---------------------------------------------------
+	$("#playvoiceMobileTextLogo").hide();
+	$("#playvoiceMobileAppName").text("Contact Us").show();
+	
+	// [마이페이지 링크 메뉴 클릭 처리]----------------------------------------------------
+	$('.linkMove').click(function(){
+		location.href = $(this).attr('href');		
+	});
+	
+	// [현재 선택된 마이페이지 네비게이션 메뉴에 menu-active 적용]------------------------------
+	const $selectedTabs = $('.mainTab [data-reg]');
+	const pathname = location.pathname;
+	$selectedTabs.each(function(i, element) {
+		const matched = pathname.match($(this).attr("data-reg"));
+		if(matched != null && matched[0].length > 0){
+			$(element).closest('.mainTab').find('.mypageTab').addClass('menu-active');
+		}
+	});
+});
+</script>
+<div id="mobileMenuSection" class="menu-cover-mobile box-list-mobile box-main d-lg-none">
+	<div class="menu-lots-section row no-gutters">
+		<div class="menu-dependent-section col-sm col-4">
+			<a th:href="@{/qna/app/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-mobile-alt"></i><br>
+					<span>앱 서비스</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col-sm col-4">
+			<a th:href="@{/qna/order/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-credit-card"></i><br>
+					<span>주문, 결제</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col-sm col-4">
+			<a th:href="@{/qna/delivery/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-truck"></i><br> 
+					<span>배송</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col-sm col-4">
+			<a th:href="@{/qna/refund/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-receipt"></i><br> 
+					<span>취소, 환불</span>
+				</label>
+			</a>
+		</div>
+		<div class="menu-dependent-section col-sm col-4">
+			<a th:href="@{/qna/report/list}">
+				<label class="menu-dependent">
+					<i class="fa fa-flag-checkered"></i><br> 
+					<span>신고</span>
+				</label>
+			</a>
+		</div>
+	</div>
+</div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

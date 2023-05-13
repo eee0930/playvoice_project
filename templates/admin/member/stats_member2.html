@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout2}">
+
+<head>
+<title>회원 통계 정보 - playvoice admin</title>
+<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+<script th:src="@{/js/app/junglebook.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+	
+<script th:inline="javascript">
+$(document).ready(function(){
+	adjustDateForm();			//[datepicker 설정]
+	
+	// [통계 표시 박스 클릭 시, 해당 회원 목록 펼치기 ]-----------------------------------
+	$(".dashboard-box").click(function(){
+		var listDiv = $(this).closest(".rowDiv").find(".listDiv");
+		
+		if(! $(listDiv).is(":visible")){
+			$(listDiv).show();
+		}
+		
+		var searchType = $(this).attr("data-searchType");
+		var selector = $(this).closest(".rowDiv").find(".listDiv");	//목록이 뿌려질 위치 정보 
+		var startDate = $(this).find(".startDate").text().trim();
+		var endDate = $(this).find(".endDate").text().trim();
+		
+		$("#fromDate").val(startDate);
+		$("#toDate").val(endDate);
+		
+		statsMemberList(searchType, selector);
+	});
+	
+	// [상세 목록 닫기 ]------------------------
+	$(".closeListDiv").click(function(){
+		$(this).closest(".listDiv").hide();
+	});
+	
+	
+	//[검색 버튼 클릭 시 ajax 전송 ]------------------------------------------------
+	$('#searchBtn').click(function(event) {
+		//---------[폼 초기화] ----------
+		var type = $('#searchTypeSelect').val();
+		//------------------------
+		statsMemberCount(type);
+		//------------------------
+	});
+	
+
+	
+});//end of ready
+
+function adjustDateForm(){
+	var fromDate = $('#fromDate');
+	var toDate = $('#toDate');
+	var today = new Date();
+	
+	fromDate.datepicker({ 
+		language : 'kr', 	//한국
+		pickTime : false, 	//시간표시
+		format: "yyyy-mm-dd"
+	}); 
+	
+	toDate.datepicker({ 
+		language : 'kr', 
+		pickTime : false, 
+		format: "yyyy-mm-dd"
+	});
+	
+	var pattern = /[^(0-9)]/gi;
+	fromDate.keyup(function(){
+		var from = fromDate.val();
+		fromDate.val(from.replace(pattern, ""));
+	});
+	toDate.keyup(function(){
+		var to = toDate.val();
+		toDate.val(to.replace(pattern, ""));
+	});
+	
+	
+	fromDate.datepicker("setDate", lastMonth() ); 
+	toDate.datepicker("setDate", today);
+	//$('.regDate').text(fromDate.val() + '~' + toDate.val());
+}
+
+/*startDate의 기본값으로 한달 전인 지난 달로 설정시*/
+function lastMonth(){
+	var startDate = new Date();
+	startDate.setMonth(startDate.getMonth()-1);
+	return startDate;// star기본값으로 오늘 날짜  
+}
+
+/*startDate의 기본값으로 이 달의 첫째날을 기본값으로 설정시 */
+function firstDay(){
+	var startDate = new Date();
+	startDate.setDate(1);
+	return startDate;// 기본값으로 오늘 날짜  
+}
+
+
+
+/** 
+ * 통계폼을 통한 통계 전송시 ajax 를 통해 결과 목록을 json으로 전달받는다.
+*/
+function statsMemberList(searchType, selector){
+	
+	if(searchType == 'groupByTopMember'){
+		var size =  $('#size').val(); 
+	} 
+	
+	$.ajax({
+		type: "POST", 
+		url : '/admin/member/stats',
+		data : {
+			searchType : searchType,
+			//keyword : keyword, 
+			size : size, 
+			fromDate : $('#fromDate').val(),
+			toDate : $('#toDate').val(),
+		},
+		success : function(result){
+			//resetDefault();
+			displayStatsList(selector, result.content); 
+			//if open, 에러 패널 닫기
+			$('#errorDiv').css("display",'none');
+		},
+		error : function (e) {
+			$('#errorDiv').css("display",'inline');
+			$('#errorDiv > pre').text(e.responseText);
+
+            console.log("ERROR : ", e);
+        }
+	});
+}
+
+
+
+/**
+ * 통계 결과를 출력하는 함수.
+ * 각 통계마다 출력해야하는 곳이 모두 다름.
+ *  id = type'Box'형식으로 ex) #newSentenceBox, #memberCountOnAddBox
+ * 그리고 통계의 결과가 1개인 경우(특정기간동안 js등록갯수/등록한 회원수) 와
+ * 여러건인 경우(app별 js등록갯수/등급별/상위멤버별) 로 나뉘어짐. 
+ * 여러건인 경우 테이블로 나타냄.
+ *  
+ * @param type
+ * @param result
+ * @returns
+ */
+function displayStatsList(selector, result){
+	var output = '';
+	  
+	$.each(result, function(index, member){
+		index++; 
+		var today = new Date();
+		var birthYear = new Date(member.birthYear);
+		var age = today.getFullYear() - birthYear.getFullYear();
+		var regDate = new Date(member.regDate);
+			
+		output += '<tr>';
+		output += '<td>'+index+'</td>';
+		output += '<td>'+member.memberId+'</td>';
+		output += '<td>'+member.loginId+'</td>';
+		output += '<td>'+member.alias+'</td>';
+		output += '<td>'+member.gold+'</td>';
+		output += '<td>'+member.memberType+'</td>';
+		output += '<td>'+member.level+'</td>';
+		output += '<td>'+member.tribe+'</td>';
+		output += '<td>'+age+'</td>';
+		output += '<td>'+member.sex+'</td>';
+		output += '<td>'+member.region+'</td>';
+		output += '<td>'+regDate.getFullYear()+"-"
+					+parseInt(regDate.getMonth() +1)+"-"+regDate.getDate()+'</td>';
+		output += '</tr>'; 
+		 
+	});
+	$(selector).find("tbody").empty();  
+	$(selector).find("tbody").append(output);
+	output ='';  
+}
+ 
+ 
+
+ /** 
+  * 통계폼을 통한 통계 전송시 ajax 를 통해 결과 목록을 json으로 전달받는다.
+ */
+ function statsMemberCount(searchType){
+ 	
+ 	$.ajax({
+ 		type: "POST", 
+ 		url : '/admin/member/stats',
+ 		data : {
+ 			searchType : searchType,
+ 			//keyword : keyword, 
+ 			//size : size, 
+ 			fromDate : $('#fromDate').val(),
+ 			toDate : $('#toDate').val(),
+ 		},
+ 		success : function(result){
+ 			//resetDefault();
+ 			displayStatsCount(searchType, result); 
+ 			//if open, 에러 패널 닫기
+ 			$('#errorDiv').css("display",'none');
+ 		},
+ 		error : function (e) {
+ 			$('#errorDiv').css("display",'inline');
+ 			$('#errorDiv > pre').text(e.responseText);
+
+             console.log("ERROR : ", e);
+         }
+ 	});
+}
+ 
+
+function displayStatsCount(searchType, result){
+	var selector = '#'+searchType+'Box';
+	$(selector).closest('.searchResultDiv').show();
+	$(selector).closest(".rowDiv").find(".listDiv").hide();//펼쳐져있는 목록 닫기 
+	
+	$(selector).find(".count").text(result);
+	$(selector).find(".startDate").text($("#fromDate").val());
+	$(selector).find(".endDate").text($("#toDate").val());
+	
+	window.scroll(0, getOffsetTop($(selector)));
+	
+	window.scroll(0, getOffsetTop(document.getElementById(searchType+'Box')));
+}
+
+
+</script>
+
+</head>
+
+<section layout:fragment="content">
+
+<!-- ---------------------------[1. 회원 통계 정보 검색]--------------------------- -->
+<div id="searchSection">
+	<h3>통계 검색</h3>
+	<div class="formContainer">
+		<h3>
+			Statistics PlayMember Form
+			<span>Please fill the text in the field.</span>
+		</h3>
+		<form id="statsForm" class="form-horizontal">
+			<div class="form-group row">
+				<!--/* 선택박스 */-->
+				<div id="searchOptionDiv" class="col-3 headerLabel"> 
+					<select id="searchTypeSelect" name="searchType" 
+						class="form-control playvoice-form">
+						<option value=""> --선택-- </option>
+						<option></option>
+	               	</select>
+				</div>
+				<!--/* 등록기간 설정 */-->
+				<div id="regDateDiv" class="col-5" ><div class="row no-gutters">
+					<div class="col text-left lp0" id="fromDateDiv" > 
+						<input type="text" value="2020-10-25" 
+							placeholder="시작날짜"  class="form-control playvoice-form"/>
+					</div>
+					<div class="col-auto text-center px-2">
+						<i class="fas fa-window-minimize" style="color: #999999"></i>
+					</div>
+					<div class="col lp0" id="toDateDiv">
+						<input type="text" value="2020-11-01"
+							placeholder="종료날짜"  class="form-control playvoice-form"/>
+					</div>
+				</div></div>
+				<!--/* 검색버튼 */-->
+				<div class="col-1">
+					<input id="searchBtn" class="btn btn-main2 jsAction" 
+						type="button" value="Search"/>
+				</div>
+			</div>
+		</form>
+		<div id="errorDiv" class="errorMsgs" style="display: none;">
+		 	<h3>
+				Error Messages 
+				<span>Error Occured while processing the request.</span>
+			</h3>
+			<pre></pre>
+		</div>
+	</div>
+</div><!-- end of searchSection -->
+
+
+
+
+<!-- -------------------------[2. Result Section]--------------------------- -->
+<div id="statsResultSection">
+
+<h3>통계 결과</h3>
+<small>각 box를 클릭하면 해당 회원목록이 나오며, 검색을 통해 다른 기간의 통계를 확인 할 수 있음</small>
+
+<!-- [2.1 신규 회원] -->
+<div id="newJoinMemberDiv" class="stats-group-row-section">
+	<h5>신규 회원 가입 </h5>
+	<div class="newMemberDiv rowDiv">
+		<div class="defultNewMemberDiv stats-dashboard-cover row no-gutters">
+			<div class="col-4 p-2">
+				<div id="dailyNewRegCountBox" class="dashboard-box jsAction" 
+					data-searchType="dailyNewRegList">
+					<div class="title">
+						일간 신규 회원 가입자 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-user-alt fa-2x" style="color: #70dc39;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right jsAction">
+							<span data-value="count" class="num">12</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right">
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-11-01</span>
+						~ <span class="endDate">2020-11-01</span> 
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="weeklyNewRegCountBox" class="dashboard-box jsAction"
+					data-searchType="weeklyNewRegList">
+					<div class="title">
+						주간 신규 회원 가입자 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-user-friends fa-2x" style="color: #51c34a;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">45</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> ~ 
+						<span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="monthlyNewRegCountBox" class="dashboard-box jsAction"
+					data-searchType="monthlyNewRegList">
+					<div class="title">
+						월간 신규 회원 가입자 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-users fa-2x" style="color: #3a9456;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">153</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> ~ 
+						<span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="searchResultDiv col-4 p-2" style="display: none;">
+				<div id="newRegCountBox" class="dashboard-box p-3 row no-gutters jsAction"
+					data-searchType="newRegList">
+					<div class="title col-12">
+						신규 회원 가입자 수
+						<hr class="my-2">
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span class="count num" data-value="count">352</span> 명
+					</div>
+					<div class="period col-12 pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> ~ 
+						<span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="listDiv table-result-section" style="display: none;">
+			<div class="title">
+				<h5>신규 가입 회원 목록</h5>
+				<i class="closeListDiv close-button fa fa-times" title="닫기"></i>
+			</div>
+			<table class="resultWrapper table table-striped table-bordered table-hover 
+				table-sm text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th >번호</th>
+					<th data-value='memberId'>memberId</th>
+					<th data-value='loginId'>loginId</th>
+					<th data-value='alias'>alias</th>
+					<th data-value='gold'>gold</th>
+					<th data-value='memberType'>memberType</th>
+					<th data-value='level'>level</th>
+					<th data-value='tribe'>tribe</th>
+					<th data-value='age'>age</th>
+					<th data-value='sex'>sex</th>
+					<th data-value='region'>region</th>
+					<th data-value='regDate'>가입일</th>
+				</tr></thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div><!-- end of newJoinMemberDiv -->
+
+
+
+<!-- [2.2 접속한 회원] -->
+<div id="visitedMemberDiv" class="stats-group-row-section">
+	<h5>접속 회원</h5>
+	<div class="visitedMemberDiv rowDiv">
+		<div class="defultVisitedMemberDiv stats-dashboard-cover row no-gutters">
+			<div class="col-4 p-2">
+				<div id="dailyVisitedCountBox" class="dashboard-box jsAction"
+					data-searchType="dailyVisitedList">
+					<div class="title">
+						일간 접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-walking fa-2x" style="color: #ffc107;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">42332</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right">
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="weeklyVisitedCountBox" class="dashboard-box jsAction"
+					data-searchType="weeklyVisitedList">
+					<div class="title">
+						주간 접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-running fa-2x" style="color: #ff9800;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">113411</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="monthlyVisitedCountBox" class="dashboard-box jsAction"
+					data-searchType="monthlyVisitedList">
+					<div class="title">
+						월간 접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-skating fa-2x" style="color: #ff5722;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">42311452</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="searchResultDiv col-4 p-2" style="display: none;">
+				<div id="visitedCountBox" class="dashboard-box p-3 row no-gutters jsAction"
+					data-searchType="visitedList">
+					<div class="title col-12">
+						접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span class="count num" data-value="count">3412</span> 명
+					</div>
+					<div class="period col-12 pt-2 text-secondary text-right"> 
+						<i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="listDiv table-result-section" style="display: none;">
+			<div class="title">
+				<h5>접속 회원 목록</h5>
+				<i class="closeListDiv close-button fa fa-times" title="닫기"></i>
+			</div>
+			<table class="resultWrapper table table-striped table-bordered table-hover 
+				table-sm text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th>번호</th>
+					<th data-value='memberId'>memberId</th>
+					<th data-value='loginId'>loginId</th>
+					<th data-value='alias'>alias</th>
+					<th data-value='gold'>gold</th>
+					<th data-value='memberType'>memberType</th>
+					<th data-value='level'>level</th>
+					<th data-value='tribe'>tribe</th>
+					<th data-value='age'>age</th>
+					<th data-value='sex'>sex</th>
+					<th data-value='region'>region</th>
+					<th data-value='regDate'>가입일</th>
+				</tr></thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div><!-- end of visitedMemberDiv -->
+
+
+
+<!-- [2.3 장기 미접속 회원] -->
+<div id="unvisitedMemberDiv" class="stats-group-row-section">
+	<h5>장기 미접속자</h5>
+	<div class="unvisitedMemberDiv rowDiv">
+		<div class="defaultUnvisitedMemberDiv stats-dashboard-cover row no-gutters">
+			<div class="col-4 p-2">
+				<div id="aMonthUnderUnvisitedCountBox" class="dashboard-box jsAction"
+					data-searchType="aMonthUnderUnvisitedList">
+					<div class="title">
+						2주 이상 한달 미만 미접속자 수
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-user-clock fa-2x" style="color: #a6b9ef;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">4</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right">
+						(마지막 접속일)<br><i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="sixMonthUnderUnvisitedCountBox" class="dashboard-box jsAction"
+					data-searchType="sixMonthUnderUnvisitedList">
+					<div class="title">
+						한달 이상 6개월 미만 미접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-user-injured fa-2x" style="color: #a6b9ef;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">5</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						(마지막 접속일)<br><i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-4 p-2">
+				<div id="sixMonthOverUnvisitedBox" class="dashboard-box jsAction"
+					data-searchType="sixMonthOverUnvisitedList">
+					<div class="title">
+						6개월 이상 미접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="content-section row no-gutters">
+						<div class="col-auto align-self-center">
+							<i class="fa fa-ghost fa-2x" style="color: #a6b9ef;"></i>
+						</div>
+						<div class="count-section col align-self-center text-right">
+							<span data-value="count" class="num">12</span> 명
+						</div>
+					</div>
+					<div class="period pt-2 text-secondary text-right"> 
+						(마지막 접속일)<br><i class="far fa-calendar-alt"></i>
+						<span class="startDate" style="display: none">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+			<div class="searchResultDiv col-4 p-2" style="display: none;">
+				<div id="unvisitedCountBox" class="dashboard-box p-3 row no-gutters jsAction"
+					data-searchType="unvisitedList">
+					<div class="title col-12">
+						미접속자 수 
+						<hr class="my-2">
+					</div>
+					<div class="count-section col align-self-center text-right">
+						<span class="count num" data-value="count">41</span> 명
+					</div>
+					<div class="period col-12 pt-2 text-secondary text-right"> 
+						(마지막 접속일)<br><i class="far fa-calendar-alt"></i>
+						<span class="startDate">2020-10-24</span> 
+						~ <span class="endDate">2020-11-01</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		<div class="listDiv table-result-section" style="display: none;">
+			<div class="title">
+				<h5>장기 미접속 회원 목록</h5>
+				<i class="closeListDiv close-button fa fa-times" title="닫기"></i>
+			</div>
+			<table class="resultWrapper table table-striped table-bordered 
+				table-hover table-sm text-center admin-sentencebook-board">
+				<thead>
+				<tr class="thead">
+					<th>번호</th>
+					<th data-value='memberId'>memberId</th>
+					<th data-value='loginId'>loginId</th>
+					<th data-value='alias'>alias</th>
+					<th data-value='gold'>gold</th>
+					<th data-value='memberType'>memberType</th>
+					<th data-value='level'>level</th>
+					<th data-value='tribe'>tribe</th>
+					<th data-value='age'>age</th>
+					<th data-value='sex'>sex</th>
+					<th data-value='region'>region</th>
+					<th data-value='regDate'>가입일</th>
+				</tr></thead>
+				<tbody>
+					
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div><!-- end of unvisitedMemberDiv -->
+
+	
+</div><!-- end of statisticsResultSection -->
+
+</section>
+
+</html>

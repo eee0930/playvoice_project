@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<div th:fragment="adminMenu">
+	<div id="menuContainer">
+		<div id="homeMenu" class="menuDiv" style="margin-bottom: 10px;">
+			<a th:href="@{/admin}">
+				<span class="menuTitle"><i class="fa fa-home fa-fw" aria-hidden="true"></i> Home</span>
+			</a>
+		</div>
+		<div id="playVoiceBookMenu" class="menuDiv">
+			<span class="menuTitle"><i class="fas fa-play-circle fa-fw"></i> Placevoice Book</span>
+			<ul>
+				<li><a th:href="@{/admin/playvoiceBook/level/add}">플레이보이스 등록</a></li>
+				<li>playvoice 목록</li>
+				<li>menu 2</li>
+				<li>menu 3</li>
+				<li>menu 4</li>
+			</ul>
+		</div>
+		
+	</div>
+</div><!-- end of adminMenu -->

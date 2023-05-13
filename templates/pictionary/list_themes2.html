@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/pictionary_layout2}">
+<head>
+<title>list words : pictionary</title>
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+$(document).ready(function() {
+	// [선택한 menu active 표시]----------------------------------------------------
+	$(".menu-item.theme").addClass("menu-active");
+	
+	
+   
+	
+}); // end of ready
+
+/* ----------------------------------------------------------------------------- 
+*							handling screen event
+* --------------------------------------------------------------------------- */
+
+function movePictionary() {
+	location.href="/pictionary/word/view2";
+}
+
+</script> 
+</head>
+
+<section layout:fragment="content">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu2::menu}"></div>
+
+
+<div id="pictionaryListSection" class="pictionarylist-container mt-2">
+	<h3 class="title mx-md-3">
+		<span class="pv-tm">Pictioanry</span> theme<br>
+		<small>Learn a variety of words and register your own</small>
+	</h3>
+	
+	
+	<!--/* --------------------[1. 픽셔너리 최다 등록자 랭킹]---------------------- */-->
+	<div id="pictionaryRankingDiv" class="pictionary-alphbet-ranking-section" style="display: none;">
+		<div class="ranking-title px-3">
+			Pictionary registrant Top 10 of <span class="alphabet">S</span>
+			<i lang="fa" class="fa fa-trophy fa-fw" style="color: gold;"></i><br>
+			<small>those who have registered a lot of contents</small>
+		</div>
+		<div class="alphbet-ranking-section"><ul>
+			<li th:each="playPoint, iter : ${playPoints}">
+				<div th:class="'ranking-cover style'+${iter.count}" align="center">
+					<div class="member-personacon"
+						th:classappend="(${memberTypes[iter.index]} == 'P') ? 'membership-P' : ''">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							class="personacon-profile"
+							th:style="'background: url(\'/images/app/profile/'+${iter.count}+'.jpg\') no-repeat;
+							background-position: center; background-size: cover;'">
+						<img th:src="@{/images/app/member/profile_paper.png}" 
+							th:class="'personacon-frame frame-' + ${memberTypes[iter.index]}">
+					</div>
+					<div class="alias">[[${aliasList[iter.index]}]]</div>
+					<div class="point" title="Play Point"><i class="fa fa-coins"></i> [[${playPoint}]]</div>
+				</div>
+			</li>
+		</ul></div>
+	</div><!-- end of pictionaryRankingDiv -->
+	
+	
+	<!--/* --------------------[3. 픽셔너리 단어 리스트]------------------------- */-->
+	<div id="pictionaryListDiv" class="pictionary-theme-list-section row no-gutters">
+		
+		<div class="pictionary-theme-p col-lg-4 col-md-6 col-12">
+			<div class="pictionary-theme-cover">
+				<div class="pictionary-theme-image-section">
+					<span class="theme-rep-img"></span>
+					<img src="/images/app/pictionary/piction_paper.png"
+						style="background: url('/images/1111.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+				</div>
+				<div class="pictionary-theme-title-section">
+					<div class="theme-title">
+						스포츠에서 자주 쓰이는 단어
+					</div>
+					<div class="theme-detail">
+						Do you interested in soccer?
+						But you don't might listen the detail.
+						Learn this Pictionary words, and enjoy your favorite sports. 
+					</div>
+					<div class="theme-info row no-gutters">
+						<div class="pictionary-number col-auto align-self-center">
+							<i class="far fa-images"></i>
+							<span>150</span>
+						</div>
+						<div class="view-detail col align-self-center">
+							<span>view detail</span>
+							<i class="fa fa-arrow-right"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="pictionary-theme-p col-lg-4 col-md-6 col-12">
+			<div class="pictionary-theme-cover">
+				<div class="pictionary-theme-image-section">
+					<span class="theme-rep-img"></span>
+					<img src="/images/app/pictionary/piction_paper.png"
+						style="background: url('/images/app/profile/7.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+				</div>
+				<div class="pictionary-theme-title-section">
+					<div class="theme-title">
+						수능 필수 단어 900
+					</div>
+					<div class="theme-detail">
+						Do you interested in soccer?
+						But you don't might listen the detail.
+						Learn this Pictionary words, and enjoy your favorite sports. 
+					</div>
+					<div class="theme-info row no-gutters">
+						<div class="pictionary-number col-auto align-self-center">
+							<i class="far fa-images"></i>
+							<span>900</span>
+						</div>
+						<div class="view-detail col align-self-center">
+							<span>view detail</span>
+							<i class="fa fa-arrow-right"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="pictionary-theme-p col-lg-4 col-md-6 col-12">
+			<div class="pictionary-theme-cover">
+				<div class="pictionary-theme-image-section">
+					<span class="theme-rep-img"></span>
+					<img src="/images/app/pictionary/piction_paper.png"
+						style="background: url('/images/2222.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+				</div>
+				<div class="pictionary-theme-title-section">
+					<div class="theme-title">
+						중학 필수 단어 500
+					</div>
+					<div class="theme-detail">
+						Do you interested in soccer?
+						But you don't might listen the detail.
+						Learn this Pictionary words, and enjoy your favorite sports. 
+					</div>
+					<div class="theme-info row no-gutters">
+						<div class="pictionary-number col-auto align-self-center">
+							<i class="far fa-images"></i>
+							<span>500</span>
+						</div>
+						<div class="view-detail col align-self-center">
+							<span>view detail</span>
+							<i class="fa fa-arrow-right"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		<div class="pictionary-theme-p col-lg-4 col-md-6 col-12">
+			<div class="pictionary-theme-cover">
+				<div class="pictionary-theme-image-section">
+					<span class="theme-rep-img"></span>
+					<img src="/images/app/pictionary/piction_paper.png"
+						style="background: url('/images/app/profile/8.jpg') no-repeat;
+						background-size: cover; background-position: center;">
+				</div>
+				<div class="pictionary-theme-title-section">
+					<div class="theme-title">
+						외국인과 친하게 지낼려면 이정도 단어는 알아야 한다
+					</div>
+					<div class="theme-detail">
+						Do you interested in soccer?
+						But you don't might listen the detail.
+						Learn this Pictionary words, and enjoy your favorite sports. 
+					</div>
+					<div class="theme-info row no-gutters">
+						<div class="pictionary-number col-auto align-self-center">
+							<i class="far fa-images"></i>
+							<span>230</span>
+						</div>
+						<div class="view-detail col align-self-center">
+							<span>view detail</span>
+							<i class="fa fa-arrow-right"></i>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		<div class="pictionary-list-page col-12 row no-gutters my-3">
+			<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+				<a class="btn btn-pictionary">
+					<i lang="fa" class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+				<ul class="pagination pagination-sm justify-content-center">
+					<li class="page-item active">
+						<a class="page-link">1</a>
+					</li>
+					<li class="page-item">
+						<a class="page-link">2</a>
+					</li>
+					<li class="page-item">
+						<a class="page-link">3</a>
+					</li>
+				</ul>
+			</div>
+			<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+				<a class="btn btn-pictionary">
+					next <i lang="fa" class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+		
+	</div><!-- end of pictionaryListDiv  -->		
+	
+	
+</div><!-- end of pictionaryListSection -->
+
+<div class="text-right" style="color:red;">
+   source :: pitctionary/list_pictionary2.html
+</div>  
+		
+
+</section>
+

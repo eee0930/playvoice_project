@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<div th:fragment="header">
+<!--/*=====================================================================*/-->
+<!--/*  						PC ver. header							   */-->
+<!--/*=====================================================================*/-->
+<div class="main-header d-none d-lg-block">
+	<div class="container"><div class="row">
+		<!-- logo (text) -->
+		<div class="main-copy-section col-auto align-self-center py-3">
+			Let's go into the English <b>Jungle</b> to catch it
+		</div>
+		<div class="col"></div>
+		<div class="col-auto align-self-center">
+			<a th:href="@{/admin}">
+				<i lang="fa" class="fa fa-wrench fa-fw"></i> Admin
+			</a>
+		</div>
+		<div class="col-auto align-self-center">
+			<a>Gold Membership</a>
+		</div>
+		<div class="col-auto align-self-center">
+			<a>ABOUT</a>
+		</div>
+		<div th:if="${session.userContainer}" class="col-auto align-self-center">
+			<a th:href="@{/auth/logout}">Logout</a>
+		</div>
+		<div th:unless="${session.userContainer}" class="menu-point col-auto align-self-center">
+			<a th:href="@{/member/registration/1}">JOIN</a>
+		</div>
+	</div></div>
+	
+	<!-- background & logo -->
+	<div class="main-background">
+		<div class="logo"></div>
+	</div>
+
+	<div class="container">
+		<div class="contents-cover row no-gutters">
+			<div class="col-lg-8">
+				<!-- primary menu -->
+				<!-- <div th:replace="~{/incl/main_menu::main_menu}"></div> -->
+			</div>
+			<div class="col-lg-4">
+				<div class="member-section-position pl-2">
+					<div th:if="${session.userContainer}" class="member-cover header-color2 px-3">
+						<div class="member-cover-rounded row no-gutters rounded py-1">
+							<div class="col-auto text-left px-4 align-self-center">
+								<div class="menu-hover py-1">
+									<a th:href="@{/mypage}">
+										<i lang="fa" class="fa fa-hotel fa-fw" 
+											style="color: #FFA500;"></i> 마이페이지 
+									</a>
+								</div>
+								<div class="menu-hover py-1">
+									<a th:href="@{/myteam}">
+										<i lang="fa" class="fa fa-place-of-worship fa-fw" 
+											style="color: #FFA500;"></i> 마이팀 
+									</a>
+								</div>
+							</div>
+							<div class="col"></div>
+							<!-- 로그인 여부 -->
+							<th:block th:replace="~{/incl/login_inheader::main_login}"></th:block>
+						</div>
+					</div>
+					<div th:unless="${session.userContainer}" class="login-cover header-color2 px-3">
+						<div class="row no-gutters rounded py-1">
+							<div class="col text-left px-2 align-self-center">
+								플레이보이스 멤버들과<br>즐겁게 소통해보세요 <i lang="fa" class="far fa-grin-alt fa-lg"></i>
+							</div>
+							<!-- 로그인 여부 -->
+							<th:block th:replace="~{/incl/login_inheader::main_login}"></th:block>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div style="padding-top: 50px;"></div>
+		
+		<div id="playvoice_menu_section" style="display: none;">
+			<!-- app Menu -->
+			<div th:insert="~{/incl/app_menu::app_menu}" style="background: #fff;"></div>
+		</div>
+		
+	</div>
+</div><!-- end of PC ver. -->
+		
+	
+<!--/*=====================================================================*/-->
+<!--/*  					tablet & mobile ver. header					   */-->
+<!--/*=====================================================================*/-->
+<div class="main-header d-lg-none">
+	<div class="row no-gutters py-1">
+		<!-- menu toggle button -->
+		<div class="col-2 px-2 text-center align-self-center">
+			<a id="menuOpenBtn">
+				<i lang="fa" class="fa fa-bars fa-2x"></i>
+			</a>
+		</div>
+		<div class="col-8 text-center align-self-center">
+			<span class="playvoice-logo" th:insert="~{/incl/playvoice_logo::logo}">
+				logo is here
+			</span>
+		</div>
+	</div>
+	
+	<div onclick="history.back();" class="page_cover"></div>
+	<div th:replace="~{/incl/mobile_menu::mobile_menu}"></div>
+</div><!-- end of tablet & mobile ver. -->
+	
+</div><!-- end of header -->
+
+
+
+
+
+
+
+<div th:fragment="app_header" class="header-shadow">
+	<div class="main-header container d-none d-lg-block py-1"><div class="row">
+		<div class="col-lg-auto text-left align-self-center">
+			<span th:insert="~{/incl/playvoice_logo::logo}">
+				logo is here
+			</span>
+		</div>
+		<div class="col"></div>
+		
+		<!--/* 로그인 여부 */-->
+		<th:block th:replace="~{/incl/login_inheader::login}"></th:block>
+		
+	</div></div>
+	
+	<!--/*=================================================================*/-->
+	<!--/*  						PC ver main menu					   */-->
+	<!--/*=================================================================*/-->
+	<div class="header-color header-menulist d-none d-lg-block"><div class="container">
+		<!-- 1차 메뉴 -->
+		<div th:replace="~{/incl/main_menu::primary_menu}"></div>
+	</div></div>
+	
+	<!--/*=================================================================*/-->
+	<!--/*  						PC ver app menu						   */-->
+	<!--/*=================================================================*/-->
+	<div id="playvoice_menu_section" style="display: none;">
+		<div class="container">
+			<div th:insert="~{/incl/app_menu::app_menu}"></div>
+		</div>
+	</div>
+	
+	<!--/*=================================================================*/-->
+	<!--/*  					tablet & mobile ver header				   */-->
+	<!--/*=================================================================*/-->
+	<div class="main-header d-lg-none">
+		<div class="row no-gutters py-1">
+			<!-- menu toggle button -->
+			<div class="col-2 px-2 text-center align-self-center">
+				<a id="menuOpenBtn">
+					<i lang="fa" class="fa fa-bars fa-2x"></i>
+				</a>
+			</div>
+			<div class="col-8 text-center align-self-center">
+				<span class="playvoice-logo" th:insert="~{/incl/playvoice_logo::logo}">
+					logo is here
+				</span>
+			</div>
+		</div>
+		
+		<div onclick="history.back();" class="page_cover"></div>
+		<div th:replace="~{/incl/mobile_menu::mobile_menu}"></div>
+		
+	</div>
+	
+</div><!-- end of header -->
+
+
+
+

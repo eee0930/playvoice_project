@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout2}">
+
+<head>
+<title>[[${title}]]</title>
+
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/terms.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [아티클 share link 클립보드로 복사]---------------------------------------------
+	$(".share-link").click(function(){
+		var clipParent = $(this).closest(".copy-url-cover");
+		var inputClip = clipParent.find(".hide-input");
+		inputClip.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			clipParent.find(".successClip-guide").show();
+			setTimeout(function() {
+				clipParent.find(".successClip-guide").hide();
+			}, 2000);
+			
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+	});
+	
+	//[게시글 검색시]---------------------------------------------------------------
+	$('.search-article').click(function(e){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[초기 sortMark 디스플레이 설정]--------------------------------------------------
+	var defaultSortBy= $('#sortName').val();
+	var target = $('a[data-value='+defaultSortBy+']');
+	$('a[data-value='+defaultSortBy+']').next().css("display", "inline");
+	
+	//[next pagination 링크 전송]--------------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]---------------------------------------------
+	$("#articleListByDefault a[class=thlink]").click(function(e) {
+		console.log("#articleListByDefault a[class=thlink]");
+		
+		//단순조회에서는 searchType은 불필요하다.
+		$('#searchType2').val('all');
+		
+		console.log("#end of articleListByDefault");
+	});
+	
+	// [게시글 수정]----------------------------------------------------------------
+	$("#editArticleBtn, #editArticleBtn_xs").click(function(){
+		location.href="/board/free/edit";
+	});
+	
+});
+</script>
+</head>
+
+<section layout:fragment="content" th:with="alias = 'lazyhysong'">
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/terms/incl/terms_menu2::menu}"></div>
+
+<div class="mt-lg-4">
+
+<!--/* ------------------------[1. 게시글 상세보기 표시 영역]---------------------- */-->
+<div id="viewArticle" class="view-article-section">
+
+<div id="detailBoardArticleSection">
+<!--/* -------------------------[1.2 게시글 상세 정보]-------------------------- */-->
+<div id="viewArticleFormContainer" class="formContainer">
+	<div class="article-title-div">
+		<i class="fa fa-quote-left"></i>
+		<span th:text="${title}">타이틀</span>
+		<i class="fa fa-quote-right"></i>
+	</div>
+	<div id="articleDiv" class="article-content-div">
+		<!-- ****************[PC & Tablet ver.] -->
+		<div class="d-none d-md-block"><div class="article-info row no-gutters">
+			<h5 class="col-1 align-self-center">작성자 :</h5> 
+			<h6 class="col-auto align-self-center">
+				<th:block th:replace="~{/incl/user_personacon::sm_test}"></th:block>
+			</h6>
+			<h6 class="col align-self-center">
+				<span class="personacon-alias" th:text="${alias}"></span>
+			</h6>
+			
+			<h5 class="col-1 align-self-center">등록일 :</h5> 
+			<h6 class="date col-3 align-self-center">2020-03-09 (월) 20:53</h6>
+			
+			<h5 class="col-1 align-self-center">조회수 :</h5> 
+			<h6 class="col-1 align-self-center">5126</h6>
+		</div></div>
+		<!-- ****************[Mobile ver.] -->
+		<div class="d-md-none"><div class="article-info row no-gutters">
+			<div class="personacon-section col-auto align-self-center">
+				<th:block th:replace="~{/incl/user_personacon::sm_test}"></th:block>
+			</div>
+			<div class="writer-info-section col align-self-center">
+				<div class="personacon-alias">[[${alias}]]</div>
+				<div class="article-date-info">
+					<span>2020-03-09 (월) 20:53</span>
+					<span>조회 5126</span>
+				</div>
+			</div>
+			<div class="etc-section col-auto p-2 btn-group align-self-center">
+				<a class="dropdown-toggle" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-v fa-fw"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
+					<li id="editArticleBtn_xs" class="dropdown-item text-center">수정</li>
+					<li id="deleteArticleBtn_xs" class="dropdown-item text-center">삭제</li>
+				</ul>
+			</div>
+		</div></div>
+		
+		<!-- 공유 링크 -->
+		<div class="col-auto share-link-section">
+			<div class="copy-url-cover text-right">
+				<div class="clip-guide">클릭하여 복사</div>
+				<div class="successClip-guide" style="display: none;">복사가 완료되었습니다</div>
+			</div>
+		</div>
+		<!-- 첨부파일 -->
+		<div class="attached-files-list text-right">
+			<a title="플레이보이스_이용약관_20200901.docx">
+				<i class="fa fa-download"></i>
+				<span>플레이보이스_이용약관_20200901.docx</span>
+			</a>
+			<a title="플레이보이스_이용약관_20200901.hwp">
+				<i class="fa fa-download"></i>
+				<span>플레이보이스_이용약관_20200901.hwp</span>
+			</a>
+		</div>
+		<!-- 아티클 내용 -->
+		<div class="article-content" th:utext="${article}"></div>
+	</div><!-- end of articleDiv -->
+
+	<!--/* ---------------------[좋아요/삭제/편집 컨트롤 ]----------------------- */-->
+	<form id="modifyForm" class="article-control-button-section">
+		<div id="submitDiv"><div class="formGroup row no-gutters">
+			<div class="col-md-4 d-none d-md-inline"></div>
+			<div class="col-md-4 col-12"></div>
+			
+			<div class="col-md-4 text-right d-none d-md-inline">
+				<button id="editArticleBtn" class="btn btn-sm btn-playboard" type="button">
+					<i class="fa fa-edit fa-fw"></i> Edit
+				</button>
+				<button id="deleteArticleBtn" class="btn btn-sm btn-playboard2" type="button">
+					<i class="fa fa-trash fa-fw"></i> Delete
+				</button>
+			</div>
+		</div></div>
+	</form>
+	
+</div>
+</div><!-- end of detailBoardArticleSection -->
+
+</div><!-- end of viewArticle -->
+
+
+
+<div class="introduction-section">
+	<h3 class="article-title row no-gutters">
+		<span class="col-auto">
+			[[${engName}]]
+			<span class="d-none d-md-inline-block">Board</span>
+		</span>
+	</h3>
+	<div class="sub">the previous terms and conditions of playvoice</div>
+</div>
+
+<!-- -----------------------[inclule : Search Article Form]------------ -->
+<div id="searchFormDiv" th:insert="~{/board/incl/search_article2::search_article}" 
+	class="search-form-section" style="display: none;"></div>
+<!-- ------------------------------------------------------------------ -->
+
+<!--/* --------------------------[게시글 목록]--------------------------- */-->
+<div id="articleListByDefault" class="board-article-list-section">
+	<!--/* 검색과 등록 아이콘 */-->
+	<div class="d-none d-lg-block"><div class="search-add-button-section row no-gutters">
+		<div class="col-6 text-left">
+			<a href="javascript:void(0)" class="search-article">
+				<i class="fas fa-search fa-fw"></i>
+				<span class="guide-quote">게시글 검색</span>
+			</a>
+		</div>
+	</div></div>
+	
+	<!--**************** PC ver. ****************-->
+	<div class="d-none d-md-block">
+	<table id="boardTable" class="board-table-l table table-sm table-bordered table-hover text-center">
+		<thead>
+		<tr class="thead">
+			<th style="width: 60px;">번호</th>
+			<th>제목</th>
+			<th style="width: 60px;"><!-- N or P label --></th>
+			<th style="width: 60px;">등록일<span class="sortMark">▼</span></th>
+			<th style="width: 60px;">조회수</th>
+			<th style="width: 110px;">작성자</th>
+		</tr></thead>
+		
+		<tbody>
+		<!-----------------------/*게시글 목록*/------------------------->
+		<tr>
+			<!--/*번호*/-->
+			<td class="t-number">2546</td>
+			
+			<!--/*제목*/-->
+			<td class="t-title text-left">
+				<a th:href="@{/board/view/a1234}" onclick="location.href=$(this).attr('href')" class="articleLink">
+					<span class="subject">
+						제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 
+					</span>
+					<span class="comment-badge">
+						<span class="badge badge-pill reply-count">
+							235
+						</span>
+					</span>
+				</a>
+			</td>
+			<td class="t-info text-right">
+				<span class="badge badge-danger new-label">N</span>
+				<span class="badge badge-warning video-label">V</span>
+			</td>
+		
+			<!--/*등록일*/-->
+			<td class="t-date">11-24</td>
+			
+			<!--/*조회수*/-->
+			<td class="t-hits">23423</td>
+			
+			<!--/*작성자*/-->
+			<td class="t-writer">
+				<span>lazyhysonglazyhysong</span>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!--*********** Mobile & Tablet ver. ************-->
+	<div class="d-md-none">
+	<table id="boardTable" th:with="today='2019-11-27(목)'" 
+		class="board-table-l table table-sm table-bordered table-hover text-center tboby-xs">
+		<tbody>
+		<!------------/*게시글 목록*/------------>
+		<tr>
+			<td class="text-left">
+				<div class="t-title-xs">
+					<a href="javascript:void(0)" class="articleLink">
+						<span class="subject-xs">
+							<span class="new-point"></span>
+							제헤모옥~! 히히히
+						</span>
+						<span class="comment-badge">
+							<span class="badge badge-pill reply-count">
+								21
+							</span>
+						</span>
+					</a>
+				</div>
+				<div class="t-info-xs">
+					<span class="t-writer-xs">
+						lazyhysong
+					</span> 
+					<span class="t-date-xs">10-21</span> 
+					<span class="t-hits-xs"><i class="fa fa-eye"></i> 조회수</span>
+				</div>
+			</td>
+			<td class="text-right" style="width: 50px; padding-left:0;">
+				<span class="badge badge-warning pic-label">P</span>
+				<span class="badge video-label">V</span>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!--/* Paging */-->
+	<nav class="article-list-pagenation-section mt-3 d-none d-md-block">
+		<ul class="pagination pagination-sm justify-content-center">
+			<li class="page-item">
+				<a class="page-link">
+					PREV
+				</a>
+			</li>
+			<li class="page-item active">
+				<a class="page-link">1</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">2</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">3</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">
+					NEXT
+				</a>
+			</li>
+		</ul>
+	</nav>
+	<div class="d-md-none">
+		<div class="trans-list-page row no-gutters my-3">
+			<div class="col-6 text-left">
+				<a class="btn btn-main2">
+					<i class="fa fa-angle-left"></i> prev
+				</a>
+			</div>
+			<div class="col-6 text-right">
+				<a class="btn btn-main2">
+					next <i class="fa fa-angle-right"></i>
+				</a>
+			</div>
+		</div>
+	</div>
+	
+</div> <!-- end of articleListByDefault -->
+
+</div></section><!-- end of content -->
+
+
+

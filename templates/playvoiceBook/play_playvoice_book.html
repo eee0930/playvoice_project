@@ -1,0 +1,1612 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoicebook_layout}"
+   th:with="stageObjective = ${#strings.replace(playvoiceList[0].stage.objective, T(com.varxyz.playvoice.common.Constants).NEW_LINE_CHAR, '<br />')}">
+
+<head>
+<title>플레이보이스북 Level [[${levelSeq}]] Stage [[${stageSeq}]] - 플레이보이스 | Playvoice</title>
+   
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment::meta}"
+	th:with="metaTitle = '플레이보이스북 Level ' + ${levelSeq} + ' Stage '
+	+ ${stageSeq} + ' - 플레이보이스 | Playvoice', 
+	metaDescription = ${#stringUtil.removeTag(stageObjective)}, 
+	metaImage = '/images/common/characters/playvoicebook.jpg'"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/app/playvoicebook.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/basicchar-filter.js}"></script>
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+   
+<script th:inline="javascript">
+var replyAppCode = /*[[${replyAppCode}]]*/ 0;
+var stageId56 = location.pathname.split('/').pop();
+
+$(document).ready(function() {
+	var isLogin =/*[[${#authentication.principal} eq 'anonymousUser'? null :${#authentication.principal.member.loginId}]]*/ null;
+	forwardLoginPage(isLogin);
+	var loginId = /*[[${session.userContainer?.member?.loginId}]]*/ null;
+	stageId = /*[[${stageId}]]*/ 0;
+	$('#stageId').val(stageId);
+	// 재생 목록을 메모리로 저장
+	parsePlayvoiceList(/*[[${playvoiceList}]]*/ []);
+	// 재생을 위한 초기화 설정
+	initCurrentStage(playvoiceList);	
+	// 전체 문장 보기창 설정
+	var $totalSentenceView = $('#totalSentences_div .total-sentence,#totalSentences_div_xs .total-sentence');
+	$totalSentenceView.empty();
+	if(playvoiceList != null && playvoiceList.length > 0){
+		for(var i=0;i<playvoiceList.length; i++){
+			var empText = emphasizeText(playvoiceList[i].sentence.eng, playvoiceList[i].emLoc, '<b></b>');
+			var oneSentence = '<div class="sentence-section"><div class="sentence-cover">'
+							+ '<div class="sentence-eng">' + empText + '</div>'
+							+ '<div class="sentence-kor">' + playvoiceList[i].sentence.kor + '</div>'
+							+ '<div class="sentence-num">' + (i + 1) + '</div>'
+							+ '</div></div>';
+			$totalSentenceView.append(oneSentence);
+		}
+	}
+	// 이전 재생 설정(스테이지 반복,재생 횟수) 가져오기
+	isRepeat = localStorage.getItem(loginId + '_PVB_repeat') == 'true';
+	if(isRepeat){
+		$('#chkAuto, #chkAuto_xs, #chkLoop, #chkLoop_xs').toggle();
+	}
+	if(localStorage.getItem(loginId + '_PVB_loopSize') != null){
+		loopSize = Number(localStorage.getItem(loginId + '_PVB_loopSize'));
+		$("#loopNum, #loopNum_xs").val(loopSize);
+	}
+	
+	// [플레이어 화면 진입 시 header 아래로 스크롤 이동]---------------------------------------
+	var playerOffset = $(".main-header").height();
+	$('html, body').animate({scrollTop : playerOffset}, 1200);
+	
+	// [모달 : 스테이지 다음 한글 예문 보기]------------------------------------------------
+	var stageKorListSize = /*[[${korList !=null?#lists.size(korList):0}]]*/ 0;
+	var stageKorSentenceIndex = 1;
+	$("#nextKorSent").click(function(){
+		if(stageKorSentenceIndex == stageKorListSize - 1) {
+			$(this).hide();
+			$("#stageKorInfo_modal .hide-section").hide();
+			$("#stageKorInfo_modal #start_btn").show();
+		}
+		$(".stageKorSentenceList .stageKorSentence").removeClass("active");
+		$(".stageKorSentenceList .stageKorSentence").eq(stageKorSentenceIndex).addClass("active");
+		stageKorSentenceIndex++;
+		$("#stageKorInfo_modal .progress-num span").text(stageKorSentenceIndex);
+	});
+	
+	// [모달의 캐릭터 종류 설정 후 stage 한글 예문  모달 open]----------------------------------
+	var startTimer;
+	var characterActionIndex = Math.floor(Math.random() * 3 + 1);;
+	var characterFaceIndex = Math.floor(Math.random() * 4 + 1);;
+	$("#stageKorInfo_modal").find(".character-section").addClass("act" + characterActionIndex);
+	$("#stageKorInfo_modal").find(".bird-face-section").addClass("cha" + characterFaceIndex);
+	$("#stageKorInfo_modal").modal({
+		show : true
+	}).one('hidden.bs.modal', function (e) {
+		setTimeout(function() {
+			$('#play').click();
+		}, 300);
+	});
+	// [한글 예문 모달 캐릭터 클릭시 사라지기 (예문 읽는 데 방해될 경우)]------------------------------
+	$(".character-section").click(function(){
+		$(this).addClass("bully");
+		setTimeout(function() {
+			$(".character-section").fadeOut(300);
+		}, 500);
+	});
+	
+	// [현재 문장을 재생]------------------------------------------------------------
+	$('#play, #play_xs').click(function() {
+		if (currentAudio) {
+			displayPlayvoiceOnPlayer(currentSentenceIndex);
+			currentAudio.addEventListener("play", function toggleBtn(){
+				$('#play, #play_xs').hide();
+				$('#stop,#stop_xs').show();
+				currentAudio.removeEventListener("play", toggleBtn);
+			});
+			playAudio();
+			
+		}
+		isSentenceAutoPlay = true;
+		
+		$(".play-icon").fadeIn(100);
+		setTimeout(function(){
+			$(".play-icon").fadeOut(100);
+		},300);
+	});
+	
+	// [재생 방식 선택 (전체 반복/한 문장 반복)]---------------------------------------------
+	$('#chkAuto, #chkAuto_xs, #chkLoop, #chkLoop_xs').click(function() {
+		isRepeat = !isRepeat;
+		localStorage.setItem(loginId + '_PVB_repeat', isRepeat);
+		$('#chkAuto, #chkAuto_xs, #chkLoop, #chkLoop_xs').toggle();
+	});
+	
+	// [다음 문장 재생]--------------------------------------------------------------
+	$("#next, #next_xs").click(function(){
+		if(currentSentenceIndex == totalSentenceNum) {
+			$('#stop').click();
+			confirmStageCompleted();
+			return;
+		} else {
+			//-----------------
+			playNextSentence();
+			//-----------------
+		}
+	});
+	
+	// [이전 문장 재생]--------------------------------------------------------------
+	$("#prev").click(function(){
+		if(currentSentenceIndex != 0) {
+			stopAudio();
+			currentSentenceIndex--;
+			
+			initPlayvoice();
+			nextVoice();
+			
+			$('#play').click();
+		} else {
+			confirmStageStart();
+			return;
+		}
+	});
+	
+	// [next, prev센텐스 터치 슬라이드 (Mobile ver.)]----------------------------------
+	$("#swipe_area").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount, fingerData, allowPageScroll) {
+			if(direction == "left") {
+				$("#next").click();
+			} else if(direction == "right") {
+				$("#prev").click();
+			}
+		}
+	});
+	
+	// [음성 재생 일시 중지]-----------------------------------------------------------
+	$('#stop, #stop_xs').click(function() {
+		stopAudio();
+		clearTimeout(timer);
+		$('#stop, #stop_xs').hide();
+		$('#play,#play_xs').show();
+		isSentenceAutoPlay = false;
+		
+		$(".pause-icon").fadeIn(100);
+		setTimeout(function(){
+			$(".pause-icon").fadeOut(100);
+		},300);
+	});
+	
+	// [재생횟수 선택]--------------------------------------------------------------
+	$("#loopNum, #loopNum_xs").change(function(){
+		$("#loopNum_spninner").fadeIn(100);
+		loopSize = $(this).val();
+		localStorage.setItem(loginId + '_PVB_loopSize', $(this).val());
+		setTimeout(function(){
+			$("#loopNum_spninner").fadeOut(100);
+		},400);
+	});
+	
+	// [첫 문장부터 다시 재생]---------------------------------------------------------
+	$("#restartBtn, #restartBtn_xs").click(function(){
+		stopAudio();
+		$('#stop, #stop_xs').hide();
+		$('#play,#play_xs').show();
+		currentSentenceIndex = 0;
+		studyOverCount = 0;
+		
+		initPlayvoice();
+		displayProgressiveBar();
+		nextVoice();
+		
+		confirmStageStart();
+		$("#stageInfo_modal").one("hidden.bs.modal", function(){
+			$('#play').click();
+		});
+	});
+	
+	// [플레이어의 학습종료 버튼 -> 모달창 팝업(1.목록조회, 2.계속학습, 3.학습종료)]----------------
+	$("#closeStage_btn, #closeStage_btn_xs").click(function(){
+		confirmLearningStatus(stageId56);
+	});
+	
+	// [팝업된 모달창/학습종료후 모달창 '1.목록조회' 버튼 선택시]--------------------------------
+	$("#stageInfo_modal").on("click", "#goStageList_btn", function(){
+		goLevelList();
+	});
+	
+	// [팝업된 모달창의 '2. 학습계속' 버튼 선택시]------------------------------------------
+	$("#stageInfo_modal").on("click", "#continueLearning_btn", function(){
+		if($('#playerBodyDiv').is(':visible') || $('#playerBodyDivxs').is(':visible')){
+			$('#play').click();
+		}else if (widget != undefined){
+			widget.play();
+		}
+	});
+	
+	// [팝업된 모달창의  3.학습종료 버튼 -> summary page로 연결 (학습이 끝난 상황/ 끝나지 않는 상황)]-----
+	$("#stageInfo_modal").on("click", "#stopLearning_btn", function(){
+		stopLearning(stageId56);
+	});
+	
+	// [학습종료후의 모달창에서 2.학습종료 버튼 선택시  -> summary page로 연결 (학습이 끝난 상황)]-------
+	$("#stageInfo_modal").on("click", "#goSummary_btn", function(){
+		stopLearning(stageId56);
+	});
+	
+	// [학습종료후의 모달창에서 3.다음 스테이지 버튼]------------------------------------------
+	$("#stageInfo_modal").on("click", "#goNextStage_btn", function(){
+		var levelSeq = $('#levelSeq').text();
+		var stageSeq = $('#stageSeq').text();
+
+		goNextStage(stageId56, levelSeq, stageSeq, /*[[${block}]]*/ 0, /*[[${passLevel}]]*/ 0);
+	});
+	
+	// [스테이지 목표 toggle]--------------------------------------------------------
+	$("#stageObj_btn, #stageObj_btn_xs").click(function(){
+		if($("#stageObj_div").is(":visible") || $("#stageObj_div_xs").is(":visible")) {
+			$("#stageObj_div, #stageObj_div_xs").fadeOut(100);
+		} else {
+			$("#stageObj_div, #stageObj_div_xs").fadeIn(100);
+		}
+	});
+	
+	// [스테이지 목표, 전체 예문 div 열기]-----------------------------------------------
+	$(".viewStageInfoBtn").click(function(){
+		var infoName = $(this).attr("data-infoName");
+		var targetDiv = $("#" + infoName + "_div,#" + infoName + "_div_xs");
+		if(targetDiv.is(":visible")) {
+			$(this).removeClass("active");
+			targetDiv.slideUp(100);
+		} else {
+			$(".viewStageInfoBtn").removeClass("active");
+			$(".stage-objective").hide();
+			$(this).addClass("active");
+			$("#" + infoName + "_div,#" + infoName + "_div_xs").show();
+		}
+	});
+	
+	
+	// [센텐스영역을 클릭하여 재생 (Mobile ver.)]----------------------------------------
+	$("#pausePlayBtn_xs").click(function(){
+		//if($("#play_xs").css("display") == "none") {
+		if($("#play_xs").is(":visible")){
+			$("#play_xs").click();
+		} else {
+			$("#stop_xs").click();
+		}
+	});
+	
+	// [모바일; 이전 문장 넘어가기 (플레이어 영역 클릭 시, 휴대폰이 클 경우 슬라이드 불편하여 기능 추가)]--------
+	$("#prevSentBtn_xs").click(function(){
+		$("#prev").click();
+		$(".button-position .sent-icon.prev").fadeIn(100);
+		setTimeout(function(){
+			$(".button-position .sent-icon.prev").fadeOut(110);
+		},300);
+	});
+	
+	// [모바일; 다음 문장 넘어가지 (플레이어 영역)]------------------------------------------
+	$("#nextSentBtn_xs").click(function(){
+		$("#next").click();
+		$(".button-position .sent-icon.next").fadeIn(100);
+		setTimeout(function(){
+			$(".button-position .sent-icon.next").fadeOut(110);
+		},300);
+	});
+	
+	// [예문 플레이어와 영상 플레이어 전환]-------------------------------------------------
+	$("#viewYgPlayer, #viewYgPlayer_xs").click(function(){
+		$("#stop").click();
+		$("#playerBodyDiv, #playerBodyDivxs").slideUp();
+		$("#ygVideoSection").slideDown();
+		$("#viewYgPlayer_xs").hide();
+		$("#viewPvPlayer_xs").show();
+	});
+	$("#viewPvPlayer, #viewPvPlayer_xs").click(function(){
+		if(widget != undefined) widget.pause();
+		$("#ygVideoSection").slideUp();
+		$("#playerBodyDiv, #playerBodyDivxs").slideDown();
+		$("#viewPvPlayer_xs").hide();
+		$("#viewYgPlayer_xs").show();
+	});
+	
+	
+// -------------------------[유튜브 영상 플레이어 관련 부분]-------------------------------
+	/*[# th:if="${#strings.contains('GP',session.userContainer.personacon.memberType)}" ]*/
+	/* 위젯 API 코드를 비동기적으로 불러옴 */
+	var tag = document.createElement('script');
+	tag.src = "https://youglish.com/public/emb/widget.js";
+	document.head.appendChild(tag);
+	/* API 코드 다운로드가 완료되면 [onYouglishAPIReady]를 호출하여 위젯 생성. */
+	
+	$("#playYg").click(function(){
+		widget.play();
+	});	
+	
+	$("#stopYg").click(function(){
+		widget.pause();
+	})
+	
+	$("#restartYg").click(function(){
+		widget.replay();
+	})
+	$("#prevYg, #prevYg_xs").click(function(){
+		widget.previous();
+	})
+	$("#nextYg, #nextYg_xs").click(function(){
+		widget.next();
+	})
+	
+	$("#swipeVideoArea").swipe( {
+		swipe:function(event, direction, distance, duration, fingerCount, fingerData, allowPageScroll) {
+			if(direction == "left") {
+				$("#nextYg").click();
+			} else if(direction == "right") {
+				$("#prevYg").click();
+			}
+		}
+	});
+	/*[/]*/
+//--------------------------[커뮤니티 서비스 처리 부분]----------------------------------
+
+	// [플레이어의 댓글 버튼을 댓글 탭 버튼들과 동기화]
+	$(".viewPracticeBtn").click(function(){
+		$("a[href='#patternCommentDiv']").click();
+		$("html,body").animate({
+			scrollTop: $("#communitySection").offset().top - $("#headerNavbar").height()
+		});
+	});
+	$(".viewQnaBtn").click(function(){
+		$("a[href='#qnaCommentDiv']").click();
+		$("html,body").animate({
+			scrollTop: $("#communitySection").offset().top - $("#headerNavbar").height()
+		});
+	});
+	//[패턴 댓글 폼 placeholder 변경]-------------------------------------------------
+	$("#patternCommentDiv .comment-textarea").attr("placeholder", "나의 일상용어를 패턴에 맞게 작성해 보세요");
+	//[QnA 댓글 폼 placeholder 변경]-------------------------------------------------
+	$("#qnaCommentDiv .comment-textarea").attr("placeholder", "예문에 대한 의견이나 궁금한 점을 남겨봅시다.");
+	
+	var $commentListSection = $('#patternCommentDiv,#qnaCommentDiv');
+	// [댓글 입력용 인자값 설정]
+	//---------------------------------
+	fillRequiredInfo({
+			appContentWriter: null,
+			appDomain: 'playvoiceBook',
+			appContentId: stageId
+	}, $commentListSection);
+	//---------------------------------
+	var url = "/reply/playvoiceBook/list/" +stageId +"?replyType=p";
+	var $selector = $('#patternCommentDiv .commentPage');
+	$('#patternCommentDiv').addClass('replyLoaded');
+	// [Practice 댓글 목록 가져오기]
+	//----------------------
+	reloadAll(url, $selector);
+	//----------------------
+	
+	//[Qna탭 버튼을 누를때 qna댓글 페이지 가져오기]------------------------------------------
+	$(document).on("click", '#navQnaBtn', function(e){
+		// 처음 view_playvoicebook을 부를때, 불필요하게 qna코멘트도 가져오는것을 막기위함.
+		// 탭 버튼을 누를때 가져옴.
+		if($('#qnaCommentDiv').is(":not(.replyLoaded)")){
+			var url = "/reply/playvoiceBook/list/" +stageId +"?replyType=q";
+			var $selector = $('#qnaCommentDiv .commentPage');
+			var commentDiv = $("#qnaCommentDiv");
+			$("#qnaCommentDiv").addClass("replyLoaded");
+			//-----------------------
+			reloadAll(url, $selector);
+			//-----------------------
+		}
+		
+		// 패턴 댓글을 숨기고 qna 댓글을 표시
+		$('#patternCommentDiv').removeClass('show active');
+		$('#qnaCommentDiv').addClass('show active');
+	});
+	
+	//[모달창의 패턴 댓글 등록]----------------------------------------------------------
+	$("#patternForm_modal form").on("submit", function(e){
+		e.preventDefault();
+        var pattern_comment_kor = replaceQuotes($("#patternForm_modal #pattern_comment_kor").val());
+        var pattern_comment_eng = replaceQuotes($("#patternForm_modal #pattern_comment_eng").text());//강조 태그x, pure text
+        var empEng = replaceQuotes($("#patternForm_modal #pattern_comment_eng").html().replace(/&nbsp;/gi,' '));//강조태그 들어간 영어문장
+        
+        //모달 창의 입력값 비워줌
+        $("#patternForm_modal #pattern_comment_kor").val('');
+        $("#patternForm_modal #pattern_comment_eng").text('');
+        
+        var commentArr = JSON.stringify([pattern_comment_kor , pattern_comment_eng, empEng]);
+
+        $('#patternForm_modal').modal("hide"); //닫기
+        
+        var personaconId = $('.yourId').val(); 
+        var personaconAlias = /*[[${session?.userContainer?.personacon?.alias}]]*/ null;
+		var stageId = $('#stageId').val();
+		var selector = $('#patternCommentDiv .commentPage');
+		
+		var replyResource = {
+			appContentId: stageId,
+			comment: commentArr, 
+			personaconId: personaconId,
+			personaconAlias : personaconAlias,
+			replyType: 'p'
+		};
+		//--------------------------
+		if(! isEmpty(pattern_comment_kor)){
+			addComment(selector, replyResource, 'playvoiceBook');
+		}
+		//--------------------------
+	});
+	
+	//[패턴 댓글 (모달)폼 띄우기]-------------------------------------------------------
+	// 플레이어를 화면 제일 위로 위치시키고 PC화면일 경우 모달창을 문장 밑으로 위치시킨다.
+	var patternCommentTop;
+	$("#patternCommentDiv .comment-textarea").click(function(){
+		var $player = $(".player-cover:visible");
+	
+		if(navigator.userAgent.indexOf("Mobi") == -1){
+			window.scrollTo(0, $player.offset().top - $("#headerNavbar").height());
+		}else{
+			window.scrollTo(0, $player.offset().top);
+		}
+		$("#patternForm_modal")
+		.on("shown.bs.modal",function(){
+			if(navigator.userAgent.indexOf("Mobi") == -1){
+				$(".modal-dialog:visible").css("margin-top",$(".sentence-area:visible").height() + $("#headerNavbar").height());
+			}
+			$(".modal-dialog:visible [contenteditable]").focus();
+		}).modal("show");
+	});
+	
+	//[패턴 댓글 클립보드에서 태그를 제거하고 붙여넣기]-----------------------------------------
+	$("#pattern_comment_eng").on('paste', function(e){
+		e.preventDefault();//붙여넣기를 취소
+		var nod = document.createTextNode(e.originalEvent.clipboardData.getData('Text'));//클립보드 내용을 저장
+		window.getSelection().getRangeAt(0).deleteContents();//커서위치 내용을 지움.(블록지정했을 경우)
+		window.getSelection().getRangeAt(0).insertNode(nod);//클립보드 내용 붙여넣기
+		$(this).trigger("input");
+	});
+	
+	//[패턴 댓글 영어 입력 부분에는 영어만, 한글 입력 부분에는 한글만 입력되게]--------------------------
+	$("#pattern_comment_kor,#pattern_comment_eng").on("input",function(e){
+	   var engText = $("#pattern_comment_eng").html().replace(/&nbsp;/gi,' ');
+	   var korText = $("#pattern_comment_kor").val();
+	   var warnKor = $("#pattern_comment_kor ~ .warning-msg-section");
+	   var warnEng = $("#pattern_comment_eng ~ .warning-msg-section");
+	   var verified = true;
+	   if(korText.length == 0 || isAllKor(korText)){
+	      warnKor.hide();
+	   }else{
+	      warnKor.show();
+	      verified = false;
+	   }
+	   if(engText.length == 0 || isAllEng(engText)){
+	      warnEng.hide();
+	   }else{
+	      warnEng.show();
+	      verified = false;
+	   }
+	   if(korText.length > 0 && verified){
+	      $("#addCommentBtn").prop("disabled", false);
+	   }else{
+	      $("#addCommentBtn").prop("disabled", true);
+		}
+	});
+
+	//[블록지정한 부분에 bold 효과를 적용]------------------------------------------------
+	$('.emPen').click(function(){
+		document.execCommand('bold');
+	});
+}); 
+//end of ready -----------------------------------------------------------------
+
+
+/**
+ * 레벨번호와 stage번호를 표시한다.
+ */
+function confirmStageObjective(){
+	var playvoice = playvoiceList[0];
+	
+	$('#levelSeq, #levelSeq_xs').text(/*[[${levelSeq}]]*/ '');
+	$('#stageSeq, #stageSeq_xs').text(/*[[${stageSeq}]]*/ '');
+};
+
+/**
+ * 학습할 sentence정보를 플레이어에 표시한다.
+ */
+function displayPlayvoiceOnPlayer(index){
+	var tag = '<span style="color:red;font-weight:bold;" ></span>';
+	var empText = emphasizeText(playvoiceList[index].sentence.eng, playvoiceList[index].emLoc, tag);
+	//영어 출력
+	$('#pvEng, #pvEng_xs').empty().html(empText).show();
+	
+	//한국어 출력
+	$('#pvKor, #pvKor_xs').html(playvoiceList[index].sentence.kor).show();
+	
+	//코멘트 출력
+	$('#pvComment, #pvComment_xs').html('');
+	if(playvoiceList[index].comment == null || playvoiceList[index].comment.length == 0) {
+		$('#pvComment').parent().hide();
+		$('#pvComment_xs').hide();
+	} else {
+		$('#pvComment, #pvComment_xs').html(lineBreak(playvoiceList[index].comment));
+		$('#pvComment').parent().show();
+		$('#pvComment_xs').show();
+	}
+};
+
+/**
+ * 성우 정보 출력
+ */
+function displayVoiceActorInfo(){
+	var currentAccent = currentVoiceActor.accent;
+	var accent = (currentAccent.indexOf('-') > -1)? 
+				(currentAccent.split('-')[1]) : currentAccent;
+	$('#flag, #flag_xs').attr("src", "/images/common/flags/" + accent + ".png");
+	$('#actor, #actor_xs').css("background-image", "url(/images/common/actors/" + encodeURIComponent(currentVoiceActor.source) + ".jpg)");
+	$('#actorName, #actorName_xs').html(currentVoiceActor.source);
+};
+
+
+/**
+ * 보이스 출력횟수에 따른 플레이어에서 센텐스 표시 정보를 변경한다.
+ */
+function changeSentenceDisplay(){
+	var guideMsg = '<span class=\"sentence-report\">&#9135; 예문의 뜻을 생각해 보세요 &#9135;</span>';
+	var guideMsg2 = '<span class=\"sentence-report\">&#9135; 예문의 뜻을 보고 영어 문장을 떠올려보세요. &#9135;</span>';
+	// 3회부터 영어 예문만 표시
+	if(playCount == 3){
+		$('.sent-eng').show();
+		var korSentence = $('.sent-kor').html();
+		$('.sent-kor').data('kor', korSentence)
+					  .html(guideMsg);
+	}
+	// 5회부터 한글 해석만 표시
+	if(playCount > 4){
+		$('.sent-eng').html(guideMsg2);
+		$('.sent-kor').html($('.sent-kor').data('kor'));
+	}
+};
+
+/**
+ * 학습 진행바 표시
+ */
+function displayProgressiveBar(){
+	var percent = (studyOverCount * 100)/totalSentenceNum;
+	$("#stage_progress, #stage_progress_xs").css("width", percent + "%");
+};
+
+/**
+ * 첫 문장부터  다시 재생
+ */
+function repeatFromStart(){
+	stopAudio();
+	$('#stop, #stop_xs').hide();
+	$('#play,#play_xs').show();
+	currentSentenceIndex = 0;
+	studyOverCount = 0;
+	
+	initPlayvoice();
+	displayProgressiveBar();
+	nextVoice();
+	$('#play').click();
+}
+
+/**
+ * 다음 문장 자동 재생
+ */
+function autoNextSentence(){
+	if(currentSentenceIndex == totalSentenceNum) {
+		if(isRepeat){
+			repeatFromStart();
+		}else{
+			confirmStageCompleted();
+			return;
+		}
+	}else{
+		playNextSentence();
+	}
+}
+
+/**
+ * 다음 문장 재생
+ */
+function playNextSentence(){
+	stopAudio();
+	
+	currentSentenceIndex++;
+	initPlayvoice();
+	nextVoice();
+	
+	if(studyOverCount < currentSentenceIndex){
+		studyOverCount++;
+	}
+	displayProgressiveBar();
+	$('#play').click();
+}
+ 
+ 
+/**
+ * 스테이지의 학습이 종료될 때
+ */
+function confirmStageCompleted() {
+	$("#stageInfo_modal").find("#modal_msg").html("학습이 모두 끝났습니다.<br>다음 스테이지를 학습하겠습니까?");
+	
+	var buttons = '<button type="button" id="goStageList_btn"  class="btn btn-outline-info btn-sm float-right" data-dismiss="modal">목록으로 가기</button>&nbsp;&nbsp;'
+				+'<button type="button" id="goSummary_btn"  class="btn btn-outline-info btn-sm float-right" data-dismiss="modal">학습 종료</button>&nbsp;&nbsp;'
+				+'<button type="button" id="goNextStage_btn" class="btn btn-info btn-sm float-right" data-dismiss="modal">다음 스테이지로 Go!</button>';
+	
+	$("#stageInfo_modal").find(".modal-footer").html(buttons);
+	
+	// 다음 스테이지로 자동으로 넘어가기 위한 타이머 동작. 2.5초 후 트리거.
+	var goNextTimer;
+	if(isRepeat){
+		$("#stageInfo_modal").off('shown.bs.modal');
+	}else{
+		$("#stageInfo_modal").on('shown.bs.modal',function(){
+			goNextTimer = setTimeout(function() {
+				$('#goNextStage_btn').click();
+			}, 2500);
+		      
+		}).on('hidden.bs.modal',function(){
+			clearTimeout(goNextTimer);
+		});
+	}
+	$("#stageInfo_modal").modal('show');
+};
+
+/**
+ * 모달을 이용하여 스테이지의 첫문장 표시
+ */
+function confirmStageStart() {
+	$("#stageInfo_modal").find("#modal_msg").html("스테이지 첫 문장입니다.");
+	var buttons = '<button type="button" class="btn btn-info btn-sm float-right" data-dismiss="modal">확인</button>';
+	$("#stageInfo_modal").find(".modal-footer").html(buttons);
+	$("#stageInfo_modal").modal({
+		show : true
+	});
+};
+
+/**
+ * 플레이어 및 모달의 학습 종료버튼을 클릭시
+ */
+function confirmLearningStatus(stageId56) {
+	
+	// 재생 중지
+	$('#stop').click();
+	// YgPlayer도 중지
+	if(widget != undefined) widget.pause();
+	clearTimeout(timer);
+	
+	// 아직 마지막 문장 전일 경우 3가지(목록,다음스테이지,종료) 제안.
+	if(currentSentenceIndex < totalSentenceNum) {
+		var modal_msg = '<div class="row no-gutters"><div class="col-sm text-center">'
+			+ '<img src=\"/images/common/characters/africa_sad.png\" width=\"100px\"></div>'
+			+ '<div class="col-sm-auto px-2 align-self-center">학습이 아직 끝나지 않았습니다.<br>종료하겠습니까?</div>' 
+			+ '<div class="col-sm"></div></div>';
+		$("#stageInfo_modal").find("#modal_msg").html(modal_msg);
+		
+		var buttons = '<button type="button" id="goStageList_btn" class="btn btn-outline-info btn-sm" data-dismiss="modal">목록 조회</button>&nbsp;&nbsp;'
+			+ '<button type="button" id="goNextStage_btn" class="btn btn-outline-info btn-sm" data-dismiss="modal">다음 스테이지로</button>&nbsp;&nbsp;'		
+			+ '<button type="button" id="stopLearning_btn" class="btn btn-info btn-sm" data-dismiss="modal">학습 종료</button>';
+		
+		$("#stageInfo_modal").find(".modal-footer").html(buttons);
+		$("#stageInfo_modal").one('hidden.bs.modal', function(){
+			$('#continueLearning_btn').click();
+		}).modal('show');
+		return;
+	// 마지막 문장일 경우 스테이지 종료 바로 실행.
+	} else {
+		stopLearning(stageId56);
+		return;
+	}
+}
+//--------------------------[영상 플레이어 처리 부분]-----------------------------------
+
+/**
+ * 영상을 검색할 문자열이 없거나 검색 결과가 없을 경우 영상 학습 플레이어를 비활성화.
+ */
+function disableYg(){
+	$("#viewYgPlayer, #viewYgPlayer_xs").prop("disabled", true);
+	$("#viewYgPlayer .ygPlayerTooltip").text("아쉽게도 이 스테이지에서 제공할 영상이 없습니다.");
+	$("#viewYgPlayer_xs .ygPlayerTooltip").html("아쉽게도 이 스테이지에서 <br class=\"d-md-none\"> 제공할 영상이 없습니다.");
+};
+/**
+ * 재생 상태에 따라 영상 재생 버튼을 토글
+ */
+function toggleYgPlayBtn(playing){
+	if(playing == true){
+		$("#playYg").hide();
+		$("#stopYg").show();
+	}else{
+		$("#playYg").show();
+		$("#stopYg").hide();
+	}
+};
+
+/**
+ * 영상 플레이어의 자막 텍스트 변경
+ */
+function changeYgCaption(encodedText) {
+	$("#ygComment").html(decodeURIComponent(encodedText)
+  		.replace(/(\[\[\[)(\S*)(\]\]\])/g, "<b>$2</b>"));
+}
+
+//--------------------------[커뮤니티 서비스 처리 부분]--------------------------------
+
+// ----------------패턴 댓글의 화면처리 관련 -------------------------------------------
+/**댓글 Eng영역 =None= 메세지 처리  */
+function changeNoneEngComment(selector) {
+   var msg = '<br><span style=\"font-size: 0.77rem; font-weight: 500; color: #c05064;\"><i class="fas fa-pray fa-lg"></i> 이거 아는 크루분들 댓글 부탁해요! </span>'; 
+   msg+='<a href="/square/babel/list/kor"><span style=\"font-size: 0.77rem; font-weight: 500; margin-left:5px; color: #F06292;\">[해당 질문을 바벨 스택에도 등록하였습니다.] &nbsp;&nbsp; <i class="fas fa-arrow-right fa-lg"></i></span></a>'
+   $(selector).find(".comment-text").each(function(index,element){
+      var noneEngComment = $(element).html();
+      if($(element).find('br').length == 0) {
+          $(element).html(noneEngComment + msg);
+      } 
+   });
+};
+
+/** contentEditable된 div에 text만 삽입 */
+function pasteFilter(e) {
+	e.preventDefault();//붙여넣기를 취소
+	var nod = document.createTextNode(e.clipboardData.getData('Text'));//클립보드 내용을 저장
+	window.getSelection().getRangeAt(0).deleteContents();//커서위치 내용을 지움.(블록지정했을 경우)
+	window.getSelection().getRangeAt(0).insertNode(nod);//클립보드 내용 붙여넣기
+};
+
+/** 예문 등록필드에 div 생성 못하게 */
+function enkeyup(obj){
+	$(obj).children('div').replaceWith('');
+};
+/**
+ * 댓글의 우선순위 변경이 된 다음 화면 처리
+ */
+function sucessPlayvoiceBookPriority(result, parentId){
+	var replyType = result;
+	
+	var appContentId = $('#stageId').val();
+	var selector;
+	var next;
+	
+	if(parentId == null || parentId == ''){
+		
+		if(replyType == 'P' || replyType == 'p'){
+			selector = $('#patternCommentInclDiv .commentPage');
+		}
+		else if(replyType == 'C' || replyType == 'c'){
+			selector = $('#qnaCommentInclDiv .commentPage');
+		}
+		next = "/reply/playvoiceBook/list/" + appContentId + "?replyType=" + replyType;
+		
+	}else{
+		selector = $('#children'+parentId);	
+		
+		next = "/reply/playvoiceBook/list/" +appContentId +"/"+parentId;
+	}
+	//'우선 순위'를 적용한 화면 다시 불러오기
+	
+	reloadAll(next, selector, true);
+};
+
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+<!--/* -------------------------------[Modal] -----------------------------*/-->
+<div id="stageKorInfo_modal" class="modal start-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div class="modal-body text-center d-flex align-content-between flex-wrap">
+				<th:block th:if="${korList != null AND #lists.size(korList) > 0}">
+				<div class="stage-kor-sentence-guide">
+					<div>
+						이번 스테이지에서 학습할 문장들입니다.<br>
+						우리말 문장을 보고 <b>영어로 말해 보세요</b>.
+					</div>
+					<div class="skip-button-section">
+						<button class="skip-btn" type="button" data-dismiss="modal">
+							SKIP <i class="fa fa-arrow-right"></i>
+						</button>
+					</div>
+				</div>
+				<div class="stageKorSentenceList stage-kor-sentence-div">
+					<div class="stage-kor-sentence-guide progress-num">
+						<span>1</span> / [[${#lists.size(korList)}]]
+					</div>
+					<div th:each="kor, iter : ${korList}" 
+						class="stageKorSentence kor-sentence-div"
+						th:classappend="${iter.index == 0}? 'active':''">
+						<div class="sent">[[${kor}]]</div>
+						<div th:if="${iter.last}" class="mobile-guide d-md-none">
+							학습을 시작해 볼까요?<br>
+							예문 영역을 왼쪽 방향(<i class="fa fa-arrow-left"></i>)으로 슬라이드하면<br> 
+							다음 예문으로 넘길 수 있습니다.
+						</div>
+					</div>
+				</div>
+				<div class="guide-footer-section row no-gutters">
+					<div class="hide-section col"></div>
+					<div class="hide-section stage-kor-sentence-guide col-auto">
+						학습 문장을 보고 3초 내로 말할 수 있을 때까지<br>
+						지속적으로 기억 인출 연습을 해야 합니다.
+					</div>
+					<div class="col">
+						<button id="nextKorSent" class="btn next-btn" type="button">NEXT</button>
+						<button id="start_btn" type="button" 
+							class="btn btn-danger btn-start-player jsAction" 
+							data-dismiss="modal" style="display: none;">START</button>
+					</div>
+				</div>
+				</th:block>
+				<div class="character-section">
+					<div class="bird-face-section"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<div id="stageInfo_modal" class="modal fade" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content content-container">
+			<div id="modal_msg" class="modal-body text-center"></div>
+			<div class="modal-footer justify-content-center"></div>
+		</div>
+	</div>
+</div>
+
+
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/playvoiceBook/incl/playvoicebook_menu::menu}"></div>
+	
+	
+	
+<div id="playerSection" class="playvoice-player-section" 
+	th:with="memberType = ${session.userContainer.personacon.memberType}">
+<!--/*=====================================================================*/-->
+<!--/*  					1.	playerSection PC ver. 					   */-->
+<!--/*=====================================================================*/-->
+
+<div class="d-none d-md-block">
+<!-- -----------------------[1.1 스테이지 설명]--------------------------------- -->
+<div class="stage-info row mt-2">
+	<div class="col-xl-2 col-md-1"></div>
+	<div class="col-xl-8 col-md-10 px-0">
+		<h3 class="row no-gutters">
+			<span class="col text-left align-self-center">
+				<button type="button" data-infoName="stageObj"
+					class="viewStageInfoBtn total-sent-btn btn btn-main3 btn-sm">
+					<i class="fa fa-landmark fa-fw"></i>
+					스테이지 목표 <i class="fa fa-caret-down"></i>
+				</button>
+			</span>
+			<span class="stage-font col-auto align-self-center">
+				<span class="mr-2">{ Level <span id="levelSeq">3</span></span>
+				Stage <span id="stageSeq">15</span> }
+			</span>
+			<span class="col text-right align-self-center">
+				<button type="button" data-infoName="totalSentences" 
+					class="viewStageInfoBtn total-sent-btn btn btn-main3 btn-sm">
+					<i class="fa fa-tasks fa-fw"></i>
+					전체 예문 보기 <i class="fa fa-caret-down"></i>
+				</button>
+			</span>
+			
+		</h3>
+		<div id="stageObj_div" class="stage-objective content-container"
+			 style="display: none;">
+			<div class="objective-text" 
+				th:utext="${stageObjective}"></div>
+		</div>
+		<div id="totalSentences_div" class="stage-objective content-container"
+			 style="display: none;">
+			<div class="objective-text total-sentence">
+				<div class="sentence-section">
+					<div class="sentence-cover">
+						<div class="sentence-eng">
+							You <b>look</b> nice.
+						</div>
+						<div class="sentence-kor">
+							멋져. 후훗 / 너는 멋져 보인다.
+						</div>
+						<div class="sentence-num">1</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+
+<!--/* -------------------------[1.2 player body]------------------------- */-->
+<div id="playerBodyDiv" class="player-body-div row mb-3 mt-1">
+	<!-- [이전 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-left">
+		<i id="prev" class="fas fa-angle-double-left fa-4x jsAction move-sentence" 
+			data-toggle="tooltip" title="이전 문장"></i>
+	</div>
+	
+	<div class="player-cover col-xl-8 col-md-10 px-0">
+		<!-- [1.2.1 플레이어 센텐스 body] -->
+		<div class="sentence-area text-center px-2 pb-2">
+			<div class="row">
+				<!-- [국기] -->
+				<div class="col-md-3 text-center">
+					<img id="flag" src="/images/common/flags/US.png" style="height:45px;">
+				</div>
+				<!-- [진행 바] -->
+				<div class="col-md-6 px-0 pt-3 text-center">
+					<div class="rounded" style="width: 100%; background-color: #d8d8d8;">
+						<div id="stage_progress" class="rounded bg-info" 
+							style="width: 0; height: 10px; transition: width .6s ease;"></div>
+					</div>
+				</div>
+				<!-- [종료 버튼] -->
+				<div class="col-md-3 pt-2 text-center">
+					<button id="closeStage_btn" type="button" class="btn btn-outline-info btn-sm jsAction">
+						학습종료
+					</button>
+				</div>
+				<div class="col-12" align="center"><hr class="division-line"></div>
+			</div>
+			<div class="player-sentence-info-section row">
+				<!-- [보이스 성우] -->
+				<div class="col-md-3 text-center align-self-center">
+					<img id="actor" src="/images/app/member/profile_paper.png" 
+						class="rounded-circle actor-image-frame" style="width: 70%;
+						background-image: url('/images/common/characters/profile/cowboy.jpg');"><br>
+					<span id="actorName" class="actor-name text-pvb">Johnny</span>
+				</div>
+				<div class="col-md-6 px-0 text-center align-self-center">
+					<!--/* [플레이어 센텐스 출력부] */-->
+					<div id="pvEng" class="sent-eng mb-4">
+						<span style="color:red;">Please wait...</span><br>
+						System is building the stage.
+					</div>
+					<!--/* [플레이어 한글 출력부] */-->
+					<div id="pvKor" class="sent-kor mb-3">
+						잠시만 기다려 주세요.
+					</div>
+				</div>
+				<div class="player-adverse-section col-md-3 text-center align-self-center">
+					<div th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}" 
+						class="player-adverse-cover">
+						<!-- <script src="https://ads-partners.coupang.com/g.js"></script>
+						<script>
+						    new PartnersCoupang.G({
+						    	"id": 384940,
+						    	"subId": null,
+								"width": 140,
+								"height": 170
+						    });
+						</script> -->
+					</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		<!--/* [1.2.2 Player Control body] */-->
+		<div class="player-control-back">
+			<!--/* [플레이어 코멘트 출력부] */-->
+			<div class="px-4 py-1 mb-2">
+				<div id="pvComment" class="sentence-explain text-left py-2 px-4 rounded">
+					* wait : 기다리다
+				</div>
+			</div>		
+					
+			<!--/* [플레이어 오디오 컨트롤러] */-->
+			<div id="audio_player"><div class="audio-button-control-section row no-gutters">
+				<div class="col-auto align-self-center text-left pl-3">
+					<!-- play & stop -->
+					<button id="play" type="button" class="btn btn-pvb-trans jsAction"  
+						title="재생" data-toggle="tooltip">
+						<i class="far fa-play-circle fa-4x fa-fw"></i>
+						<div class="guide-position">재생</div>
+					</button>
+					<button id="stop" type="button" class="btn btn-pvb-trans jsAction"  
+						title="정지" data-toggle="tooltip" style="display:none">
+						<i class="far fa-pause-circle fa-4x fa-fw"></i>
+						<div class="guide-position">정지</div>
+					</button>
+					
+					<!-- loop -->
+					<button id="chkAuto" type="button" class="btn btn-pvb btn-sm loop-button jsAction" 
+						data-toggle="tooltip" title="스테이지 자동 넘김">
+						stage <i class="fas fa-long-arrow-alt-right"></i>
+						<div class="guide-position">스테이지 자동 넘김</div>
+					</button>
+					<button id="chkLoop" type="button" class="btn btn-dark btn-sm loop-button jsAction" 
+						data-toggle="tooltip" title="한 스테이지 반복" style="display: none;">
+						stage <i class="fas fa-sync-alt"></i>
+						<div class="guide-position">한 스테이지 반복 학습</div>
+					</button>
+					
+					<!-- restart -->
+					<button id="restartBtn" type="button" title="첫 문장부터 다시 듣기" data-toggle="tooltip" 
+						class="btn btn-pvb btn-sm button-gap jsAction">
+						restart
+						<div class="guide-position">첫 문장부터 다시 듣기</div>
+					</button>
+					
+					<!-- play num -->
+					<select id="loopNum" class="loop-num button-gap custom-select jsAction" 
+						data-toggle="tooltip" title="재생횟수">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option selected value="3">3</option>
+						<option value="4">4</option>
+						<option value="5">5</option>
+						<option value="6">6</option>
+						<option value="10">10</option>
+						<option value="20">20</option>
+						<option value="50">50</option>
+					</select>
+					<i id="loopNum_spninner" class="fa fa-spinner fa-spin fa-fw text-pvb" style="display: none;"></i>
+				</div>
+				
+				<!-- 영상으로 채인지 버튼 -->
+				<div class="youtube-button-section col text-right pr-3 align-self-center">
+					<button id="viewYgPlayer" class="btn btn-youtube" type="button">
+						<i class="fab fa-youtube fa-fw"></i> 실전 모드
+						<div class="ygPlayerTooltip guide-position">
+							<i class="forGold fa fa-crown"></i>
+							스테이지 패턴을 실제 외국인의 자연스러운 말로 학습해 보세요. 
+						</div>
+					</button>
+				</div>
+				
+				<!-- 코멘트 버튼 -->
+				<div class="col-auto align-self-center text-right pr-3">
+					<button class="viewPracticeBtn btn btn-outline-pvb btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="Practice">
+						<i class="far fa-grin-alt fa-2x fa-fw"></i>
+						<div class="guide-position">Practice 댓글</div>
+					</button>
+					<button class="viewQnaBtn btn btn-outline-pvb btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="QnA">
+						<i class="far fa-comment-dots fa-2x fa-fw"></i>
+						<div class="guide-position">QnA 댓글</div>
+					</button>
+				</div>
+			</div></div>
+		</div><!-- end of player control body -->
+		
+	</div>
+	<!-- [이후 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-center">
+		<i id="next" data-toggle="tooltip" title="다음 문장" 
+			class="fas fa-angle-double-right fa-4x jsAction move-sentence"></i>
+	</div>
+</div>
+</div><!-- end of playerSection PC ver. -->	
+
+
+<!--/*=====================================================================*/-->
+<!--/*  					2. playerSection Mobile Ver.				   */-->
+<!--/*=====================================================================*/-->
+<div class="d-md-none">
+<!-- ---------------------------[2.1 title info]---------------------------- -->
+<div class="stage-info-cover row">
+	<div class="stage-info col">
+		<h3>
+			<span class="level-font">
+				Level <span id="levelSeq_xs">3</span>
+			</span>
+			<span class="stage-font">
+				stage <span id="stageSeq_xs">15</span>
+			</span>
+		</h3>
+		<!-- 진행 바 -->
+		<div class="rounded" style="width: 100%; background-color: #d8d8d8;">
+			<div id="stage_progress_xs" class="rounded bg-info" 
+				style="width: 0; height: 8px; transition: width .6s ease;"></div>
+		</div>
+	</div>
+	<div class="col-auto text-right align-self-center">
+		<button id="closeStage_btn_xs" class="btn-mobile btn-main" 
+			type="button">종료</button>
+	</div>
+</div><!-- end of title info -->
+
+<!-- ---------------------------[2.2 player body]--------------------------- -->
+<div id="playerBodyDivxs" class="player-cover">
+	<div class="actor-section">
+		<!-- 성우 이미지 -->
+		<img id="actor_xs" class="actor-image-frame" 
+			src="/images/app/member/profile_paper.png"
+			style="background-image: url('/images/common/characters/profile/cowboy.jpg');">
+	</div>
+	<div class="player-notice-cover row no-gutters">
+		<div class="actor-empty col-auto"></div>
+		<!-- 성우 이름/ 국기 -->
+		<div class="actor-detail col-auto align-self-center">
+			<span id="actorName_xs" class="actor-name">Johnny</span>
+			<span class="actor-flag">
+				<img id="flag_xs" src="/images/common/flags/US.png">
+			</span>
+		</div>
+		<div class="player-notice col align-self-center"></div>
+	</div>
+	
+	<div id="swipe_area">
+		<!--/* [2.2.1 player sentence body] */-->
+		<div id="playAreaOnMobile" class="sentence-area-xs">
+			<div class="button-position text-center">
+				<i class="prev sent-icon fa fa-chevron-left"></i>
+				<i class="next sent-icon fa fa-chevron-right"></i>
+				<i class="pause-icon far fa-pause-circle" style="display: none;"></i>
+				<i class="play-icon far fa-play-circle" style="display: none;"></i>
+			</div>
+			<div class="sentence-cover">
+				<!--/* [플레이어 센텐스 출력부] */-->
+				<div id="pvEng_xs" class="sent-eng text-center">
+					<span>Please wait...</span><br>
+					System is building the stage.
+				</div>
+				<!--/* [플레이어 한글 출력부] */-->
+				<div id="pvKor_xs" class="sent-kor text-center">
+					잠시만 기다려주세요.
+				</div>
+			</div>
+			<!--/* [플레이어 코멘트 출력부] */-->
+			<div id="pvComment_xs" class="sentence-explain">
+				* wait : 기다리다
+			</div>
+			<div id="pausePlayBtn_xs" class="mobile-control-area pause-play"></div>
+			<div id="prevSentBtn_xs" class="mobile-control-area prev-sent"></div>
+			<div id="nextSentBtn_xs" class="mobile-control-area next-sent"></div>
+		</div>
+		
+		<!--/* [2.2.2 player control body] */-->
+		<div id="audio_player_xs" class="player-control-section"><div class="row no-gutters">
+			<!-- play & stop -->
+			<div class="col-auto pr-3">
+				<button id="play_xs" class="btn btn-pvb-trans" type="button">
+					<i class="fa fa-play fa-3x fa-fw"></i>
+				</button>
+				<button id="stop_xs" class="btn btn-pvb-trans" 
+					type="button" style="display: none;">
+					<i class="fa fa-pause fa-3x fa-fw"></i>
+				</button>
+			</div>
+			<div class="player-control-cover col text-right align-self-center">
+				<!-- loop -->
+				<button id="chkAuto_xs" class="button-gap btn btn-pvb btn-sm" 
+					type="button">
+					stage <i class="fas fa-long-arrow-alt-right"></i>
+				</button>
+				<button id="chkLoop_xs" class="button-gap btn btn-pvb btn-sm" 
+					type="button" style="display: none;">
+					stage <i class="fas fa-sync-alt"></i>
+				</button>
+				
+				<!-- restart -->
+				<button id="restartBtn_xs" type="button" class="button-gap btn btn-pvb btn-sm button-size">
+					restart
+				</button>
+				
+				<!-- play num -->
+				<select id="loopNum_xs" class="button-gap loop-num custom-select">
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option selected value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="10">10</option>
+					<option value="20">20</option>
+					<option value="50">50</option>
+				</select>
+			</div>
+		</div></div>
+	
+	</div><!-- end of swipe_area -->
+</div><!-- end of playerBodyDivxs -->
+
+</div><!-- end of playerSection Tablet & Mobile ver. -->		
+
+	
+<!--/*=====================================================================*/-->
+<!--/*							3. Video Section							*/-->
+<!--/*=====================================================================*/-->
+<div id="ygVideoSection" class="sentence-video-section mt-1" style="display: none;">
+
+<!--/* -------------------------[3.1 player body]------------------------- */-->
+<!-- for Gold and Platinum Member -->
+<div id="ygPlayerBodyDiv" class="row " th:if="${#strings.contains('GP',memberType)}">
+	<!-- [이전 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-center">
+		<i id="prevYg" class="fas fa-angle-double-left fa-4x jsAction move-sentence" 
+			data-toggle="tooltip" title="이전 문장"></i>
+	</div>
+	
+	<div class="player-cover col-xl-8 col-md-10 px-0">
+		<div class="d-none d-lg-block"><div class="row px-2">
+			<!-- [아이콘] -->
+			<div class="icon-section col-md-3 text-center align-self-center">
+				<i class="fab fa-youtube"></i>
+			</div>
+			<!-- [진행 바] -->
+			<div class="col-md-6 px-0 pt-3 text-center">
+				<div class="rounded" style="width: 100%; background-color: #d8d8d8;">
+					<div class="rounded bg-info" style="width: 0; height: 10px;"></div>
+				</div>
+			</div>
+			<!-- [종료 버튼] -->
+			<div class="col-md-3 pt-2 text-center">
+				<button id="closeStage_btn" type="button" 
+					class="btn btn-outline-info btn-sm jsAction">
+					학습종료
+				</button>
+			</div>
+			<div class="col-12" align="center"><hr class="division-line"></div>
+		</div></div>
+		
+		<!-- [3.1.1 플레이어 body] -->
+		<div id="swipeVideoArea" class="sentence-area text-center px-2">
+			<!--/* 1. Yg 위젯이 이 div를 대체함  */-->
+			<div id="widget-1"></div>
+			
+		</div>
+		
+		<!--/* [3.1.2 Player Control body] */-->
+		<div class="player-control-back video">
+			<div class="px-md-4 px-2 py-1">
+				<div id="ygComment" class="sentence-explain text-left py-2 px-4">
+					영상 자막
+				</div>
+			</div>	
+			<div id="audio_player"><div class="player-control-section row no-gutters">
+				<div class="col-auto align-self-center text-left pl-3">
+					<!-- play & stop -->
+					<button id="playYg" type="button" class="btn btn-pvb-trans jsAction"  
+						title="재생" data-toggle="tooltip">
+						<i class="far fa-play-circle fa-4x fa-fw d-none d-md-block"></i>
+						<i class="fa fa-play fa-3x fa-fw d-md-none"></i>
+					</button>
+					<button id="stopYg" type="button" class="btn btn-pvb-trans jsAction"  
+						title="정지" data-toggle="tooltip" style="display:none">
+						<i class="far fa-pause-circle fa-4x fa-fw d-none d-md-block"></i>
+						<i class="fa fa-pause fa-3x fa-fw d-md-none"></i>
+					</button>
+					
+					<!-- loop -->
+					<button id="restartYg" type="button" data-toggle="tooltip" title="되감기" 
+						class="btn btn-pvb btn-sm loop-button jsAction">
+						<i class="fas fa-undo fa-lg"></i>
+					</button>
+				</div>
+				<!-- 예문학습 으로 체인지 버튼 -->
+				<div class="youtube-button-section col-md d-none d-md-inline-block 
+					text-right pr-3 align-self-center">
+					<button id="viewPvPlayer" class="btn btn-youtube" type="button">
+						<i class="fa fa-headphones-alt fa-fw"></i> 연습 모드
+						<div class="guide-position">
+							연습 모드로 실력을 단단하게 가꾸어 보세요.
+						</div>
+					</button>
+				</div>
+				<!-- 코멘트 버튼 -->
+				<div class="col-md-auto align-self-center text-right pr-3 
+					d-none d-md-inline-block">
+					<button class="viewPracticeBtn btn btn-outline-pvb btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="Practice">
+						<i class="far fa-grin-alt fa-2x fa-fw"></i>
+					</button>
+					<button class="viewQnaBtn btn btn-outline-pvb btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="QnA">
+						<i class="far fa-comment-dots fa-2x fa-fw"></i>
+					</button>
+				</div>
+				<!-- 다음 영상으로 넘기기 버튼 (Mobile ver.) -->
+				<div class="next-video-button-section-xs col align-self-center text-right d-md-none">
+					<button id="prevYg_xs" class="btn btn-outline-pvb btn-sm jsAction" type="button">
+						<i class="fa fa-arrow-left fa-fw"></i> 이전
+					</button>
+					<button id="nextYg_xs" class="btn btn-outline-pvb btn-sm jsAction" type="button">
+						다음 <i class="fa fa-arrow-right fa-fw"></i>
+					</button>
+				</div>
+			</div></div>
+		</div><!-- end of player control body -->
+	</div>
+	<!-- [이후 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-center">
+		<i id="nextYg" data-toggle="tooltip" title="다음 문장" 
+			class="fas fa-angle-double-right fa-4x jsAction move-sentence"></i>
+	</div>
+</div>
+
+
+<!-- for Play and Silver Member -->
+<div id="ygPlayerBodyDiv" class="row" 
+	th:unless="${#strings.contains('GP',memberType)}">
+	<!-- [이전 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-left">
+		<i class="fas fa-angle-double-left fa-4x move-sentence"></i>
+	</div>
+	
+	<div class="player-cover col-xl-8 col-md-10 px-0">
+		<!-- [3.1.1 플레이어 센텐스 body] -->
+		<div class="sentence-area none-video text-center px-2">
+			<img src="/images/app/playvoicebook/video_playvoice_book.jpg">
+			<div class="video-content-info">
+				<div>
+					<b>'실전 모드'</b>를 통해 해당 스테이지 패턴을<br>
+					실제 외국인의 자연스러운 말로 학습할 수 있습니다.<br>
+					 패턴 학습과 더불어 듣기 실력을 향상시켜 보세요.<br><br>
+					 
+					<b>'실전 모드'</b>는 골드 멤버십 서비스입니다.
+				</div>
+				<div class="membership-btn-section">
+					<a th:href="@{/membership}" class="btn btn-gold-membership">
+						<i class="fa fa-crown fa-fw"></i> 골드 멤버십 더 알아보기
+					</a>
+				</div> 
+				<div class="xs-none">
+					아래의 <b>'연습 모드'</b> 버튼을 누르면<br class="d-sm-none">
+					성우 음성으로 패턴을 이어서 학습할 수 있습니다.
+				</div> 
+			</div>
+		</div>
+		
+		<!--/* [3.1.2 Player Control body] */-->
+		<div class="player-control-back video">
+			<div class="audio-poistion"><div class="player-control-section row no-gutters">
+				<div class="col-auto align-self-center text-left pl-3">
+					<!-- play & stop -->
+					<button type="button" class="btn btn-pvb-trans">
+						<i class="far fa-play-circle fa-4x fa-fw d-none d-md-block"></i>
+						<i class="fa fa-play fa-3x fa-fw d-md-none"></i>
+					</button>
+					
+					<!-- loop -->
+					<button type="button" class="btn btn-pvb btn-sm loop-button">
+						<font size="1">all</font><i class="fas fa-undo fa-lg"></i>
+					</button>
+				</div>
+				<!-- 예문학습 으로 체인지 버튼 -->
+				<div class="youtube-button-section col-md d-none d-md-inline-block 
+					text-right pr-3 align-self-center">
+					<button id="viewPvPlayer" class="btn btn-youtube" type="button">
+						<i class="fa fa-headphones-alt fa-fw"></i> 연습 모드
+						<div class="guide-position">
+							연습 모드로 실력을 단단하게 가꾸어 보세요.
+						</div>
+					</button>
+				</div>
+				<!-- 코멘트 버튼 -->
+				<div class="col-md-auto align-self-center text-right pr-3 
+					d-none d-md-inline-block">
+					<button class="btn btn-outline-pvb btn-sm jsAction border-0" type="button">
+						<i class="far fa-grin-alt fa-2x fa-fw"></i>
+					</button>
+					<button class="btn btn-outline-pvb btn-sm jsAction border-0" type="button">
+						<i class="far fa-comment-dots fa-2x fa-fw"></i>
+					</button>
+				</div>
+			</div></div>
+		</div><!-- end of player control body -->
+	</div>
+	<!-- [이후 문장 버튼] -->
+	<div class="move-next-padding col-xl-2 col-md-1 text-lg-center text-right">
+		<i class="fas fa-angle-double-right fa-4x move-sentence"></i>
+	</div>
+</div>	
+
+
+</div><!-- end of sentenceVideoSection -->	
+	
+	
+<!-- stage 목표 / 영상으로 보기 버튼 (Mobile ver.) -->	
+<div class="stage-info d-md-none">
+	<div class="move-comment-btns row no-gutters">
+		<div class="comment-btns-cover col-4">
+			<button type="button" data-infoName="stageObj" 
+				class="viewStageInfoBtn btn-mobile btn-main">
+				<i class="fa fa-landmark fa-fw"></i>
+				<span>STAGE 목표</span>
+			</button>
+		</div>
+		<div class="comment-btns-cover col-4">
+			<button type="button" data-infoName="totalSentences" 
+				class="viewStageInfoBtn btn-mobile btn-main">
+				<i class="fa fa-tasks fa-fw"></i>
+				<span>전체 예문</span>
+			</button>
+		</div>
+		<div class="comment-btns-cover col-4">
+			<button id="viewYgPlayer_xs" type="button" 
+				class="btn-mobile btn-main2 youtube">
+				<i class="fab fa-youtube fa-fw"></i>
+				<span>실전 모드</span>
+				<i class="forGold fa fa-crown"></i>
+			</button>
+			<button id="viewPvPlayer_xs" type="button" 
+				class="btn-mobile btn-main2 youtube" style="display: none;">
+				<i class="fa fa-headphones-alt fa-fw"></i>
+				<span>연습 모드</span>
+			</button>
+		</div>
+	</div>
+	<div id="stageObj_div_xs" class="stage-objective" style="display: none;">
+		<div class="stage-explain"
+			th:utext="${stageObjective}">
+		</div>
+	</div>
+	<div id="totalSentences_div_xs" class="stage-objective" style="display: none;">
+		<div class="stage-explain total-sentence">
+			<div class="sentence-section">
+				<div class="sentence-cover">
+					<div class="sentence-eng">
+						You <b>look</b> nice.
+					</div>
+					<div class="sentence-kor">
+						멋져. 후훗 / 너는 멋져 보인다.
+					</div>
+					<div class="sentence-num">1</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+		
+	
+</div><!-- end of playerSection -->
+
+
+
+<!--/*=====================================================================*/-->
+<!--/*							4. Sponsor Section							*/-->
+<!--/*=====================================================================*/-->
+<div class="playvoicebook-player-ad-section row no-gutters">
+<div class="col-xl-2 col-md-1"></div>
+<div class="playvoicebook-player-ad-cover col-xl-8 col-md-10">
+	<!-- 하단 스폰서 배너 mobile -->
+	<th:block th:if="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+	<ins class="kakao_ad_area" style="display:none;" 
+		data-ad-unit    = "DAN-Xumb3ZT0RbYc7YTd" 
+		data-ad-width   = "320" 
+		data-ad-height  = "50"></ins> 
+	<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+	</th:block>
+	<!-- 하단 스폰서 배너 PC -->
+	<th:block th:unless="${#strings.contains(#httpServletRequest.getHeader('User-Agent'),'Mobi')}">
+	<ins class="kakao_ad_area" style="display:none;" 
+		data-ad-unit    = "DAN-oGZKtJJX5OoRL1CY" 
+		data-ad-width   = "728" 
+		data-ad-height  = "90"></ins> 
+	<script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+	</th:block>
+</div>
+<div class="col-xl-2 col-md-1"></div>
+</div>
+
+
+
+<!--/*=====================================================================*/-->
+<!--/*						5. Community Section							*/-->
+<!--/*=====================================================================*/-->
+<!-- ------------------------[5.1 프랙티스 댓글 폼 모달]---------------------------- -->
+<div id="patternForm_modal" class="modal fade patternForm-modal" tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document"><div class="modal-content content-container">
+		<!-- 가이드 -->
+		<div class="modal-head text-center">
+			<h3>Comment 작성하기 <i class="far fa-grin-alt"></i></h3>
+			<div class="expain pt-2" style="width: 100%;">
+				자신이 일상생활에서 <span class="point-added2">자주 쓰는 말</span>을<br> 
+				해당 스테이지 <span class="point-added2">패턴</span>에 맞게 작성해 보세요.
+			</div>
+		</div>
+		<div class="modal-body py-3">
+		<form>
+			<!-- 영어 -->
+			<div class="form-group row no-gutters">
+				<label class="col-2 align-self-center pl-lg-2">영어</label>
+				<div class="col-10">
+					<div id="pattern_comment_eng" class="form-control" 
+						data-placeholder="ex) I am a student. (모르면 생략가능)"
+						contenteditable="true" onkeyup="enkeyup(this)"   
+						style="height: auto; min-height: 1em;"></div>
+					<div class="warning-msg-section" style="display: none;">
+						<div class="text-warning-msg">영어만 입력해 주세요.</div>
+					</div>
+				</div>
+			</div>
+			<!-- 한국어 -->
+			<div class="form-group row no-gutters">
+				<label class="col-2 align-self-center pl-lg-2">한국어</label>
+				<div class="col-10">
+					<input type="text" id="pattern_comment_kor" class="form-control" 
+						placeholder="ex) 난 학생이야."/>
+					<div class="warning-msg-section" style="display: none;">
+						<div class="text-warning-msg">한국어만 입력해 주세요.</div>
+					</div>
+				</div>
+			</div>
+			<!-- 강조 버튼 / 댓글 전송 버튼 -->
+			<div class="form-group row no-gutters">
+				<div class="expain col-10 ml-auto p-1 d-md-none">
+					스테이지의 패턴처럼 강조하고 싶은 영역을 드래그하여 펜버튼을 눌러주세요.
+				</div>
+				<div class="w-100"></div>
+				<div class="col-2"></div>
+				<div class="col-auto align-self-center">
+					<button type="button" class="emPen btn btn-sm btn-outline-info jsAction" >
+						<i class="fas fa-pen" style="color: #5bc0de;" ></i>
+					</button>
+				</div>
+				<div class="expain col px-1 align-self-center d-none d-md-inline">
+					스테이지의 패턴처럼 강조하고 싶은 영역을 드래그하여 펜버튼을 눌러주세요.
+				</div>
+				<div class="comment-button-section ml-auto col-auto text-right">
+					<button type="reset" class="btn btn-sm btn-light jsAction"
+						 data-dismiss="modal" >CANCEL</button>
+					<button type="submit" id="addCommentBtn" 
+						class="btn btn-sm btn-primary jsAction" >COMMENT</button>
+				</div>
+			</div><!-- end of submitDiv -->
+		</form>
+		</div>
+	</div></div>
+</div><!-- end of patternForm_modal -->
+
+<!-- --------------------------[5.2 커뮤니티 댓글]------------------------------ -->
+<div id="communitySection" class="community-section"><div class="row no-gutters">
+	<div class="col-lg-2 col-md-1"></div>
+	<div class="col-lg-8 col-md-10 col-12 px-0">
+		<div class="community-section-cover rounded">
+			<ul class="nav nav-tabs">
+			<li class="nav-item">
+				<a href="#patternCommentDiv" data-toggle="tab" 
+					class="pattern-btn nav-link active">
+					<i class="far fa-grin-alt fa-lg fa-fw"></i>
+					Practice
+				</a>
+			</li>
+			<li class="nav-item">
+				<a id="navQnaBtn" href="#qnaCommentDiv" data-toggle="tab" 
+					class="qna-btn nav-link">
+					<i class="far fa-comment-dots fa-lg fa-fw"></i>
+					QnA
+				</a>
+			</li>
+			</ul>
+			
+			<div id="myTabContent" class="tab-content community-comment">
+				<div id="patternCommentDiv" class="patternCommentDiv tab-pane fade show active">
+					<!--/* --------------[inclule : comment.html]------------- */-->
+					<div id="patternCommentInclDiv" class="p-3 px-lg-4" 
+							th:insert="~{/common/comment::comment}"></div>
+					<!--/* --------------------------------------------------- */-->
+				</div>
+				<div id="qnaCommentDiv" class="qnaCommentDiv tab-pane fade">
+					<!--/* --------------[inclule : comment.html]------------- */-->
+					<div id="qnaCommentInclDiv" class="p-3 px-lg-4" 
+							th:insert="~{/common/comment::comment}"></div>
+					<!--/* --------------------------------------------------- */-->
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-2 col-md-1"></div>
+</div></div><!-- end of communitySection -->
+
+<div>
+	<input type="hidden" id="stageId" />
+</div>
+
+</section><!-- end of content -->
+</html>

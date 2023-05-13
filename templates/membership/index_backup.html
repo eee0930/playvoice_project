@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/membership_layout}">
+<head>
+<title>Gold Membership</title>
+
+<link rel="stylesheet" th:href="@{/css/app/membership.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [menu active]------------------------------------------------------------
+	$("#menuSection .membershipInfo").addClass("menu-active");
+	
+	
+	// [멤버십 혜택 모달 띄우기]--------------------------------------------------------
+	$(".membershipBenefitBtn").click(function(){
+		var membership = $(this).attr("data-benefit");
+		$("#" + membership + "_modal").modal({
+			show : true
+		});
+	});
+	
+	// [각 멤버십 설명 div로 스크롤 이동]-------------------------------------------------
+	$(".gold-membership-type-section .member-brief").click(function(){
+		var membershipType = $(this).attr("data-membershipType");
+		var membershipInfoDiv = $("#detailGoldMembershipDiv").offset().top - 60;
+		
+		if(membershipType == 'gold') {
+			membershipInfoDiv = $("#detailGoldMembershipDiv").offset().top - 60;
+		} else if (membershipType == 'silver') {
+			membershipInfoDiv = $("#detailSilverMembershipDiv").offset().top - 60;
+		} else if (membershipType == 'platinum') {
+			membershipInfoDiv = $("#detailPlatinumMembershipDiv").offset().top - 60;
+		}
+		$('html, body').animate({scrollTop : membershipInfoDiv}, 300);
+	});
+	
+});
+
+function joinMembership(membershipType) {
+	location.href="/payment/membership/" + membershipType;
+}
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+<div th:insert="~{/membership/incl/membership_menu::menu}"></div>
+
+<!--/* -----------------[gold memebership benefits modal]----------------- */-->
+<div id="goldMembershipBenefit_modal" class="gold-benefit-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<span class="close" data-dismiss="modal"><i class="fa fa-times fa-lg"></i></span>
+		<div class="title">
+			<div class="payment-check-icon-back"></div>
+			<div>Gold Membership Benefits</div>
+		</div>
+   		<div class="body"><ul class="fa-ul">
+   			<li><i class="fa fa-book-open fa-li"></i> 포인트 제약 없이 학습 콘텐츠 이용</li>
+	   		<li><i class="fa fa-comment-dollar fa-li"></i> 커뮤니티 활동에 대한 골드 포인트 획득</li>
+	   		<li><i class="fa fa-search-dollar fa-li"></i> 플레이보이스 프로모션 골드 상품 구매 가능</li>
+	   		<li><i class="fa fa-ring fa-li"></i> 프로필 이미지 골드 링</li>
+	   		<li><i class="fa fa-id-card-alt fa-li"></i> 메인 시그니쳐 텍스트 프리미엄 카드</li>
+	   		<li><i class="fa fa-passport fa-li"></i> 프리미엄 학습 여권</li>
+	   		<li><i class="fa fa-credit-card fa-li"></i> 프리미엄 학습 여정 카드</li>
+	   		<li><i class="fa fa-id-card fa-li"></i> 프리미엄 프로필 팝업</li>
+	   		<li><i class="fa fa-ticket-alt fa-li"></i> 프리미엄 골드 티켓</li>
+	   		<li><i class="fa fa-hand-holding-usd fa-li"></i> 기부활동 참여자로 등록</li>
+	   		<li><i class="fa fa-barcode fa-li"></i> 골드 회원 한정 스페셜 쿠폰</li>
+	   		<li class="study"><i class="fa fa-keyboard fa-li"></i> 플레이보드 골드 멤버십 게시판 이용</li>
+	   		<li class="study"><i class="fa fa-paper-plane fa-li"></i> 바벨 스택 팔로업 목록 자유 이용</li>
+	   		<li class="study"><i class="fa fa-plus-circle fa-li"></i> 픽셔너리 플러스 이용</li>
+	   		<li class="study"><i class="fa fa-shoe-prints fa-li"></i> 픽셔너리 트레이서 이용</li>
+	   		<li class="study"><i class="fa fa-edit fa-li"></i> 픽셔너리 트레이서 퀴즈 이용</li>
+	   		<li class="study"><i class="fa fa-child fa-li"></i> 딕테이션북 테마별 위치 확인</li>
+	   		<li class="study"><i class="fa fa-stream fa-li"></i> 딕테이션북 테마별 틀린 문장 확인</li>
+   		</ul></div>
+	</div>
+</div>
+
+<!--/* ---------------[platinum memebership benefits modal]--------------- */-->
+<div id="platinumMembershipBenefit_modal" class="gold-benefit-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document">
+		<span class="close" data-dismiss="modal"><i class="fa fa-times fa-lg"></i></span>
+		<div class="title">
+			<div class="payment-check-icon-back"></div>
+			<div>Platinum Membership Benefits</div>
+		</div>
+   		<div class="body"><ul class="fa-ul">
+   			<li><i class="fa fa-book-open fa-li"></i> 포인트 제약 없이 학습 콘텐츠 이용</li>
+	   		<li><i class="fa fa-comment-dollar fa-li"></i> 커뮤니티 활동에 대한 골드 포인트 획득</li>
+	   		<li><i class="fa fa-search-dollar fa-li"></i> 플레이보이스 프로모션 골드 상품 구매 가능</li>
+	   		<li><i class="fa fa-stamp fa-li"></i> 플래티넘 스탬프 획득</li>
+	   		<li><i class="fa fa-ring fa-li"></i> 프로필 이미지 스페셜 골드 링</li>
+	   		<li><i class="fa fa-id-card-alt fa-li"></i> 메인 시그니쳐 텍스트 프리미엄 카드</li>
+	   		<li><i class="fa fa-passport fa-li"></i> 프리미엄 학습 여권</li>
+	   		<li><i class="fa fa-credit-card fa-li"></i> 프리미엄 학습 여정 카드</li>
+	   		<li><i class="fa fa-id-card fa-li"></i> 프리미엄 프로필 팝업</li>
+	   		<li><i class="fa fa-ticket-alt fa-li"></i> 프리미엄 골드 티켓</li>
+	   		<li><i class="fa fa-hand-holding-usd fa-li"></i> 기부활동 참여자로 등록</li>
+	   		<li><i class="fa fa-hand-holding-usd fa-li"></i> 골드 멤버십 선물 참여자로 등록</li>
+	   		<li><i class="fa fa-gifts fa-li"></i> 모든 이벤트 및 프로모션의 우선권을 부여</li>
+	   		<li><i class="fa fa-barcode fa-li"></i> 플레티넘 회원 한정 스페셜 쿠폰</li>
+	   		<li class="study"><i class="fa fa-keyboard fa-li"></i> 플레이보드 플래티넘 멤버십 게시판 이용</li>
+	   		<li class="study"><i class="fa fa-paper-plane fa-li"></i> 바벨 스택 팔로업 목록 자유 이용</li>
+	   		<li class="study"><i class="fa fa-plus-circle fa-li"></i> 픽셔너리 플러스 이용</li>
+	   		<li class="study"><i class="fa fa-shoe-prints fa-li"></i> 픽셔너리 트레이서 이용</li>
+	   		<li class="study"><i class="fa fa-edit fa-li"></i> 픽셔너리 트레이서 퀴즈 이용</li>
+	   		<li class="study"><i class="fa fa-child fa-li"></i> 딕테이션북 테마별 위치 확인</li>
+	   		<li class="study"><i class="fa fa-stream fa-li"></i> 딕테이션북 테마별 틀린 문장 확인</li>
+   		</ul></div>
+	</div>
+</div>
+
+
+
+<!-- -------------------------[1. 멤버십 종류 소개]------------------------------ -->
+<div id="introMembershipSection" class="intro-membership-section mt-4">
+	<div class="row no-gutters py-3">
+		<div class="col-xl-4 col-lg-auto pr-3 align-self-end">
+			<div class="title">
+				playvoice<br>
+				membership<b>-</b>
+			</div>
+			<div class="sub-title">
+				<span class="episode">EpisodeⅠ</span> -
+				<b>A cosmopolitan tourist</b>
+			</div>
+		</div>
+		<div class="sub-detail col-xl-8 col-lg align-self-end">
+			<div class="notice">
+				특별 이벤트 기간(베타 및 오픈 이벤트 기간) 동안만 주어지는
+				<b>특별 할인 혜택</b>을 받아가세요
+				<i class="fa fa-star"></i>
+			</div>
+			<div class="detail-kor">
+				플레이보이스의 모든 콘텐츠는 회원 가입만으로도 무료로 이용할 수 있습니다.<br>
+				영어 학습자들의 보다 효과적인 학습을 위해 추가적인 학습 도구와 
+				사회적 참여를 지원하는 유료 서비스 기반의 멤버십도 제공하고 있습니다.<br>
+				멤버십 기간 동안 새로운 콘텐츠나 앱 서비스가 제공되더라도 추가 비용이 발생하지 않습니다.
+			</div>
+		</div>
+	</div>
+	<div class="gold-membership-type-section row no-gutters">
+		<div class="member-brief-section col-md-4">
+			<img class="silver" src="/images/common/icon/icon_paper.png">
+			<div class="member-brief" data-membershipType="silver">
+				<div class="brief-title"><b>silver</b><br>membership</div>
+				<div class="brief-title-kor">실버 멤버십</div>
+			</div>
+			<div class="brief-info">
+				영어 학습에만 올인하고자 하는<br> 회원들에게 추천합니다.
+			</div>
+		</div>
+		<div class="member-brief-section col-md-4">
+			<img class="gold" src="/images/common/icon/icon_paper.png">
+			<div class="member-brief" data-membershipType="gold">
+				<div class="brief-title"><b>gold</b> donation<br>membership</div>
+				<div class="brief-title-kor">골드 멤버십</div>
+			</div>
+			<div class="brief-info">
+				커뮤니티의 모든 서비스와 콘텐츠를<br>자유롭게 누릴 수 있는 플레이보이스 대표 멤버십입니다.
+			</div>
+		</div>
+		<div class="member-brief-section col-md-4">
+			<img class="platinum" src="/images/common/icon/icon_paper.png">
+			<div class="member-brief" data-membershipType="platinum">
+				<div class="brief-title"><b>platinum</b> donation<br>membership</div>
+				<div class="brief-title-kor">플래티넘 멤버십</div>
+			</div>
+			<div class="brief-info">
+				플래티넘 멤버님의 이름으로 <br>우리의 따뜻한 관심이 필요한 이웃들에게 골드 멤버십을 선물합니다.
+			</div>
+		</div>
+	</div>
+</div><!-- end of introMembershipSection -->
+
+
+
+<!-- -------------------------[2. 멤버십 상세 설명]------------------------------ -->
+<div id="detailMembershipSection" class="detail-membership-section">
+
+<!-- ----------------------------[2.1 실버 멤버십]------------------------------ -->
+<div class="membership-depart-section">
+<!-- [실버 멤버십 설명] -->
+<div id="detailSilverMembershipDiv" class="silver-membership detail-membership-div row no-gutters">
+	<!-- 타이틀 영역 -->
+	<div class="detail-membership-title-area col-lg-5">
+		<div class="point-title">
+			<div>실버 멤버십</div>
+			<div class="promotion-label-position silver">
+				<div class="promotion-label"></div>
+				<div class="promotion-text">hot</div>
+			</div>
+		</div>
+		<h3 class="membership-title">
+			silver<br class="d-none d-lg-block">
+			membership<b>.</b>
+		</h3>
+		<div class="price" onclick="joinMembership('S-MEMBERSHIP-6')">
+			<i class="fa fa-won-sign"></i> 24,600
+			<span class="added-info">(6개월)</span>
+		</div>
+		<div class="membership-detail">
+			<ul>
+				<li>포인트 고민없이 플레이보이스의 콘텐츠를 제약없이 사용할 수 있습니다.</li>
+				<li>신규 애플리케이션이 추가되더라도 포인트 제약없이 사용할 수 있습니다.</li>
+			</ul>
+			<div class="notice event">
+				플레이보이스의 다양한 앱을 <b>아메리카노 한 잔</b> 가격으로 제공합니다.
+			</div>
+			
+		</div>
+	</div>
+	
+	<!-- 상세 설명 영역 -->
+	<div class="col-lg-7"><div class="detail-info-area row no-gutters">
+		<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon free-use" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">free use</div>
+			<div class="detail-info">
+				플레이보이스의 학습 앱과 커뮤니티 서비스를
+				포인트 걱정없이 자유롭게 사용할 수 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon study-only" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">study only</div>
+			<div class="detail-info">
+				영어 학습에만 올인하고자 하는 회원들에게 추천합니다.
+				(단, 플레이 포인트 적립이 없습니다.)
+			</div>
+		</div></div>
+		
+	</div></div>
+</div><!-- end of detailSilverMembershipDiv -->
+
+
+<!-- [멤버십 결제 종류] -->
+<div id="silverMembershipPriceInfoDiv" class="membership-price-div">
+<div class="detail-price-area row no-gutters">
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('S-MEMBERSHIP-6')" class="detail-price-cover best row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					실버 멤버십 <br class="d-sm-none">SEMESTER VERSION (6개월)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 24,600
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 4,100 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">6개월간 실버 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('S-MEMBERSHIP-12')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					실버 멤버십 <br class="d-sm-none">ANNUAL VERSION (1년)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 49,200
+						<span class="discount">
+							10% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 44,280
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 3,690 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">1년간 실버 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					10% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of silverMembershipPriceInfoDiv -->
+
+</div>
+
+
+
+
+<!-- ------------------------[2.2 골드 멤버십 베타]------------------------------ -->
+<div class="membership-depart-section">
+<!-- [골드 멤버십 설명] -->
+<div id="detailBetaMembershipDiv" class="gold-membership detail-membership-div row no-gutters">
+	<!-- 타이틀 영역 -->
+	<div class="detail-membership-title-area col-lg-5">
+		<div class="point-title">
+			<div>골드 멤버십 베타</div>
+			<div class="promotion-label-position">
+				<div class="promotion-label"></div>
+				<div class="promotion-text">beta</div>
+			</div>
+		</div>
+		<h3 class="membership-title">
+			gold<br class="d-none d-lg-block">
+			membership<b>.</b>
+		</h3>
+		<div class="price" onclick="joinMembership('GB-MEMBERSHIP-3')">
+			<div class="inavailable">
+				<i class="fa fa-won-sign"></i> 57,000
+				<i class="fa fa-share fa-rotate-90"></i>
+			</div>
+			<div class="available">
+				<i class="fa fa-won-sign"></i> 18,000
+				<span class="added-info">(3개월)</span>
+				<span class="discount added-info">
+					68% discount
+					<i class="fa fa-arrow-down"></i>
+				</span>
+			</div>
+		</div>
+		<div class="membership-detail">
+			<div class="notice event">
+				<b>베타 기간 한정</b>으로 진행되는 프로모션이며<br>
+				서비스 기간 동안 동일한 골드 멤버십 서비스를 제공합니다.<br>
+				<span>
+				베타 기간 종료 시 해당 가격 프로모션은 종료되며<br>
+				베타 기간 이벤트는 사전 통보없이 진행을 종료할 수 있습니다.
+				</span>
+			</div>
+		</div>
+		<div class="button-section">
+			<button class="membershipBenefitBtn" data-benefit="goldMembershipBenefit">
+				골드 멤버십 혜택 자세히 보기 <i class="fa fa-arrow-right"></i>
+			</button>
+		</div>
+	</div>
+	
+	<!-- 상세 설명 영역 -->
+	<div class="col-lg-7"><div class="detail-info-area row no-gutters">
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon free-use" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">free use</div>
+			<div class="detail-info">
+				플레이보이스의 모든 서비스를 제약없이 사용할 수 있습니다.
+			</div>
+		</div></div>
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gold" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">get gold</div>
+			<div class="detail-info">
+				학습한 활동에 대한 <b>골드 포인트</b>를 적립 받을 수 있으며 
+				플레이보이스에서 주최하는 여러 프로모션 이벤트에서 골드를 사용할 수 있습니다.
+			</div>
+		</div></div>
+		<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon donation" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">saving</div>
+			<div class="detail-info">
+				베타 기간의 프로모션 가격으로
+				오리지널 골드회원과 동일한 서비스를 이용할 수 있습니다.
+			</div>
+		</div></div>
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gift" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">community reward</div>
+			<div class="detail-info">
+				골드 멤버십 회원만 이용하고 받을 수 있는 다양한 리워드가 있습니다.
+			</div>
+		</div></div>
+		
+	</div></div>
+</div><!-- end of detailGoldMembershipDiv -->
+
+<!-- [멤버십 결제 종류] -->
+<div id="goldMembershipPriceInfoDiv" class="membership-price-div">
+<div class="detail-price-area row no-gutters">
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('GB-MEMBERSHIP-3')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					골드 멤버십 <br class="d-sm-none">BETA VERSION (3개월)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 57,000
+						<span class="discount">
+							68% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 18,000
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 6,000 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">3개월간 골드 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					68% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	
+
+</div>
+
+</div><!-- end of goldMembershipPriceInfoDiv -->
+</div>
+
+
+
+
+
+
+<!-- --------------------------[2.3 골드 멤버십]-------------------------------- -->
+<div class="membership-depart-section">
+<!-- [골드 멤버십 설명] -->
+<div id="detailGoldMembershipDiv" class="gold-membership detail-membership-div row no-gutters">
+	<!-- 타이틀 영역 -->
+	<div class="detail-membership-title-area col-lg-5">
+		<div class="point-title">
+			<div>골드 멤버십</div>
+			<div class="promotion-label-position gold">
+				<div class="promotion-label"></div>
+				<div class="promotion-text">best</div>
+			</div>
+		</div>
+		<h3 class="membership-title">
+			gold<br class="d-none d-lg-block">
+			donation<br>membership<b>.</b>
+		</h3>
+		<div class="price" onclick="joinMembership('G-MEMBERSHIP-6')">
+			<div class="inavailable">
+				<i class="fa fa-won-sign"></i> 114,000
+				<i class="fa fa-share fa-rotate-90"></i>
+			</div>
+			<div class="available">
+				<i class="fa fa-won-sign"></i> 96,900
+				<span class="added-info">(6개월)</span>
+				<span class="discount added-info">
+					15% discount
+					<i class="fa fa-arrow-down"></i>
+				</span>
+			</div>
+		</div>
+		<div class="membership-detail">
+			<ul>
+				<li>플레이보이스의 모든 서비스를 제약없이 사용할 수 있습니다.<br>
+					플레이보이스 서비스는 커뮤니티 서비스와 콘텐츠 서비스로 이루어져 있습니다.</li>
+				<li>골드 멤버십 서비스는 기부 활동을 지원하고 있습니다.</li>
+			</ul>
+			
+			<div class="notice event">
+				<span class="ep">EpisodeⅠ</span>기간 동안 최대 10,000 명에 한해서 <b>15% 할인</b>이 적용됩니다.<br>
+				<span>이벤트 기간이 종료되거나 할인 쿠폰 수량 초과 시 만료됩니다.</span>
+			</div>
+		</div>
+		<div class="button-section">
+			<button class="membershipBenefitBtn" data-benefit="goldMembershipBenefit">
+				골드 멤버십 혜택 자세히 보기 <i class="fa fa-arrow-right"></i>
+			</button>
+		</div>
+	</div>
+	
+	<!-- 상세 설명 영역 -->
+	<div class="col-lg-7"><div class="detail-info-area row no-gutters">
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon free-use" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">free use</div>
+			<div class="detail-info">
+				플레이보이스의 모든 서비스를 제약없이 사용할 수 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gold" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">get gold</div>
+			<div class="detail-info">
+				학습한 활동에 대한 <b>골드 포인트</b>를 적립 받을 수 있으며 
+				플레이보이스에서 주최하는 여러 프로모션 이벤트에서 골드를 사용할 수 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon donation" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">donation</div>
+			<div class="detail-info">
+				플레이보이스에서 후원하는 여러 <b>기부 활동</b>의 참여자로 등록됩니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gift" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">community reward</div>
+			<div class="detail-info">
+				골드 멤버십 회원만 이용하고 받을 수 있는 다양한 리워드가 있습니다.
+			</div>
+		</div></div>
+		
+	</div></div>
+</div><!-- end of detailGoldMembershipDiv -->
+
+<!-- [멤버십 결제 종류] -->
+<div id="goldMembershipPriceInfoDiv" class="membership-price-div">
+<div class="detail-price-area row no-gutters">
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('G-MEMBERSHIP-6')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					골드 멤버십 <br class="d-sm-none">SEMESTER VERSION (6개월)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 114,000
+						<span class="discount">
+							15% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 96,900
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 16,150 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">6개월간 골드 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					15% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+			<div class="best-choice">BEST</div>
+		</div>
+	</div>
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('G-MEMBERSHIP-12')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					골드 멤버십 <br class="d-sm-none">ANNUAL VERSION (1년)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 228,000
+						<span class="discount">
+							20% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 182,400
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 15,200 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">1년간 골드 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					20% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of goldMembershipPriceInfoDiv -->
+</div>
+
+
+
+<!-- --------------------------[2.3 플래티넘 멤버십]----------------------------- -->
+<div class="membership-depart-section">
+
+<!-- [플래티넘 멤버십 설명] -->
+<div id="detailPlatinumMembershipDiv" class="platinum-membership detail-membership-div row no-gutters">
+	<!-- 타이틀 영역 -->
+	<div class="detail-membership-title-area col-lg-5">
+		<div class="point-title">
+			<div>플래티넘 멤버십</div>
+			<div class="promotion-label-position platinum">
+				<div class="promotion-label"></div>
+				<div class="promotion-text">VIP</div>
+			</div>
+		</div>
+		<h3 class="membership-title">
+			Platinum<br class="d-none d-lg-block">
+			donation<br>membership<b>.</b>
+		</h3>
+		<div class="price" onclick="joinMembership('P-MEMBERSHIP-6')">
+			<div class="inavailable">
+				<i class="fa fa-won-sign"></i> 174,000
+				<i class="fa fa-share fa-rotate-90"></i>
+			</div>
+			<div class="available">
+				<i class="fa fa-won-sign"></i> 147,900
+				<span class="added-info">(6개월)</span>
+				<span class="discount added-info">
+					15% discount
+					<i class="fa fa-arrow-down"></i>
+				</span>
+			</div>
+		</div>
+		<div class="membership-detail">
+			<ul>
+				<li>플레이보이스에서 많은 활동을 한 회원 중에서 특별 회원 자격을 부여합니다.</li>
+				<li>플레이보이스의 모든 이벤트와 프로모션에 대한 우선권을 제공합니다.</li>
+				<li>다양한 할인 혜택과 부가 서비스를 제공합니다.</li>
+			</ul>
+			<div class="notice">
+				※ 플래티넘 멤버십 자격은 골드 멤버십 회원을 대상으로 선정됩니다.
+			</div>
+			<div class="notice event">
+				<span class="ep">EpisodeⅠ</span>기간 동안 최대 1,000 명에 한해서 <b>15% 할인</b>이 적용됩니다.<br>
+				<span>이벤트 기간이 종료되거나 할인 쿠폰 수량 초과 시 만료됩니다.</span>
+			</div>
+		</div>
+		<div class="button-section">
+			<button class="membershipBenefitBtn" data-benefit="platinumMembershipBenefit">
+				플래티넘 멤버십 혜택 자세히 보기 <i class="fa fa-arrow-right"></i>
+			</button>
+		</div>
+	</div>
+	
+	<!-- 상세 설명 영역 -->
+	<div class="col-lg-7"><div class="detail-info-area row no-gutters">
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon free-use" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">free use</div>
+			<div class="detail-info">
+				플레이보이스의 모든 서비스를 제약없이 사용할 수 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gold" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">get gold</div>
+			<div class="detail-info">
+				학습한 활동에 대한 <b>골드 포인트</b>를 적립 받을 수 있으며 
+				플레이보이스에서 주최하는 여러 프로모션 이벤트에서 골드를 사용할 수 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary point col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon priority" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">priority</div>
+			<div class="detail-info">
+				플레이보이스 모든 이벤트 및 프로모션의 우선권을 부여합니다
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon donation" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">donation</div>
+			<div class="detail-info">
+				<b>기부 활동</b>의 참여자로 등록되며
+				플래티넘 멤버님의 이름으로 우리의 따뜻한 관심이 필요한 이웃들에게 골드 멤버십을 선물합니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon get-gift" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">community reward</div>
+			<div class="detail-info">
+				플래티넘 멤버십 회원만 이용하고 받을 수 있는 다양한 리워드가 있습니다.
+			</div>
+		</div></div>
+		
+		<div class="detail-info-boundary col-6"><div class="detail-info-cover">
+			<div class="icon-section">
+				<img class="icon tribe" src="/images/common/icon/icon_paper.png">
+			</div>
+			<div class="sub-title">identity</div>
+			<div class="detail-info">
+				10가지 이상의 멤버십 아이덴티티가 변경됩니다.
+			</div>
+		</div></div>
+		
+	</div></div>
+</div><!-- end of detailPlatinumMembershipDiv -->
+
+<!-- [멤버십 결제 종류] -->
+<div id="platinumMembershipPriceInfoDiv" class="membership-price-div">
+<div class="detail-price-area row no-gutters">
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('P-MEMBERSHIP-6')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					플래티넘 멤버십 <br class="d-sm-none">SEMESTER VERSION (6개월)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 174,000
+						<span class="discount">
+							15% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 147,900
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 24,650 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">6개월간 플래티넘 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					15% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+	<div class="detail-price-section col-lg-6">
+		<div onclick="joinMembership('P-MEMBERSHIP-12')" class="detail-price-cover row no-gutters">
+			<div class="col">
+				<div class="period-section">
+					플래티넘 멤버십 <br class="d-sm-none">ANNUAL VERSION (1년)
+				</div>
+				<div class="price-section row no-gutters">
+					<div class="inavailable col-xl-auto col-lg-12 col-sm-auto col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 348,000
+						<span class="discount">
+							20% discount
+							<i class="fa fa-arrow-down"></i>
+						</span>
+					</div>
+					<div class="available col-xl col-lg-12 col-sm col-12 align-self-center">
+						<i class="fa fa-won-sign"></i> 278,400
+						<span class="added-info">(<i class="fa fa-won-sign"></i> 23,200 /월)</span>
+					</div>
+				</div>
+				<div class="detail-section">1년간 플래티넘 멤버십 자격으로 서비스를 이용할 수 있습니다.</div>
+			</div>
+			<div class="start-button-section col-auto align-self-end text-right">
+				<div class="discount">
+					20% discount
+					<i class="fa fa-arrow-down"></i>
+				</div>
+				<button type="button" class="btn btn-outline-main2">
+					가입하기 <i class="icon-sign-in"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of platinumMembershipPriceInfoDiv -->
+</div>
+
+	
+</div><!-- end of detailMembershipSection -->
+
+
+
+<div class="text-right" style="color:red;">
+	source :: membership/index.html	
+</div>
+</section>
+
+</html>

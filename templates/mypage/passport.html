@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>My Passport - 플레이보이스(playvoice)</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+
+<script th:src="@{/js/app/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [헌법 조항 페이지 펼치기 (PC ver.)]----------------------------------------------
+	$(".openConstitutionPage").click(function(){
+		$("#displayPassportMemberPage").click();
+	});
+
+	// [헌법 펼치기 (mobile ver.)]--------------------------------------------------
+	$(".openConstitution").click(function(){
+		$(this).siblings(".constitution-body-section").toggle(100);
+	});
+});//end of ready
+
+</script>
+</head>
+
+<section layout:fragment="content" th:with="member = ${session?.userContainer?.member},
+	personacon = ${session?.userContainer?.personacon}">
+
+<div th:insert="~{/mypage/incl/mypage_top_menu::menuJourney}"></div>
+
+<div class="profile-top-cover mt-4 py-1">
+	<h3>
+		My Passport Info
+		<i class="fa fa-passport"></i><br>
+		<small><span class="kor">
+			<i class="fa fa-quote-left relative-font"></i>
+			패스포트 가라사대, 스탬프의 갯수만큼 행복해 지리라.
+			<i class="fa fa-quote-right relative-font"></i>
+		</span></small>
+	</h3>
+	
+	<div class="profile-top-content"><div class="row no-gutters">
+		<div class="title-icon col-auto text-center">
+			<i class="fa fa-passport fa-lg fa-fw"></i>
+		</div>
+		<div class="title-body col align-self-center">
+			<span class="title">Passport Number</span>
+			<span class="body">[[${member.tribeCode}]][[${member.mid}]]</span>
+		</div>
+	</div></div>
+</div>
+
+
+<!-- ---------------------------[1. passport]------------------------------- -->
+<div th:with="mid = ${memberInfo.memberId}, tribe = ${memberInfo.tribe}, 
+	regDate = ${memberInfo.regDate},
+	alias = ${memberInfo.alias}, memberType=${memberInfo.memberType}, 
+	iconPath = ${memberInfo.iconPath}, sex = ${memberInfo.sex}"
+	th:insert="~{/mypage/incl/passport_incl::passport}"></div>
+
+<!-- -------------------[2. The Playvoice Constitution]--------------------- -->
+<div id="playvoiceConstitutionSection" 
+	th:class="'playvoice-constitution-info-section row no-gutters member-' + 
+	${personacon.memberType}">
+<div class="col-xl-1"></div>
+<div class="playvoice-constitution-info-section col-xl-10">
+	<div class="playvoice-constitution-info-cover">
+	<!-- [2.1 실천 규칙 PC & Tablet ver.] -->
+	<div class="d-none d-md-block">
+	<h5>THE CONSTITUTION OF PLAYVOICE</h5>
+	<div class="constitution-body-section row no-gutters"><div class="col"></div>
+	<div class="constitution-cover col-auto">
+		<div class="law-title">
+			<span class="openConstitutionPage">플레이보이스 헌법</span> 실천 규칙
+		</div>
+		<div class="law-detail">
+			<div class="article-clause">
+				<span class="clause-title">첫째,</span>
+				<span class="clause-detail">
+					즐거움(fun) 혹은 지속할 수 있는 동기를 가져라.
+				</span>
+			</div>
+			<div class="article-clause">
+				<span class="clause-title">둘째,</span>
+				<span class="clause-detail">
+					그런 동기가 없다면 매일 출석하여 <b>플레이보이스 포인트</b>를 키워 나가라.
+				</span>
+			</div>
+			<div class="article-clause">
+				<span class="clause-title">셋째,</span>
+				<span class="clause-detail">
+					최종 <b>입국 스탬프</b>를 받아라.
+				</span>
+			</div>
+		</div>
+	</div>
+	<div class="col"></div></div>
+	</div>
+	
+	<!-- [2.2 플레이보이스 헌법 Mobile ver.] -->
+	<div class="d-md-none">
+	<h5 class="openConstitution">
+		THE CONSTITUTION OF PLAYVOICE <i class="fa fa-caret-down"></i>
+	</h5>
+	<div class="constitution-body-section" style="display: none;">
+	<div class="constitution-cover">
+		<div class="law-title">제1 조 (Article 1 of the Constitution)</div>
+		<div class="law-detail">
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제1항</span>
+				<span class="clause-detail col">
+					영어 학습의 <b>주권은 입(mouth)</b>에 있다.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제2항</span>
+				<span class="clause-detail col">
+					눈에 보이는 모든 영어 컨텐츠는 <b>직접 입으로 반복</b>해서 말해야 한다.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제3항</span>
+				<span class="clause-detail col">
+					눈으로만 보고 귀로만 듣는 영어 학습은 <b>말짱 헛방</b>임을 스스로 세뇌 시켜라.
+				</span>
+			</div>
+			<div class="article-clause plus">
+				아이들이 끊임없이 웅얼거리고 재잘거리는 이유와 당신의 과묵한 결과를 비교해 보라.
+			</div>
+		</div>
+	</div>
+	<div class="constitution-cover">
+		<div class="law-title">제2 조  (Article 1 of the Constitution)</div>
+		<div class="law-detail">
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제1항</span>
+				<span class="clause-detail col">
+					영어는 학습이 아니라 <b>운동</b>이다.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제2항</span>
+				<span class="clause-detail col">
+					모든 운동의 효과는 지속적인 <b>반복</b>의 결과이다.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">제3항</span>
+				<span class="clause-detail col">
+					영어 학습의 가장 좋은 비법은 <b>꾸준함</b>이다. 
+				</span>
+			</div>
+			<div class="article-clause plus">
+				꾸준함만으로 충분하다. 더 좋은 학습 방법을 찾다가, 다른 것으로 갈아타다가 시간 낭비하지 마라.
+			</div>
+		</div>
+	</div>
+	<div class="constitution-cover">
+		<div class="law-title">실천 규칙</div>
+		<div class="law-detail">
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">첫째,</span>
+				<span class="clause-detail col">
+					즐거움(fun) 혹은 지속할 수 있는 동기를 가져라.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">둘째,</span>
+				<span class="clause-detail col">
+					그런 동기가 없다면 매일 출석하여 플레이보이스 포인트를 키워 나가라.
+				</span>
+			</div>
+			<div class="article-clause row no-gutters">
+				<span class="clause-title col-auto">셋째,</span>
+				<span class="clause-detail col">
+					최종 입국 스탬프를 받아라.
+				</span>
+			</div>
+		</div>
+	</div>
+	</div></div>
+	<div class="end-info-constitution"></div>
+	</div>
+</div>
+</div><!-- end of playvoiceConstitutionSection -->
+		
+
+
+<!-- --------------------------[3. stamp list]------------------------------ -->
+<div id="stampListTableSection" class="stamp-list-table-section">
+<div class="stamp-list-table-cover none-sub-title">
+	<h3>Journey Stamps <i class="fa fa-stamp"></i></h3>
+	<div class="passport-information-guide">
+		학습 여정을 통해 다양한 여권 스탬프를 모아 보세요.<br>
+		입국 스탬프, 랭킹 스탬프, 이벤트 스탬프 등 약 <b>100여종 이상의 스탬프</b>가 기다리고 있습니다.
+	</div>
+	<div class="stamp-sample-list-section row no-gutters">
+		<div class="stamp-sample-list col-md-3 col-6">
+			<div class="stamp-sample-back">
+				<div class="stamp-sample-cover">
+					<div class="stamp-image-section"></div>
+					<div class="stamp-title-section">English Stack Top Ranker</div>
+					<div class="stamp-info-section">
+						English Stack에서 최다 질문자 top 10 랭커가 될 시 획득할 수 있습니다.
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="stamp-sample-list col-md-3 col-6">
+			<div class="stamp-sample-back">
+				<div class="stamp-sample-cover">
+					<div class="stamp-image-section"></div>
+					<div class="stamp-title-section">white day study member</div>
+					<div class="stamp-info-section">
+						화이트 데이날 플레이보이스에서 여행을 한 멤버에게 부여됩니다.
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="stamp-sample-list col-md-3 col-6">
+			<div class="stamp-sample-back">
+				<div class="stamp-sample-cover">
+					<div class="stamp-image-section"></div>
+					<div class="stamp-title-section">Pictionry Monthly top ranker</div>
+					<div class="stamp-info-section">
+						픽셔너리 12월의 최다 컨텐츠 메이커 top 10 랭커가 될 시 획득할 수 있습니다.
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="stamp-sample-list col-md-3 col-6">
+			<div class="stamp-sample-back">
+				<div class="stamp-sample-cover">
+					<div class="stamp-image-section"></div>
+					<div class="stamp-title-section">First anniversary on Playvoice</div>
+					<div class="stamp-info-section">
+						플레이보이스에서 여정을 떠난 지 1년이 되는 멤버에게 부여됩니다.
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div><!-- end of stampListTableSection -->
+	
+	
+</section>
+</html>

@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- ------------------------------[메인 헤더]--------------------------------- -->
+<div th:fragment="header">
+<!--/*=====================================================================*/-->
+<!--/*  						header (PC ver.)						   */-->
+<!--/*=====================================================================*/-->
+<div class="main-header d-none d-lg-block">
+<div class="main-copy-section2">
+	<div class="container"><div class="row">
+		<!-- [copy] -->
+		<div class="logo-margin-div col-auto"></div>
+		<div class="main-copy2 col align-self-center">
+			<div class="copy1">나랏 말싸미 미귁에 달아 문짜와로 서르 사맛디 아니할세</div>
+			<div class="copy2">
+				<i class="fa fa-link fa-fw"></i> 
+				대한민국 영어 리부트 프로젝트 : 닥치고 talk!
+			</div>
+		</div>
+		<!-- 로그인 & top 메뉴 -->
+		<div class="col-auto align-self-center">
+			<a th:href="@{/membership}" class="sub-menu-link">
+				<i class="forGold fa fa-plane"></i>
+				Membership
+			</a>
+		</div>
+		<div class="col-auto align-self-center">
+			<a th:href="@{/guide}" class="sub-menu-link">Guide</a>
+		</div>
+		<div th:if="${session.userContainer}" class="col-auto align-self-center">
+			<form th:action="@{/auth/logout}" method="post">
+				<button type="submit" class="sub-menu-link logout">Logout</button>
+			</form>
+		</div>
+		<div th:unless="${session.userContainer}" class="menu-point col-auto align-self-center">
+			<a class="btn-playvoice-main" th:href="@{/member/registration}">JOIN</a>
+		</div>
+		<!-- 로그인 여부 -->
+		<span id="loginStatus" th:if="${session?.userContainer}" 
+			th:text="true" style="display: none;" ></span>
+	</div></div>
+</div>
+<div class="main-menu-section2">
+	<div class="container"><div class="row no-gutters">
+		<!-- [logo, 퍼스나콘] -->
+		<div class="logo-section2 col-auto align-self-center" align="center">
+			<!-- 선비 로고 -->
+			<div class="logo-img-position">
+				<div th:if="${session.userContainer}" class="personacon-logo">
+					<a th:href="@{/mypage/profile/view/{midStr}
+						(midStr=${session.userContainer.personacon.id56})}">
+						<th:block th:replace="~{/incl/user_personacon::lg}"></th:block>
+					</a>
+				</div>
+				<div th:unless="${session.userContainer}" class="personacon-logo" 
+					th:insert="~{/incl/playvoice_logo::logo_header_got}"></div>
+			</div>
+			<!-- 텍스트 로고 (PLAYVOICE) -->
+			<div class="logo-text-position">
+				<a th:replace="~{/incl/playvoice_logo::logo_header_text}"></a>
+			</div>
+		</div>
+		<div class="col"></div>
+		<!-- [main menu] -->
+		<th:block th:replace="~{/incl/main_menu::main_menu}" 
+			class="col-auto align-self-center"></th:block>
+	</div></div>
+</div>
+<div id="playvoice_menu_section" style="display: none; background: #fff;">
+	<!-- [app menu] -->
+	<div th:insert="~{/incl/app_menu::app_menu}" class="container"></div>
+</div>
+
+</div><!-- end of PC ver. -->
+
+<!--/*=====================================================================*/-->
+<!--/*  				header (Tablet & Mobile ver.)					   */-->
+<!--/*=====================================================================*/-->
+<div class="main-header d-lg-none">
+	<div class="mobile-header-back"></div>
+	<div class="mobile-header-cover row no-gutters py-2">
+		<!-- menu toggle button -->
+		<div class="toggle-button-section col-2 px-2 text-center align-self-center">
+			<a onclick="mobileMenuOpen()" id="menuOpenBtn">
+				<i class="fa fa-bars fa-lg"></i>
+			</a>
+		</div>
+		<!-- logo text (Mobile ver.) -->
+		<div class="playvoice-logo col-8 text-center align-self-center">
+			<a id="playvoiceMobileAppName" th:href="@{/main}" class="pv-tm" 
+				style="display: none;"></a>
+			<div id="playvoiceMobileTextLogo" class="text-logo" 
+				th:insert="~{/incl/playvoice_logo::white_text_logo}"></div>
+		</div>
+		<!-- logo image/personacon (Mobile ver.) -->
+		<div class="playvoice-logo col-2 text-center align-self-center">
+			<div th:if="${session.userContainer}" class="image-personacon" align="center">
+				<a th:href="@{/mypage/profile/view/{midStr}
+					(midStr=${session.userContainer.personacon.id56})}">
+					<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+				</a>
+			</div>
+			<div th:unless="${session.userContainer}" class="image-logo" align="center">
+				<a th:href="@{/auth/login}" 
+					th:insert="~{/incl/playvoice_logo::white_seonbi_logo_noLink}"></a>
+			</div>
+		</div>
+	</div>
+	<!-- 메뉴 영역 밖 (누르면 메뉴가 닫힘) -->
+	<div onclick="history.back();" class="page_cover"></div>
+	<!-- [모바일 메뉴] -->
+	<div th:replace="~{/incl/mobile_menu::mobile_menu}"></div>
+</div><!-- end of Tablet & Mobile ver. -->
+
+<script th:inline="javascript">
+$("a[href='/admin']").click(function(e){
+	if(($("#loginStatus").text() == 'true') && 
+		/*[[${#strings.equals(session?.userContainer?.personacon?.memberType,'A')}]]*/ false){
+		return;
+	}else{
+		e.preventDefault();
+		location.href = "/auth/login?destPage=" + $(this).attr("href");		
+	}
+	
+});
+</script>
+</div>
+
+
+
+
+
+</html>

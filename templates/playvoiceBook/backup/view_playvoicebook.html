@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playvoice_basic_layout}">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>playvoicebook</title>
+<link rel="stylesheet" th:href="@{/css/app/playvoicebook.css}">
+<script th:src="@{/touchswipe/jquery.touchSwipe.min.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+var sentence_num = 0; //학습한 문장 순서
+var stage_content = 7 - 1; //문장 총 갯수
+//------------------------------------------------
+var page = 0;		//플보북 내에서 현재 학습 중인 문장의 순서.
+var audio;			//Audio(html5부터 지원) 객체. 재생관련 처리를 모두 이 객체를 통해서 한다.
+var loop=5;			//현재 문장에서 음성을 재생할 총 횟수.
+var playNum=0;
+var playorder = 0;	// 현재 문장에 포함된 음성들 사이에서의 순서.
+var chkStat = 0; 	// 0: 현재 문장 계속 반복(포함된 음성들은 순차재생), 1: 지정횟수(기본:5회)만큼 재생 후 다음 문장 재생
+var playList;		//플보북에 포함된 플레이보이스 리스트
+var fileList = [];	// 현재 문장에서 재생할 Audio 리스트
+var book;
+var timeout;	//재생 간격을 처리하기 위해 쓰는 타이머 객체
+
+$(function(){
+	/* $("#sentenceListStatic").on("mouseover", '[data-toggle="tooltip"]', function(){
+		$(this).tooltip();
+	}) */
+
+	/* ------------------------------[학습목표를 끄면 재생] */
+	$("#stage_info_modal").modal({
+		show : true
+	}).on('hidden.bs.modal', function (e) {
+		setTimeout(function() {
+			$('#play').click();
+		}, 300);
+	}); 
+	
+	/* ------------------------------[버튼 클릭 시 화면 이동] */
+	$("#send_sentence, #send_sentence_xs, #send_comment, #send_comment_xs").click(function(){
+		var id = $(this).attr("id");
+		scrollDiv(id);
+	});
+	
+	/* ------------------------------[관련 패턴 한국어 추가] */
+	/* 글 쓸 때 칸 늘어가게, 등록버튼 활성화 */
+	$("#comment, #comment_xs").bind("change keyup keydown", function(){
+		if($(this).val().length > 0){
+			$("#addCommentBtn, #addCommentBtn_xs").removeAttr("disabled");
+		} else {
+			$("#addCommentBtn, #addCommentBtn_xs").attr("disabled", "disabled");
+		}
+	});
+	/* 등록버튼 나오게 */
+	$("#comment, #comment_xs").click(function(){
+		$("#comment_button_section, #comment_button_section_xs").fadeIn(200);
+	});
+	/* 글 취소, 등록버튼 숨기기 */
+	$("#cancelCommentBtn, #cancelCommentBtn_xs").click(function(){
+		$("#comment_button_section, #comment_button_section_xs").fadeOut(200);
+		$("#addCommentBtn, #addCommentBtn_xs").attr("disabled", "disabled");
+	});
+	/* 글 쓸 때 칸 늘어가게, 등록버튼 활성화 */
+	$("#comment2, #comment2_xs").bind("change keyup keydown", function(){
+		if($(this).val().length > 0){
+			$("#addCommentBtn2, #addCommentBtn2_xs").removeAttr("disabled");
+		} else {
+			$("#addCommentBtn2, #addCommentBtn2_xs").attr("disabled", "disabled");
+		}
+	});
+	/* 등록버튼 나오게 */
+	$("#comment2, #comment2_xs").click(function(){
+		$("#comment_button_section2, #comment_button_section2_xs").fadeIn(200);
+	});
+	/* 글 취소, 등록버튼 숨기기 */
+	$("#cancelCommentBtn2, #cancelCommentBtn2_xs").click(function(){
+		$("#comment_button_section2, #comment_button_section2_xs").fadeOut(200);
+		$("#addCommentBtn, #addCommentBtn_xs").attr("disabled", "disabled");
+	});
+	
+	
+	/* ---------------------------[페이지 첫 진입 진행 바] */
+	var percent = (sentence_num * 100)/stage_content;
+	$("#stage_progress, #stage_progress_xs").css("width", percent + "%");
+	
+	
+	/* ---------------------------[다음 문장으로 넘어가기] */
+	$("#prev").click(function(){
+		if(page != 0) {
+			page--;
+		} else {
+			sentenceFirst();
+			return;
+		}
+	});
+	$("#next").click(function(){
+		if(page == stage_content) {
+			sentenceDone();
+			return;
+		} else {
+			page++;
+			if(sentence_num < page){
+				sentence_num++;
+				percent = (sentence_num * 100)/stage_content;
+			}
+			$("#stage_progress, #stage_progress_xs").css("width", percent + "%");
+		}
+	});
+	
+	
+	/* ---------------------------[mobile ver. 옆으로 넘기기] */
+	$("#swipe_stage").swipe( {
+		//Generic swipe handler for all directions
+		swipe:function(event, direction, distance, duration, fingerCount, fingerData) {
+			if(direction == "left") {
+				if(page == stage_content) {
+					sentenceDone();
+					return;
+				} else {
+					page++;
+				}
+			} else if(direction == "right") {
+				if(page != 0){
+					page--;
+				} else {
+					sentenceFirst();
+					return;
+				}
+			}
+			if(sentence_num < page){
+				sentence_num++;
+				percent = (sentence_num * 100)/stage_content;
+			}
+			$("#stage_progress, #stage_progress_xs").css("width", percent + "%");
+		},
+		//Default is 75px, set to 0 for demo so any distance triggers swipe
+		//threshold:17 //슬라이드 길이
+	});
+	
+	
+	/* ----------------------------[재생횟수 선택] */
+	$("#loopNum").change(function(){
+		$("#loopNum_delay").fadeIn(100);
+		setTimeout(function(){
+			$("#loopNum_delay").fadeOut(100);
+		},400);
+	});
+	
+	/* ----------------------------[학습 종료] */
+	$("#close_stage, #close_stage_xs").click(function(){
+		stageEnd();
+	});
+	$("#stage_info_modal").on("click", "#close_stage_modal", function(){
+		stageEnd();
+	})
+	
+	
+	//---------------------------[오디오의 재생이 끝날 때 실행할 이벤트 함수를 할당]
+	function initAudio(element) {
+		//파일을 불러와서 Audio 객체 생성
+		audio = element;
+		if (audio) {
+			audio.addEventListener('loadedmetadata',function(){
+				//오디오의 재생이 끝날 때마다 이벤트 발생
+				audio.addEventListener('ended', function() {
+					//$('#stop').hide();	// 연속적으로 파일들이 재생되는 상황에선 버튼 토글이 불필요하므로 주석으로 처리.
+					//$('#play').show();	// 버튼을 누를 때만 토글되도록.
+					clearTimeout(timeout);
+					timeout = setTimeout(function() {
+						if (chkStat > 0) { //보이스들 순차적 계속 재생
+							if (playorder < fileList.length - 1) {
+								playorder++;
+							} else {
+								playorder = 0;
+							}
+							$('#stop').click();
+							initAudio(fileList[playorder]);
+							$('#play').click();
+						} else { //순차적으로 재생하여 총 loop 수 만큼 재생 후 다음 문장으로
+							if (playorder == fileList.length - 1) {
+								$('#stop').click();
+								if (page < playList.length - 1) {
+									$('#next').click();
+									playorder=0;
+									$('#play').click();
+								}
+							} else {
+								$('#stop').click();
+								initAudio(fileList[playorder%(fileList.length)]);
+								$('#play').click();
+								playorder++;
+							}
+						}
+					}, 2000);
+				}, audio.duration);
+			});
+		}
+	};
+
+	$('#chkLoop').click(function() {
+		if (chkStat == 0) {
+			chkStat = -1;
+			$(this).children().first().removeClass("opacity-80");
+			$(this).children().first().addClass("opacity");
+		} else {
+			chkStat = 0;
+			$(this).children().first().addClass("opacity-80");
+			$(this).children().first().removeClass("opacity");
+			$('#chkAuto').children().first().removeClass("opacity-80");
+			$('#chkAuto').children().first().addClass("opacity");
+		}
+	});
+	$('#chkAuto').click(function() {
+		if (chkStat > 0) {
+			chkStat = -1;
+			$(this).children().first().removeClass("opacity-80");
+			$(this).children().first().addClass("opacity");
+		} else {
+			chkStat = 1;
+			$(this).children().first().addClass("opacity-80");
+			$(this).children().first().removeClass("opacity");
+			$('#chkLoop').children().first().removeClass("opacity-80");
+			$('#chkLoop').children().first().addClass("opacity");
+		}
+	});
+
+	//재생
+	$('#play').click(function() {
+		var promise;
+		if (audio && audio.readyState > 2) {
+			if(!audio.paused){
+				audio.pause();
+			}
+			promise = audio.play();
+			$(this).hide();
+			$(this).siblings('#stop').show();
+		}
+		if(promise!==undefined){
+			promise.then(function(){
+				$(this).hide();
+				$(this).siblings('#stop').show();
+			}).catch(function(){
+				$(this).show();
+				$(this).siblings('#stop').hide();
+			});
+		}
+	});
+	
+	//정지
+	$('#stop').click(function() {
+		if (audio && !audio.paused && !audio.ended
+				&& audio.readyState > 2) {
+				audio.pause();
+				audio.currentTime = 0;
+			}
+			clearTimeout(timeout);
+			$(this).hide();
+			$(this).siblings('#play').show();
+	});
+	
+	/* ---------------------플보북의 현재 페이지에 대한 정보를 세팅 */
+	function getPlayBook() {
+		book = playList[page];
+		$('.sent-eng').text(book.sentence.eng);
+		$('.sent-kor').text(book.sentence.kor);
+		if (page > 0) {
+			$('#prev').attr('style', 'visibility:visible');
+		} else {
+			$('#prev').attr('style', 'visibility:hidden');
+		}
+		
+		$('#prev').attr("value", page - 1);
+		$('#next').attr("value", page + 1);
+		$('.sentence-explain').text(book.description);
+		$('#lvlStep, #lvlStep_xs').text(window.atob([[${lvNo}]]));
+		$('#stgStep, #stgStep_xs').text(window.atob([[${stgNo}]]));
+		$('.explain').text(book.stage.objective);
+		$('#stage_info').attr('data-content', book.stage.objective);
+		/* ---------------------------현재 문장에 속한 음성을 불러와서 메모리에 담는다. */
+		$.getJSON("/voiceBook/list", {
+			sid : window.btoa(book.sentence.sid)
+		}, function(dat) {
+			fileList = [];
+			dat.forEach(function(el, i) {
+				var l = document.createElement("li");
+				var audioFile = new Audio("/voiceBook/file/view?path=" + window.btoa(el.path));
+				fileList.push(audioFile);
+			});
+			/* 불러온 음성들 중 첫번째를 현재 재생할 오디오로 지정 */
+			initAudio(fileList[0]);
+		});
+	};
+	$('[data-toggle="popover"]').popover();
+	$('#prev').click(function() {
+		page--;
+		getPlayBook();
+	});
+	$('#next').click(function() {
+		page++;
+		getPlayBook();
+	});
+	
+	/* -------------------현 스테이지의 플보북에서 쓸 플보리스트를 메모리에 저장. */
+	// Playvoice에는 날짜도 들어가 있는데 날짜는 parse의 대상에 포함돼선 안되므로 속성 전체를 문자열로 인식하도록 stringify를 한 번 거친다.
+	playList = JSON.parse(JSON.stringify([[${playvoices}]]));	
+	getPlayBook();		// 플보리스트의 첫 번째 문장으로 세팅
+	$('#play').click();	// 처음은 강제로 자동재생
+})
+
+function scrollDiv(id) {
+	var offset = $("#my_" + id).offset();
+    $('html, body').animate({scrollTop : offset.top - 30}, 400);
+}
+function sentenceDone() {
+	$("#stage_info_modal").find("#modal_msg").html("학습이 모두 끝났습니다.<br>다음 스테이지를 학습하시겠습니까?");
+	var buttons = '<button type="button" class="btn btn-outline-info btn-sm float-right" id="close_stage_modal" data-dismiss="modal">학습종료</button>&nbsp;&nbsp;'
+				+'<button type="button" class="btn btn-info btn-sm float-right" data-dismiss="modal">다음스테이지로 Go!</button>';
+	$("#stage_info_modal").find(".modal-footer").html(buttons);
+	$("#stage_info_modal").modal({
+		show : true
+	});
+}
+function sentenceFirst() {
+	$("#stage_info_modal").find("#modal_msg").html("스테이지 첫 문장입니다.<br>다음 문장으로 넘어가 주세요.");
+	var buttons = '<button type="button" class="btn btn-info btn-sm float-right" data-dismiss="modal">확인</button>';
+	$("#stage_info_modal").find(".modal-footer").html(buttons);
+	$("#stage_info_modal").modal({
+		show : true
+	});
+}
+function stageEnd() {
+	if(sentence_num < stage_content) {
+		var modal_msg = '<img src=\"/images/common/image/Qpet_cry.png\" class=\"float-right\" width=\"55px\">'
+			+ '학습이 아직 끝나지 않았습니다.<br>중단하시겠습니까?';
+		$("#stage_info_modal").find("#modal_msg").html(modal_msg);
+		var buttons = '<button type="button" class="btn btn-outline-info btn-sm float-right" data-dismiss="modal">계속 학습</button>&nbsp;&nbsp;'
+					+ '<button type="button" class="btn btn-info btn-sm float-right" data-dismiss="modal">학습 종료</button>';
+		$("#stage_info_modal").find(".modal-footer").html(buttons);
+		$("#stage_info_modal").modal({
+			show : true
+		});
+		return;
+	} else {
+		alert("학습 끝! 레벨 목록으로 이동");
+		return;
+	}
+}
+</script>
+
+</head>
+<body>
+<div layout:fragment="content">
+	<!-- -------------------------------------------[Modal] -->
+	<div class="modal fade" tabindex="-1" role="dialog" id="stage_info_modal">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content" style="border: solid 3px #17a2b8;">
+				<div id="modal_msg" class="modal-body text-center" style="font-size: 14px;">
+					<h5 class="modal-title text-info" style="margin-bottom: 15px;"><b>stage 목표</b></h5>
+					<p class="explain" style="font-size: 14px;">
+					[[${playvoices[0].stage.objective}]]
+					</p>
+				</div>
+				<div class="modal-footer justify-content-center">
+					<button type="button" class="btn btn-danger" data-dismiss="modal" onclick="">START</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<!-- -------------------------------------------[PC Ver.] -->
+	<div class="d-none d-lg-block"><div class="row mt-3">
+		<div class="col-lg-7 py-2 stage-info" style="border-bottom: solid 1px #03DAC5;">
+			<span style="font-weight: 600; font-size: 25px; color: #BDBDBD;">Level <span id="lvlStep">3</span></span>&nbsp;
+			<a tabindex="0" data-trigger="focus" id="stage_info" data-toggle="popover" title="stage 목표" th:data-content="${playvoices[0].stage.objective}">
+				<span style="font-weight: 600; font-size: 25px;">stage <span id="stgStep">15</span></span>&nbsp;
+				<i lang="fa" class="fas fa-question-circle fa-lg text-info"></i>
+			</a>&nbsp;&nbsp;
+			<img th:src="@{/images/common/image/united-kingdom.png}">
+			<img th:src="@{/images/common/image/brazil.png}">
+			<img th:src="@{/images/common/image/canada.png}">
+			<img th:src="@{/images/common/image/south-korea.png}">
+			<img th:src="@{/images/common/image/china.png}">
+			<img th:src="@{/images/common/image/france.png}">
+			<img th:src="@{/images/common/image/united-states.png}">
+			<img th:src="@{/images/common/image/germany.png}">
+			<img th:src="@{/images/common/image/india.png}">
+			<img th:src="@{/images/common/image/italy.png}">
+			<img th:src="@{/images/common/image/japan.png}">
+			<img th:src="@{/images/common/image/russia.png}">
+		</div>
+		<div class="col-lg-4 py-2 pt-4" style="border-bottom: solid 1px #03DAC5;">
+			<!-- 진행 바 -->
+			<div class="progress">
+				<div class="progress-bar bg-info" id="stage_progress"></div>
+			</div>
+		</div>
+		<div class="col-lg-1 text-right pt-3" style="border-bottom: solid 1px #03DAC5;">
+			<button type="button" id="close_stage" class="btn btn-outline-info btn-sm jsAction">
+				학습종료
+			</button>
+		</div>
+	</div>
+	
+	<!--/* *****[Player body]***** */-->
+	<div class="row my-3 mt-5">
+		<div class="col-lg-2 align-self-center text-center">
+			<i lang="fa" class="fas fa-angle-double-left fa-4x jsAction move-sentence" 
+				data-toggle="tooltip" title="이전 문장" id="prev"></i>
+		</div>
+		<div class="col-lg-8 rounded">
+			<div class="audio-sentence text-center p-2 rounded" style=" background-color: #F7F7F7;">
+				<div class="row p-2">
+					<div class="col-lg-1"></div>
+					<div class="sent-eng col-lg-10">
+						<span style="color:red;">Let's stop by</span> the visitor center for directions.
+					</div>
+				</div>
+				<div class="row p-2 my-3">
+					<div class="col-lg-1"></div>
+					<div class="sent-kor col-lg-10">
+						관광 안내소에 들러서 길을 물어보고 갑시다.
+					</div>
+				</div>
+				<div class="row my-3 mb-4">
+					<div class="col-lg-1"></div>
+					<div class="col-lg-10 text-left">
+						<span class="sentence-explain text-info" >
+							* directions : 길안내
+						</span>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-2 align-self-center text-center">
+			<i lang="fa" class="fas fa-angle-double-right fa-4x jsAction move-sentence" 
+				data-toggle="tooltip" title="다음 문장" id="next"></i>
+		</div>
+	</div><div class="row my-3">
+		<div class="col-lg-2"></div>
+		<div class="col-lg-8 rounded">
+			<div id="audio-player"><div id="buttons" class="row mb-2">
+				<div class="col-lg-8 text-left">
+					<!-- play & stop -->
+					<div class="btn-group">
+						<button type="button" class="btn btn-link" id="play" title="재생" data-toggle="tooltip">
+							<i lang="fa" class="far fa-play-circle fa-4x text-info" style=""></i>
+						</button>
+						<button type="button" class="btn btn-link" id="stop" title="정지" data-toggle="tooltip">
+							<i lang="fa" class="far fa-stop-circle fa-4x text-info"></i>
+						</button>
+					</div>
+					<!-- loop -->
+					<div class="btn-group btn-group-toggle" data-toggle="buttons">
+						<label class="btn btn-info btn-sm active" data-toggle="tooltip" title="전체 자동 재생">
+							<input type="radio" name="playhow" id="chkAuto" autocomplete="off" checked>
+							<font size="1"> all </font><i lang="fa" class="fas fa-undo fa-lg"></i>
+						</label>
+						<label class="btn btn-info btn-sm" data-toggle="tooltip" title="한 문장 재생">
+							<input type="radio" name="playhow" id="chkLoop" autocomplete="off">
+							<font size="1">one</font><i lang="fa" class="fas fa-undo fa-lg"></i>
+						</label>
+					</div>
+					<!-- play num -->
+					<select id="loopNum" class="loop-num custom-select border border-info text-info" 
+						data-toggle="tooltip" title="재생횟수">
+						<option value="1">1</option>
+						<option value="2">2</option>
+						<option value="3">3</option>
+						<option value="4">4</option>
+						<option selected value="5">5</option>
+						<option value="6">6</option>
+						<option value="7">7</option>
+						<option value="8">8</option>
+						<option value="9">9</option>
+						<option value="10">10</option>
+					</select>
+					<i lang="fa" id="loopNum_delay" class="fa fa-spinner fa-spin fa-fw text-info" style="display: none;"></i>
+				</div>
+				<div class="col-lg-4 align-self-center text-right">
+					<button id="send_sentence" class="btn btn-outline-info btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="나의 이야기">
+						<i lang="fa" class="far fa-grin-alt fa-2x fa-fw"></i>
+					</button>
+					<button id="send_comment" class="btn btn-outline-info btn-sm jsAction border-0" 
+						type="button" data-toggle="tooltip" title="의견">
+						<i lang="fa" class="far fa-comment-dots fa-2x fa-fw"></i>
+					</button>
+				</div>
+			</div></div>
+		</div>
+		<div class="col-lg-2">
+		</div>
+	</div>
+	
+	<div class="row my-5">
+		<div class="col-lg-2"></div>
+		<div class="col-lg-8"><div class="row">
+			<div class="col-lg-12 p-3 rounded">
+				<!-- 일상 생활에서 내가 쓰는 말 적어봐요 -->
+				<form>
+				<div class="mb-5" id="my_send_sentence">
+					<span style="font-size: 14px; color: #3700b3;">
+						패턴과 관련하여 <span style="border-bottom:dotted 1.3px #FF9999;">일상 생활에서 내가 쓰는 말</span>을 한국어로 적어봐요
+						<i lang="fa" class="far fa-kiss-beam"></i>
+						<span class="float-right">
+						<i lang="fa" class="fas fa-question-circle fa-lg jsAction"></i>
+						</span>
+					</span>
+					<input type="text" class="form-control book-text" id="comment"/>
+					<div id="comment_button_section" class="py-1 text-right" style="display: none;">
+						<button type="reset" id="cancelCommentBtn" class="btn btn-outline-info btn-sm">취소</button>
+						<button type="button" id="addCommentBtn" class="btn btn-info btn-sm" disabled="disabled">등록</button>
+					</div>
+				</div>
+				</form>
+				<!-- 이 문장과 연결할 수 있는 다른 문장 적어봐요 -->
+				<form>
+				<div id="my_send_comment">
+					<span style="font-size: 14px; color: #3700b3;">
+						<span style="border-bottom:dotted 1.3px #FF9999;">이 문장과 연결할 수 있는 다른 문장</span>을 한국어로 적어봐요
+						<i lang="fa" class="far fa-laugh"></i>
+						<i lang="fa" class="fas fa-question-circle fa-lg float-right"></i>
+					</span>
+					<input type="text" class="form-control book-text" id="comment2"/>
+					<div id="comment_button_section2" class="py-1 text-right" style="display: none;">
+						<button type="reset" id="cancelCommentBtn2" class="btn btn-outline-info btn-sm">취소</button>
+						<button type="button" id="addCommentBtn2" class="btn btn-info btn-sm" disabled="disabled">등록</button>
+					</div>
+				</div>
+				</form>
+			</div>
+		</div>
+		</div>
+		<div class="col-lg-2"></div>
+	</div></div><!-- end of PC ver. -->
+
+	
+	
+	
+	
+	<!-- ----------------------------------------[Tablet & Mobile Ver.] -->
+	<div class="d-lg-none" style="padding-bottom: 50px;">
+		<div id="stage_info_xs" class="py-2">
+			<div class="row">
+				<div class="col-8 pt-2">
+					<!-- 진행 바 -->
+					<div class="progress">
+						<div class="progress-bar bg-info" id="stage_progress_xs"></div>
+					</div>
+				</div>
+				<div class="col-4">
+					<button class="btn btn-sm btn-outline-info" id="close_stage_xs" type="button">학습종료</button>
+				</div>
+			</div>
+		</div>
+		<!--************* [player body] **************-->
+		<div id="swipe_stage"><div class="row bg-warning my-0 ">
+			<!-- sentence -->
+			<div class="col-12 pt-3">
+				<div class="px-2 pt-3 text-center">
+					<span class="sent-eng">
+						<span style="color: red;">Let's stop by</span> the visitor center for directions.
+					</span><br><br>
+					<span class="sent-kor">
+						관광 안내소에 들러서 길을 물어보고 갑시다.
+					</span>
+				</div>
+			</div>
+			<!-- loop & play button -->
+			<div class="col-12 play-btn-xs text-right px-4">
+				<button type="button" class="btn btn-dark btn-xs rounded-circle play-btn-shadow" id="chkAuto" style="padding: 7px 5px; margin-right: 20px;">
+					<font size="1">all</font><i lang="fa" class="fas fa-undo"></i>
+				</button>
+				<button type="button" class="btn btn-dark btn-xs rounded-circle play-btn-shadow" id="chkLoop" style="padding: 7px 5px; margin-right: 20px;">
+					<font size="1"> 1 </font><i lang="fa" class="fas fa-undo"></i>
+				</button>
+				<button type="button" class="btn btn-dark rounded-circle play-btn-shadow" id="stop" style="padding: 13px;">
+					<i lang="fa" class="fas fa-stop fa-lg"></i>
+				</button>
+				<button type="button" class="btn btn-dark rounded-circle play-btn-shadow" id="play" style="padding: 13px;">
+					<i lang="fa" class="fas fa-play fa-lg"></i>
+				</button>
+			</div>
+		</div>
+		<div class="row mt-4 py-1">
+			<div class="col-12 px-4 text-dark sentence-explain">
+				* directions : 길안내
+			</div>
+		</div>
+		<div class="row my-4">
+			<div class="col-12 px-4 py-1" style="font-size: 18px; font-weight: 600;">
+				<span style="color: #bdbdbd;">Level <span id="lvlStep_xs">3</span></span>
+				<span class="text-dark">stage <span id="stgStep_xs">15</span></span>
+				<div class="style-line-gr2" style="margin-bottom: 10px;"></div>
+				<div class="explain" style="font-size: 14px; font-weight: 500;">
+				[[${playvoices[0].stage.objective}]]
+				</div>
+			</div>
+			<div class="col-12 py-2 px-4">
+				<button type="button" class="btn btn-outline-secondary" 
+					id="send_sentence_xs" style="border-radius: 20px; margin-right: 10px;">
+					<i lang="fa" class="far fa-grin-alt fa-fw"></i> my speaking
+				</button>
+				<button type="button" class="btn btn-outline-secondary" 
+					id="send_comment_xs" style="border-radius: 20px;">
+					<i lang="fa" class="far fa-comment-dots fa-fw"></i>
+				</button>
+			</div>
+		</div></div><!-- end of Player body -->
+		
+		
+		<div class="row mt-5">
+			<div class="col-12 text-center flag-list">
+				<img th:src="@{/images/common/image/united-kingdom.png}" >
+				<img th:src="@{/images/common/image/brazil.png}" >
+				<img th:src="@{/images/common/image/canada.png}" >
+				<img th:src="@{/images/common/image/south-korea.png}" >
+				<img th:src="@{/images/common/image/china.png}" >
+				<img th:src="@{/images/common/image/france.png}" >
+				<img th:src="@{/images/common/image/united-states.png}" >
+				<img th:src="@{/images/common/image/germany.png}" >
+				<img th:src="@{/images/common/image/india.png}" >
+				<img th:src="@{/images/common/image/italy.png}" >
+				<img th:src="@{/images/common/image/japan.png}" >
+				<img th:src="@{/images/common/image/russia.png}" >
+			</div>
+		</div>
+		
+		
+		<div class="row my-2">
+			<div class="col-12"><div class=" p-3 rounded">
+				<!-- 일상 생활에서 내가 쓰는 말 적어봐요 -->
+				<form>
+				<div id="my_send_sentence_xs" class="mb-5">
+					<span style="font-size: 14px;">
+						패턴과 관련하여 <span style="font-weight: 600;">일상 생활에서 내가 쓰는 말</span>을 한국어로 적어봐요
+						<i lang="fa" class="far fa-kiss-beam"></i>
+					</span>
+					<input type="text" class="form-control book-text" id="comment_xs"/>
+					<div id="comment_button_section_xs" class="py-1 text-right" style="display: none;">
+						<button type="reset" id="cancelCommentBtn_xs" class="btn btn-outline-info">취소</button>
+						<button type="button" id="addCommentBtn_xs" class="btn btn-info" disabled="disabled">등록</button>
+					</div>
+				</div>
+				</form>
+				<!-- 이 문장과 연결할 수 있는 다른 문장 적어봐요 -->
+				<form>
+				<div id="my_send_comment_xs" class="">
+					<span style="font-size: 14px;">
+						<span style="font-weight: 600;">이 문장과 연결할 수 있는 다른 문장</span>을 한국어로 적어봐요
+						<i lang="fa" class="far fa-laugh"></i>
+					</span>
+					<input type="text" class="form-control book-text" id="comment2_xs"/>
+					<div id="comment_button_section2_xs" class="py-1 text-right" style="display: none;">
+						<button type="reset" id="cancelCommentBtn2_xs" class="btn btn-outline-info">취소</button>
+						<button type="button" id="addCommentBtn2_xs" class="btn btn-info" disabled="disabled">등록</button>
+					</div>
+				</div>
+				</form>
+			</div></div>
+		</div>
+		
+		<div class="row mb-5">
+			<div class="col-12 text-center flag-list">
+				<img th:src="@{/images/common/image/united-kingdom.png}" >
+				<img th:src="@{/images/common/image/brazil.png}" >
+				<img th:src="@{/images/common/image/canada.png}" >
+				<img th:src="@{/images/common/image/south-korea.png}" >
+				<img th:src="@{/images/common/image/china.png}" >
+				<img th:src="@{/images/common/image/france.png}" >
+				<img th:src="@{/images/common/image/united-states.png}" >
+				<img th:src="@{/images/common/image/germany.png}" >
+				<img th:src="@{/images/common/image/india.png}" >
+				<img th:src="@{/images/common/image/italy.png}" >
+				<img th:src="@{/images/common/image/japan.png}" >
+				<img th:src="@{/images/common/image/russia.png}" >
+			</div>
+		</div>
+	</div><!-- end of Tablet & Mobile ver. -->
+	
+</div>
+
+</body>
+</html>

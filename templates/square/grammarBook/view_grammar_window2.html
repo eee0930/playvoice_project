@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_section_layout2}">
+<head>
+<title>[[${digestTitle}]] - playvoice</title><!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, metaTitle = ${digestTitle} + ' - playvoice', 
+	metaDescription = 'look은 상태가  변하지 않는 것에 주로 씁니다.<br><br>
+				watch는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+				근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>', 
+	metaImage = '/images/app/playsquare/square_index3.jpg', metaRegDate = null"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/header.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playsquare.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-lite.css" rel="stylesheet">
+
+<script th:src="@{/js/common.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.12/summernote-lite.js"></script>
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	
+	// [목차에서 아티클 주제 클릭 시 아티클 보여주기]-------------------------------------------
+	$(".openArticleContent").click(function(){
+		$(".openArticleContent").removeClass("active");
+		$(this).addClass("active");
+		
+		var openArticleId = $(this).attr("id");
+		
+		$(".articleView").hide();
+		$("#" + openArticleId + "_div").show(100);
+	});
+	
+	
+	// [다이제스트 share link 클립보드로 복사]-------------------------------------------
+	$(".clip-target").click(function(){
+		var clipParent = $(this).closest(".copy-url-section");
+		var inputClip = clipParent.find(".hide-input");
+		inputClip.select();
+		try {  
+			var successful = document.execCommand('copy'); 
+			clipParent.find(".successClip-guide").show();
+			setTimeout(function() {
+				clipParent.find(".successClip-guide").hide();
+			}, 2000);
+			
+		} catch (err) { 
+			alert('이 브라우저는 지원하지 않습니다.') 
+		} 
+	});
+    
+	// [아티클 추천]----------------------------------------------------------------
+	$(".heart").on("click", function() {
+		$(this).toggleClass("heart-blast");
+	});
+	
+	// [댓글 리스트 펼치기]-----------------------------------------------------------
+	$(".article-view-section").on("click", ".openCommentList", function(){
+		$(this).closest(".articleView").find(".commentListDiv").toggle();
+	});
+	
+}); 
+    
+</script>   
+
+
+</head>
+
+<section layout:fragment="content" class="digest-window-section">
+<!-- ------------------------[digest window header]------------------------- -->
+<div id="digestWindowHeaderSection" class="digest-window-header row no-gutters">
+	<div class="logo-section col px-2 align-self-center">
+		<a th:replace="~{/incl/playvoice_logo::white_seonbi_logo}"></a>
+		<a th:replace="~{/incl/playvoice_logo::white_text_logo}"></a>
+	</div>
+	<div class="digest-title col-auto align-self-center">
+		<h1><i class="fa fa-quote-left fa-fw"></i> [[${digestTitle}]]</h1>
+	</div>
+	<div class="logo-section col align-self-center"></div>
+</div><!-- end of digestWindowHeaderSection -->
+<div th:replace="~{/incl/nav_header::nav_header}"></div>
+
+<!-- ------------------------[digest window body]------------------------- -->
+<div id="digestWindowBodySection" class="row no-gutters">
+	<!-- ---------------------------[1. 아티클 목차]---------------------------- -->
+	<div id="articleListDiv" class="article-list-section col-3">
+		<div class="arcitle-title-guide text-center">
+			<div>
+				<i class="fa fa-list fa-fw"></i> 아티클 목차
+			</div>
+			<div class="guide mt-1">
+				목차를 클릭하여 해당 아티클을 읽어 보세요.
+			</div>
+		</div>
+		
+		<div class="article-title-list-cover">
+		<div id="openArticle_0" class="openArticleContent arcitle-title-cover active row no-gutters">
+			<!-- 퍼스나콘 -->
+			<div class="col-auto pr-3">
+				<img src="/images/app/member/profile_paper.png" class="list-personacon" 
+					style="background: url('/images/app/member/profile_ex7.jpg') no-repeat;
+					background-position: center; background-size: cover;">
+			</div>
+			<div class="col align-self-center">
+				<!-- sub title -->
+				<h3 class="title">
+					보는 것이라는 뜻의 단어 활용이 헷갈리는 당신들을 위해
+				</h3>
+				<!-- 별명 -->
+				<div class="alias text-right ">lazyhysong</div>
+			</div>
+		</div>
+		
+		<div id="openArticle_1" class="openArticleContent arcitle-title-cover row no-gutters">
+			<div class="col-auto pr-3">
+				<img src="/images/app/member/profile_paper.png" class="list-personacon"
+					style="background: url('/images/app/member/profile_ex5.jpg') no-repeat;
+					background-position: center; background-size: cover;">
+			</div>
+			<div class="col align-self-center">
+				<h3 class="title">
+					see vs look vs watch
+				</h3>
+				<div class="alias text-right ">쇼쇼숑</div>
+			</div>
+		</div>
+		
+		<div id="openArticle_2" class="openArticleContent arcitle-title-cover row no-gutters">
+			<div class="col-auto pr-3">
+				<img src="/images/app/member/profile_paper.png" class="list-personacon"
+					style="background: url('/images/app/member/profile_ex6.jpg') no-repeat;
+					background-position: center; background-size: cover;">
+			</div>
+			<div class="col align-self-center">
+				<h3 class="title">
+					'영화 보자'를 표현할 때 watch를 쓸까요 see를 쓸까요?
+				</h3>
+				<div class="alias text-right ">벼리</div>
+			</div>
+		</div>
+		</div>
+		
+		<div id="openAddArticle" class="openArticleContent arcitle-title-cover add">
+			<div class="title">
+				주제에 관한 내용 작성하기 <i class="fa fa-pen-fancy fa-fw"></i>
+			</div>
+		</div>
+		
+		<!-- 광고 -->
+		<div class="digest-window-ad-section">
+			<hr>
+			<img src="/images/app/playsquare/digest_window_ad.jpg">
+			<hr>
+		</div>
+		
+		<!-- playvoice logo -->
+		<div class="digest-window-logo-section">
+			<div class="logo-container">
+				<a th:href="@{/square/grammarBook/list}">
+					<img class="logo2" src="/images/logo/logo_white_inset.png">
+					<span class="pv-tm">playvoice Digest</span>
+				</a>
+			</div>
+		</div>
+		
+	</div><!-- end of articleListDiv -->
+	
+	
+	
+	<!-- --------------------------[2. view 아티클]--------------------------- -->
+	<div id="viewArticleDiv" class="article-view-section col-9">
+		
+		<!-- [2.1 veiw 아티클] -->
+		<div id="openArticle_0_div" class="articleView article-cover">
+			<!-- sub title -->
+			<div class="article-header">
+				<h3>보는 것이라는 뜻의 단어 활용이 헷갈리는 당신들을 위해</h3>
+			</div>
+			<!-- 작성자 정보 / 등록일 -->
+			<div class="article-personal row no-gutters my-2">
+				<div class="col-auto px-3">
+					<div th:replace="~{/incl/user_personacon::sm_test}"></div>
+				</div>
+				<div class="alias col pr-3 align-self-center">lazyhysong</div>
+				<div class="recommend-count col-auto px-3 align-self-center">
+					<i class="fa fa-heart fa-fw fa-lg"></i>12
+				</div>
+				<div class="date col-auto px-3 text-right align-self-center">2019-08-10</div>
+				<div class="etc btn-group col-auto align-self-center px-3">
+					<a class="dropdown-toggle" data-toggle="dropdown">
+						<i class="fa fa-ellipsis-v fa-lg"></i>
+					</a>
+					<ul class="dropdown-menu dropdown-menu-right px-3" role="menu">
+					    <li class="dropdown-item text-center"><a>수정</a></li>
+					    <li class="dropdown-item text-center"><a>삭제</a></li>
+					    <li class="dropdown-item text-center"><a href="#">신고</a></li>
+					</ul>
+				</div>
+			</div>
+			<!-- article 내용 -->
+			<div class="article-body article-default-font-style hint-active"><pre>
+				look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+				watch는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+				근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+				see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+				
+				look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+				watch는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+				근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+				see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+				
+				look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+				watch는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+				근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+				see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+				
+				look은 상태가 <font color="red">변하지 않는 것</font>에 주로 씁니다.<br><br>
+				watch는 무언가 움직어고 변화라는 걸 볼때 사용합니다. 주로 영화, 티비 등<br>
+				근데 영화는 집에서 볼 때 watch를 씁니다ㅎㅎ<br><br>
+				see는 영화를 집 밖(주로 영화관)에서 볼 때 주로 씁니다.
+				
+			</pre></div>
+			<!-- 추천 / 댓글 버튼 -->
+			<div class="article-button-section row no-gutters">
+				<div class="col"></div>
+				<div class="col-auto px-3">
+					<div class="recomment-button">
+						<div class="heart text-right">추천</div>
+					</div>
+				</div>
+				<div class="col px-3 text-right align-self-center">
+					<button class="openCommentList btn btn-sm btn-playsquare" type="button">
+						<i class="fa fa-comment-dots fa-fw"></i>
+						댓글 <span class="badge badge-secondary badge-pill">13</span>
+					</button>
+				</div>
+			</div>
+			<!-- 광고 -->
+			<div class="digest-ad-section">
+				<hr>
+				<img src="/images/app/dictationbook/dictationbook_ad.jpg" style="width: 100%;">
+				<hr>
+			</div>
+			
+			<!-- 댓글 -->
+			<div class="commentListDiv comment-list-section" style="display: none;">
+				<div th:replace="~{/common/comment2::comment}"></div>
+				<div class="comment-title">
+					Hide Comments <i class="fa fa-caret-up fa-fw"></i>
+				</div>
+			</div>
+		</div>
+		
+		<div id="openArticle_1_div" class="articleView article-cover" style="display: none;">
+			<div class="article-header">
+				<h3>see vs look vs watch</h3>
+			</div>
+			<div class="article-body">
+			
+			</div>
+		</div>
+		<div id="openArticle_2_div" class="articleView article-cover" style="display: none;">
+			<div class="article-header">
+				<h3>'영화 보자'를 표현할 때 watch를 쓸까요 see를 쓸까요?</h3>
+			</div>
+			<div class="article-body">
+			
+			</div>
+		</div>
+		
+		<!-- [2.2 아티클 등록] -->
+		<div id="openAddArticle_div" class="articleView" style="display: none;">
+			
+			<div class="introduction-section digest">
+				<h3 class="mt-0">Adding New Article Form</h3>
+				<div class="sub row no-gutters">
+					<div class="col-md-auto">Please fill the text in the field.</div>
+				</div>
+			</div>
+			
+			<form >
+			<div id="digestFormDiv" class="digest-form-div">
+				
+				<!--/*응답메세지 박스*/-->
+				<div id="resMsgs" class="respond-msg" style="display: none;">
+					<h4>Respond Messages</h4>
+					<ul th:each="msg:${resMsgs}">
+						<li th:text="${msg}"></li>
+					</ul>
+					<div id="scriptMsgs"></div>
+				</div>
+				
+				<!--/*부제 */-->
+				<div class="form-group row">
+					<label for="title" class="col-md-1 control-label pl-md-0">부제</label>
+					<div class="col-md-11">
+						<input type="text" placeholder="부제를 입력해 주세요 (선택)" class="form-control"/>
+					</div>
+				</div>
+				
+				<!--/*내용 */-->
+				<div class="form-group row">
+					<label for="content" class="col-md-1 control-label pl-md-0">내용</label>
+					<div class="col-md-11">
+						<div id="summernote"></div>
+						<script>
+						$('#summernote').summernote({
+							placeholder: 'Please fill the text in the field.',
+							tabsize: 2,
+							height: 400
+						});
+						</script>
+					</div>
+				</div>
+				
+				<!--/*작성자 */-->
+				<div class="form-group row">
+					<label for="writer" class="col-md-1 col-auto control-label pl-md-0">작성자</label>
+					<div class="form-alias col-md-11 col">
+						<span>작성자 별명</span>
+						<!--/* <input type="hidden" name="personacon.alias" th:value="${session.userContainer.personacon.alias}" class="form-control"/>
+						<input type="hidden" name="personacon.pid"  th:value="${session.userContainer.personacon.pid}" class="form-control"/> */-->
+					</div>
+				</div>
+				
+				<!--/*submit 컨트롤 박스*/-->
+				<div class="form-group row">
+					<div class="add-button-section col-md-11 ml-auto text-md-left text-center">
+						<button id="save" type="button" class="btn btn-digest2 mr-3">등 록</button>
+						<button type="reset" class="btn btn-playsquare2">취 소</button>
+						<!--/* <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/> */-->
+					</div>
+				</div>
+				
+			</div>
+			</form>
+			
+			<div class="errorMsgs" style="display: none;">
+				<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre></pre>
+			</div>
+		</div><!-- end of openAddArticle_div -->
+		
+	</div><!-- end of viewArticleDiv -->
+		
+</div><!-- end of digestWindowBodySection -->
+
+<footer th:insert="~{/incl/footer2::footer}"></footer>
+</section>
+
+</html>

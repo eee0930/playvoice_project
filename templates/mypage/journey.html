@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/mypage_layout}">
+
+<head>
+<title>My Journey - 플레이보이스(playvoice)</title>
+  
+<link rel="stylesheet" th:href="@{/css/app/mypage.css}">
+<script th:src="@{/js/app/mypage.js}"></script>
+<script th:inline="javascript">
+$(document).ready(function() {
+	if ('scrollRestoration' in history) {
+	    // Back off, browser, I got this...
+	    history.scrollRestoration = 'manual';
+	}
+	$("html").animate({
+		scrollTop: $("section").offset().top
+	});
+	// [오늘날짜로 스크롤 이동]---------------------------------------------------------
+	var todayStudy = $(".date-box.today").offset();
+	if(todayStudy !== undefined){
+		$(".slideDateSection").scrollLeft(todayStudy.left - $(".slideDateSection").offset().left);
+	}
+	
+	// [마우스 슬라이드]-------------------------------------------------------------
+	const slider = document.querySelector(".slideDateSection");
+	let isDown = false;
+	let startX;
+	let scrollLeft;
+	
+	slider.addEventListener('mousedown', (e) => {
+		isDown = true;
+		startX = e.pageX - slider.offsetLeft;
+		scrollLeft = slider.scrollLeft;
+	});
+	slider.addEventListener('mouseleave', () => {
+		isDown = false;
+	});
+	slider.addEventListener('mouseup', () => {
+		isDown = false;
+	});
+	slider.addEventListener('mousemove', (e) => {
+		if(!isDown) return;
+		e.preventDefault();
+		const x = e.pageX - slider.offsetLeft;
+		const walk = (x - startX) * 3; //scroll-fast
+		slider.scrollLeft = scrollLeft - walk;
+	});
+	
+	// [달력 전체 보기 (mobile ver.)]------------------------------------------------
+	$("#openCalendarMobileBtn").click(function(){
+		if($(".slideDateSection").hasClass("open")) {
+			// 요일 구조 채우기용 div 숨김
+			$('.slideDateSection .openStudyDetail:not(:has(.date-cover))').hide();
+			$(".slideDateSection").removeClass("open");
+			$(this).find(".openIcon").show();
+			$(this).find(".closeIcon").hide();
+		} else {
+			// 요일 구조 채우기용 div 표시
+			$('.slideDateSection .openStudyDetail:not(:has(.date-cover))').show();
+			$(".slideDateSection").addClass("open");
+			$(this).find(".openIcon").hide();
+			$(this).find(".closeIcon").show();
+		}
+	});
+	
+	// [학습 내역 보기 (mobile ver.)]------------------------------------------------
+	$(document).on('click',".openStudyDetail",function(){
+		// 클릭한 칸의 날짜 표시
+		var year = $('.year-section .now-year').text(),
+			month = $('.month-section').attr('data-month').zf(2),
+			date = $(this).find('.date-name span').text().zf(2);
+		$('#studyDetailMobile .date-section').text(year + '-' + month + '-' + date);
+		
+		// 학습 내역을 앱별로 묶어서 표시
+		$('#studyDetailMobile .study-detail-list-section').empty();
+		$(this).find('.app-cover').each(function(i, element) {
+			//------------------------------------------------------------------
+			fillModalWithContent($(element).attr('data-title'), 
+								$(element).find('.study-list').children());
+			//------------------------------------------------------------------
+		})
+		// 모바일용 학습내역 표시
+		if($(window).width() < 768){
+			$("#studyDetailMobile").slideDown(100, function(){
+				if($('#studyDetailMobile .study-detail-list-section>*').length > 0){
+					$("html").animate({
+						scrollTop: $("#studyDetailMobile").offset().top
+					});
+				}
+			});
+		}
+	});
+	
+	// [페이지(월, 화살표) 클릭 시 해당하는 달의 달력을 표시]-----------------------------------
+	$(document).on('click', '.jumpCalendar', function(){
+		var dateNum = $(this).attr('data-param');
+		//-------------------------
+		getJourneyInMonth(dateNum);
+		//-------------------------
+	})
+	
+});//end of ready
+
+/* -----------------------------------------------------------------------------
+ * 							Handling Display Process
+ * ---------------------------------------------------------------------------*/
+
+/**
+ * 조회한 달의 1일부터 말일까지 학습내역을 달력에 표시
+ */
+function displayCalendar(monthlyStudies){
+	if(monthlyStudies.length > 0){
+		const monthNames = ['Jan.','Feb.','Mar.','Apr.','May.','Jun.','Jul.','Aug.','Sep.','Oct.','Nov.','Dec.'];
+		const weekNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+		
+		const sampleDate = parseDateString((Object.keys(monthlyStudies)[0]));
+		// 이 달의 첫째요일(0:일요일,1:월요일...)
+		const firstDay = (new Date(sampleDate.getFullYear(), sampleDate.getMonth())).getDay();
+		// 이 달의 날짜 수
+		const totalDays = daysInMonth(sampleDate.getYear(), sampleDate.getMonth());
+		// 오늘 날짜 
+		const today = new Date();
+		// 년도,월을 일렬로 나열한 숫자. 예)2020년 4월 -> 20200400
+		const keyBasis = sampleDate.getFullYear() * 10000 
+						+ sampleDate.getMonth() * 100 + 100;
+		// 달력 년도 적용
+		$('#journeyCalendarSection .now-year').text(sampleDate.getFullYear());
+		// 달력 월 적용
+		$('#journeyCalendarSection .month-section').attr('data-month', sampleDate.getMonth() + 1);
+		$('#journeyCalendarSection .now-month').text(monthNames[sampleDate.getMonth()]);
+		// 달력 내용 초기화
+		$('#journeyCalendarSection .slideDateSection .openStudyDetail').remove();
+		for(let d = 1 - firstDay; d <= totalDays; d++){
+			var $dayCover = $('#divsForCopy .openStudyDetail').clone();
+			if(d < 1){
+				// 한 달의 첫날 전 부분(빈 부분)
+				$dayCover.empty().css('visibility','hidden');
+				if($(".slideDateSection").is(':not(.open)')){
+					$dayCover.hide();
+				}
+			}else{
+				// 유효 날짜 부분 날짜 표시
+				$dayCover.find('.date-name span').text(d);
+				// 오늘 날짜엔 효과 추가
+				if(today.getYear() == sampleDate.getYear()
+					&& today.getMonth() == sampleDate.getMonth()
+					&& today.getDate() == d){
+					$dayCover.addClass('today');
+				}
+				
+				// 요일 표시
+				var weekdayIndex = (d + firstDay - 1) % 7;
+				var $week = $dayCover.find('.week-name').text(weekNames[weekdayIndex]);
+				$week.filter(':not(.date-cover .week-name)').text(weekNames[weekdayIndex].substring(0,1));
+				if(weekdayIndex == 0){			// 일요일 표시
+					$week.addClass('weekend-sun');
+				}else if(weekdayIndex == 6){	// 토요일 표시
+					$week.addClass('weekend-sat');
+				}
+				
+				// 날짜별 학습내역 확인
+				var dateKey = (keyBasis + d).toString()
+				if(Object.keys(monthlyStudies).includes(dateKey)
+						&& monthlyStudies[dateKey] != null){
+					
+					// 날짜별 학습내역 리소스를 앱별로 표시
+					var myAppResources = monthlyStudies[dateKey].myAppResources;
+					for(var key of Object.keys(myAppResources)){
+						var $appCover = $('#divsForCopy .app-cover').clone();
+						// 앱 아이콘, 이름 표시
+						$appCover.addClass(key).attr('data-title', key);
+						$appCover.find('.app-title').html('<i class="fa fa-image"></i>' + key);
+						
+						// 해당 앱 학습내역 리소스 삽입
+						var $studyList = $appCover.find('.study-list');
+						var appResourceSet = myAppResources[key];
+						for(var appResource of appResourceSet){
+							var $study = $('#divsForCopy .study-remind').clone();
+							$study.find('a').attr('href', appResource.rscUri)
+											.text(appResource.rscTitle);
+							$studyList.append($study);
+						}
+						$dayCover.find('.date-study').append($appCover);
+					}
+				}else{
+					// 학습내역이 없는 날짜는 학습 내역 div 삭제
+					$dayCover.find('.date-study').remove();
+				}
+				// 달력의 날짜 위치에 셀 표시
+			}
+			// 모바일용 달력 펼치기 버튼 위로 날짜 끼워넣기
+			$('#journeyCalendarSection .slideDateSection').append($dayCover);
+		}
+		
+		// Pagination ------------------------
+		displayCalendarPagination(sampleDate);
+		//------------------------------------
+		
+	}
+}
+/**
+ * 조회한 달을 기준으로 페이지 번호 처리
+ */
+function displayCalendarPagination(sampleDate){
+	const regDate = parseDateString($('.calendarPagination').attr('data-regdate'));
+	const regYear = regDate.getFullYear();
+	const regMonth = regDate.getMonth() + 1;
+	const nowYear = new Date().getFullYear();
+	const nowMonth = new Date().getMonth() + 1;
+	const viewYear = sampleDate.getFullYear();
+	const viewMonth = sampleDate.getMonth() + 1;
+	
+	// 년도 목록 세팅
+	var $yearList = $('#journeyCalendarSection .yearList').empty();
+	for(var i = regYear; i <= nowYear; i++){
+		if(i < viewYear){		// 현재 달력보 이전 년도
+			$yearList.append('<a class="jumpCalendar dropdown-item"'
+							+ ' data-param="' + i.toString()
+							+ '1201">' + i.toString() + '</a>');
+		}else if(i > viewYear){	// 현재 달력 년도 
+			$yearList.append('<a class="jumpCalendar dropdown-item"'
+					+ ' data-param="' + i.toString()
+					+ '0101">' + i.toString() + '</a>');
+		}else{					// 현재 달력 이후 년도
+			$yearList.append('<a class="dropdown-item">' + i.toString() + '</a>');
+		}
+	}
+	
+	// 하단 페이지 번호
+	// 1. 이전 년도
+	if(regYear < viewYear){
+		$('.calendarPagination .prevPage .jumpCalendar')
+						.attr('data-param', (viewYear - 1).toString() + '1201');
+		$('.calendarPagination .prevPage').css('visibility','visible');
+	}else{
+		$('.calendarPagination .prevPage').css('visibility','hidden');
+	}
+	// 2. 해당 년도
+	// 2.1. 이전 달 화살표
+	if(viewYear > regYear || viewMonth > regMonth){
+		const prevMonth = [viewMonth == 1 ? (viewYear - 1).zf(4) : viewYear.zf(4),
+						  viewMonth == 1 ? '12' : (viewMonth - 1).zf(2), '01'].join('');
+		$('.prevMonth-xs').attr('data-param', prevMonth)
+						  .css('visibility','visible');
+	}else{
+		$('.prevMonth-xs').css('visibility','hidden');
+	}
+	// 2.2. 다음 달 화살표
+	if(viewYear < nowYear || viewMonth < nowMonth){
+		const nextMonth = [viewMonth == 12 ? (viewYear + 1).zf(4) : viewYear.zf(4),
+				  		   viewMonth == 12 ? '01' : (viewMonth + 1).zf(2), '01'].join('');
+		$('.nextMonth-xs').attr('data-param', nextMonth)
+						  .css('visibility','visible');
+	}else{
+		$('.nextMonth-xs').css('visibility','hidden');
+	}
+	
+	// 2.3. 하단 번호
+	$('.calendarPagination ul').empty();
+	const firstMonth = (viewYear > regYear) ? 1 : regMonth;
+	const lastMonth = (nowYear > viewYear) ? 12 : nowMonth;
+	for(var m = firstMonth; m <= lastMonth; m++){
+		$li = $('<li class="page-item"></li>');
+		if(m == viewMonth){
+			$li.addClass('active');
+		}
+		$li.append('<a class="jumpCalendar page-link" data-param="'
+					+ [viewYear.zf(4), m.zf(2), '01'].join('') + '">' + m + '</a>');
+		$('.calendarPagination ul').append($li);
+	}
+	// 3. 다음 년도
+	if(nowYear > viewYear){
+		$('.calendarPagination .nextPage .jumpCalendar')
+						.attr('data-param', (viewYear + 1).toString() + '0101');
+		$('.calendarPagination .nextPage').css('visibility','visible');
+	}else{
+		$('.calendarPagination .nextPage').css('visibility','hidden');
+	}
+}
+
+/**
+ * 클릭한 날짜의 내용을 모바일용 학습내역 상세보기 에 표시
+ */
+function fillModalWithContent(app, $remindList){
+	var $contentListSection = $('#studyDetailMobile .study-detail-list-section');
+	// 앱이름 표시
+	var $contentsCard = $('#divsForCopy .study-detail-list').clone();
+	$contentsCard.addClass(app);
+	$contentsCard.find('.appTitle').text(app);
+	$contentsCard.find('.count').text('study ' + $remindList.length + ' contents');
+	// 학습내역 표시
+	$contentsCard.find('.study-list').empty().append($remindList.clone());
+	$contentListSection.append($contentsCard);
+}
+
+/**
+ * yyyyMMdd 형태의 문자열을 Date 객체로 반환
+ */
+function parseDateString(str) {
+	var date = str.substring(6);
+	var month = str.substring(4, 6);
+	var year = str.slice(0, -4)
+	return new Date([year,month,date].join('-'));
+}
+
+/**
+ * 한 달에 몇 일이 있는지 반환
+ * 입력: 년도, 월(0,1,2...)
+ */
+function daysInMonth(year, month) {
+	return 32 - new Date(year, month, 32).getDate();
+}
+
+</script>
+</head>
+
+<section layout:fragment="content" class="normal">
+<div th:insert="~{/mypage/incl/mypage_top_menu::menuJourney}"></div>
+<div class="profile-top-cover mt-4">
+	<h3>
+		My Journey Info
+		<i class="fa fa-plane"></i>
+	</h3>
+	<div class="sub-title"><span class="kor">
+		<i class="fa fa-quote-left relative-font"></i>
+		여정을 되짚어 보는 자에겐 더 풍부한 여정이 기다리고 있다.
+		<i class="fa fa-quote-right relative-font"></i>
+	</span></div>
+</div>
+
+<!-- profile top contents -->
+<div class="profile-top-content row no-gutters">
+	<div class="title-icon col-auto text-center">
+		<i class="fa fa-map-marker-alt fa-lg fa-fw"></i>
+	</div>
+	<div class="title-body col align-self-center">
+		<span class="title">Since</span>
+		<span class="body">[[${#dates.format(session.userContainer.member.regDate, 'yyyy-MM-dd')}]]</span>
+		<span class="title">([[${#dateUtil.elapsedDays(session.userContainer.member.regDate)}]] days)</span><br class="d-sm-none">
+	</div>
+</div>
+<div class="d-md-none">
+	<div class="box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto pr-3">
+			<label><i class="fa fa-map-marker-alt"></i></label>
+		</div>
+		<div class="detail col">
+			<div class="guide-cover">Since</div>
+			<div>
+				<span class="num">[[${#dates.format(session.userContainer.member.regDate, 'yyyy-MM-dd')}]]</span>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<!-- ----------------------------[1. 학습 달력]-------------------------------- -->
+<div id="journeyCalendarSection" class="journey-calendar-section"
+	th:with="sampleDate = ${(studyHistory!=NULL AND studyHistory.size() > 0)? #dateUtil.parseDate(studyHistory.keySet()[0],'yyyyMMdd')
+											: #dates.createToday()},
+			firstDay = ${#dates.dayOfWeek(#dates.create(#dates.year(sampleDate),
+											#dates.month(sampleDate), 1))},
+			totalDays = 32 - ${#dates.day(#dates.create(#dates.year(sampleDate),
+											#dates.month(sampleDate), 32))},
+			regDate = ${session.userContainer?.member?.regDate},
+			firstMonth = ${#dates.year(regDate) EQ #dates.year(sampleDate)}
+						? ${regDate.month + 1} : 1,
+			monthNames = ${#strings.arraySplit('Jan.,Feb.,Mar.,Apr.,May.,Jun.,Jul.,Aug.,Sep.,Oct.,Nov.,Dec.',',')},
+			weekNames = ${#strings.arraySplit('sunday,monday,tuesday,wednesday,thursday,friday,saturday',',')}">
+	<div class="calendar-book-cover">
+		<!-- [1.1 년도 달] -->
+		<div class="month-year-section row no-gutters">
+			<!-- month 이동 -->
+			<div class="col-auto">
+				<button class="prevMonth-xs jumpCalendar month-button button-left"
+					th:styleappend="${regDate.year EQ sampleDate.year AND regDate.month EQ sampleDate.month
+						OR !#strings.contains('GP', session.userContainer.personacon?.memberType)}?'visibility:hidden;':''"
+						th:data-param="${#dates.format(#dates.create(sampleDate.month EQ 0 ? #dates.year(sampleDate) :
+									#dates.year(sampleDate),sampleDate.month EQ 0 ? 11 : sampleDate.month,1),'yyyyMMdd')}">
+					<i class="fa fa-angle-left"></i>
+				</button>
+				<button class="nextMonth-xs jumpCalendar month-button button-right"
+					style="visibility: hidden;">
+					<i class="fa fa-angle-right"></i>
+				</button>
+			</div>
+			<!-- 현재 month -->
+			<div class="now-month month-section col" 
+				th:data-month="${sampleDate.month + 1}"
+				th:text="${monthNames[sampleDate.month]}"></div>
+			<!-- year 이동 -->
+			<div class="year-section dropdown text-right col-auto align-self-center">
+				<button class="year-select" type="button" data-toggle="dropdown">
+					<!-- 현재 달력 년도 -->
+				    <span class="now-year" th:text="${#dates.year(sampleDate)}"></span>&nbsp;<i class="fa fa-angle-down"></i>
+				</button>
+				<div class="yearList dropdown-menu dropdown-menu-right">
+					<a th:unless="${#strings.contains('GP', session.userContainer.personacon?.memberType)}"
+						class="dropdown-item" th:text="${sampleDate.year + 1900}"></a>
+					<th:block th:if="${#strings.contains('GP', session.userContainer.personacon?.memberType)}" 
+						th:each="listYear : ${#numbers.sequence(regDate.year + 1900, sampleDate.year + 1900)}">
+						<!--/* 현재 달력 이전 년도 */-->
+						<a th:if="${listYear < #dates.year(sampleDate)}"
+							class="jumpCalendar dropdown-item"
+							th:data-param="${#dates.format(#dates.create(
+										listYear,12,1),'yyyyMMdd')}"
+							th:text="${listYear}"></a>
+						<!--/* 현재 달력 년도 */-->
+						<a th:if="${listYear EQ #dates.year(sampleDate)}"
+							class="dropdown-item"
+							th:text="${listYear}"></a>
+						<!--/* 현재 달력 이후 년도 */-->
+						<a th:if="${listYear > #dates.year(sampleDate)}"
+							class="jumpCalendar dropdown-item"
+							th:text="${listYear}"></a>
+					</th:block>
+				</div>
+			</div>
+		</div>
+		<!-- [1.2 앱 라벨] -->
+		<div class="app-label-section">
+			<label><i class="fa fa-image"></i>Pictionary</label>
+			<label><i class="fa fa-headphones"></i>PlayvoiceBook</label>
+			<label><i class="fa fa-assistive-listening-systems"></i>DictationBook</label>
+			<label class="community"><i class="fa fa-book"></i>Digest</label>
+			<label class="community"><i class="fa fa-atlas"></i>GrammarBook</label>
+			<label class="community"><i class="fa fa-cocktail"></i>SmallTalk</label>
+		</div>
+
+		<!-- [1.3 학습 날짜] -->
+		<div class="study-date-section"><div class="slideDateSection study-date-cover">
+			<div th:each="date,calOrder : ${#numbers.sequence(-firstDay + 2, totalDays)}"
+				th:with="dateStr = ${#dates.format(sampleDate,'yyyyMM')
+									 + #numbers.formatInteger(date,2)}"
+				th:styleappend="${date < 1}?'display:none;visibility:hidden':''"
+				class="openStudyDetail date-box"
+			 	th:classappend="${dateStr EQ #dates.format(#dates.createNow(),'yyyyMMdd')}?'today':''">
+				<th:block th:if="${date > 0}">
+				<!-- 요일 표시(Mobile) -->
+				<div class="week-name d-md-none" 
+					th:classappend="${(calOrder.index MOD 7) EQ 0}?'weekend-sun'
+								:(${(calOrder.index MOD 7) EQ 6}?'weekend-sat':'')"
+					th:text="${#strings.substring(weekNames[calOrder.index MOD 7],0,1)}">s</div>
+				<div class="date-box-back">
+					<div class="date-cover">
+						<!-- 날짜 표시 -->
+						<div class="date-name"><span th:text="${date}"></span>
+							<i class="today-icon fa fa-check-circle" title="today"></i>
+						</div>
+						<!-- 요일 표시(PC) -->
+						<div class="week-name d-none d-md-block" 
+							th:classappend="${(calOrder.index MOD 7) EQ 0}?'weekend-sun'
+								:(${(calOrder.index MOD 7) EQ 6}?'weekend-sat':'')"
+							th:text="${weekNames[calOrder.index MOD 7]}">sunday</div>
+					</div>
+					<!-- 해당 날짜의 학습 내역 -->
+					<div class="date-study" th:if="${studyHistory?.get(dateStr)}">
+						<!-- 학습 내역을 앱별로 표시 -->
+						<div th:each="appResources:${studyHistory.get(dateStr).myAppResources}" 
+							class="app-cover" th:classappend="${appResources.key}"
+							th:data-title="${appResources.key}">
+							<div class="app-title">
+								<i class="fa fa-image"></i>[[${appResources.key}]]
+							</div>
+							<div class="study-list">
+								<!-- 한 앱 당 학습 내역 표시 -->
+								<div th:each="appResource:${appResources.value}" 
+									class="study-remind">
+									<a th:href="@{${appResource.rscUri}}"
+										th:text="${appResource.rscTitle}"></a>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			 	</th:block>
+			</div></div>
+			<div class="open-calendar-btn-section d-md-none">
+				<button id="openCalendarMobileBtn">
+					<i class="openIcon fa fa-angle-double-down"></i>
+					<i class="closeIcon fa fa-angle-double-up" style="display: none;"></i>
+				</button>
+			</div>
+		</div>
+	</div>
+
+	<!-- pagination -->
+	<div class="d-none d-md-block"><div class="calendarPagination diary-page-list row no-gutters my-3"
+		th:data-regdate="${#dates.format(regDate,'yyyyMMdd')}">
+		<!-- prev year -->
+		<div th:styleappend="${sampleDate.year EQ regDate.year
+			OR !#strings.contains('GP', session.userContainer.personacon?.memberType)}?'visibility:hidden;':''"
+			class="prevPage col-md-3 col-1 text-md-center text-left align-self-center">
+			<a class="jumpCalendar btn btn-outline-mypage btn-sm"
+				th:data-param="${#dates.format(#dates.create(
+								#dates.year(sampleDate)-1,12,1),'yyyyMMdd')}">
+				<i class="fa fa-angle-left"></i>
+			</a>
+		</div>
+		<!-- months of the year -->
+		<div class="col-md-6 col-10 text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li th:each="month:${#numbers.sequence(firstMonth, sampleDate.month + 1)}"
+					class="page-item" 
+					th:if="${sampleDate.month + 1 EQ month 
+					OR #strings.contains('GP', session.userContainer.personacon?.memberType)}"
+					th:classappend="${sampleDate.month + 1 EQ month}?'active':''">
+					<a class="jumpCalendar page-link" th:text="${month}"
+						th:data-param="${#dates.format(#dates.create(
+							#dates.year(sampleDate),month,1),'yyyyMMdd')}">1</a>
+				</li>
+			</ul>
+		</div>
+		<!-- next year -->
+		<div class="nextPage col-md-3 col-1 text-md-center text-right align-self-center"
+			style="visibility: hidden;">
+			<a class="jumpCalendar btn btn-outline-mypage btn-sm">
+				<i class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div></div>
+</div><!-- end of journeyCalendarSection -->
+
+
+
+
+<!-- ------------------------[2. 학습 내역 mobile ver.]------------------------- -->
+<div class="d-md-none">
+<div id="studyDetailMobile" class="study-detail-section-mobile" style="display: none;">
+	<div class="date-section">
+		2020-04-21 (클릭한 날짜)
+	</div>
+	<div class="study-detail-list-section">
+		<div class="study-detail-list box-list-mobile box-main row no-gutters Pictionary">
+			<div class="icon-section col-auto">
+				<label><i></i></label>
+			</div>
+			<div class="app-title col align-self-center">
+				<div class="appTitle">Pictionary</div>
+				<div class="count">study 3 contents</div>
+			</div>
+			<div class="study-list guide col-12">
+				<div class="study-remind">Level 3 Stage 12 - I like you.</div>
+				<div class="study-remind">Level 3 Stage 14 - I hate you.</div>
+				<div class="study-remind">Level 3 Stage 14 - I hate you.</div>
+			</div>
+		</div>
+	</div>
+</div>
+</div>
+<!-- 동적 표시용 div -->
+<div id="divsForCopy" hidden="true">
+	<!-- 달력의 한 칸 -->
+	<div class="openStudyDetail date-box">
+		<!-- 요일 표시(Mobile) -->
+		<div class="week-name d-md-none">s</div>
+		<div class="date-box-back">
+			<div class="date-cover">
+				<!-- 날짜 표시 -->
+				<div class="date-name"><span>24</span>
+					<i class="today-icon fa fa-check-circle" title="today"></i>
+				</div>
+				<!-- 요일 표시(PC) -->
+				<div class="week-name d-none d-md-block">sunday</div>
+			</div>
+			<!-- 해당 날짜의 학습 내역 -->
+			<div class="date-study">
+			<!-- 학습 내역을 앱별로 표시 -->
+			</div>
+		</div>
+	</div>
+	
+	<!--/* 학습 내역을 앱별로 표시 */-->
+	<div class="app-cover" data-title="">
+		<div class="app-title">
+			<i class="fa fa-image"></i>PlayvoiceBook
+		</div>
+		<div class="study-list">
+		<!--/* 한 앱 당 학습 내역 표시 */-->
+		</div>
+	</div>
+	
+	<!--/* 한 앱 당 학습 내역 표시 */-->
+	<div class="study-remind">
+		<a href="">Level 3 Stage 14 - I hate you.</a>
+	</div>
+
+	<!-- 하나의 앱 학습내역(모바일 상세보기) -->
+	<div class="study-detail-list box-list-mobile box-main row no-gutters">
+		<div class="icon-section col-auto">
+			<label><i></i></label>
+		</div>
+		<div class="app-title col align-self-center">
+			<div class="appTitle">Pictionary</div>
+			<div class="count">study 3 contents</div>
+		</div>
+		<div class="study-list guide col-12">
+		</div>
+	</div>
+</div>
+</section>
+
+</html>

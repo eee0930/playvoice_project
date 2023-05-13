@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<head>
+	<title>List Boards</title>
+	
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	
+<script th:inline="javascript">
+	$(document).ready(function() {
+		//[초기 sortMark 디스플레이 설정]---------------------------------------------------
+		var defaultSortBy= $('#sortName').val();
+		var target = $('a[data-value='+defaultSortBy+']');
+		$('a[data-value='+defaultSortBy+']').next().css("display", "inline");
+		
+		//[next pagination 링크 전송]------------------------------------------------------
+		var formObj = $("#pageForm");
+		$(".pagination a").click(function(e) {
+			e.preventDefault();
+			formObj.find('[name="page"]').val($(this).attr('href'));
+			formObj.submit();
+		});
+		
+		//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]------------------------------------------------------
+		$("#articleListByDefault a[class=thlink]").click(function(e) {
+			console.log("#articleListByDefault a[class=thlink]");
+			
+			//단순조회에서는 searchType은 불필요하다.
+			$('#searchType2').val('all');
+			
+			console.log("#end of articleListByDefault");
+		});
+	});
+</script>
+</head>
+<section layout:fragment="content">
+	<h3>게시글 등록 (Add Article)</h3>
+	<div>
+		<!-- 2. Add Article Form -->
+		<div class="formContainer" id="addArticleFormContainer">
+			<h3>
+				Editing Articles Form <button type="button" class="btn btn-info btn-xs" style="display:none">
+				<span class="glyphicon glyphicon-ok"></span> Ok</button>
+				<span>Please fill the text in the field.</span>
+			</h3>
+			<div class="resMsgs" style="display:none;">
+				<h3>
+					Response Messages
+					<span>Your request was processed.</span>
+				</h3>
+				<pre>[[${resMsgs}]]</pre>
+			</div>
+			<form th:action="@{edit}" th:object="${article}" method="post" class="form-horizontal" id="addArticleForm">
+				<div id="articleDiv" class="row">
+					<div class="form-group">
+						<label for="title" class="col-xs-2 control-label headerLabel">Id</label>
+						<div class="col-xs-10">
+							<span class="form-control" style="border:1px dotted	#F0F8FF;">[[${article.aid}]]</span>
+							<!-- <input type="hidden" th:field="*{aid}" class="form-control"/> -->
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="title" class="col-xs-2 control-label headerLabel">타이틀</label>
+						<div class="col-xs-10">
+							<input type="text" th:field="*{title}"class="form-control"/>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="content" class="col-xs-2 control-label headerLabel">내용</label>
+						<div class="col-xs-10">
+							<textarea th:id="content" th:name="content" class="form-control">[[${article.content}]]</textarea>
+						</div>
+					</div>
+					<div class="form-group">
+						<label for="writer" class="col-xs-2 control-label headerLabel">작성자</label>
+						<div class="col-xs-10 ">
+							<input type="text" th:field="*{writer}" class="form-control"/>
+						</div>
+					</div>
+				</div>	
+				
+				<div class="row" id="submitDiv">
+					<div class="form-group">
+						<div class="col-xs-offset-2 col-xs-10">
+							<input type="button" id="updateArticleBtn" value="Edit" class="btn btn-default"/>
+							<input type="button" id="DeleteArticleBtn" value="Delete" class="btn btn-primary"/>
+						</div>
+					</div>
+				</div>
+			 </form>
+			 <div class="errorMsgs" style="display: none;">
+			 	<h3>
+					Error Messages
+					<span>Error Occured while processing the request.</span>
+				</h3>
+				<pre></pre>
+		 	</div>
+		</div><!-- end of formContainer -->
+	</div>
+	
+</section><!-- end of content -->

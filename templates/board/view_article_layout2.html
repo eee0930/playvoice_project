@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playboard_layout2}">
+
+<head>
+<title>View Article Layout</title>
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = ${article.title}, 
+	metaDescription = ${#stringUtil.removeTag(article.content)}, 
+	metaImage = '/images/app/board/index_board.jpg', 
+	metaRegDate = ${article.regDate},
+	schemaType = 'BlogPosting',
+	metaHeadline = ${article.title},
+	schemaAlias = '옴냥냥이힝'"></th:block>
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+	
+<style type="text/css">
+	.title-img-mark, .title-img-mark-last {
+	   margin-right:0 5px;
+	   margin-bottom: 10px;
+	   width: 20px;
+	}
+	.title-img-mark-last{
+	   transform: rotate(180deg);
+	}
+</style>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	// [댓글 페이지 가져오기]----------------------------------------------------------
+	var articleId = $('#articleId').val();
+	var next = '/reply/board/list/' + articleId;
+	$('#commentPage').load(next);
+	
+	// [댓글 텍스트폼 엔터처리]--------------------------------------------------------
+	$(document).on("change keyup keydown", ".controlComment", function(){
+		if($(this).val().length > 0){
+			$(this).closest(".comment-form").find(".releaseBtn").prop("disabled", false); 
+			$(this).height(0).height($(this).prop('scrollHeight')-6);
+		} else {
+			$(this).closest(".comment-form").find(".releaseBtn").prop("disabled", true);
+			$(this).css("height", "36px");
+		}
+	});
+	// [댓글 버튼 (비)활성화]------------------------------------------------------------
+	$(document).on("click", ".comment-textarea", function(){
+		$(this).closest(".comment-form").find(".comment_button_section").show();
+	});
+	// [댓글 취소, 등록버튼 비활성화]----------------------------------------------------
+	$(".cancelCommentBtn").click(function(){
+		$(this).closest(".comment-form").find(".comment-textarea").css("height", "36px");
+		$(this).closest(".comment_button_section").hide();
+		$(this).siblings(".addCommentBtn").prop("disabled", true);
+	});
+	// [대댓글 폼 닫기]--------------------------------------------------------------
+	$(document).on("click", ".cancelCommentBtn2", function(){
+		$(this).closest(".re-form").hide();
+		$(this).closest(".comment-form").find(".re-comment-copy").remove();
+	});
+	
+	
+	// [게시글 좋아요 처리]-----------------------------------------------------------
+	$('#likeCountBtn').click(function(e) {
+		var articleId = $('#articleId').val();
+		var mid = $('#yourId').val();
+		var likeCount=$('#likeCount').text();
+		
+		var obj = {
+			contentId : articleId,
+			memberId : mid,
+			likeCount : likeCount
+			//csrf:csrf
+		}
+		handleLike(obj);
+	});
+	
+	// [삭제 처리]-----------------------------------------------------------------
+	$('#deleteArticleBtn').click(function(e) {
+		e.preventDefault();
+		if(confirm("삭제할까요?")){
+			var boardAlias = /*[[${board.alias}]]*/'free';
+			
+			if(boardAlias == null){
+				var pathname = window.location.pathname;	//pathname=/board/notice/list
+				var index = pathname.indexOf('/board/')+7;
+				var lastIndex = pathname.lastIndexOf('/');
+				boardAlias = pathname.substring(index, lastIndex);
+			}
+			
+			var articleId = /*[[${article.aid}]]*/0;
+			var obj = {
+				boardAlias:boardAlias, 
+				articleId:articleId
+				//csrf:csrf
+			};
+			
+			$.ajax({
+				type:'post',
+				url: '/article/del/'+ obj.articleId,
+				data:JSON.stringify(obj), 
+				dataType: 'text',
+				/* beforeSend : function(xhr){
+					xhr.setRequestHeader(obj.csrf.headerName, obj.csrf.token);
+				}, */
+				contentType: "application/json",
+				success:function(){
+					alert("해당 게시글이 삭제되었습니다.");
+					location.href='/board/'+boardAlias+'/list';
+				},
+				error: function(e){
+					alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+					console.log("ERROR : ", e);
+				}
+			});
+		}
+	});
+	
+	
+	// [수정 처리]-----------------------------------------------------------------
+	$('#editArticleBtn').click(function(e) {
+		e.preventDefault();
+		
+		var boardAlias = /*[[${board.alias}]]*/ 'free';
+		var articleId = /*[[${article.aid}]]*/0;
+		
+		if(boardAlias == null){
+			var pathname = window.location.pathname;	//pathname=/board/notice/list
+			var index = pathname.indexOf('/board/')+7;
+			var lastIndex = pathname.lastIndexOf('/');
+			boardAlias = pathname.substring(index, lastIndex);
+		}
+		location.href='/board/'+boardAlias+'/edit/'+articleId;
+		
+	});
+	
+	
+	
+	// [신고처리]-----------------------------------------------------------------
+	$('#reportBtn').click(function(e) {
+		
+	});
+	
+}); /* end of ready */
+
+
+
+
+/*
+ * 게시글에 대한 '좋아요'처리
+ */
+function handleLike(obj){
+	alert(JSON.stringify(obj));
+	$.ajax({
+		type:'post',
+		url: '/article/like/'+ obj.contentId,	//articleId
+		data:JSON.stringify(obj), 
+		dataType:'json',
+		
+		contentType: "application/json",
+		success: function(result){
+			var count = result;
+			if(count == -1){
+				alert("이미 처리 되었습니다.");
+				$('#likeCountBtn').prop("disabled", true);
+				return;
+			}
+			$('#likeCount').html(count);
+		},
+		error: function(e){
+			alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+			console.log("ERROR : ", e);
+			
+			return;
+		}
+	});
+}
+
+/*
+ * 댓글 및 대댓글에 대한 '좋아요'처리
+ */
+function handleCommentLike(obj, thisObj){
+	$.ajax({
+		type:'post',
+		url: '/reply/like/'+ obj.contentId,	//reply.rid
+		data:JSON.stringify(obj), 
+		dataType:'json',
+		
+		contentType: "application/json",
+		success: function(result){
+			var count = result;
+			if(count == -1){
+				alert("이미 처리 되었습니다.");
+				return;
+			}
+			thisObj.children('span').text(count);
+		},
+		error: function(e){
+			alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+			console.log("ERROR : ", e);
+			return;
+		}
+	});
+}
+
+
+/*
+ * 댓글 및 대댓글에 대한 '싫어요'처리
+ */
+function handleCommentDislike(obj, thisObj){
+	$.ajax({
+		type:'post',
+		url: '/reply/dislike/'+ obj.contentId,	//reply.rid
+		data:JSON.stringify(obj), 
+		dataType:'json',
+	
+		contentType: "application/json",
+		success: function(result){
+			var count = result;
+			if(count == -1){
+				alert("이미 처리 되었습니다.");
+				return;
+			}
+			thisObj.children('span').text(count);
+		},
+		error: function(e){
+			alert("처리중 에러가 발생하였습니다.\n"+JSON.stringify(e));
+			console.log("ERROR : ", e);
+			return;
+		}
+	});
+}
+
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 대댓글 입력 폼 생성
+ */
+function re_reply(index, parentId){
+	var alias = $("#alias" + index).text(); // 별명
+	$(".re-form").html(""); // 다른 대댓글 폼 지우기
+	$(".re-form").hide();
+	
+	var pasteArea = $("#re_comment_paste" + index); //붙여넣기 되는 영역
+	var input = $("#re_comment_copy").clone();
+	input.appendTo(pasteArea); //end copy
+	
+	
+	input.find(".hidden_parentId").attr("id", "parentId");
+	input.find(".hidden_parentId").val(parentId); 
+	input.find(".re-comment-area").attr("id", "comment2");
+	
+	input.find(".re-comment-copy").attr("id", "re_comment_copy" + index);
+	input.find(".re-comment-copy").hide();
+	input.find(".recomment-btn").attr("id", "addCommentBtn2");
+	input.find(".recomment-cancel").attr("onclick", "cancel_recomment(" + index + ")");
+	
+	$("#re_comment_paste" + index).hide(); // 해당 폼 열기
+	$("#comment" + index).focus();
+	input.find(".re-alias").text(alias); // 답글을 받는 사람 별명 보여주기
+}
+
+/* 대댓글 취소 */
+function cancel_recomment(a) {
+	$(".re-form").html(""); // 다른 대댓글 폼 지우기
+	$(".re-form").hide();
+}
+
+
+
+
+</script>
+</head>
+
+
+
+<section layout:fragment="content">
+
+<div class="d-none d-lg-block">
+<!--/* ------------------------------[광고]-------------------------------- */-->
+	<div align="center" style="margin: 20px 0px 30px 0px;">
+		<div class="AdSense-x">
+			<img th:src="@{/images/ad_2.jpg}" width="728px" height="90px">
+		</div>
+	</div>
+</div>
+
+
+
+<div id="detailBoardArticleSection">
+<!--/* ----------------------------[게시글 정보]------------------------------ */-->
+<h3 class="d-none d-lg-block">[[${board.korName}]]</h3>
+<div id="viewArticleFormContainer" class="formContainer">
+	<div class="text-center my-3" style="font-family: 'Trebuchet MS', '나눔바른고딕', '나눔명조'; 	font-size: 13pt; color:#00B4CF;">
+		<i class="fa fa-quote-left fa-lg mx-2"></i>
+		<span th:text="${article.title}">타이틀</span>([[${article.aid}]])
+		<i class="fa fa-quote-right fa-lg mx-2"></i>
+	</div>
+	<div id="articleDiv" style="font-family: NanumGothic; font-size: 10pt;">
+		<!-- ****************[PC ver.] -->
+		<div class="d-none d-lg-block"><div class="article-info row no-gutters py-2 ">
+			<h5 class="col-1 my-0 pl-2 pr-0 align-self-center">작성자 :</h5> 
+			<h6 th:with="personacon=${article.personacon}" 
+				class="col-auto my-0 align-self-center">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</h6>
+			<h6 class="col my-0 px-2 align-self-center">
+				<span class="personacon-alias" th:text="${article.personacon.alias}"></span>
+			</h6>
+			
+			<h5 class="col-1 my-0 pl-2 pr-0 align-self-center">등록일 :</h5> 
+			<h6 class="col-3 my-0 px-2 align-self-center">[[${#dates.format(article.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</h6>
+			
+			<h5 class="col-1 my-0 pl-2 pr-0 align-self-center">조회수 :</h5> 
+			<h6 class="col-1 my-0 px-2 align-self-center">[[${article.hits}]]</h6>
+			
+			<h5 class="col-1 my-0 px-2 align-self-center">
+				<button id="reportBtn" class="btn btn-xs btn-warning">신고</button>
+			</h5> 
+		</div></div>
+		<!-- ****************[Tablet & Mobile ver.] -->
+		<div class="article-info row no-gutters d-lg-none">
+			<div th:with="personacon=${article.personacon}" 
+				class="col-md-1 col-2 py-1 px-2">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</div>
+			<div class="col-md-10 col-9 py-1 px-0">
+				<div class="personacon-alias my-0 px-2">[[${article.personacon.alias}]]</div>
+				<div style="font-size: 11px; color: #999;">
+					<span class="my-0 px-2">[[${#dates.format(article.regDate, 'yyyy-MM-dd (E) HH:mm')}]]</span>
+					<span class="my-0 px-2">조회 [[${article.hits}]]</span>
+				</div>
+			</div>
+			<div class="col-md-1 col-1 text-left p-2 btn-group" style="font-size: 20px; color: #bdbdbd;">
+				<a class="dropdown-toggle" data-toggle="dropdown">
+					<i class="fa fa-ellipsis-v"></i>
+				</a>
+				<ul class="dropdown-menu dropdown-menu-right" role="menu">
+					<li class="dropdown-item text-center" id="editArticleBtn_xs" 
+						th:if="${(session.userContainer != null) && 
+						(article.personacon.pid == session.userContainer.personacon.pid)}">수정</li>
+					<li class="dropdown-item text-center" id="deleteArticleBtn_xs" 
+						th:if="${(session.userContainer != null) && 
+						(article.personacon.pid == session.userContainer.personacon.pid)}">삭제</li>
+					<li class="dropdown-item text-center">신고</li>
+				</ul>
+			</div>
+		</div>
+		
+		<!--/*첨부파일 */-->
+		<div th:if="${#lists.size(article.attachedFiles)>0}" class="text-right">
+			<a th:each="attachedFile : ${article.attachedFiles}" 
+				th:href="@{/download/board/{path}/{original}(path=${attachedFile.filePath}, original=${attachedFile.fileName})}"  >
+				<span lang="fa" class="fa fa-download" style="color: orange;"></span>
+				<span th:text="${attachedFile.fileName}"></span>
+			</a>
+		</div>
+		<!-- 아티클 내용 -->
+		<div class="py-4">
+			<div class="article-content" th:utext="${article.content}"></div>
+		</div>
+	</div><!-- end of articleDiv -->
+
+	<!--/* -----------------------[좋아요/삭제/편집 컨트롤 ]---------------------- */-->
+	<form id="modifyForm">
+		<div id="submitDiv"><div class="formGroup row mt-2">
+			<div class="col-md-4 d-none d-lg-inline"></div>
+			<div class="col-md-4 col-12 text-center">
+				<button type="button" class="btn btn-sm btn-default" id="likeCountBtn">
+					<font color="#D9544F">
+						<i class="like-button fa fa-heart" lang="fa" style="color: #d8d8d8;"></i>
+						LIKE <span id="likeCount" th:text="${article.likeCount}"></span>
+					</font>
+				</button>
+			</div>
+			
+			<div class="col-md-4 text-right d-none d-lg-inline" 
+				th:if="${(session.userContainer != null) && 
+				(article.personacon.pid == session.userContainer.personacon.pid)}">
+				<button id="editArticleBtn" class="btn btn-sm btn-primary">
+					<i lang="fa" class="fa fa-edit fa-fw"></i> Edit
+				</button>
+				<button id="deleteArticleBtn" class="btn btn-sm btn-danger">
+					<i lang="fa" class="fa fa-trash fa-fw"></i> Delete
+				</button>
+			</div>
+		</div></div>
+		<div>
+			<input type="hidden" id="articleId" th:value="${article.aid}"/>
+			<input type="hidden" id="personaconId" th:value="${article.personacon.pid}"/>
+			<input type="hidden" id="yourId" th:if="${session.userContainer}" 
+				th:value="${session.userContainer.personacon.pid}"/>
+		</div>
+	</form>
+</div>
+</div><!-- end of detailBoardArticleSection -->
+
+
+<!--/* ---------------------------[댓글 보기]-------------------------------- */-->
+<div id="boardCommentSection">
+<h3>Comments</h3>
+<div class="formContainer">
+<form id="replyForm" method="post">
+	<!-- ----------------------/* 1. 댓글 등록화면 영역 */------------------------- -->
+	<div th:if="${session.userContainer}" class="comment-form"><div class="row no-gutters">
+		<div class="col-md-auto d-none d-md-block py-2">
+			<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+		</div>
+		<div class="col-md col-12 pl-md-2 pt-1">
+			<!-- 폼 컴포넌트 영역 -->
+			<div id="articleDiv">
+				<textarea id="comment" placeholder="댓글을 입력해 주세요" 
+					class="comment-textarea controlComment" rows="1" ></textarea>
+			</div>
+			<!-- 폼 전송 영역 -->
+			<div id="submitDiv" class="row">
+				<div class="d-md-none col-auto">
+					<th:block th:replace="~{/incl/user_personacon::sm}"></th:block>
+				</div>
+				<div class="comment_button_section col-md-12 col text-right pl-2" style="display: none;">
+					<input id="cancelCommentBtn" type="reset" value="CANCEL" 
+						class="cancelCommentBtn btn btn-sm btn-light"/>
+					<input id="addCommentBtn" type="button" value="COMMENT" 
+						class="addCommentBtn releaseBtn btn btn-sm btn-main-submit" disabled="disabled"/>
+				</div>
+			</div>
+		</div>	
+	</div></div>	
+	<div th:unless="${session.userContainer}" class="comment-form">
+		<div class="loginRequired" style="padding-top: 5px;">
+			<textarea rows="1" placeholder="로그인 후 댓글을 이용할 수 있습니다." 
+				readonly="readonly"></textarea>
+		</div>
+	</div>
+	
+	<!-- 대댓글 등록폼(댓글 폼으로부터 복사) -->
+	<div id="re_comment_copy" class="re-comment-copy row no-gutters" style="display: none;">
+		<div class="col-md-auto col-2 pr-1 py-4">
+			<th:block th:replace="~{/incl/user_personacon::sm}"></th:block>
+		</div>
+		<div class="child-comment-content-div comment-form col-md col-10">
+			<!-- 폼 컴포넌트 영역 -->
+			<div>to. <span class="re-alias">수신인</span></div>
+			<div>
+				<textarea rows="1" class="recomment-textarea controlComment"></textarea>
+			</div>
+			<!-- 폼 전송 영역 -->
+			<div class="text-right pt-1">
+				<input type="reset" value="CANCEL" class="cancelCommentBtn2 btn btn-light btn-sm"/>
+				<input type="button" value="COMMENT" class="addCommentBtn2 releaseBtn recomment-btn btn btn-main3 btn-sm" 
+					onclick="handleReComment()" disabled="disabled"/>
+			</div>
+			<input type="hidden" class="hidden_parentId"/>
+		</div>
+	</div><!-- end of re_comment_copy -->
+
+	<!-----------------------------/* 2. 댓글 영역 */----------------------------->
+	<div id="commentPage" class="col-12 p-0"></div>
+</form>
+</div>
+</div><!-- end of boardCommentSection -->
+
+<div class="d-none d-lg-block">
+<!--/* ------------------------------[광고]-------------------------------- */-->
+	<div align="center" style="margin: 20px 0px 30px 0px;">
+		<div class="AdSense-x">
+			<img th:src="@{/images/ad_2.jpg}" width="728px" height="90px">
+		</div>
+	</div>
+</div>
+
+<div class="text-right" style="color:red;">
+	source :: view_article_layout.html	
+</div>
+</section><!-- end of content -->
+

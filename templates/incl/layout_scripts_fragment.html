@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="UTF-8">
+<!-- 사이트 전반적으로 사용하는 스크립트 설정. (브라우저 변경 권장, 로그인 제약) -->
+<script type="text/javascript" th:inline="javascript" th:fragment="basic_setting">
+$(document).ready(function() {
+	// [브라우저 변경 권장]-----------------------------------------------------------
+	if(navigator != null && navigator.userAgent.indexOf('Mobi') > -1
+		&& navigator.userAgent.indexOf('Android') > -1
+		&& navigator.userAgent.indexOf('KAKAOTALK') > -1){
+		var selectBrowser = confirm('확인을 누르면 카카오톡과 앱을 동시에 사용할 수 있도록 연결해 드립니다.');
+		if(selectBrowser) {
+			location.href = 'intent://' + location.host + location.pathname + location.search
+							+ '#Intent;scheme=https;end';
+			location.href='kakaotalk://inappbrowser/close';   
+		}
+	}
+})
+// [비로그인 사용자가 .loginRequired 버튼을 누를 경우 로그인 페이지로 이동]
+.on('click','.loginRequired',function(e){
+	
+	if($('#loginStatus').text() == 'true'){
+		return;
+	}else{
+		e.preventDefault();
+		location.href = "/auth/login?destPage=" + $(this).attr("href");
+	}
+});
+</script>
+
+<!-- Ajax 로딩 아이콘 설정, csrf 설정 -->
+<script type="text/javascript" th:inline="javascript" th:fragment="ajax_setting">
+$(document).ajaxSend(function(e, jqxhr, options) {
+	var ajaxloadTimer;
+	// [ajax 호출 시작]
+	ajaxloadTimer = setTimeout(function() {
+		$('#playvoiceNetworkLoading').show();
+	}, 2000);
+	
+	// [ajax 종료]
+	jqxhr.always(function(){
+		clearTimeout(ajaxloadTimer);
+		$('#playvoiceNetworkLoading').hide();		
+	}).catch(function(){
+		clearTimeout(ajaxloadTimer);
+		$('#playvoiceNetworkLoading').hide();		
+	});
+	
+	// [post ajax 전송 시 토큰 설정]
+	if (options.type == "POST") {
+		/*[# th:if="${#session}"]*/
+		var header = $('[name="_csrf_header"]').attr('content'),
+			token = $('[name="_csrf"]').attr('content');
+		jqxhr.setRequestHeader(header, token);
+		/*[/]*/
+	}
+});
+</script>
+
+<!-- 영어 문장(예문, 패턴 댓글) 입력 시 따옴표와 같은 기호들을 표준 기호로 변환 -->
+<script type="text/javascript" th:inline="javascript" th:fragment="quote_setting">
+// [Submit으로 전송 전, 텍스트 입력칸들의 내용중에서 특수유니코드 값을 ASCII 문자로 변환 ]
+// 써머노트 에디터에는 미적용
+$(document).on('blur', 'textarea:not(.note-codable),:text:not(.note-codable)', function(){
+	var inputText = $(this).val();      
+	$(this).val(replaceQuotes(inputText));
+})
+.on('focus', '[contenteditable]:not(.note-editable)', function(){
+	if(typeof quoteReplaceInDiv != 'function') {
+		const perserveCursorJs = document.createElement('script');
+		perserveCursorJs.type = 'text/javascript';
+		perserveCursorJs.src = '/js/app/preserve_cursor.js';
+		document.body.appendChild(perserveCursorJs);
+	}
+})
+// [div에서 특수유니코드 처리 후 입력 커서 원위치]
+.on('input', '[contenteditable]:not(.note-editable)', function(e){
+   //-------------------
+   quoteReplaceInDiv(e);
+   //-------------------
+});
+</script>
+
+</head>
+</html>

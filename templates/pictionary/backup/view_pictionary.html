@@ -1,0 +1,2242 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/pictionary_layout}">
+<head>
+<title>[[${pictionaryWordView.title}]] - pictionary</title>
+<link rel="stylesheet" th:href="@{/css/app/pictionary.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+<script th:src="@{/js/app/text.js}"></script>
+<script th:src="@{/js/app/basicchar-filter.js}"></script>
+<script th:src="@{/js/app/comment.js}"></script>
+<script th:src="@{/js/app/sessiontimer.js}"></script>
+<script th:src="@{/js/app/discontent_report.js}"></script>
+<script th:src="@{/js/app/pictionary.js}"></script>
+<script th:src="@{/js/app/playvoice_audio.js}"></script>
+<script th:inline="javascript" type="text/javascript">
+/*  
+				목차
+					1. 전역 변수 설정
+					2. jQuery 함수 실행 및 정의
+					3. 동작 관련 스크립트
+					4. 서버 처리 스크립트
+					5. 화면 처리 스크립트
+ */
+
+//<!--/* ---------- [ 1. 전역 변수 설정 ] ---------- */-->
+
+//<!--/* End of 전역 변수 설정 */-->
+
+//<!--/* ---------- [ 2. jQuery 함수 실행 및 정의 ] ---------- */-->
+	
+var wordTitle = /*[[${pictionaryWordView.title}]]*/null;
+var xrateGold = /*[[${xrateGold}]]*/false;
+$(document).ready(function(){
+	// [(모바일) 픽션 퍼스나콘 묶음 표시 처리]----------------------------------------------
+	$('#pictionListDiv .piction-cover-section').each(function(i,el){
+		//------------------------
+		arrangePersonacons($(el));
+		//------------------------
+	})
+	
+	
+	// [단어 뜻 파싱. meanings는 1차배열 [품사,뜻]이 한 쌍으로 이루어진 2차배열이다.]----------------
+	var meanings = JSON.parseEscape(/*[[${pictionaryWordView.meaningText}]]*/[]);
+	const partOrder = ['동사','자동사','타동사','명사','대명사','형용사','부사','전치사','접속사','감탄사'];
+	var $meaningsDiv = $("#wordDiv .meaning");
+	var $meaningsDivXs = $("#wordDiv .meaningXs");
+	// 단어 뜻 품사 순서 정렬
+	meanings.sort(function(a, b) {
+		return partOrder.indexOf(a[0]) - partOrder.indexOf(b[0]);
+	})
+	for(var i = 0; i < meanings.length; i++) {
+		var category = meanings[i][0];	//	품사
+		var meaning = meanings[i][1];	//	뜻
+		
+		var $categoryDiv = $("<div></div>").text(category);
+		var $meaningDiv = $("<div></div>").text(meaning);
+		$meaningsDiv.append($categoryDiv.clone().addClass("col-2"))
+					.append($meaningDiv.clone().addClass("col-10"));
+		$meaningsDivXs.append($categoryDiv.addClass("col-3"))
+					  .append($meaningDiv.addClass("col-9"));
+	}
+	
+	// [예문이 강조정보를 갖고 있는 경우 강조를 적용]-------------------------------------------
+	var tag = '<b></b>';	//	적용할 강조효과
+	var numberOfPictions = $("#pictionListDiv .piction-picture").length;
+	for(var i = 0; i < numberOfPictions; i++) {
+
+		//<!--/* 픽셔너리에 포함된 픽션 갯수만큼 수행 */-->
+		var numberOfSentences = $("#size_sentence" + i).val();
+		for(var j = 0; j < numberOfSentences; j++) {
+			
+			var text = $("#re_sentence" + i + j).val();	//	문자열 값
+			var emLocString = $("#emp_sentence" + i + j).val();	//	강조위치 정보
+			//<!--/* 픽션에 포함된 문장마다 문장 강조처리 적용 */-->
+			$("#en_sentence" + i + j).html(emphasizeText(text, emLocString, tag));
+		}
+	}
+	
+	// [픽셔너리 플러스 display 세팅]--------------------------------------------------
+	$("#displayPlusBtn").change(function(){
+		localStorage.setItem('PicPlus', $(this)[0].checked);
+		//----------------------
+		displayPictionaryPlus();
+		//----------------------
+	});
+	if($('.display-plus-button-section').length > 0){
+		$('.piction-cover.plus:eq(0)').before($('.display-plus-button-section'));
+		var plusChecked = localStorage.getItem('PicPlus');
+		if(plusChecked != null){
+			$('#displayPlusBtn').prop('checked', plusChecked == 'true')
+								.trigger('change');
+		}
+	}
+	
+	// [픽셔너리 센텐스 입력 시 영어 부분엔 영어만 입력되도록 검사]----------------------------------
+	$(document).on("input",".checkEng", function(){
+		var text = $(this).is("input")? $(this).val() : $(this).text();
+		if(text.length > 0 && isAllEng(text)){
+			//----------------------------
+			$(this).closest('.add-sentence,.piction-add-inview,.add-related-cover')
+				   .find("[class*='btn-pictionary']").prop("disabled", false);
+			$(this).siblings(".warning-msg-section").hide(100);
+		}else{
+			$(this).siblings(".warning-msg-section").show(100);
+			$(this).closest('.add-sentence,.piction-add-inview,.add-related-cover')
+				   .find("[class*='btn-pictionary']").prop("disabled", true);
+		}
+	});
+	
+	// [클립보드의 스타일 서식을 모두 지우고 순수 텍스트만 붙여넣기 한다.]-----------------------------
+	$(document).on("paste","div.checkEng", function(e){
+		e.preventDefault();//붙여넣기를 취소
+		var nod = document.createTextNode(e.originalEvent.clipboardData.getData('Text'));//클립보드 내용을 저장
+		window.getSelection().getRangeAt(0).deleteContents();//커서위치 내용을 지움.(블록지정했을 경우)
+		window.getSelection().getRangeAt(0).insertNode(nod);//클립보드 내용 붙여넣기
+		$(this).trigger("input");
+	})
+	
+	// [픽션 이미지 보이기 (Mobile. ver.)]---------------------------------------------
+	$(".activePictureXs").click(function(){
+		$(this).fadeOut(100);
+	});
+	// [픽션 예문 보이기 (PC ver.)]---------------------------------------------------
+	$(document).on('click','.sentence-hide-cover',function(){
+		$(this).fadeOut(300);
+	});
+	// [픽션 예문 보이기 (Mobile. ver.)]----------------------------------------------
+	$(document).on('click','.activeSentenceXs',function(){
+		activePictionXs($(this));
+		$(this).closest(".piction-cover-section").addClass("open");
+	});
+	$(document).on('click','.piction-sentence',function(){
+		activePictionXs($(this));
+	});
+	// [픽션 예문 숨기기 (Mobile. ver.)]----------------------------------------------
+	$(document).on('click','.closeSentenceBtn',function(){
+		$(this).closest(".piction-cover-section").removeClass("open active");
+	});
+	
+	// [픽션 등록 폼 내에서 클릭이 최초 1회 발생 시 세션유지시간을 늘려준다.]---------------------------
+	$("#pictionForm *, #pictionForm_xs *").one("click", function getAdditionalSession(){
+		//----------------------
+		initSessionMonitor(120);
+		//----------------------
+		$("#pictionForm *, #pictionForm_xs *").off("click", getAdditionalSession);
+	});
+	
+	// [픽션 등록]-----------------------------------------------------------------
+	$("#addPiction_btn").click(function(e){
+		var $pictionForm = $(this).closest("form");
+		var pictionImage = $pictionForm.find('#pictionImage')[0]; //사진 첨부
+		var $emphasizedEngSentences = $pictionForm.find('.piction-sentence .emphasized-engSentence'); //영어예문
+		var $korSentences = $pictionForm.find('.piction-sentence .kor-sentence'); //예문해석
+		var $emLocs = $pictionForm.find('.piction-sentence .emLocList'); //강조위치
+		var $pureEngSentences = $pictionForm.find('.piction-sentence .pure-engSentence');
+		var $alert_msg = $('#add_fail_msg');
+		
+		if (pictionImage.value.length < 1) {
+			$("#add_fail_div").show();
+			$alert_msg.text("사진을 첨부해주세요.");
+			return;
+		} else {
+			for(var i = 0; i < $emphasizedEngSentences.length; i++){
+				if($emphasizedEngSentences[i].innerText.length < 1) {
+					$("#add_fail_div").show();
+					$alert_msg.text("예문을 모두 작성해주세요.");
+					return;
+				} else if($korSentences[i].value.length < 1){
+					$("#add_fail_div").show();
+					$alert_msg.text("예문해석을 모두 작성해주세요.");
+					return;
+				} else {
+					$pureEngSentences[i].name = "pictionarySentences[" + i + "].eng";
+					$korSentences[i].value = $korSentences[i].value.trim();
+					$korSentences[i].name = "pictionarySentences[" + i + "].kor";
+					$emLocs[i].name = "pictionarySentences[" + i + "].emLoc";
+					
+					var emphasizedEngSentence = $emphasizedEngSentences[i];
+					$emLocs[i].value = calcEmLoc(emphasizedEngSentence); //강조위치 담기
+					$pictionForm.find(".piction-sentence .choice-voice-type:eq(" + i + ") .voiceTypeBtn")
+					   		   .attr("name","pictionarySentences["+i+"].voiceSex");
+					$pureEngSentences[i].value = emphasizedEngSentence.textContent; // 넘겨줄 데이터에 value 담기
+				}
+			}
+			
+			$pictionForm.submit();
+		}
+	});
+	
+	// [픽션 등록 div로 스크롤 이동]----------------------------------------------------
+	$("#scrollAddPictionDiv_btn").click(function(){
+		var addPictionDiv = $("#addPictionDiv").offset().top - $("#headerNavbar").height();
+	    $('html, body').animate({scrollTop : addPictionDiv}, 400);
+	});
+	
+	// [연관 단어 클릭하여 픽셔너리에 등록됐는지 확인]------------------------------------------
+	$(document).on("click", ".relativeWords a", function(e){
+		e.preventDefault();
+		var url = $(this).attr("href");
+		var title  = $(this).text().trim().toLowerCase();
+		//---------------------------
+		checkRelatedWord(url, title);
+		//---------------------------
+	});
+	
+	// [연관 단어 등록]--------------------------------------------------------------
+	$("#addRelativeWordForm").on('submit',function(e){
+		e.preventDefault();
+		var title = $("#relativeWordText").val().trim().toLowerCase();
+		if(title.length > 0){
+			var obj = {
+					memberId: $("#yourOrgId").val(),
+					wordId: $("#wordId").val(),
+					wordTitle: wordTitle,
+					relatedTitle: title
+			};
+			//------------------
+			addRelatedWord(obj);
+			//------------------
+			$("#relativeWordText").val("");
+			$('#relativeWordBtn').prop("disabled", true);
+		}
+	});
+	
+	// [단어수정 페이지로 이동]--------------------------------------------------------
+	$("#moveEditWord_btn,#moveEditWord_btn_xs").click(function(){
+		location.href = '/pictionary/word/edit/' 
+						+ $("#wordId56").val();
+	});
+	
+	// [단어 수정 요청 폼 모달 띄우기]-----------------------------------------------------
+	$("#reportWord_btn, #reportWord_btn_xs").click(function(){
+		if($("#editWord_modal").length > 0){
+			//---------------------------------------------------------------------
+			getEditWordForm($("#wordId").val());
+			//---------------------------------------------------------------------
+		}else{
+			alert("현재 다른 회원에 의해 단어 수정이 진행 중입니다.");
+		}
+	});	
+	
+	// [단어 수정 폼에서 입력폼 클릭 시 코멘트 작성란 펼치기]--------------------------------------
+	$("#reportWordFormDiv").on("click",".report-meaning-section", function(){
+		$(".report-meaning-section").each(function(index,element){
+			var $commentSection = $(element).find(".report-comment-section");
+			var comment = $commentSection.find("textarea").val();
+			if(comment.length == 0 && $(element).find(".meaningContent").val().length == 0) {
+				$commentSection.hide();
+			}
+		});
+		var reportComment = $(this).find(".report-comment-section").show();
+	});
+	
+	// [단어 수정 요청 폼 내 단어 뜻 입력란 추가]----------------------------------------------
+	$("#reportWordFormDiv").on("click",".addMeaning", function(){
+		var $meaningForm = $("#divsForCopy .editMeaning").clone();
+		$meaningForm.find(".report-comment-section").hide();
+		// 값 초기화
+		$meaningForm.find(".meaningId").val("");
+		$meaningForm.find(":text").val("");
+		$meaningForm.find("select").val(0);
+		var msg = "단어 작성자가 수정된 내용이나 의도를 이해할 수 있도록 설명해 주세요.\n"
+			+ "ex1) 타동사 뜻에 오타가 있어서 수정 부탁드립니다.\n"
+			+ "ex2) 자동사 부분에 의미를 추가하였습니다.\n"
+			+ "ex3) 품사 '명사' 부분을 추가하였습니다.";
+		$meaningForm.find("textarea").val("").attr("placeholder", msg);
+		$meaningForm.find(".meanWarnMsg").html("");
+		$("#reportWordFormDiv .editMeaning:last").after($meaningForm);
+	});
+	
+	// [단어 수정 요청 폼 내 해당하는 줄의 단어뜻 입력란 삭제]-------------------------------------
+	$(document).on("click", ".removeMeaning", function(){
+		$(this).closest(".editMeaning").remove();
+	});
+	
+	// [단어 뜻 글자수 제한 메세지 보여주기]-------------------------------------------------
+	$(document).on("input", ".meaningContent", function(){
+		var $comment = $(this).closest(".editMeaning").find(".report-comment-section textarea");
+		var meanWarnMsg = $(this).closest(".editMeaning").find(".meanWarnMsg");
+		if($(this).attr("data-org") != undefined && 
+				($(this).attr("data-org") != $(this).val().trim()) 
+				&& $comment.val().trim().length == 0){
+			// 기존 단어 뜻을 수정하는 경우
+			meanWarnMsg.html("<font style=color:#303672;>수정 사유를 반드시 작성해 주세요.</font>");
+		}else if($(this).val().trim().length > 100) {
+			meanWarnMsg.html("<font class=text-danger>100자를 초과하였습니다. (" 
+							+ $(this).val().trim().length + "자)</font>");
+		}else if($(this).attr('data-org') == undefined 
+				&& $(this).val().trim().length > 0 
+				&& $comment.val().trim().length == 0){
+			// 단어 뜻을 추가하는 경우
+			meanWarnMsg.html("<font style=color:#303672;>수정 사유를 반드시 작성해 주세요.</font>");
+		}else {
+			meanWarnMsg.html("");
+		}
+		// 수정 요청 버튼 활성화/비활성화
+		$('#reportEditWord').prop('disabled', 
+				$('#reportWordFormDiv .meanWarnMsg:not(:empty)').length > 0);
+	});
+	
+	// [수정 사유 작성 필수]-----------------------------------------------------------
+	$(document).on("input", "#reportWordFormDiv .report-comment-section textarea", function(){
+		var meanWarnMsg = $(this).closest(".editMeaning").find(".meanWarnMsg");
+		var meaningContent = $(this).closest(".editMeaning").find(".meaningContent");
+		if(meaningContent.val().trim().length > 0 ){
+			if($(this).val().trim().length == 0){
+				// 단어뜻 입력은 돼있는데 사유가 없으면
+				meanWarnMsg.html("<font style=color:#303672>수정 사유를 반드시 작성해 주세요.</font>");
+			}else if(meaningContent.val().trim().length > 100){
+				// 단어뜻이 100자를 초과하면
+				meanWarnMsg.html("<font class=text-danger>100자를 초과하였습니다. (" 
+							+ meaningContent.val().trim().length + "자)</font>");
+			}else{
+				meanWarnMsg.html("");
+			}
+		}else{
+			meanWarnMsg.html("");
+		}
+		// 수정 요청 버튼 활성화/비활성화
+		$('#reportEditWord').prop('disabled', 
+				$('#reportWordFormDiv .meanWarnMsg:not(:empty)').length > 0);		
+	});
+	
+	// [품사 중복 입력 방지]-----------------------------------------------------------
+	$(document).on("click", ".editMeaning select", function(){
+		var $checkedArr = $("#reportWordFormDiv .editMeaning select").not($(this));
+		var valArr = [];
+		$checkedArr.each(function(i, opt) {
+			valArr.push(opt.value);
+		})
+		$(this).children("option").each(function(i,option){
+			if(valArr.indexOf(option.value) > -1){
+				$(option).prop("disabled", true);
+			}else{
+				$(option).prop("disabled", false);
+			}
+		});
+	});
+	
+	// [단어 수정 요청 등록]-----------------------------------------------------------
+	$("#reportEditWord").click(function (){
+		var obj = {
+				wordId: $("#wordId").val(),
+				wordTitle: wordTitle,
+				ownerAlias: /*[[${pictionaryWordView.alias}]]*/null,
+				editorId: $("#yourOrgId").val(),
+				alias: /*[[${session.userContainer?.personacon?.alias}]]*/null,
+		};
+		var alertMsg = $('#add_fail_msg');
+		var $meanings = $('#reportWordFormDiv .editMeaning');	// 분산돼있는 단어 뜻들
+		var wtypeArray = [];
+		var meaningsArray = [];	//	단어뜻 정보를 파싱하여 넣을 배열
+		var containsEmpty = false;
+		var meaningValid = true;
+		$meanings.each(function(i,meaning, array) {
+			var meaningContent = $(meaning).find(".meaningContent").val().trim();
+			if(meaningContent.length > 0){
+				// 입력된 단어 뜻에 품사도 선택했는지 검사하고 meaningsArray에 담음
+				var wmid = $(meaning).find(".meaningId").val();
+				var category = $(meaning).find('select').val();	// 품사 선택정보(select)
+				var comment = $(meaning).find(".report-word-form").val();
+				if(category == ("0"||null)){	
+					//	품사 선택값이 "0"이면 미선택으로 취급
+					meaningValid = false;
+					return;
+				}else{
+					if(meaningContent != $(meaning).find(".meaningContent").attr('data-org')){
+						if(comment.length > 0){
+							wtypeArray.push(category);
+							meaningsArray.push({
+								"wmid":wmid,
+								"wtype":category,
+								"meaning":meaningContent, 
+								"comment": comment,
+								"alias": /*[[${session.userContainer?.personacon?.alias}]]*/null
+								});
+						}else{
+							alert("수정 요청하는 내용이 모두 채워져 있는지,<br> 수정 사유를 작성했는지 확인하세요.");
+							$("#add_fail_div").show();
+							return;
+						}
+					}
+				}
+			}else{
+				containsEmpty = true;
+
+			}
+		});
+		// 단어뜻을 품사값(wtype)의 오름차순으로 정렬
+		meaningsArray.sort(function(a,b){return Number(a.wtype) - Number(b.wtype)});
+		meaningsArray.forEach(function(elt, i, array) {
+			if(elt.wmid != ""){
+				obj["wordMeaningCommandList[" + i + "].wmid"] = elt.wmid;
+			}
+			obj["wordMeaningCommandList[" + i + "].wtype"] = elt.wtype;
+			obj["wordMeaningCommandList[" + i + "].meaning"] = elt.meaning;
+			obj["wordMeaningCommandList[" + i + "].comment"] = elt.comment;
+			obj["wordMeaningCommandList[" + i + "].alias"] = elt.alias;
+		})
+		if(meaningsArray.length == 0){
+			alert("수정 요청하는 내용이 모두 채워져 있는지,<br> 수정 사유를 작성했는지 확인하세요.");
+			$("#add_fail_div").show();
+			return;
+		} else{	// 단어를 입력하고 검색을 눌러 중복되지 않음을 확인했고
+			if(containsEmpty){
+				alert("뜻을 비워 놓은 곳이 있는지 확인해 주세요.");
+				return;
+			}
+			if(meaningValid){	// 단어 뜻도 품사, 뜻을 빠짐없이 입력했을 경우
+				// 단어 등록 실행
+				//------------------
+				requestEditWord(obj)
+				//------------------
+				$("#editWord_modal").on("hidden.bs.modal", function(){
+					$("#editWord_modal").remove();
+				}).modal("hide");
+				$("#reportWord_btn,#reportWord_btn_xs")
+					.append('<i class="report-count fa fa-exclamation-circle text-danger"></i>');
+			}else{
+				alert("입력한 뜻 중 품사를 선택하지 않은 것이 있는지 확인해 주세요.");
+				$("#add_fail_div").show();
+				return;
+			}
+		}
+	});
+	
+   	// [사진 수정 폼 열기 (다른 사용자가 예문을 등록했을 시 사진을 수정하지 못함)]------------------------
+   	$(document).on('click', '.openEditPictureBtn', function(){
+		var $pasetArea = $(this).closest(".originPictionArea").siblings(".editPictureFormArea");
+		var $editDiv = $("#editPictureFormDiv").clone().removeAttr("id");
+
+		var $piction = $(this).closest('[id^="piction"]');
+		var pictionId = $piction.attr("data-pictionid");
+		var orgFile = $piction.attr("data-org");
+		var xratePic = $piction.attr("data-xrate");
+		var xrateEditOnly = $(this).attr("data-xrateonly");
+
+		$editDiv.find(":input[name='pictionId']").val(pictionId); 
+		$editDiv.find(":input[name='xrateEditOnly']").val(xrateEditOnly);
+		$editDiv.find(":input[name='orgFile']").val(orgFile);
+		$editDiv.find(".xrateOrg").val(xratePic);
+		$editDiv.find(".pictionaryPlus[value='" + xratePic +"']").prop("checked", true);
+		$editDiv.find(".previewPictionEditImage")
+				.css("backgroundImage", "url(/resource/pictionary/images/" + orgFile + ")");
+		if(xrateEditOnly == "true"){
+			$editDiv.find(".editPictionImage").prop("disabled", true);
+		}
+		$editDiv.find(".editPictureBtn").prop("disabled", true);
+		$editDiv.appendTo($pasetArea); //copy end
+  			
+		$(this).closest(".originPictionArea").hide();
+   	});
+   	
+	// [픽션 수정 이미지 첨부]------------------------------------------------------------
+	$(document).on("click", ".editPictionImage", function(){
+		$(this).siblings(".editPictureUpload").click();
+	});
+	$(document).on("change", ".editPictureUpload", function(e){
+		var $editDiv = $(this).closest(".editPictureDiv");
+		var files = e.target.files;
+		var fileArr = Array.prototype.slice.call(files);
+		
+		fileArr.forEach(function(f){
+			if(!f.type.match("image.*")) {
+				alert("이미지 확장자만 가능합니다.");
+				$editDiv.find(".editPictureUpload").val('');
+				return;
+			}
+			var reader = new FileReader();
+			reader.onload = function(e) {
+				$editDiv.find(".previewPictionEditImage")
+						.css("backgroundImage", "url(" + e.target.result + ")");
+			}
+			reader.readAsDataURL(f);
+			$editDiv.find(".editPictureBtn").prop("disabled", false);
+			return;
+		});
+	});
+	
+	// [이미지 등급만 변경할 경우 값이 그대로일 때 수정 비활성화]-----------------------------------
+	$(document).on("change", ".pictionaryPlus", function(){
+		var org = $(this).closest(".choice-piction-plus").find(".xrateOrg").val();
+		var $editBtn = $(this).closest(".editPictureDiv").find(".editPictureBtn");
+		if($(this).closest(".editPictureDiv")
+				  .find(":input[name='xrateEditOnly']").val() == "true"){
+			if($(this).val() != org){
+				$editBtn.prop("disabled", false);
+			}else{
+				$editBtn.prop("disabled", true);
+			}
+		}
+	});
+	
+	// [이미지 정보 수정]---------------------------------------------------------
+	$(document).on("click", ".editPictureBtn", function(){
+		var $editDiv = $(this).closest(".editPictureDiv");
+		var $pictionCover = $(this).closest(".piction-cover");
+		var obj = new FormData($(this).closest(".editPictureForm")[0]);
+		$editArea = $(this).closest(".editPictureFormArea");
+		$editArea.empty();
+		$editArea.siblings(".originPictionArea").show();
+		//------------------------------
+		editPiction(obj, $pictionCover);
+		//------------------------------
+	});
+	
+	// [픽션 이미지 수정 취소]-----------------------------------------------------------
+	$(document).on("click", ".cancelEditPictureBtn", function(){
+		$editArea = $(this).closest(".editPictureFormArea");
+		$editArea.empty();
+		$editArea.siblings(".originPictionArea").show();
+	});
+	
+	// [픽션 이미지 신고]-----------------------------------------------------------------
+	$(document).on('click', '.pictionReport', function(){
+		var wordId = $('#wordId').val();
+		var pictionId = $(this).closest(".piction-cover").attr('data-pictionid');
+		var pictionWriter = $(this).closest('.piction-cover').find('[id^="pictionMemberAlias"]').val();
+		var reportReadyResource = {
+				appResourceId: Number(wordId),
+				appContentId: Number(pictionId),
+				appCodeName: 'Pictionary_Piction',
+				reporterId: $('#yourOrgId').val(),
+				repAlias: /*[[${session.userContainer?.personacon?.alias}]]*/null,
+				posAlias: pictionWriter
+		};
+		//신고창 표시-------------------------------
+		displayReportModal(reportReadyResource);
+	});
+	
+	// [픽션 사진 크게 띄우기]---------------------------------------------------------
+	$(document).on('click',".display-piction-picture",function(){
+		var background = $(this).css("background");
+		$("#pictionPicture_modal .modal-dialog")
+		.load('/pictionary/test/pop/' + (xrateGold == 'G'?'xg':'un'), function(){
+			$(".pictionCover").css("background", background);
+			$("#pictionPicture_modal").modal("show");
+		});
+	});
+	// [픽션 새창 모달을 닫을때 보이스 재생중지 ]
+	$(document).on('hidden.bs.modal','#pictionPicture_modal', function(){
+		stopVoice();
+	});	
+	
+	// [댓글 div로 스크롤 이동]--------------------------------------------------------
+	$("#scrollCommentDiv_btn").click(function(){
+		var commentDiv = $("#pictionaryCommentDiv").offset().top - 80;
+	    $('html, body').animate({scrollTop : commentDiv}, 400);
+	});
+	// [화면 표시될 댓글 중 플러스픽션에 대한 처리]------------------------------------------
+	if(xrateGold == "M"){
+		// 일반 회원에겐 내용을 가린다.
+		const commentObserver = new MutationObserver(function(mutations){
+			mutations.forEach(function(mutation,i){
+				var $commentCover = $(mutation.addedNodes).find(".xgPic")
+														  .closest(".comment-cover");
+				$commentCover.find(".comment-body")
+							 .html($("#divsForCopy .comment-plus").parent().html());
+				$commentCover.find(".comment-button,.re-form").remove();
+				var parentId = $commentCover.find(".parentId").val();
+				$("#displayBtn_" + parentId).remove();
+			});
+		});
+		commentObserver.observe($("#pictionaryCommentDiv")[0], {childList:true,subtree:true});
+	}else if(xrateGold == "U"){
+		// 미성년자에겐 댓글 자체를 감춘다.
+		const commentObserver = new MutationObserver(function(mutations){
+			mutations.forEach(function(mutation,i){
+				var $commentCover = $(mutation.addedNodes).find(".xgPic")
+								  					  .closest(".comment-cover");
+				$commentCover.remove();
+			});
+		});
+		commentObserver.observe($("#pictionaryCommentDiv")[0], {childList:true,subtree:true});
+	}
+	var url = "/reply/pictionary/list/" 
+			+ $("#wordId").val()+"?replyType=c";
+	var selector = $('.commentPage');
+	//------------------------------
+	reloadAll(url, selector, false);
+	//------------------------------
+	$("#commentDiv .comment-textarea").attr('placeholder','댓글을 입력해 주세요.');
+	
+	// [픽션에서 댓글버튼 클릭 시 기존 댓글 폼을 픽션 댓글 폼으로 교체]--------------------------------
+	$(document).on("click", ".pictionCommentBtn", function(){
+		$(".pictionary-comment-section").find("#pictionCommentForm").remove();
+		
+		var pictionImgPath = $(this).closest(".piction-cover")
+									.find(".piction-picture-cover img")
+									.css("backgroundImage")
+									.match(/\/resource\/.*/g)[0]
+		pictionImgPath = pictionImgPath.substr(0, pictionImgPath.length -2);
+		$(".pictionary-comment-section").find(".comment-form").eq(0).children().hide();
+		
+		var pasetArea = $(".pictionary-comment-section").find(".comment-form").eq(0);
+		var pictionCommentForm = $("#divsForCopy #pictionCommentForm").clone();
+		// 댓글의 말머리에 이미지를 추가
+		pictionCommentForm.find(".pictionImgCover img")
+						  .css("backgroundImage", "url(" + pictionImgPath + ")");
+		if($(this).closest(".piction-cover").attr("data-xrate") == "true"){
+			pictionCommentForm.find(".pictionImgCover img")
+							  .addClass("xgPic");
+		}
+		pictionCommentForm.appendTo(pasetArea); //copy end
+		// 댓글의 받는이를 픽션 작성자로 설정
+		$('.appContentWriter').val($(this).closest('.piction-cover').find('[id^="pictionMemberAlias"]').val().trim());
+		
+		pictionCommentForm.show();
+		$("#scrollCommentDiv_btn").click(); //댓글 폼으로 이동
+		
+	});
+	
+	// [픽션 댓글 취소]--------------------------------------------------------------
+	$(document).on("click", "#pictionCommentForm .cancelCommentBtn", function(){
+		$('.appContentWriter').val($('#wordOwner').text().trim());
+		$(this).closest(".comment-form").children().show();
+		$(this).closest(".comment-form").find(".comment_button_section").hide();
+		$(".pictionary-comment-section").find("#pictionCommentForm").remove();
+	});
+	
+	// [픽션 댓글 등록]--------------------------------------------------------------
+	// 픽션사진 태그가 댓글 내용으로 끼워져 들어가야 하기 때문에 픽션 댓글 등록 함수는 따로 정의
+	$(document).on("click", ".addPictionCommentBtn", function(){
+		var commentDiv = $(this).closest("#commentDiv");
+		var appDomain = commentDiv.find(".appDomain").val();
+		var replyType = commentDiv.find(".replyType").val();
+		var recipient = commentDiv.find(".appContentWriter").val().trim();
+		// 픽션 이미지
+		var pictionImg = $(".pictionary-comment-section .pictionImgCover img")
+								.clone().wrapAll("<div/>").parent().html(); 
+		// 코멘트
+		var commentText = $(".pictionCommentForm .comment-textarea").val(); 
+		// 실제로 저장 될 코멘트
+		var pictionComment = '<span class="row no-gutters"><span class="col-auto">'
+						+ pictionImg + '</span><span class="col pl-2">'
+						+ commentText + '</span></span>';
+		var replyResource = {
+				appContentId : commentDiv.find(".appContentId").val(),
+				comment : pictionComment, 
+				personaconId : $('#yourOrgId').val(),  
+				personaconAlias : $(".yourAlias").val(),
+				replyType : replyType, 
+				recipient : recipient
+			};				
+		var selector = commentDiv.find(".commentPage");
+		//--------------------------
+		if(! isEmpty(commentText)){
+			//--------------------------------------------
+			addComment(selector, replyResource, appDomain);
+			//--------------------------------------------
+			$(this).siblings(".cancelCommentBtn").click();
+		}else{
+			alert("내용을 입력해 주세요.");
+		}
+		// 등록 후 기본 댓글 폼이 다시 나오게
+		$(this).closest(".comment-form").children().show();
+		$(this).closest(".comment-form").find(".comment_button_section").hide();
+		$(".pictionary-comment-section").find("#pictionCommentForm").remove();
+	});
+
+	// [픽셔너리 등록화면으로부터 왔을 경우 곧바로 픽션 등록 div로 이동]------------------------------
+	/* setTimeout(() => {
+		if(document.referrer.indexOf('/pictionary/word/add') > -1){
+			$("#scrollAddPictionDiv_btn").click();
+		}
+	}, 500); */
+}); // <!--/* End of ready */-->
+
+/* ----------------------------------------------------------------------------- 
+*							동작 관련 스크립트
+* --------------------------------------------------------------------------- */
+
+/**
+ * 단어 목록 화면으로 돌아가기
+ */
+function backToList() {
+	self.location = sessionStorage.getItem("pictionaryDest");
+}
+
+/**
+* 예문 등록 실행 
+*/
+function addSentence(pictionIndex) {
+	var eng = $('#engAdd' + pictionIndex); //영어예문
+	var kor = $('#korAdd' + pictionIndex); //예문해석
+	var pictionaryId = $('#pictionaryId' + pictionIndex);
+	var pictionId = $('#pictionId' + pictionIndex);
+	var sentenceNum = $('#size_sentence' + pictionIndex); //현재 예문의 갯수
+	var voiceSex = $(":checked.voiceSexAdd" + pictionIndex);
+	/* 예문 check */
+	if(eng.text().length < 1) {
+		alert("예문을 작성해주세요.");
+		return;
+	} else if(kor.val().length < 1){
+		alert("예문해석을 작성해주세요.");
+		return;
+	} else {
+		var obj = new FormData();
+		
+		obj.append("wordTitle", wordTitle);
+		obj.append("memberId", $("#yourOrgId").val());
+		obj.append("pictionId", pictionId.val());
+		obj.append("wordId", pictionaryId.val());
+		obj.append("alphabet", wordTitle.substring(0, 1));
+		obj.append("emLoc", calcEmLoc(eng[0])); // eng 입력보다 calcEmLoc 실행을 우선한다.
+		obj.append("eng", eng.text().trim());
+		obj.append("kor", kor.val().trim());
+		obj.append("voiceSex", voiceSex.val());
+	}
+	//----------------------------------------------------
+	addSentenceAjax(obj, pictionIndex, sentenceNum.val());
+	//----------------------------------------------------
+};
+
+/**
+ * 예문 수정 실행
+ * 기존 문장과 신규 수정 문장 확인
+ 	1. eng가 변경된 경우 : editType='E'
+ 	2. kor만 변경된 경우  : editType='K'
+ 	3. emLoc만 변경된 경우 : editType='L'
+ 	4. 여러 부분 변경될 때, 만약 eng가 변경되면 editType='E'
+ */
+function editSentence(pictionIndex, sentenceIndex) {
+	var eng = $('#engEdit' + pictionIndex); //영어예문
+	var kor = $('#korEdit' + pictionIndex); //예문해석
+	var picSentId = $('#id_sentence' + pictionIndex + sentenceIndex);
+	
+	//var voiceSex = $("#voiceSex" + pictionIndex + sentenceIndex);
+	   
+	/* 예문 check */
+	if(eng.text().length < 1) {
+		alert("예문을 작성해주세요.");
+		return;
+	} else if(kor.val().length < 1){
+	    alert("예문해석을 작성해주세요.");
+	    return;
+	 } else {
+		
+		 
+		var obj = new FormData();
+		
+					//---------------
+		var emLoc = calcEmLoc(eng[0]); // calcEmLoc 실행은 다른 값 입력보다 우선한다.
+					//---------------
+		obj.append("memberId", $("#yourOrgId").val());
+		obj.append("pictionarySentenceId", picSentId.val());
+		obj.append("alphabet", wordTitle.substring(0, 1));
+		obj.append("eng", eng.text().trim());
+		obj.append("kor", kor.val().trim());
+		obj.append("emLoc", emLoc);
+		
+		if(eng.text().trim() != $("#re_sentence" + pictionIndex + sentenceIndex).val()){
+			obj.append("editType", "E");
+			var before = $("#re_sentence" + pictionIndex + sentenceIndex).val().toLowerCase().replace(/[^(a-z|0-9|\')]/g, "");
+			var after = eng.text().toLowerCase().replace(/[^(a-z|0-9|\')]/g, "");
+			if(before != after){
+				obj.append("voiceEdit", true);
+			}else{
+				obj.append("voiceEdit", false);
+			}
+		}else if(kor.val().trim() != $("#kor_sentence" + pictionIndex + sentenceIndex).val()){
+			obj.append("editType", "K");
+			obj.append("voiceEdit", false);
+		}else if(emLoc != $("#emp_sentence" + pictionIndex + sentenceIndex).val()){
+			obj.append("editType", "L");
+			obj.append("voiceEdit", false);
+		}else{
+			alert("수정된 사항이 없습니다.");
+			return;
+		}
+		//-------------------------------------------------
+		editSentenceAjax(obj, pictionIndex, sentenceIndex);
+		//-------------------------------------------------
+	}  
+};
+
+
+/**
+ * 예문 삭제하기
+ */
+function delete_sentence(pictionIndex, sentenceIndex){
+	var sentenceId = $("#id_sentence" + pictionIndex + sentenceIndex).val();
+	var result = confirm('예문을 정말 삭제하시겠습니까?'); 
+	if(result) { 
+		//yes ----------------------------------------------------
+		deleteSentenceAjax(sentenceId, pictionIndex, sentenceIndex);
+		//--------------------------------------------------------
+	} else { 
+		//no 
+		return;
+	}
+};
+
+/**
+ * 예문 좋아요 처리
+ */
+function likeThisSentence(pictionIndex, sentenceIndex){ //예문 좋아요
+    var sentenceId = $('#id_sentence' + pictionIndex + sentenceIndex).val();
+    var pid = $("#yourOrgId").val();
+    var likeCount=parseInt($('#likeCount'+ pictionIndex + sentenceIndex + 'xs').text().trim());
+
+    var obj = {
+       contentId : Number(sentenceId),
+       memberId : pid,
+       likeCount : Number(likeCount),
+       recommend : true
+    }
+	//------------------------------------------------------------
+	likeSentenceAjax(sentenceId, obj, pictionIndex, sentenceIndex);
+	//------------------------------------------------------------
+};
+
+// <!--/* End Of 동작 관련 스크립트 */-->
+
+/* ----------------------------------------------------------------------------- 
+*							화면 처리 스크립트
+* --------------------------------------------------------------------------- */
+
+/**
+ * 픽션 내 센텐스 작성자 묶음 표시, 좋아요 수 합산 (Mobile ver.)
+ */
+function arrangePersonacons($piction){
+	var $personaconImages = $piction.find('.sentenceWriter');
+	var $sentencePersonaconGroup = $piction.find('.sentencePersonaconGroup').empty();
+	var aliasList = [], elseList = [], likeNum = 0;
+	for(var i = 0; i < $personaconImages.length; i++){
+		var $iconPath = $personaconImages.eq(i);
+		// 퍼스나콘을 3개까지는 표시
+		if(aliasList.length < 3){
+			var alias = $iconPath.closest('.sentence-one-personacon')
+								 .siblings('.alias').text();
+			if(!aliasList.includes(alias)){
+				var picOwn = $iconPath.closest('.sentence-one-cover')
+									  .find('[id^="isPictionOwner"]').val();
+				
+				var item = '<div align="center" class="personacon-section">'
+					+ '<div style="background: url('
+					+ (($iconPath.val().length > 0) 
+						? ('/resource/profile/' + $iconPath.val())	
+						: '/images/app/member/profile_default.png')
+					+ ') no-repeat; background-position: center; background-size: cover;"></div></div>';
+				
+				// 픽션 작성자는 제일 위로 표시
+				if(picOwn == 'true'){
+					aliasList.unshift(alias);
+					$sentencePersonaconGroup.prepend(item);
+				}else{
+					$sentencePersonaconGroup.append(item);
+					aliasList.push(alias);
+				}
+			}
+		}else{
+			if(!elseList.includes(alias)){
+				elseList.push(alias);
+			}
+		}
+		// 좋아요 수 합산
+		likeNum += parseInt($iconPath.closest('.sentence-one-cover').find('[id^="likeCount"]').text());
+	}
+	// 3명을 초과하는 작성자들은 숫자로 표시
+	if(elseList.length > 0){
+		var item = '<div class="personacon-section" align="center">'
+				+ '<div class="count-all-owner"><i class="fa fa-plus"></i>'
+				+ '<span>' + elseList.length + '</span></div></div>';
+		$sentencePersonaconGroup.append(item);
+	}
+	// 합산된 좋아요 수 표시
+	$piction.find('.pictionLike').text(likeNum);
+}
+ 
+/**
+ * 픽션 active (mobile ver.)
+ */
+function activePictionXs(obj) {
+	$(".piction-cover-section").removeClass("active");
+	var parentPiction = $(obj).closest(".piction-cover-section");
+	parentPiction.addClass("active");
+	if($(window).width() < 768 && $(obj).closest(".piction-cover").is(':not(.add)')){
+		var parentPictionDiv = $(obj).closest(".piction-cover").offset().top;
+		$('html, body').animate({scrollTop : parentPictionDiv - $("#headerNavbar").height()}, 300);
+    }
+}
+
+/**
+ * 픽셔너리 플러스 display 세팅
+ */
+function displayPictionaryPlus() {
+	var displayPlusBtn = $("#displayPlusBtn");
+	var displayPlus = $(".display-plus-button");
+	if(displayPlusBtn.is(":checked")) {
+		displayPlus.addClass("active");
+		displayPlus.find(".noneDisplay").hide();
+		displayPlus.find(".display").show();
+		$(".noneDisplayPlus").show();
+		$(".displayPlus").hide();
+		$('#pictionListDiv .piction-cover.plus').each(function(i,el){
+			$(el).data('pictionData',$(el).html())
+				 .html($('#plusSwitchingDiv').html());
+		});
+	} else {
+		displayPlus.removeClass("active");
+		displayPlus.find(".noneDisplay").show();
+		displayPlus.find(".display").hide();
+		$(".noneDisplayPlus").hide();
+		$(".displayPlus").show();
+		$('#pictionListDiv .piction-cover.plus').each(function(i,el){
+			$(el).html($(el).data('pictionData'));
+		});
+	}
+}
+
+
+/**
+ * 사진의 수정된 정보를 표시(사진 파일 경로, 스타일)
+ */
+function successEditPiction(piction, pictionCover) {
+	pictionCover.attr("data-org", piction.imagePath);
+	pictionCover.find(".display-piction-picture")
+	 			.css("backgroundImage", "url(/resource/pictionary/images/"
+			 							+ piction.imagePath + ")");
+	//------------------------------------------------
+	changePictionFrame(piction.xratePic, pictionCover);
+	//------------------------------------------------
+}
+
+/**
+ * 사진의 등급 변경으로 인한 스타일 변경
+ */
+function changePictionFrame(xratePic, pictionCover) {
+	pictionCover.attr("data-xrate", xratePic);
+	if(xratePic){
+		pictionCover.addClass("plus");
+	}else{
+		pictionCover.removeClass("plus");
+	}
+}
+
+/**
+ * 추가된 예문을 예문 목록에 표시
+ */
+function appendAddedSentence(sentence, pictionIndex, sentenceIndex) {
+	var wordOwn = ($("#moveEditWord_btn").length > 0);
+	var picOwn = ($("#moveEditPiction_btn" + pictionIndex).length > 0);
+	var pasteArea = $("#pasteSent" + pictionIndex);
+	
+	var appendedSentence = $("#sentenceDiv_copy").clone();
+		appendedSentence.appendTo(pasteArea)
+		                .attr("id", "picSent" + pictionIndex + sentenceIndex)
+		                .show(100);
+	var text = appendedSentence.find(".re-sentence"); //강조없는 예문
+		text.attr("id", "re_sentence" + pictionIndex + sentenceIndex)
+		           .val(sentence.eng);
+	
+	var empLoc = appendedSentence.find(".emp-sentence"); //강조
+		empLoc.attr("id", "emp_sentence" + pictionIndex + sentenceIndex)
+		            .val(sentence.emLoc);
+	
+	var kor = appendedSentence.find(".kor-sentence"); //한국어 해석
+		kor.attr("id", "kor_sentence" + pictionIndex + sentenceIndex)
+		            .val(sentence.kor);
+	
+	var sentenceId = appendedSentence.find(".id-sentence"); //예문 아이디
+		sentenceId.attr("id", "id_sentence" + pictionIndex + sentenceIndex)
+		           .val(sentence.sid);
+	
+	var isWordOwner = appendedSentence.find(".re-owner"); //단어주인인가
+		isWordOwner.attr("id", "isWordOwner" + pictionIndex + sentenceIndex)
+		           .val(wordOwn);
+		
+	var isPictionOwner = appendedSentence.find(".pic-owner"); //픽션 주인인가
+		isPictionOwner.attr("id", "isPictionOwner" + pictionIndex + sentenceIndex)
+		              .val(picOwn);
+		
+	var emphasizeEng = appendedSentence.find(".en-sentence"); //강조된 예문 (보여지는 예문)
+		emphasizeEng.attr('id','en_sentence' + pictionIndex + sentenceIndex);
+	
+	var tag = '<b></b>';
+		
+	emphasizeEng.html(emphasizeText(sentence.eng, sentence.emLoc, tag));
+	
+	var sentenceVoice = appendedSentence.find(".sentenceVoice"); //보이스 버튼
+		if(sentence.jungleSentence != null){
+			sentenceVoice.attr("id", "vo_sentence" + pictionIndex + sentenceIndex)
+			           .on("click", function(){
+			        	   playVoice('/pictionary/sentence/voice/',
+			        			   sentence.jungleSentence.jid,3,sentenceVoice)
+			           });
+		} else {
+			sentenceVoice.parent().remove();
+		}
+	
+	var translation = appendedSentence.find(".ko-sentence"); //한국어 해석
+		translation.attr("id", "ko_sentence" + pictionIndex + sentenceIndex)
+		           .html(sentence.kor);
+		
+	var editBtn = appendedSentence.find(".edit-sentence"); //예문수정버튼
+		editBtn.attr("onclick", "toggleEditSentenceForm(this," + pictionIndex + "," + sentenceIndex + ")");
+	
+	var deleteBtn = appendedSentence.find(".delete-sentence"); //예문삭제버튼
+		deleteBtn.attr("onclick", "delete_sentence(" + pictionIndex + "," + sentenceIndex + ")");
+		
+	var likeBtn = appendedSentence.find(".likeSection a"); //좋아요버튼
+		likeBtn.attr("onclick", "likeThisSentence(" + pictionIndex + "," + sentenceIndex + ")");
+		likeBtn.find("span").attr("id", "likeCount" + pictionIndex + sentenceIndex + "xs");
+		
+	var like = appendedSentence.find(".likeIcon"); //좋아요하트
+		like.attr("id", "like" + pictionIndex + sentenceIndex + "xs");
+		
+	$(".size_sentence" + pictionIndex).val(sentenceIndex + 1);
+	//-----------------------------------------------------------------	
+	arrangePersonacons(appendedSentence.closest('.piction-cover-section'));
+	//-----------------------------------------------------------------	
+};
+
+/**
+* 방금 수정한 예문을 예문 리스트에도 적용
+* 
+* 	sentence: PictionarySentence
+*/
+function replaceEditedSentence(sentence, pictionIndex, sentenceIndex) {
+	$("#re_sentence" + pictionIndex + sentenceIndex).val(sentence.eng);
+	$("#emp_sentence" + pictionIndex + sentenceIndex).val(sentence.emLoc);
+	$("#kor_sentence" + pictionIndex + sentenceIndex).val(sentence.kor);
+	
+	var tag = '<b></b>';
+	$("#en_sentence" + pictionIndex + sentenceIndex)
+				.html(emphasizeText(sentence.eng, sentence.emLoc, tag));
+	$("#ko_sentence" + pictionIndex + sentenceIndex).html(sentence.kor);
+	if(sentence.jungleSentence != null){
+		$("#vo_sentence" + pictionIndex + sentenceIndex)
+			.attr("onclick", "playVoice(\'/pictionary/sentence/voice/\',\'"
+				+ sentence.jungleSentence.jid + "\',3, this)");
+	}
+	
+	/* var hadVoice = document.getElementById('is_voice' + pictionIndex + sentenceIndex); //수정전 음성이 있었나 없었나 (0이면 없었다, 1이면 있었다)
+	if(sentence.jungleSentence!= null &&
+		sentence.jungleSentence.voiceList != null && hadVoice.value == 0) { 
+		//수정 전엔 음성이 없었는데 수정 후에 생겼을 경우
+		var text = '<button onclick=\"playVoice(\'/resource/pictionary/sentence/voice/\',\''
+				+ sentence.jungleSentence.voiceList[0].path + '\',3, this)\" ' 
+				+ 'class=\"btn btn-xs btn-white jsAction\" style=\"margin-left: 5px;\">' 
+				+ '<i lang=\"fa\" class=\"fa fa-volume-up\"></i></button>';
+		$("#add_editvoice" + pictionIndex + sentenceIndex).html(text);
+	} */
+};
+
+/**
+ * 예문 수정폼을 열거나 닫음.
+ */
+function toggleEditSentenceForm(obj, pictionIndex, sentenceIndex){
+	var pasteArea = $(obj).closest(".piction-cover").find(".editPictionSentence");
+	$(".piction-comment-cover").hide(100);
+	$(".add-sentence").each(function(i, element) {
+		if(!$(element).closest(".editPictionSentence").is(pasteArea)){
+			$(element).hide(100);
+		}
+	});
+	$("#pictionCommentDiv" + pictionIndex).hide(100);
+	if(pasteArea.find(".add-sentence").length > 0){
+		pasteArea.find(".add-sentence").toggle(100);
+	}else{
+		var sentenceForm = $("#divsForCopy #addSentenceForm").clone();
+		sentenceForm.appendTo(pasteArea); //copy end
+	    sentenceForm.show(100);
+		
+		var en_sentence = sentenceForm.find(".en_sentence");
+		var ko_sentence = sentenceForm.find(".ko_sentence");
+		var editSentence_btn = sentenceForm.find(".addSentence-btn");
+		sentenceForm.find(".choice-voice-type").remove();
+		
+		sentenceForm.find("h3").html("Editing Sentence");
+		en_sentence.attr("id", "engEdit" + pictionIndex);
+		ko_sentence.attr("id", "korEdit" + pictionIndex);
+		editSentence_btn.attr("id", "btnEdit" + pictionIndex);
+		
+		var text = $("#re_sentence" + pictionIndex + sentenceIndex).val();
+	    var emLocString = $("#emp_sentence" + pictionIndex + sentenceIndex).val();
+	    var kor = $("#kor_sentence" + pictionIndex + sentenceIndex).val();
+	    
+	    var tag = '<b></b>';
+	    en_sentence.html(emphasizeText(text, emLocString, tag));
+	    ko_sentence.val(kor);
+	   	/* 수정버튼 변경 */
+	   	editSentence_btn.attr("onclick", "editSentence(" + pictionIndex + "," + sentenceIndex + ")");
+	}
+};
+
+/**
+ * 예문을 목록에서 지움
+ */
+function removeSentenceArea(pictionIndex, sentenceIndex) {
+	var $sentence = $("#picSent" + pictionIndex + sentenceIndex);
+	var $piction = $sentence.closest('.piction-cover-section');
+	$sentence.html('<div class=\"col-12\"><font color=\"red\">삭제가 완료되었습니다.</font></div>');
+	setTimeout(function(){
+		$sentence.remove();
+		//--------------------------
+		arrangePersonacons($piction);
+		//--------------------------
+	},1300);
+};
+
+/** 
+ * 좋아요 버튼 변화
+ */
+function changeLikeSentenceBtn(pictionIndex, sentenceIndex, count){
+    if(count == -1){
+
+        alert("이미 처리 되었습니다.");
+
+        $('#like' + pictionIndex + sentenceIndex).prop("disabled", true);
+        $('#like' + pictionIndex + sentenceIndex + "xs").prop("disabled", true);
+
+        return;
+     }
+
+	$("#like" + pictionIndex + sentenceIndex).css("color", "#FFAFBD");
+	$("#like" + pictionIndex + sentenceIndex + "xs").css("color", "#FFAFBD");
+	$('#likeCount' + pictionIndex + sentenceIndex).html(count);
+	$('#likeCount' + pictionIndex + sentenceIndex + 'xs').html(count);
+	var pictionLike = $('.pictionLike').eq(pictionIndex)[0];
+	pictionLike.textContent = (parseInt(pictionLike.textContent) + 1);
+};
+
+/** 
+ * 다른 폼들을 닫고 선택한 예문 등록 폼만 열고 닫기
+ */
+function openAddSentenceForm(obj, index){
+	var pasteArea = $(obj).closest(".piction-cover").find(".addPictionSentence");
+	$(".piction-comment-cover").hide(100);
+	$(".add-sentence").each(function(i, element) {
+		if(!$(element).closest(".addPictionSentence").is(pasteArea)){
+			$(element).hide(100);
+		}
+	});
+	if(pasteArea.find(".add-sentence").length > 0){
+		pasteArea.find(".add-sentence :radio[name='voiceSex'][value='M']").prop('checked', true);
+		pasteArea.find(".add-sentence").toggle(100);
+	}else{
+		var sentenceForm = $("#divsForCopy #addSentenceForm").clone();
+		sentenceForm.appendTo(pasteArea); //copy end
+		
+		var en_sentence = sentenceForm.find(".en_sentence");
+		var ko_sentence = sentenceForm.find(".ko_sentence");
+		var addSentence_btn = sentenceForm.find(".addSentence-btn");
+		sentenceForm.find(":radio[name='voiceSex'][value='M']").prop('checked', true);
+		var voiceSexRadioBtn = sentenceForm.find(":radio[name='voiceSex']");
+		
+		en_sentence.attr("id", "engAdd" + index);
+		ko_sentence.attr("id", "korAdd" + index);
+		addSentence_btn.attr("onclick", "addSentence(" + index + ")");
+		// 라디오버튼은 같은 이름에 복수 개의 요소를 가지므로 아이디 선택자는 부적절 -> 클래스 선택자 사용
+		voiceSexRadioBtn.addClass("voiceSexAdd" + index);
+		sentenceForm.show(100);
+	}
+};
+function cancelAddSentenceForm(obj) {
+	$(obj).closest(".add-sentence").remove();
+}
+
+
+/**
+ * 픽션 추가 폼에서 취소버튼을 누름
+ * 만약 선택/입력한 사진이나 예문이 있다면 다 지워줘야 함 
+ * 
+ */
+function cancelAddPictionForm() {
+	
+	// 사진 삭제 
+	$("#previewPictionImage").removeAttr('style');
+	
+	// 영어 문장 삭제
+	$("#pictionAddDiv").find('.eng .form-control').text('');
+	// 한국어 문장 삭제
+	//$("#pictionAddDiv").find('.kor .form-control').innerText = '';
+}
+
+/** 
+ * 해당 취소버튼이 포함 된 픽션에서 예문 등록 및 수정폼, 댓글 등록폼의 내용을 초기화하고 닫음
+ */
+function cancelForm(pictionIndex){
+	$("#piction" + pictionIndex + " .add-sentence").hide(100,function(){
+		$("#piction" + pictionIndex + " .add-sentence").remove();
+	});
+	$("#piction" + pictionIndex + " .piction-comment-cover").hide(100);
+	
+	$("#editSentenceDiv" + pictionIndex).hide(300);
+	$("#openAddSentence_btn" + pictionIndex + ",#openAddSentence_btn_xs" + pictionIndex).show();
+	$("#cancel_btn" + pictionIndex + ",#cancel_btn_xs" + pictionIndex).hide();
+	$("#pictionCommentDiv" + pictionIndex).hide(300);
+	$("#korEdit" + pictionIndex).html(""); // 다 지움
+	$("#ko_sentence" + pictionIndex).val("");
+};
+
+/**
+ * 현재 단어를 기준으로 속해져 있는 알파벳의 단어들 중 이전, 다음 단어로 이동
+ */
+function moveAnotherWord(alphabet, direction) {
+	location.href= "/pictionary/word/move/" + alphabet 
+				+ "/" + direction + "/" + $("#wordId56").val();
+}
+
+/**
+ * 등록된 연관 단어를 화면에 표시
+ */
+function successAddRelatedWord(inputWord, relatedWords) {
+	var $recentWord = $("<span></span>").text(inputWord);
+	$(".RecentAddedWords").append($recentWord).show();
+	
+	var $relativeWords = $(".relativeWords").empty();
+	relatedWords.forEach(function(word) {
+		var $relativeWord = $("<div></div>").addClass("word-item active col-auto pr-3");
+		$relativeWord.append("<a href='/pictionary/word/related/" 
+							+ encodeURI(word.relatedTitle)
+							+ "'>" + word.relatedTitle + "</a>");
+		$relativeWords.append($relativeWord);
+	});
+	$relativeWords.show();
+	$(".firstRelated").hide();
+	$(".secondRelated").show();
+}
+
+/**
+ * 단어 수정 요청 폼 표시
+ */
+function successGetEditWordForm(meaningList){
+	// 모달 내용 초기화
+	$("#reportWordFormDiv .editMeaning").remove();
+	var msg = "단어 작성자가 수정된 내용이나 의도를 이해할 수 있도록 설명해 주세요.\n"
+		+ "ex1) 타동사 뜻에 오타가 있어서 수정 부탁드립니다.\n"
+		+ "ex2) 자동사 부분에 의미를 추가하였습니다.\n"
+		+ "ex3) 품사 '명사' 부분을 추가하였습니다.";
+	var length = meaningList.length;
+	for(var i = 0; i < length; i++){
+		var $meaningForm = $("#divsForCopy .editMeaning").clone();
+		var wmid = meaningList[i].wmid;
+		var category = meaningList[i].wtype;	//	품사
+		var meaning = meaningList[i].meaning;	//	뜻
+		$meaningForm.find(".meaningId").val(wmid);
+		$meaningForm.find("select option").each(function(i,opt){
+			if($(opt).val() == category){
+				$(opt).prop("selected", true);
+			}else{
+				$(opt).prop("selected", false);
+			}
+		});
+		$meaningForm.find(".removeMeaning").remove();
+		$meaningForm.find(".meaningContent")
+					.val(meaning)
+					.attr("data-org", meaning);
+		$meaningForm.find("textarea").attr("placeholder", msg);
+		$("#reportWordFormDiv .dynamicMeaningPlace").before($meaningForm);
+	}
+	$("#editWord_modal").modal("show");
+}
+
+/**
+ * 최대 대기 시간(사용자의 마지막 서버호출로부터 지난 시간)이 지나면 로그아웃.
+ */
+function beforeLogout() {
+	alert("작성제한 시간(120분)을 초과하여 로그인 페이지로 이동합니다.\n작성 중이던 내용은 저장되지 않습니다.");
+}
+</script> 
+</head>
+
+<section layout:fragment="content" 
+	th:with="wordId = ${pictionaryWordView.wordId}
+		, wordId56 = ${pictionaryWordView.id56}
+		, personacon = ${session?.userContainer?.personacon}">
+<input type="hidden" id="wordId" th:value="${wordId}">
+<input type="hidden" id="wordId56" th:value="${wordId56}">
+<input type="hidden" id="yourOrgId" th:value="${personacon.pid}">
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu::menu}"></div>
+<div id="menuSection" th:insert="~{/pictionary/incl/pictionary_menu::alphabetMenu}"></div>
+
+<!--/* ---------------------[piction picture Modal]----------------------- */-->
+<div id="pictionPicture_modal" class="piction-picture-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document"></div>
+</div>
+<div id="editWord_modal" class="report-form-modal modal fade" 
+	tabindex="-1" role="dialog">
+	<div class="modal-dialog" role="document"><div class="modal-body">
+	<!--/* 단어 수정 요청 폼 */-->
+	<div id="reportWordFormDiv" class="add-word-container add pictionary-word-section">
+		<div class="word-cover px-md-4 px-2 py-3">
+			<h5 class="guide-title"><i class="fa fa-wrench fa-fw"></i> 단어 수정 요청</h5>
+			<div class="guide-title-detail"><ul>
+				<li>새로운 품사 추가 시 <b>+</b> 버튼을 눌러 작성해 주세요.</li>
+				<li>기존 내용 수정 시에는 해당 텍스트 영역에서 재편집해 주세요.</li>
+				<li>재편집하거나 추가한 품사마다 수정 사유를 작성해 주세요.</li>
+			</ul></div>
+			<div class="add-word-div pb-2 row no-gutters">
+				<!-- WORD -->
+				<div class="col pl-2">
+					<span class="word">
+						<i class="fas fa-cube fa-fw"></i>
+						<span th:text="${pictionaryWordView.title}">word</span>
+					</span>
+				</div>
+				<div class="meaning-add-btn-section col-auto align-self-end">
+					<button type="button" class="addMeaning btn btn-pictionary2 btn-sm" title="품사 추가">
+						<i class="fa fa-plus"></i>
+					</button>
+				</div>
+			</div>
+			<!-- 단어 뜻이 들어갈 위치. 단어 뜻 수정 폼을 복사하여 구성  -->
+			<div class="dynamicMeaningPlace mt-3 row no-gutters"></div>
+			<div class="report-warning-guide">
+				※ 입력한 내용은 단어 작성자 확인 후 수정 처리됩니다.
+			</div>
+			<div class="row no-gutters">
+				<div class="col-md col-12 pr-1 pr-md-2 pb-1">
+					<div id="add_fail_div" class="fail-msg pt-md-3 pb-3" 
+						style="display: none;">
+						<span id="add_fail_msg"></span>
+					</div>
+					<div class="report-button-section mt-3 text-right">
+						<button type="button" id="reportEditWord"
+							class="btn btn-pictionary-add btn-sm" disabled>수정 요청</button>
+						<button data-dismiss="modal" type="reset"
+							class="btn btn-outline-pictionary btn-sm ml-2">취소</button>
+					</div>
+				</div>
+				<div class="add-word-meaning col-auto"></div>
+			</div>
+		</div>
+	</div>
+	</div></div>
+</div>
+
+
+<div class="row"><div class="col-lg"></div>
+<div id="pictionaryViewSection" class="pictionary-view-container col-lg-11 p-0 px-lg-3"
+	th:with="numberOfPictions = ${#lists.size(pictionaryWordView?.pictionList)}">
+
+<!-- ---------------------------[1. 픽셔너리 단어 정보]--------------------------- -->	
+<div id="wordDiv">
+<div class="word-info py-2 d-none d-md-block">
+	<button id="reportWord_btn" type="button" 
+		class="btn btn-outline-pictionary btn-sm jsAction">
+		<i class="fa fa-wrench"></i> 단어 수정 요청
+	</button>
+</div>
+
+
+<!--/*******************************************************************/-->
+<!--/* 				   	  	  wordDiv PC ver. 	 					   */--> 
+<!--/*******************************************************************/-->
+<div class="d-none d-md-block">
+	<div class="pictionary-word-section row no-gutters">
+		<!-- [1.1 단어 정보] -->
+		<div class="word-cover col-md-9 px-4 pb-3">
+			<div class="row no-gutters">
+				<div class="col mb-1">
+					<!-- 단어 -->
+					<span class="word">
+						<i class="fas fa-cube fa-fw"></i>
+						<span  th:text="${pictionaryWordView.title}">word</span>
+					</span>
+					<!-- 발음 기호 -->
+					<span th:text="${pictionaryWordView.phonetic}" 
+						class="pron">미국식 [wɜːrd]</span>
+					<!-- 단어 음성 -->
+					<button th:if="${pictionaryWordView.voicePath!=null}" 
+						th:data-path="${pictionaryWordView.voicePath}" 
+						th:onclick="playVoice('/resource/pictionary/word/voice/',$(this).attr('data-path'),3, this);"
+						class="btn btn-outline-pictionary jsAction">
+						<i class="fa fa-volume-up"></i>
+					</button>
+				</div>
+				<!-- 조회 수 -->
+				<div class="hits col-auto px-2 py-1 align-self-center">
+					<span class="title mr-1">hits</span>
+					<span class="num">[[${pictionaryWordView.hits}]]</span>
+				</div>
+			</div>
+			<!-- 단어 뜻 -->
+			<div class="meaning row no-gutters"></div>
+		</div>
+		<!-- [1.2 ranking list] -->
+		<div class="rank-cover col-md-3 pl-2"><div class="row no-gutters">
+			<!-- 단어 작성자 -->
+			<div class="title col-2 text-center align-self-center">
+				<i class="fa fa-star"></i><br>owner
+			</div>
+			<div class="col-auto" align="center" 
+				th:with="personacon=${pictionaryWordView.personacon}">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</div>
+			<div id="wordOwner" class="alias col px-1 align-self-center">[[${pictionaryWordView.personacon.alias}]]</div>
+			<div class="line w-100 pb-1 mb-1"></div>
+			<!-- 픽셔너리 랭킹 -->
+			<th:block  th:each="likesRank,likeRankIter:${writers}">
+				<div class="col-2 text-center align-self-center">
+					<i th:if="${likeRankIter.index<1}" class="fa fa-crown" style="color: gold;"></i>
+				</div>
+				<div class="alias col-7 align-self-center" 
+					th:text="${likesRank.key}">별명</div>
+				<div class="heart col-3 align-self-center">
+					<i class="fa fa-heart"></i>
+					<span th:text="${likesRank.value}">좋아요 수</span>
+				</div>
+			</th:block>
+		</div></div>
+	</div>
+</div><!-- end of wordDiv PC ver. -->
+
+
+<!--/*******************************************************************/-->
+<!--/* 				   	  	  wordDiv Mobile ver. 	 				   */--> 
+<!--/*******************************************************************/-->
+<div class="mobile-word-info-section d-md-none"><div class="pictionary-word-section">
+	<div class="nav nav-tabs row no-gutters">
+		<span class="nav-item col-3 text-center">
+			<a class="nav-link active" href="#wordInfo_xs" data-toggle="tab">
+				<i class="fa fa-book-open fa-lg"></i>
+			</a>
+		</span>
+		<span class="nav-item col-3 text-center">
+			<a class="nav-link" href="#wordRank_xs" data-toggle="tab">
+				<i class="fa fa-crown fa-lg"></i>
+			</a>
+		</span>
+	</div>
+	
+	<div class="tab-content">
+		<!-- [1.1 단어 정보] -->
+		<div id="wordInfo_xs" class="word-cover tab-pane fade px-1 show active">
+			<!-- 단어, 단어 음성 -->
+			<div th:if="${pictionaryWordView.voicePath!=null}" 
+				th:data-path="${pictionaryWordView.voicePath}" class="word"
+				onclick="playVoice('/resource/pictionary/word/voice/',$(this).attr('data-path'),3, this);">
+				<i class="fa fa-cube fa-fw"></i>
+				<span th:text="${pictionaryWordView.title}">word</span>
+				<!-- VOICE -->
+				<button class="btn btn-outline-pictionary jsAction">
+					<i class="fa fa-volume-up"></i>
+				</button>
+			</div>
+			<div th:unless="${pictionaryWordView.voicePath!=null}" class="word">
+				<i class="fa fa-cube fa-fw"></i>
+				<span th:text="${pictionaryWordView.title}">word</span>
+			</div>
+			<!-- 발음 기호 -->
+			<div>
+				<span class="pron" th:text="${pictionaryWordView.phonetic}">미국식 [wɜːrd]</span>
+			</div>
+			<!-- 단어 뜻 -->
+			<div class="meaningXs explain_xs row no-gutters">
+			</div>
+		</div>
+		<!-- [1.2 ranking list] -->
+		<div id="wordRank_xs" class="rank-cover tab-pane fade px-1"><div class="row no-gutters">
+			<!-- 단어 작성자 -->
+			<div class="title col-2 py-2 text-center align-self-center">
+				<i class="fa fa-star"></i><br>owner
+			</div>
+			<div class="col-auto py-2" align="center" 
+				th:with="personacon=${pictionaryWordView.personacon}">
+				<th:block th:replace="~{/incl/user_personacon::user_sm}"></th:block>
+			</div>
+			<div class="alias col px-1 py-2 align-self-center">[[${pictionaryWordView.personacon.alias}]]</div>
+			<div class="line w-100 pb-1 mb-2"></div>
+			
+			<!-- 픽셔너리 랭킹 -->
+			<th:block th:each="likesRank,likeRankIter:${writers}">
+			<div class="col-2 text-center align-self-center">
+				<i th:if="${likeRankIter.index<1}" class="fa fa-crown" style="color: gold;"></i>
+			</div>
+			<div class="alias col-7 align-self-center" th:text="${likesRank.key}">별명</div>
+			<div class="heart col-3 align-self-center">
+				<i class="fa fa-heart"></i>
+				<span th:text="${likesRank.value}">좋아요 수</span>
+			</div>
+			</th:block>
+			
+		</div></div>
+	</div><!-- end of tab-content -->
+
+</div></div><!-- end of wordDiv Mobile ver. -->
+
+<div class="pictionary-addbutton-section row no-gutters">
+	<div class="col-auto px-md-0 px-2 align-self-center">
+		<button id="scrollAddPictionDiv_btn" th:if="${numberOfPictions < 10}" 
+			type="button" class="btn btn-outline-pictionary jsAction">
+			New Picture 등록 <i class="far fa-images"></i>
+		</button>
+	</div>
+	<div class="col-md-auto col px-2 text-right align-self-center">
+		<button id="scrollCommentDiv_btn" 
+			type="button" class="btn btn-outline-pictionary jsAction">
+			Comment <i class="far fa-comment-dots"></i>
+		</button>
+	</div>
+	<div class="sentence-hide-icon col-auto pl-2 align-self-center d-none d-md-inline">
+		<i class="fa fa-pencil-alt fa-fw fa-flip-horizontal"></i>
+	</div>
+	<div class="sentence-hide-cover2 col-md pl-2 d-none d-md-inline">
+		사진을 보고
+		<span class="alias">[[${personacon?.alias}]]</span>
+		님이 생각하는 
+		<span class="word">[[${pictionaryWordView.title}]]</span>
+		스토리를 먼저 구성해 보세요.<br class="d-none d-lg-block">
+		효과적인 암기법은 외운 것을 자주 인출하는 것입니다.
+	</div>
+</div>
+		
+</div><!-- end of wordDiv -->
+	
+	
+<!-- -----------------------------[2. 연관 단어]------------------------------- -->
+<div id="relativeWordDiv" class="relativeword-div my-md-5 mt-1 mb-4">
+	<div class="relative-word">
+		<!-- [2.1 연관 단어 가이드] -->
+		<div class="secondRelated create-word-list-guide"
+			th:style="${relatedWordList !=null AND #lists.size(relatedWordList) > 0}?
+			'':'display:none'">
+			<div class="relativeGuideMsg sub-title">
+				<span class="word" th:text="${pictionaryWordView.title}"></span>
+				의 연관 단어를 익혀 보세요 <i class="fa fa-link fa-lg"></i>
+			</div>
+			<div class="detail-body d-none d-md-block">
+				유의어, 반의어 등을 통해 단어의 의미와 어휘력을 확장해 봅시다.<br class="d-none d-sm-block">
+				어휘력과 함께 포인트도 챙기고 회원들과 지식도 공유해 봅시다.
+			</div>
+		</div>
+		<div class="firstRelated create-word-list-guide" 
+			th:style="${relatedWordList ==null OR #lists.size(relatedWordList) == 0}?
+			'':'display:none'">
+			<div class="relativeGuideMsg sub-title">
+				등록된 <span class="word" th:text="${pictionaryWordView.title}"></span>
+				연관 단어가 아직 없습니다
+			</div>
+			<div class="detail-body">
+				<span class="d-none d-md-block">
+				뜻에 대한 다양한 단어 또는 반의어를 익히면 단어를 풍부하게 사용할 수 있습니다.<br></span>
+				자신이 아는 [[${pictionaryWordView.title}]]의 유사어, 반의어를 입력해 보세요.<br>
+				<span class="d-none d-md-block">
+				어휘력과 함께 포인트도 챙기고 회원들과 지식도 공유해 봅시다.</span>
+			</div>
+		</div>
+		<!-- [2.2 연관 단어 입력 폼] -->
+		<div class="row no-gutters">
+			<form id="addRelativeWordForm">
+				<div class="add-related-cover col-md-auto col-12 align-self-center"><div class="row no-gutters">
+					<div class="col" style="position: relative;">
+						<input id="relativeWordText" type="text" class="checkEng form-control" 
+							placeholder="연관 단어를 입력해 주세요"/>
+						<div class="warning-msg-section" style="display: none;">
+							<div class="text-warning-msg">영어만 입력해 주세요.</div>
+						</div>	
+					</div>
+					<div class="col-auto pl-1">
+						<button id="relativeWordBtn" type="submit" disabled
+							class="btn btn-pictionary2">등록</button>
+					</div>
+				</div></div>
+			</form>
+			<div class="RecentAddedWords recent-add-word col-md col-12 align-self-center 
+				pt-md-0 pt-3" style="display: none;">
+				<span class="sub-title">방금 입력한 단어 <i class="fa fa-caret-right"></i> </span>
+			</div>
+		</div>
+		<div class="relativeWords relative-words-cover row no-gutters"
+			th:style="${relatedWordList != null AND #lists.size(relatedWordList) > 0}?'':'display:none'">
+			<div th:each="relatedWord:${relatedWordList}" class="word-item active col-auto pr-3">
+				<a th:href="@{/pictionary/word/related/{eng}
+					(eng=${relatedWord.relatedTitle})}" 
+					th:text="${relatedWord.relatedTitle}">
+				</a>
+			</div>
+		</div>
+	</div>
+</div><!-- end of relativeWordDiv -->
+
+
+<!-- -----------------------------[3. 픽션 리스트]------------------------------ -->	
+<div id="pictionListDiv" class="pictionary-piction-list-section mt-md-5">
+<!-- [3.1 픽션 리스트] -->
+<div th:each="piction,iterStat : ${pictionaryWordView.pictionList}"
+	class="piction-cover-section"
+	th:if="${!piction?.xratePic OR #strings.toString(xrateGold) != 'U'}">
+	<div class="piction-background" th:classappend="${piction.xratePic?'plus':''}"></div>
+	<!--/* ------------플러스 픽션이 아니거나 사용자가 성인이고 골드인 경우 표시 부분-----------*/-->
+	<div th:if="${!piction.xratePic} OR ${xrateGold} == 'G'" 
+		th:id="'piction' + ${iterStat.index}" th:data-org="${piction.imagePath}" 
+		th:data-pictionid="${piction.pid}" th:data-xrate="${piction.xratePic}" 
+		class="piction-cover row no-gutters" th:classappend="${piction.xratePic?'plus':''}">
+		<!-- [픽션 정보 (Mobile ver.)] -->
+		<div class="piction-info-mobile col-12 row no-gutters">
+			<div class="mobile-fold-personacon col-auto"></div>
+			<div class="piction-mobile-heart col align-self-center">
+				<i class="fa fa-heart"></i>
+				<span class="pictionLike">23</span>
+			</div>
+			<div class="col-auto align-self-center">
+				<span class="paren">[</span>
+				Piction <span class="num">[[${iterStat.count}]]</span>
+				<span class="paren">]</span>
+			</div>
+		</div>
+		<!-- [센텐스 등록자 퍼스타콘 (Mobile ver.)] -->
+		<div class="sentencePersonaconGroup mobile-fold-personacon col-auto align-self-center">
+			
+		</div>
+		
+		<!-- [픽션 사진] -->
+		<div class="piction-width-define col-md-4 col-auto">
+			<div class="originPictionArea piction-picture">
+				<input type="hidden" th:id="'pictionMemberAlias' + ${iterStat.index}" 
+					th:value="${piction.personacon.alias}">
+				<input type="hidden" th:id="'pictionMemberType' + ${iterStat.index}" 
+					th:value="${piction.personacon.memberType}">
+				<div class="piction-picture-cover ver2">
+					<img src="/images/app/pictionary/piction_paper.png" 
+						class="display-piction-picture piction-img jsAction" 
+						th:style="'background: url(\''+@{'/resource/pictionary/images/' + ${piction.imagePath}}+'\') no-repeat;
+						background-size: cover; background-position: center;'">
+				</div>
+				<!-- 사진 수정 버튼 (PC ver.)  -->
+				<div class="edit-buttons text-right px-1 py-2">
+					<th:block th:if="${#strings.equalsIgnoreCase(piction.personacon.pid, personacon?.pid)}
+						OR ${personacon?.memberType} == 'A'">
+						<button th:if="${xrateGold} == 'G'" 
+							type="button" th:data-xrateonly="true" 
+							class="openEditPictureBtn btn btn-xs btn-pictionary jsAction">
+							이미지 등급 수정
+						</button>
+						<button type="button" th:data-xrateonly="false" 
+							th:id="'moveEditPiction_btn' + ${iterStat.index}" 
+							class="openEditPictureBtn btn btn-xs btn-pictionary jsAction">
+							이미지 수정
+						</button>
+					</th:block>
+					<button th:unless="${#strings.equalsIgnoreCase(piction.personacon.pid, personacon?.pid)}"
+						type="button" class="pictionReport btn btn-xs btn-pictionary jsAction">이미지 신고 <i class="fa fa-flag"></i> 
+					</button>
+				</div>
+				<!-- 댓글, 예문추가 버튼 (PC ver.) -->
+				<div class="add-buttons ver2 text-right">
+					<button type="button" title="댓글" 
+						class="pictionCommentBtn btn btn-sm btn-outline-secondary float-left">
+						<i class="fas fa-comment-dots fa-lg"></i>
+						<span>댓글</span>
+					</button>
+					<button type="button" class="btn btn-sm btn-outline-secondary"
+						th:onclick="'openAddSentenceForm(this,' + ${iterStat.index} + ')'">
+						<i class="fas fa-plus-circle fa-lg"></i>
+						<span>예문 추가</span>
+					</button>
+				</div>
+			</div>
+			<div class="editPictureFormArea"></div>
+		</div>
+		
+		<!-- [픽션 센텐스] -->
+		<div th:with="word_owner=${pictionaryWordView.memberId}, 
+			piction_owner=${piction.personacon.pid}" 
+			class="piction-sentence col-md-8"><div class="sentence-back">
+			<div th:id="'picSent' + ${iterStat.index} + ${iterStat2.index}" 
+				th:if="${piction.picSentenceList}" 
+				class="piction-sentence-one pl-md-3 row no-gutters" 
+				th:each="picSent,iterStat2:${piction.picSentenceList}">
+				<div class="sentence-one-cover col">
+					<!-- piction sentence input hidden -->
+					<input th:id="'re_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${picSent.eng}" />
+					<input th:id="'emp_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${picSent.emLoc}"/>
+					<input th:id="'size_sentence' + ${iterStat.index}" 
+						type="hidden" th:value="${iterStat2.size}"/> 
+					<input th:id="'kor_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${picSent.kor}" />
+					<input th:id="'id_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${picSent.sid}"/>
+					<input th:id="'isWordOwner' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${(word_owner == picSent.personacon.pid)}"/>
+					<input th:id="'isPictionOwner' + ${iterStat.index} + ${iterStat2.index}" 
+						type="hidden" th:value="${(piction_owner == picSent.personacon.pid)}"/>
+					
+					<!-- 영어 예문 -->
+					<div class="eng">
+						<span th:id="'en_sentence' + ${iterStat.index} + ${iterStat2.index}"></span>
+					</div>
+					<!-- 한국어 해석 / 예문 관리 버튼 (PC ver.) -->
+					<div class="kor">
+						<span th:id="'ko_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+							th:text="${picSent.kor}"></span>
+					</div>
+					<!-- 등록자 정보 / 수정, 삭제 버튼, 좋아요 -->
+					<div class="owner pt-2"><div class="row no-gutters">
+						<div class="sentence-one-personacon col-auto align-self-center d-md-none" 
+							th:with="personacon=${picSent.personacon}">
+							<input type="hidden" class="sentenceWriter" 
+								th:value="${personacon.iconPath}">
+							<img th:if="${personacon.iconPath}" 
+								src="/images/app/member/profile_paper.png"
+								th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+								background-position: center; background-size: cover;'">
+							<img th:unless="${personacon.iconPath}" 
+								src="/images/app/member/profile_paper.png"
+								class="profile-default">
+						</div>
+						<div class="alias col align-self-start pr-2 d-md-none"
+							th:text="${picSent.personacon.alias}">예문 등록자 별명</div>
+						<div th:if="${#strings.equalsIgnoreCase(picSent.personacon.pid, personacon?.pid)}
+							OR ${personacon?.memberType} == 'A'"
+							class="sentence-button-section col-auto align-self-start pr-2">
+							<button th:data-idx1="${iterStat.index}" th:data-idx2="${iterStat2.index}" 
+								onclick="toggleEditSentenceForm(this,$(this).attr('data-idx1'),$(this).attr('data-idx2'))" 
+								class="btn btn-outline-pictionary2 btn-xs jsAction" title="예문 수정">
+								<i class="fa fa-pen fa-fw"></i>
+							</button>
+							<button th:data-idx1="${iterStat.index}" th:data-idx2="${iterStat2.index}" 
+								onclick="delete_sentence($(this).attr('data-idx1'),$(this).attr('data-idx2'))" 
+								class="btn btn-outline-pictionary2 btn-xs jsAction" title="예문 삭제">
+								<i class="fa fa-times fa-fw"></i>
+							</button>
+						</div>
+						<div th:if="${picSent.jungleSentence != null}"
+							class="sentence-button-section sound col-md-auto col 
+							text-md-left text-right align-self-start">
+							<button th:id="'vo_sentence' + ${iterStat.index} + ${iterStat2.index}" 
+								th:data-path="${picSent.jungleSentence?.jid}" 
+								onclick="playVoice('/pictionary/sentence/voice/',$(this).attr('data-path'),3, this)" 
+								class="btn btn-outline-pictionary btn-xs jsAction" title="예문 음성">
+								<i class="fa fa-headphones-alt fa-fw"></i>
+							</button>
+						</div>
+						<div class="heart col-md col-auto align-self-start pl-2">
+							<a th:data-idx1="${iterStat.index}" th:data-idx2="${iterStat2.index}" title="좋아요" 
+								onclick="likeThisSentence($(this).attr('data-idx1'),$(this).attr('data-idx2'))"> 
+								<i th:id="'like' + ${iterStat.index} + ${iterStat2.index} + 'xs'" 
+									class="fa fa-heart" style="color: #d8d8d8;"></i>
+								<span th:id="'likeCount' + ${iterStat.index} + ${iterStat2.index} + 'xs'" style="color:#444;"> 
+									[[${picSent.likeCount}]] 
+								</span>
+							</a>
+						</div>
+					</div></div>
+				</div>
+				<div class="owner col-auto pl-1 d-none d-md-inline" 
+					th:with="personacon=${picSent.personacon}" align="center">
+					<th:block th:replace="~{/incl/user_personacon::user_md}"></th:block>
+					<div class="alias pt-1" th:text="${picSent.personacon.alias}">예문 등록자 별명</div>
+				</div>
+			</div>
+			<!-- 등록한 예문이 들어가는 곳 -->
+			<div th:id="'pasteSent' + ${iterStat.index}"></div></div>
+			<div class="sentence-hide-cover ver2 text-center">
+				<div class="hide-guide">
+					Wait!<br>
+					Make up Your Story
+				</div>
+			</div>
+		</div>
+		
+		<!-- 사진 수정 버튼 (mobile ver.) -->
+		<div class="edit-buttons mobile-ver col d-md-none align-self-center">
+			<th:block th:if="${#strings.equalsIgnoreCase(piction.personacon.pid, personacon?.pid)}
+				OR ${personacon?.memberType} == 'A'">
+				<button th:if="${xrateGold} == 'G'" type="button" th:data-xrateonly="true"
+					class="openEditPictureBtn btn btn-xs btn-outline-pictionary jsAction">
+					이미지 등급 수정
+				</button>
+				<button th:id="'moveEditPiction_btn' + ${iterStat.index}" 
+					type="button" class="openEditPictureBtn btn btn-xs 
+					btn-outline-pictionary jsAction" th:data-xrateonly="false">
+					이미지 수정
+				</button>
+			</th:block>
+			<button th:if="${!#strings.equalsIgnoreCase(piction.personacon.pid, personacon?.pid)}" 
+				type="button" class="pictionReport btn btn-xs btn-outline-pictionary jsAction">이미지 신고 <i class="fa fa-flag"></i> 
+			</button>
+		</div>
+		
+		<!-- 댓글, 예문추가 버튼 (Mobile ver.) -->
+		<div class="add-text-buttons col-auto py-2 d-md-none align-self-center">
+			<button type="button" title="댓글" 
+				class="pictionCommentBtn btn btn-sm btn-outline-secondary">
+				<i class="fas fa-comment-dots fa-lg"></i>
+			</button>
+			<button type="button" class="btn btn-sm btn-outline-secondary" 
+				th:onclick="'openAddSentenceForm(this,' + ${iterStat.index} + ')'">
+				<i class="fas fa-pencil-alt fa-lg"></i>
+			</button>
+		</div>
+		
+		<!-- 픽션 센텐스 등록 -->
+		<div class="col-12">
+			<input th:id="'pictionaryId' + ${iterStat.index}" name="pictionaryId" 
+				type="hidden" th:value="${wordId}" class="pictionaryId"/> 
+			<input th:id="'pictionId' + ${iterStat.index}" name="pictionId" 
+				type="hidden" th:value="${piction.pid}" class="pictionId"/>
+			<input th:id="'real_eng' + ${iterStat.index}" type="hidden" />
+			<input th:id="'emp_list' + ${iterStat.index}" type="hidden" />
+			<!-- 예문 등록 폼 추가되는 곳 -->
+			<div class="addPictionSentence"></div>
+		</div>
+		
+		<!-- 픽션 센텐스 수정 폼 추가되는 곳 -->
+		<div class="editPictionSentence col-12"></div>
+		
+		<div class="activeSentenceXs active-sentence-area"></div>
+		<div class="closeSentenceBtn close-sentence-btn">
+			<i class="fa fa-angle-up"></i>
+		</div>
+		<div class="activePictureXs active-picture-area"></div>
+	</div>		
+	<!--/* ----------플러스 픽션이고 사용자가 성인이지만 골드가 아닌 경우 표시 부분----------*/-->
+	<div th:if="${piction.xratePic} AND ${xrateGold} == 'M'" 
+		class="piction-cover plus row no-gutters">
+		<!-- [픽션 사진] -->
+		<div class="col-md-4">
+			<div class="piction-picture">
+				<div class="piction-picture-cover ver2">
+					<img src="/images/app/pictionary/piction_paper.png" 
+						class="piction-img none">
+				</div>
+				<!-- 댓글, 예문추가 버튼 (PC ver.) -->
+				<div class="add-buttons ver2 text-right">
+					<button type="button" class="btn btn-sm btn-outline-secondary float-left" title="댓글">
+						<i class="fas fa-comment-dots fa-lg"></i>
+						<span>댓글</span>
+					</button>
+					<button type="button" class="btn btn-sm btn-outline-secondary">
+						<i class="fas fa-plus-circle fa-lg"></i>
+						<span>예문 추가</span>
+					</button>
+				</div>
+			</div>
+		</div>
+		<!-- [픽션 예문] -->
+		<div class="piction-sentence col-md-8">
+			<div class="sentence-hide-cover ver2 text-center"></div>
+		</div>
+		<div class="ment-position">
+			<div class="ment-section">
+				<h3 class="title">
+					<span class="pv-tm">pictionary plus</span>
+				</h3>
+				<div>
+					<span class="pv-tm">pictionary plus</span> 는
+					이미지를 통한 기억력 자극을 극대화하기 위해<br class="d-none d-md-block">
+					선정적, 폭력적 이미지들이나 콘텐츠들이 포함될 수 있어<br class="d-none d-md-block">
+					인증받은 골드회원(성인)들에게만 제공됩니다. 
+				</div>
+			</div>
+		</div>
+	</div><!-- end of piction-cover -->
+</div>
+</div><!-- end of pictionListDiv -->	
+	
+<!-- 단어 목록 버튼 (PC ver.) -->		
+<div class="word-info py-2 d-none d-md-block"><div class="row no-gutters">
+	<div class="col">
+		<a onclick="backToList()" class="btn btn-pictionary btn-sm jsAction">
+			<i class="fa fa-th-large"></i> 단어 목록
+		</a>
+	</div>
+	<div class="col-auto text-right">
+		<button type="button" class="btn btn-pictionary btn-sm jsAction mr-2" 
+			th:data-init="${#strings.substring(pictionaryWordView.title,0,1)}"
+			th:onclick="moveAnotherWord($(this).attr('data-init'),'p')">
+			<i class="fa fa-angle-left fa-lg"></i> 이전 단어
+		</button>
+		<button type="button" class="btn btn-pictionary btn-sm jsAction" 
+			th:data-init="${#strings.substring(pictionaryWordView.title,0,1)}" 
+			th:onclick="moveAnotherWord($(this).attr('data-init'),'n')">
+			다음 단어 <i class="fa fa-angle-right fa-lg"></i>
+		</button>
+	</div>
+</div></div>	
+	
+	
+<!-- 단어 목록 버튼 (Mobile ver.) -->	
+<div class="word-info py-2 d-md-none"><div class="row no-gutters">
+	<div class="col-3 align-self-center">
+		<a onclick="backToList()" class="btn btn-outline-pictionary btn-sm">
+			<i class="fa fa-th-large"></i>
+		</a>
+	</div>
+	<div class="col-9 text-right align-self-center">
+		<button type="button" class="btn btn-outline-pictionary btn-sm" 
+			th:data-init="${#strings.substring(pictionaryWordView.title,0,1)}"
+			th:onclick="moveAnotherWord($(this).attr('data-init'),'p')">
+			<i class="fa fa-angle-left fa-lg"></i> 이전
+		</button>
+		<button type="button" class="btn btn-outline-pictionary btn-sm" 
+			th:data-init="${#strings.substring(pictionaryWordView.title,0,1)}" 
+			th:onclick="moveAnotherWord($(this).attr('data-init'),'n')">
+			다음 <i class="fa fa-angle-right fa-lg"></i>
+		</button>
+	</div>
+</div></div>
+
+
+<!-- ------------------------------[4. 댓글]--------------------------------- -->
+<div id="pictionaryCommentDiv" class="pictionary-comment-section">	
+	<div class="create-word-list-guide">
+		<div class="sub-title">
+			<span class="word" th:text="${pictionaryWordView.title}"></span>
+			에 대한 다양한 댓글을 남겨보세요
+		</div>
+		<div class="detail-body d-none d-md-block">
+			단어나 예문에 대한 질문과 답변, 예문의 추가 설명, 이미지와 예문에 대한 감상평 등을 남겨보세요.
+		</div>
+	</div>
+	
+	<div class="pictionary-comment-cover" 
+		th:with="appContentWriter=${pictionaryWordView.alias},
+		appDomain='pictionary', appContentId=${wordId}">
+		<div th:insert="~{/common/comment::comment}" 
+			class="pictionary-comment-back"></div>
+	</div>
+</div><!-- end of pictionaryCommentDiv -->
+
+
+<!-- ------------------------[5. 픽션 등록 ]------------------------- -->
+<div id="pictionAddDiv" class="pictionary-piction-add-section mt-3 mt-md-5">
+	<div id="addPictionDiv" class="piction-add-inview">
+		<div th:unless=${personacon} class="piction-guide-alt text-center pb-4">
+			<a th:href="@{/auth/login?destPage={dest}(dest=${#request.requestURI})}">
+				<br>로그인 후 사진과 예문 등록하기
+			</a>
+		</div>
+		<form id="pictionForm" th:if="${personacon}" method="post"
+			th:action="@{/pictionary/piction/add}" enctype="multipart/form-data">
+			<input type="hidden" name="alphabet" 
+				th:value="${#strings.substring(pictionaryWordView.title, 0, 1)}">
+			<input type="hidden" name="wordId" th:value="${wordId}"/>
+			<input type="hidden" name="wordTitle" th:value="${pictionaryWordView.title}"/>
+			<div th:replace="~{/pictionary/incl/add_piction_incl::add_piction}"></div>
+			<div id="add_fail_div" class="fail-msg pt-md-4 pb-3" style="display: none;">
+				<span id="add_fail_msg"></span>
+			</div>
+			<div class="add-button-section text-center pt-md-4 pt-0">
+				<button id="addPiction_btn" type="button" 
+					class="btn btn-pictionary-add jsAction"> 등록 </button>
+				<button type="reset" onclick="cancelAddPictionForm(this)" class="btn btn-outline-pictionary jsAction"> 취소 </button>
+			</div>
+		</form>
+	</div>
+</div><!-- end of pictionAddDiv -->
+
+
+
+</div><!-- end of pictionaryViewSection -->
+
+<div class="col-lg"></div></div>
+
+
+<!-- ------------------------- divs for Copy ------------------------------- -->
+<div id="divsForCopy" style="display: none;">
+	
+<!--/* 예문 등록 폼 */-->
+<div id="addSentenceForm" class="formContainer add-sentence" style="display: none;">
+	<h3>Adding Sentence</h3>
+	<div class="row no-gutters">
+		<div class="col-md-auto d-none d-md-inline" align="center">
+			<th:block th:insert="~{/incl/user_personacon::md}"></th:block>
+		</div>
+		<div class="col-md pl-md-3 align-self-center">
+			<div class="form-group">
+				<div contenteditable="true" class="checkEng en_sentence form-control"
+					style="-webkit-user-select:auto; height: auto;"
+					onkeyup="enkeyup(this)" 					
+					data-placeholder="단어가 포함된 영어 예문을 입력해 주세요"></div>
+				<div class="warning-msg-section" style="display: none;">
+					<div class="text-warning-msg">영어만 입력해 주세요.</div>
+				</div>
+			</div>
+			<div class="form-group">
+				<input type="text" placeholder="예문의 한국어 해석을 입력해 주세요" 
+					class="ko_sentence form-control"/>
+			</div>
+			<div class="row no-gutters">
+				<div class="buttons col-auto align-self-center pb-2 pb-sm-0">
+					<button onclick="document.execCommand('bold');" type="button" 
+						class="btn btn-secondary btn-xs jsAction">
+						<i lang="fa" class="fa fa-bold"></i> 강조 
+					</button>
+				</div>
+				<div class="guide col align-self-center px-2 pb-2 pb-sm-0">
+					영어 예문의 강조하고 싶은 곳을 부분선택하여 강조 버튼을 눌러주세요.
+				</div>
+			</div>
+			<div class="choice-voice-type form-group row no-gutters">
+				<div class="choice-type-title col-auto align-self-center">이 예문은</div>
+				<div class="choice-type-detail col-auto px-2 align-self-center">
+					<label><input name="voiceSex" checked type="radio"
+						class="option-input radio" value="M"/> 남성</label>
+					<label class="ml-md-2"><input name="voiceSex" type="radio"
+						class="option-input radio" value="W"/> 여성</label>
+				</div>
+				<div class="choice-type-title col align-self-center">
+					목소리와 어울립니다.
+				</div>
+			</div>
+			<div class="addSentenceButtonDiv py-md-0 py-3 text-right">
+				<button type="button" class="addSentence-btn btn btn-pictionary ml-2">등록</button>
+				<button onclick="cancelAddSentenceForm(this)" type="reset" 
+					class="btn btn-outline-pictionary">취소</button>
+			</div>
+		</div>
+	</div>
+</div><!--  end of addSentenceDiv -->
+
+
+<!--/* sentenceDiv for appended */-->
+<div id="sentenceDiv_copy" 
+	class="picSent-copy piction-sentence-one pl-md-3 row no-gutters"
+	style="display: none;">
+	<div class="sentence-one-cover col">
+		<input type="hidden" class="re-sentence"/>
+		<input type="hidden" class="emp-sentence"/>
+		<input type="hidden" class="size-sentence"/> 
+		<input type="hidden" class="kor-sentence"/>
+		<input type="hidden" class="id-sentence"/>
+		<input type="hidden" class="re-owner"/>
+		<input type="hidden" class="pic-owner"/>
+		<input type="hidden" class="sex-voice">
+		
+		<!-- 영어 예문 -->
+		<div class="eng">
+			<span class="en-sentence"></span>
+		</div>
+		<!-- 한국어 해석 / 예문 관리 버튼 (PC ver.) -->
+		<div class="kor">
+			<span class="ko-sentence ko"></span>
+		</div>
+		<!-- 등록자 정보 / 수정, 삭제 버튼, 좋아요 -->
+		<div class="owner pt-2"><div class="row no-gutters">
+			<div class="sentence-one-personacon col-auto align-self-center d-md-none">
+				<input type="hidden" class="sentenceWriter" th:value="${personacon.iconPath}">
+				<img th:if="${personacon.iconPath}" 
+					src="/images/app/member/profile_paper.png"
+					th:style="'background: url(\'/resource/profile/' +${personacon.iconPath} +'\') no-repeat;
+					background-position: center; background-size: cover;'">
+				<img th:unless="${personacon.iconPath}" 
+					src="/images/app/member/profile_paper.png"
+					class="profile-default">
+			</div>
+			<div class="alias col align-self-start pr-2 d-md-none">
+				[[${personacon?.alias}]]
+			</div>
+			<div class="sentence-button-section col-auto align-self-start pr-3">
+				<button type="button" title="예문 수정"
+					class="edit-sentence btn btn-outline-pictionary2 btn-xs jsAction">
+					<i class="fa fa-pen fa-fw"></i>
+				</button>
+				<button type="button" title="예문 삭제" 
+					class="delete-sentence btn btn-outline-pictionary2 btn-xs jsAction">
+					 <i class="fa fa-times fa-fw"></i> 
+				</button>
+			</div>
+			<div class="sentence-button-section sound col-md-auto col 
+				text-md-left text-right align-self-start">
+				<button type="button" title="예문 음성" 
+					class="sentenceVoice btn btn-outline-pictionary btn-xs jsAction">
+					<i  class="fa fa-headphones-alt fa-fw"></i>
+				</button>
+			</div>
+			<div class="likeSection heart col-md col-auto align-self-start pl-3">
+				<a> 
+					<i class="likeIcon fa fa-heart" style="color: #d8d8d8;"></i>
+					<span style="color:#444;">0</span>
+				</a>
+			</div>
+		</div></div>
+	</div>
+	<div class="owner col-auto pl-1 d-none d-md-inline" align="center">
+		<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+		<div class="alias-md alias pt-1">[[${personacon?.alias}]]</div>
+	</div>
+</div>
+
+<!--/* 사진 수정 폼 */-->
+<div id="editPictureFormDiv" class="editPictureDiv piction-picture" style="height: 100%;">
+	<form class="editPictureForm" method="post" th:action="@{/pictionary/piction/edit}"
+		enctype="multipart/form-data">
+		<input type="hidden" name="wordId" th:value="${wordId}">
+		<input type="hidden" name="memberId" th:value="${personacon?.pid}">
+		<input type="hidden" name="pictionId">
+		<input type="hidden" name="xrateEditOnly">
+		<input type="hidden" name="orgFile">
+		<div class="piction-picture-cover ver2">
+			<input name="pictionImage" class="editPictureUpload" type="file" accept="image/*" 
+				style="display: none;"/>
+			<div class="editPictionImage piction-picture jsAction">
+				<a><img src="/images/app/pictionary/piction_paper.png" 
+					class="previewPictionEditImage piction-img" 
+					style="background: url(/images/app/pictionary/piction_empty.png) no-repeat;
+					background-size: cover; background-position: center;"></a>
+				<div class="add-button text-center">
+					<a><i lang="fa" class="fa fa-plus-circle fa-4x"></i></a>
+				</div>
+			</div>
+		</div>
+		<div class="choice-piction-plus choice-type-detail add-buttons ver2">
+			<input type="hidden" class="xrateOrg">
+			<div>
+				<span class="choice-piction-title">이미지 등급 : </span>
+				<label><input name="xratePic" type="radio" value="false" 
+					class="pictionaryPlus option-input radio" checked/>일반</label>
+				<label th:if="${xrateGold} == 'G'" class="second-label plus-label">
+					<input name="xratePic" type="radio" value="true" 
+						class="pictionaryPlus option-input radio"/>19 <sup>+</sup>
+				</label>
+			</div>
+			<div class="text-right pt-2">
+				<button class="editPictureBtn btn btn-pictionary mr-2" 
+					type="button">수정</button>
+				<button class="cancelEditPictureBtn btn btn-outline-pictionary" 
+					type="button">취소</button>
+			</div>
+		</div>
+	</form>
+</div>
+
+<!--/* 단어 뜻 수정 폼 for Copy*/-->
+<div class="editMeaning report-meaning-section meaning row no-gutters">
+	<input type="hidden" class="meaningId">
+	<div class="col-md-2 col-3 pb-1">
+		<select class="form-control">
+			<option value="0" selected>-- 품사--</option>
+			<option value="100" >동사</option>
+			<option value="110" >자동사</option>
+			<option value="120" >타동사</option>
+			<option value="200" >명사</option>
+			<option value="210" >대명사</option>
+			<option value="300" >형용사</option>
+			<option value="400" >부사</option>
+			<option value="500" >전치사</option>
+			<option value="600" >접속사</option>
+			<option value="700" >감탄사</option>
+		</select>
+	</div>
+	<div class="col pl-2 pr-1 pr-md-2 mb-1">
+		<input type="text" class="meaningContent pictionary-mean form-control" 
+			placeholder="단어 뜻 (50자 이내)"/>
+		<div class="meanWarnMsg"></div>
+	</div>
+	<div class="add-word-meaning col-auto">
+		<button type="button" 
+			class="removeMeaning btn btn-sm btn-danger" title="삭제">
+			<i class="fa fa-times"></i>
+		</button>
+	</div><div class="w-100"></div>
+	<div class="report-comment-section col pr-1 pr-md-2 mb-1" style="display: none;">
+		<textarea class="report-word-form form-control"></textarea>			
+	</div><div class="add-word-meaning col-auto"></div>
+</div>
+
+<!--/* 픽션 댓글 폼 */-->
+<div id="pictionCommentForm" class="pictionCommentForm row no-gutters">
+	<div class="col-md-auto d-none d-md-block py-2">
+		<th:block th:replace="~{/incl/user_personacon::md}"></th:block>
+	</div>
+	<div class="col-md col-12 pl-md-2 pt-1 row no-gutters">
+		<div class="pictionImgCover col-auto pt-1">
+			<!-- 썸네일 이미지 들어갈 영역 -->
+			<img src="/images/app/pictionary/piction_paper.png" class="piction-img" 
+				style="background: url(/images/app/pictionary/contents/3.jpg) no-repeat;
+				background-size: cover; background-position: center;">
+		</div>
+		<div class="col pl-2">
+			<div>
+				<textarea placeholder="댓글을 입력해 주세요" rows="1" 
+					class="comment-textarea controlComment" ></textarea>
+			</div>
+			<div id="submitDiv">
+				<div class="comment_button_section text-right pl-2" style="display: none;">
+					<input type="reset" value="CANCEL" class="cancelCommentBtn btn btn-sm btn-light"/>
+					<input type="button" value="COMMENT" 
+						class="addPictionCommentBtn releaseBtn btn btn-sm btn-main-submit" disabled="disabled"/>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div>
+	<!--/* 픽션 댓글 Cover for not xrateGold */-->
+	<div class="comment-plus">
+		<i class="fa fa-exclamation-circle"></i>
+		<span class="pv-tm">pictionary plus</span>
+		이미지가 포함되어 인증받은 골드회원(성인)들에게만 보여지는 댓글입니다.
+	</div>
+</div>
+<!-- [plus on off 버튼] -->
+<div th:if="${#strings.equals(xrateGold,'G')}" class="display-plus-button-section col-12">
+	<input type="checkbox" id="displayPlusBtn" class="plus-button-checkbox"/>
+	<label for="displayPlusBtn" class="display-plus-button">
+		<span class="noneDisplay"><span class="plus">plus</span> 안보기</span>
+		<span class="display" style="display: none;"><span class="plus">plus</span> 보기</span>
+	</label>
+</div>
+</div>
+ 
+<div th:if="${xrateGold} == 'G'" id="plusSwitchingDiv" style="display: none">
+	<div class="col-md-4">
+		<div class="piction-picture">
+			<div class="piction-picture-cover ver2">
+				<img src="/images/app/pictionary/piction_paper.png" class="piction-img none">
+			</div>
+			<!-- 댓글, 예문추가 버튼 (PC ver.) -->
+			<div class="add-buttons ver2 text-right">
+				<button type="button" title="댓글"
+					class="btn btn-sm btn-outline-secondary float-left">
+					<i class="fas fa-comment-dots fa-lg"></i>
+					<span>댓글</span>
+				</button>
+				<button type="button" class="btn btn-sm btn-outline-secondary">
+					<i class="fas fa-plus-circle fa-lg"></i>
+					<span>예문 추가</span>
+				</button>
+			</div>
+		</div>
+	</div>
+	<!-- [픽션 예문] -->
+	<div class="piction-sentence col-md-8">
+		<div class="sentence-hide-cover ver2 text-center"></div>
+	</div>
+	<div class="ment-position">
+		<div class="ment-section">
+			<h3 class="title">
+				<span class="pv-tm">pictionary plus</span>
+			</h3>
+			<div>
+				<span class="pv-tm">pictionary plus</span> 는
+				이미지를 통한 기억력 자극을 극대화하기 위해<br class="d-none d-md-block">
+				선정적, 폭력적 이미지들이나 콘텐츠들이 포함될 수 있어<br class="d-none d-md-block">
+				인증받은 골드회원(성인)들에게만 제공됩니다. 
+			</div>
+		</div>
+	</div>	
+</div>
+</section><!-- end of content -->
+</html>

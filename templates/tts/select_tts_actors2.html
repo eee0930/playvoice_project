@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity4"
+	layout:decorate="~{/layout/playvoice_tts_layout2}">
+<head>
+<title>플레이보이스 TTS - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '플레이보이스 TTS - 플레이보이스 | Playvoice', 
+	metaDescription = '플레이보이스 TTS는 영어 전문 TTS MP3 파일 변환 서비스입니다. 플레이보이스에는
+	수십명의 다양한 성우들의 목소리가 있으며, 자신이 원하는 문장들을 고품질 음성 파일로 쉽고 간편하게 만들 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg',
+	metaKeyword = 'TTS, MP3, 영어 듣기, 받아쓰기, 딕테이션, 스피킹 '"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/playvoice_tts.css}">
+
+<script th:inline="javascript">
+$(document).ready(function(){
+	// [1. 화면 진입 세팅]-----------------------------------------------------------
+	// [1.1 헤더 제목, 스텝 세팅]------------------------------------------------------
+	setHeaderTitle("Input Album Name", 3);
+	// [1.2 화면 진입 세팅 (헤더에 뒤로가기 버튼 삭제, 헤더 로고 color 변경, 폼 포커스)]---------------
+	$("#historyBackBtn").hide();
+	$("#inputAlbumTitle").focus();
+	
+	/*[# th:if="${#strings.contains('MS', memberType)}"]*/
+	// [일반 회원 성우 랜덤 세팅]--------------------------------------------------------
+	var randomActor = setRandomActor($("#choiceVoiceActorsSection .sentenceCover"));
+	$(randomActor).closest(".actor-list-section").addClass("active");
+	/*[/]*/
+	
+	// [앨범 명 선택 이벤트 (text 폼, 버튼 활성화)]-----------------------------------------
+	$("#selectAlbumName").on("change", function(){
+		var selected = $(this).val();
+		var text = $("#inputAlbumTitle").val();
+		if(selected == 0) {
+			$("#inputAlbumTitle").show().focus();
+			if(text == "" || text.length < 2) {
+				$("#addAlbumTitleBtn").prop("disabled", true);
+			}
+		} else {
+			$("#inputAlbumTitle").hide();
+			$("#addAlbumTitleBtn").prop("disabled", false);
+		}
+	});
+	
+	// [앨범 명 입력 시 버튼 활성화]------------------------------------------------------
+	$("#inputAlbumTitle").on("input", function(){
+		var text = $(this).val();
+		if(text == "" || text.length < 2) {
+			$("#addAlbumTitleBtn").prop("disabled", true);
+		} else {
+			$("#addAlbumTitleBtn").prop("disabled", false);
+		}
+	});
+	
+	// [앨범명 입력 완료, 성우 선택 화면으로 전환]--------------------------------------------
+	$("#addAlbumTitleBtn").click(function(){
+		var selected = $("#selectAlbumName").val();
+		var albumName;
+		if(selected == 0) {
+			albumName = $("#inputAlbumTitle").val();
+		} else {
+			albumName = selected;
+		}
+		if(albumName == "" || albumName.length < 2) {
+			alert("앨범명을 두 자 이상 입력해 주세요.")
+		} else {
+			$("#choiceVoiceActorsDiv").find(".albumTitle").val(albumName);
+			$("#addSourceHashTagSection").hide();
+			$("#addActorVoicesSection").slideDown(200);
+			$("#choiceVoiceActorsSection .sentenceTrans").each(function(i, obj){
+				adjustHeight($(obj)); // textarea 높이 조정
+			});
+			setHeaderTitle("Select Actors", 4);
+			$("#functionBackBtn").show();
+			$("#choiceVoiceActorsDiv .sentenceCheck").prop("checked", false);
+		}
+	});
+	
+	// [뒤로가기 (앨범명 다시 입력)]----------------------------------------------------
+	$("#functionBackBtn").click(function(){
+		$("#controlVoiceActorsDiv").hide();
+		$(".mobile-index-background-wave").show();
+		$("#addActorVoicesSection").hide();
+		$("#addSourceHashTagSection").slideDown(200);
+		$("#functionBackBtn").hide();
+		$("#addAlbumTitleBtn").prop("disabled", false);
+		$("#inputAlbumTitle").focus();
+		setHeaderTitle("Input Album Name", 3);
+	});
+
+	// [캐릭터 가이드 멘트 보이기]-------------------------------------------------------
+	$("#characterGuide").click(function(){
+		if($(this).is(".ment")) {
+			$(this).removeClass("ment");
+		} else {
+			$(this).addClass("ment");
+		}
+	});
+	
+	// [모달창 닫기]----------------------------------------------------------------
+	$(".closeAlertModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#ttsAlertModal").hide();
+	});
+	
+	// [체크박스 전체 선택]-----------------------------------------------------------
+	$("#addActorVoicesSection").on("click", "#checkAll", function(){
+		if($(this).is(":checked")) {
+			$("#choiceVoiceActorsDiv .sentenceCheck").prop("checked", true);
+		} else {
+			$("#choiceVoiceActorsDiv .sentenceCheck").prop("checked", false);
+		}
+	});
+	// [체크한 예문 개수 편집 컨트롤러에 표시]-----------------------------------------------
+	$("#addActorVoicesSection").on("change", ".sentenceCheck, #checkAll", function(){
+		var checkCount = $("#choiceVoiceActorsSection .sentenceCheck:checked").length;
+		$("#countSelected").text(checkCount);
+		if(checkCount > 0) {
+			$("#openChoiceActorBtn, #randomChoiceActorBtn").prop("disabled", false);
+			$("#controlVoiceActorsDiv").show();
+			$(".mobile-index-background-wave").hide();
+		} else {
+			$("#openChoiceActorBtn, #randomChoiceActorBtn").prop("disabled", true);
+			$("#controlVoiceActorsDiv").hide();
+			$(".mobile-index-background-wave").show();
+		}
+	});
+	
+	// [해석 입력시 textarea 높이 조정]-------------------------------------------------
+	$("#choiceVoiceActorsSection .sentenceTrans").on('input', function(){
+		$(this).css("height", "33px");
+		adjustHeight($(this)); // textarea 높이 조정
+	});
+	
+	// [각 예문의 성우 선택 모달 띄우기]---------------------------------------------------
+	$("#addActorVoicesSection").on("click", ".openChoiceActor", function(){
+		$(".sentenceCheck").prop("checked", false);
+		var parentDiv = $(this).closest(".sentenceCover");
+		parentDiv.find(".sentenceCheck").prop("checked", true);
+		openChoiceActorModal();
+	});
+	
+	// [선택한 예문의 성우 선택 모달 띄우기]-------------------------------------------------
+	$("#addActorVoicesSection").on("click", "#openChoiceActorBtn, #openActorListBtn", function(){
+		openChoiceActorModal();
+	});
+	
+	// [성우 선택 모달 닫기]-----------------------------------------------------------
+	$(".closeActorModal").click(function(){
+		$("html").removeClass("modalOpen");
+		$("#voiceActorListModal .voiceActorRadio").prop("checked", false);
+		$("#voiceActorListModal .actor-list-section").removeClass("active");
+		$("#confirmActorBtn").prop("disabled", true);
+		$("#voiceActorListModal").hide();
+	});
+	
+	// [성우 선택 모달창에서 성우 선택시 active 표시]----------------------------------------
+	$(document).on("change", ".voiceActorRadio", function(){
+		$(".actor-list-section").removeClass("active");
+		$(this).closest(".actor-list-section").addClass("active");
+		$("#confirmActorBtn").prop("disabled", false);
+	});
+	
+	/*[# th:if="${#strings.contains('GP', memberType)}"]*/
+	// [모달창에서 성우 선택 후 확인버튼 클릭]-----------------------------------------------
+	$("#confirmActorBtn").click(function(){
+		var selectedActor = $("#voiceActorListModal .voiceActorRadio:checked");
+		var actorInfo = getActorInfo(selectedActor);
+		$("#choiceVoiceActorsDiv .sentenceCheck:checked").each(function(i, obj){
+			var sentenceDiv = $(obj).closest(".sentenceCover");
+			displayActorInfo(sentenceDiv, actorInfo);
+		});
+		$(".closeActorModal").click(); // 모달 닫기
+		$("#openChoiceActorBtn, #randomChoiceActorBtn").prop("disabled", true); // 성우 선택 버튼 비활성화
+		resetCheckbox(1);
+		setTimeout(function() {
+			$(".sentenceCover").removeClass("active");
+		}, 1000);
+	});
+	
+	// [선택한 예문에 성우 랜덤 배치]-----------------------------------------------------
+	$("#randomChoiceActorBtn").click(function(){
+		$("#choiceVoiceActorsDiv .sentenceCheck:checked").each(function(i, obj){
+			var sentenceDiv = $(obj).closest(".sentenceCover");
+			setRandomActor(sentenceDiv);
+		});
+		
+		$("#openChoiceActorBtn, #randomChoiceActorBtn").prop("disabled", true); // 성우 선택 버튼 비활성화
+		resetCheckbox(1);
+		setTimeout(function() {
+			$(".sentenceCover").removeClass("active");
+		}, 1000);
+	});
+	/*[/]*/
+	
+
+	// [선택한 예문 음성 파일로 만들기]----------------------------------------------------
+	$("#makeVoiceFileBtn").click(function(){
+		if(checkSelectActor()) {
+			submitVoiceMaker();
+		} else {
+			return;
+		}
+	});
+	// [전체 예문 음성 파일로 만들기]-----------------------------------------------------
+	$("#makeAllVoiceFileBtn").click(function(){
+		$("#choiceVoiceActorsDiv .sentenceCheck").prop("checked", true);
+		if(checkSelectActor()) {
+			submitVoiceMaker();
+		} else {
+			$("#choiceVoiceActorsDiv .sentenceCheck").prop("checked", false);
+			return;
+		}
+	});
+	
+	  
+}); //end of ready
+/* ----------------------------------------------------------------------------- 
+*					editing sentence Handling page event
+* --------------------------------------------------------------------------- */
+
+
+/**
+ * header title settion
+ */
+function setHeaderTitle(title, index) {
+	var titleSection = $("#playvoiceMobileHeader").find(".tts-logo");
+	var indexSection = $("#playvoiceMobileHeader").find(".index");
+	titleSection.text(title);
+	indexSection.text(index);
+}
+
+/**
+ * 모달 창 열기
+ */
+function openTTSModal(msg, kind){
+	$("#ttsAlertModal #msgSection").html("").html(msg);
+	if(kind == 'alert') {
+		$("#ttsAlertModal .alertFooter").show();
+		$("#ttsAlertModal .confirmFooter, #ttsAlertModal .submitFooter").hide();
+	} else if (kind == 'confirm') {
+		$("#ttsAlertModal .confirmFooter").show();
+		$("#ttsAlertModal .alertFooter, #ttsAlertModal .submitFooter").hide();
+	} else {
+		$("#ttsAlertModal .submitFooter").show();
+		$("#ttsAlertModal .alertFooter, #ttsAlertModal .confirmFooter").hide();
+	}
+	$("html").addClass("modalOpen");
+	$("#ttsAlertModal").show();
+}
+ 
+/**
+ * textarea 높이 자동 조정 (예문을 수정할 때 예문 전체를 보이게 하기 위해)
+ */
+function adjustHeight(obj) {
+	var textEleHeight = $(obj).prop('scrollHeight');
+	$(obj).css("height", textEleHeight);
+};
+
+/**
+ * 예문 순서 재정렬 (예문을 삭제 또는 병합 했을 경우 index 번호를 재정렬한다)
+ */
+function arrangeSentenceIndex(index) {
+	// 성우 선택 영역
+	$(".sentenceCover").each(function(i, obj){
+		var indexNum = $(obj).find(".sentIndex");
+		var checkbox = $(obj).find(".sentenceCheck");
+		var sentence = $(obj).find(".sentenceForm");
+		indexNum.text(i + 1);
+		checkbox.attr("data-count", (i + 1));
+		sentence.attr("id", "sentence" + (i + 1));
+	});
+	resetCheckbox(1); // 체크박스 리셋
+};
+
+/**
+ * 체크박스 리셋
+ */
+function resetCheckbox(index) {
+	// 성우 선택 영역
+	$(".sentenceCheck, #checkAll").prop("checked", false);
+	$("#choiceActor").prop("disabled", true);
+	$("#countSelected").text(0);
+}
+
+/* ----------------------------------------------------------------------------- 
+*						add voice Handling page event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 성우 랜덤 세팅
+ */
+function setRandomActor(target) {
+	var voiceActorSize = $("#voiceActorListModal .voiceActorRadio").length;
+	var randomIndex = Math.floor(Math.random() * voiceActorSize);
+		
+	var selectedActor = $("#voiceActorListModal .voiceActorRadio").eq(randomIndex);
+	var actorInfo = getActorInfo(selectedActor);
+	
+	displayActorInfo(target, actorInfo);
+	
+	return selectedActor;
+}
+
+/**
+ * 성우 선택 모달 띄우기
+ */
+function openChoiceActorModal() {
+	$("html").addClass("modalOpen");
+	$("#voiceActorListModal").slideDown(100);
+}
+
+/**
+ * 모달창에서 선택한 성우 정보 받기
+ */
+function getActorInfo(actor) {
+	var parentDiv = $(actor).closest(".actor-list-section");
+	var vendorCode = $(actor).attr("data-vendorCode");
+	var description = parentDiv.find(".description").val();
+	var actorImage = parentDiv.find(".actor-image").html();
+	var actorName = parentDiv.find(".actorName").text();
+	
+	var actorInfo = {
+		vendorCode : vendorCode,
+		description : description,
+		actorImage : actorImage,
+		actorName : actorName
+	};
+	return actorInfo;
+}
+
+/**
+ * 선택한 성우 정보를 예문에 표시하기
+ */
+function displayActorInfo(sentDiv, actorInfo) {
+	var actorSelected = $(sentDiv).find(".actorSelected");
+	actorSelected.find(".actor-image-section").html(actorInfo.actorImage);
+	actorSelected.find(".actor-name-section").text(actorInfo.actorName);
+	$(sentDiv).find(".vendorCode").val(actorInfo.vendorCode);
+	$(sentDiv).find(".description").val(actorInfo.description);
+	$(sentDiv).find(".name").val(actorInfo.actorName);
+	
+	$(sentDiv).find(".actorNoSelected").hide();
+	$(sentDiv).addClass("active");
+	actorSelected.show();
+}
+ 
+ 
+ 
+/**
+ * (음성 변환 클릭) 변환할 예문 체크 여부, 성우 선택 여부 확인
+ */
+function checkSelectActor() {
+	var unchoosed = 0;
+	var selectedSent = $("#choiceVoiceActorsDiv .sentenceCheck:checked");
+	selectedSent.each(function(i, obj){
+		var parentDiv = $(obj).closest(".sentenceCover");
+		var vendorCode = parentDiv.find(".vendorCode");
+		if(vendorCode.is(":not([value])")) {
+			unchoosed++
+		}
+	});
+	
+	if(selectedSent == null || selectedSent.length < 1) {
+		var msg = "음성으로 변환할 예문을 선택해 주세요.";
+		openTTSModal(msg, 'alert');
+		return false;
+	} else {
+		if(unchoosed > 0) {
+			var msg = "<b>" + unchoosed + "개</b>의 예문에 성우를 선택하지 않았습니다.<br>"+
+					"각 예문에 어울리는 성우를 선택해 주세요.";
+			openTTSModal(msg, 'alert');
+			return false;
+		} else {
+			return true;
+		}
+	}
+}
+
+/**
+ * (음성 변환 클릭) 음성으로 만들기 form submit
+ */
+function submitVoiceMaker() {
+	var selectedSent = $("#choiceVoiceActorsDiv .sentenceCheck:checked");
+	
+	selectedSent.each(function(i, obj){
+		var parentDiv = $(obj).closest(".sentenceCover");
+		var text = parentDiv.find(".text");
+		var trans = parentDiv.find(".sentenceTrans");
+		var vendorCode = parentDiv.find(".vendorCode");
+		var description = parentDiv.find(".description");
+		var name = parentDiv.find(".name");
+		
+		text.attr("id", "text" + i).attr("name", "userSettings[" + i + "].text");
+		trans.attr("id", "trans" + i).attr("name", "userSettings[" + i + "].trans");
+		vendorCode.attr("id", "vendorCode" + i).attr("name", "userSettings[" + i + "].vendorCode");
+		description.attr("id", "description" + i).attr("name", "userSettings[" + i + "].description");
+		name.attr("id", "actorName" + i).attr("name", "userSettings[" + i + "].actorName");
+	});
+	
+	location.href="/tts/generate";
+}
+
+</script>
+
+</head>
+
+
+<section layout:fragment="content" 
+	class="edit-parcing-sentence-list-section mobile-container-mode">
+<div class="modalFadeSection">
+<!-- tts header -->
+<header id="playvoiceMobileHeader" th:with="headerFixed = 'fixedStatic bgMain'" 
+	th:insert="~{/tts/incl/tts_header2::editing_header}"></header>
+<!-- tts PC top menu -->
+<div th:replace="~{/tts/incl/tts_menu2::pcTopMenu}"></div>
+
+<!-- ------------------------------------------------------------------------ */
+/* --------------------------------[앨범명 입력]--------------------------------- */
+/* ------------------------------------------------------------------------- -->
+<div id="addSourceHashTagSection">
+<!-- [1.1 캐릭터] -->
+<div class="add-source-hash-header-image-section">
+	<div class="add-source-hash-header-image"></div>
+</div>	
+<!-- ----------------------------[1. 앨범명 입력폼]----------------------------- -->
+<div class="add-album-title-section parcing-sentences-section">
+	<!-- [1.2 가이드] -->
+	<div class="edit-sentence-guide">
+		<div class="guide">
+			<b>TTS-앨범 이름</b>을 작성해 주세요.
+		</div>
+	</div>
+	
+	<!-- [1.32 입력 폼] -->
+	<div class="parcing-sentences-list-cover py-3">
+		<div th:if="${albumTitles != null && #lists.size(albumTitles) > 0}" 
+			class="form-group">
+			<select id="selectAlbumName" class="form-control playvoice-form">
+				<option value="0">+ 새 앨범 추가</option>
+				<option th:each="albumTitle : ${albumTitles}"
+					th:value="${albumTitle}">[[${albumTitle}]]</option>
+			</select>
+		</div>
+		<div class="form-group">
+			<input id="inputAlbumTitle" type="text" class="form-control playvoice-form"
+				placeholder="ex. 토익 스피킹 Part5 필수 표현"/>
+		</div>
+	</div>
+	
+	<div class="edit-sentence-guide album">
+		<div class="guide-section"><ul>
+			<li>Playvoice-TTS에서 제공하는 <b>플레이어</b>를 
+				이용하면 앨범 단위로 음성 파일을 재생할 수 있어요.</li>
+			<li>앨범을 통해 많은 음성 파일들을 쉽게 관리할 수 있어요.</li>
+			<li>하나의 앨범에는 <b>최대 50개</b>의 음성 파일을 보관할 수 있습니다.</li>
+		</ul></div>
+	</div>
+</div>
+
+
+<!-- -----------------------------[2. 버튼 영역]------------------------------- -->
+<div id="choiceActorButtonsSection" class="list-parcing-buttons-section">
+	<div class="row no-gutters">
+		<!-- [3.2 파일 만들기] -->
+		<div class="button-cover col ml-auto">
+			<button id="addAlbumTitleBtn" class="btn btn-next" 
+				type="button" disabled="disabled">
+				NEXT
+			</button>
+		</div>
+	</div>
+</div><!-- end of choiceActorButtonsSection -->
+</div>
+
+
+
+<!-- ------------------------------------------------------------------------ */
+/* ---------------------------------[성우 선택]--------------------------------- */
+/* ------------------------------------------------------------------------- -->
+<div id="addActorVoicesSection" style="display: none;">
+<!-- ------------------------[1. 보이스 입력 컨트롤 영역]--------------------------- -->
+<div id="controlVoiceActorsSection" class="parcing-sentences-control-section row no-gutters">
+	<!-- [1.1 전체 선택 (체크 박스)] -->
+	<div th:if="${#strings.contains('GP', memberType)}" 
+		class="select-sentence-section col-auto align-self-center">
+		<span class="sentence-index">all</span>
+		<label class="check-sentenece">
+			<input id="checkAll" type="checkbox" class="option-input checkbox"/>
+		</label>
+	</div>
+	<!-- [1.2 일반 회원 성우 목록보기] -->
+	<div th:unless="${#strings.contains('GP', memberType)}" 
+		class="select-sentence-section col-auto align-self-center">
+		<button id="openActorListBtn" type="button" class="btn btn-trans">
+			<i class="fa fa-users"></i> <span>성우 목록 보기</span>
+		</button>
+	</div>
+	<div id="controlVoiceActorsDiv" th:if="${#strings.contains('GP', memberType)}"
+		class="parcing-sentences-control-cover row no-gutters" style="display: none;">
+		<!-- [1.2 체크 박스로 선택한 예문 개수] -->
+		<div class="select-count-guide col align-self-center">
+			<th:block th:if="${#strings.contains('GP', memberType)}">
+				<span id="countSelected" class="num">0</span> 개 선택
+			</th:block>
+		</div>
+		<!-- [1.3 선택한 예문 성우 선택] -->
+		<div class="delete-btn-section col-auto align-self-center">
+			<button id="openChoiceActorBtn" type="button" class="btn btn-trans"
+				disabled="disabled">
+				<i class="fa fa-users"></i> <span>성우 선택</span>
+			</button>
+		</div>
+		<div class="delete-btn-section col-auto align-self-center">
+			<button id="randomChoiceActorBtn" type="button" class="btn btn-trans"
+				disabled="disabled">
+				<i class="fa fa-user-secret"></i> <span>랜덤 선택</span>
+			</button>
+		</div>
+	</div><!-- end of controlVoiceActorsDiv -->	
+</div><!-- end of controlVoiceActorsSection -->
+
+<form id="addvoiceActorForm" th:action="@{/tts/generate}" method="get">
+<!-- --------------------------[2. 보이스 선택 영역]------------------------------ -->
+<div id="choiceVoiceActorsSection" class="choice-actors-section parcing-sentences-section">
+	<!-- [2.1 가이드] -->
+	<div class="edit-sentence-guide">
+		<div th:if="${#strings.contains('GP', memberType)}" class="guide">
+			<i class="fa fa-users fa-fw"></i> 
+			선택한 예문에 동일한 성우를 선택할 수 있어요.<br>
+			<i class="fa fa-user-secret fa-fw"></i> 
+			선택한 예문에 성우를 랜덤으로 배치할 수 있어요.<br>
+			<i class="fa fa-user-plus fa-fw"></i> 
+			각 예문에 어울리는 성우를 선택할 수 있어요.
+		</div>
+		<div th:unless="${#strings.contains('GP', memberType)}" class="guide">
+			일반 회원은 성우가 랜덤으로 선택됩니다.<br>
+			<i class="fa fa-users fa-fw"></i> 성우 목록 보기 에서 선택된 성우의 음성을 들어보세요.
+		</div>
+		<div id="characterGuide" class="TY-slice-animation">
+			<div class="guide">
+				Playvoice-TTS에서 제공하는<br>
+				학습 지원 서비스를 받으려면 우리말 해석이 필요해요.
+			</div>
+			<div class="character-cover"></div>
+		</div>
+	</div>
+	<!-- [2.2 보이스 선택 form] -->
+	<div id="choiceVoiceActorsDiv" class="parcing-sentences-list-cover">
+		<div th:if="${sentenceList}" th:each="sentence, iter : ${sentenceList}" 
+			class="sentenceCover parcing-sentences-cover row no-gutters">
+			<input type="hidden" class="vendorCode"/>
+			<input type="hidden" class="description"/>
+			<input type="hidden" class="name"/>
+			<input type="hidden" class="text"/>
+			<!-- 예문 선택 체크박스 -->
+			<div class="select-sentence-section col-auto">
+				<span th:text="${iter.count}" class="sentIndex sentence-index"></span>
+				<label class="check-sentenece">
+					<input th:data-count="${iter.count}" type="checkbox" 
+						class="sentenceCheck option-input checkbox"/>
+				</label>
+			</div>
+			<div class="background-section col row no-gutters">
+				<!-- 예문 text -->
+				<div class="sentence-text-section col">
+					<div class="sentenceForm text-cover">[[${sentence}]]</div>
+					<div class="formEdit">
+					<textarea class="sentenceTrans form-control sentence-trans-div"
+						placeholder="해석을 입력해 주세요.">홀홀홀</textarea>
+					</div>
+				</div>
+				<!-- 성우 선택 -->
+				<div class="actor-sentence-section col-auto">
+					<!-- 미선택 -->
+					<div th:if="${#strings.contains('GP', memberType)}" 
+						class="actorNoSelected voice-choice-section">
+						<button type="button" class="openChoiceActor btn btn-trans">
+							<i class="fa fa-user-plus"></i>
+						</button>
+					</div>
+					<!-- 선택 -->
+					<div class="actorSelected" th:style="${#strings.contains('GP', memberType)}?
+						'display: none;':''">
+						<div th:class="${#strings.contains('GP', memberType)}? 
+							'openChoiceActor':''">
+							<div class="actor-image-section">
+								<img src="/images/common/actors/Brian.jpg">
+							</div>
+							<div class="actor-name-section">Brian</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<input type="hidden" name="albumTitle" class="albumTitle"/>
+	</div>
+</div><!-- end of controlVoiceActorsSection -->
+
+
+<!-- -----------------------------[3. 버튼 영역]------------------------------- -->
+<div id="choiceActorButtonsSection" class="list-parcing-buttons-section">
+	<div class="row no-gutters">
+		<!-- [3.2 파일 만들기] -->
+		<div class="button-cover col ml-auto">
+			<button id="makeVoiceFileBtn" class="btn btn-next" type="button">
+				선택 변환
+			</button>
+			<button id="makeAllVoiceFileBtn" class="btn btn-next" type="button">
+				전체 변환
+			</button>
+		</div>
+	</div>
+</div><!-- end of choiceActorButtonsSection -->
+</form>
+
+
+</div>
+
+</div>
+
+<!-- -----------------------[4. TTS alert modal]---------------------------- -->
+<div id="ttsAlertModal" class="playvoice-mobile-modal-section modal-alert" style="display: none;">
+	<div class="closeAlertModal inform-modal-back"></div>
+	<div class="bg-tts-main1 inform-modal-content">
+		<div id="msgSection" class="inform-modal-body"></div>
+		<div class="alertFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button class="closeAlertModal btn-mobile btn-main2" 
+					type="button">확인</button>
+			</div>
+		</div>
+		<div class="submitFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button id="submitParaSelectBtn" class="btn-mobile btn-main2" 
+					type="button">확인</button>
+			</div>
+			<div class="button-cover col">
+				<button class="closeAlertModal btn-mobile btn-main" 
+					type="button">취소</button>
+			</div>
+		</div>
+		<div class="confirmFooter inform-modal-footer row no-gutters">
+			<div class="button-cover col">
+				<button id="confirmParaSelectBtn" class="btn-mobile btn-main2" 
+					type="button">확인</button>
+			</div>
+			<div class="button-cover col">
+				<button class="closeAlertModal btn-mobile btn-main" 
+					type="button">취소</button>
+			</div>
+		</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+
+<!-- -----------------------[5. 성우 선택 modal]-------------------------------- -->
+<div id="voiceActorListModal" class="playvoice-mobile-modal-section actor-choice" style="display: none;">
+	<div class="closeActorModal inform-modal-back"></div>
+	<div class="inform-modal-content">
+		<div class="inform-modal-header">
+			<i class="closeActorModal fa fa-times"></i>
+			<h5>Playvoice TTS Actors</h5>
+		</div>
+		<div id="actorListSection" class="inform-modal-body">
+			<div class="actor-list-section-back">
+			<label th:each="actorAccent, iter : ${actorAccentList}" 
+				class="actor-list-section row no-gutters">
+				<input type="hidden" class="description" value="11"/>
+				<span class="actor-image col-auto align-self-center">
+					<img th:src="'/images/common/actors/' + ${actorNameList[iter.index]} + '.jpg'">
+				</span>
+				<span class="actor-name col align-self-center">
+					<span class="actorName">[[${actorNameList[iter.index]}]]</span>
+					<input type="radio" name="voiceActor" class="voiceActorRadio" 
+						th:data-vendorCode="${iter.index}"/>
+				</span>
+				<span class="actor-flag col-auto align-self-center"
+					th:with="accent = ${#strings.contains(actorAccent,'-')? 
+					#strings.arraySplit(actorAccent,'-')[1] : actorAccent}">
+					<img th:src="'/images/common/flags/' + ${accent} + '.png'">
+				</span>
+				<span class="actor-voice col-auto align-self-center">
+					<button class="btn btn-trans" type="button">
+						<i class="fa fa-volume-up"></i>
+					</button>
+				</span>
+			</label>
+			</div>
+			<div th:if="${#strings.contains('GP', memberType)}" 
+				class="confirm-button-section button-cover">
+				<button id="confirmActorBtn" class="btn btn-next" disabled
+					type="button">선택 완료</button>
+			</div>
+		</div>
+		<div class="closeActorModal inform-modal-footer close">close</div>
+	</div>
+</div><!-- end of requestRefundModal -->
+
+<!-- tts menu -->
+<div th:replace="~{/tts/incl/tts_menu2::bottomMenu}"></div>
+
+</section><!-- end of content -->
+</html>

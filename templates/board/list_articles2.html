@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/playboard_layout2}">
+
+<head>
+<title>[[${engName}]] (Play Board) - 플레이보이스 | Playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaTitle = '플레이보드 (Playboard) - 플레이보이스(playvoice)', 
+	metaDescription = '여정에서의 경험, To write interesting diaries and stories.
+	플레이보이드는 다양한 주제의 글을 작성하는 게시판으로써, 잠깐의 여유를 만끽하고 싶은 여러분을 위해 만들어진 쉬어가는 공간입니다.', 
+	metaImage = '/images/app/board/index_board.jpg'"></th:block>
+<!-- schema org (bread, web) -->	
+<script type="application/ld+json">
+[<th:block th:insert="~{/incl/meta_fragment2::schemaBread}"
+	th:with="breadList = ${ {'/board', #httpServletRequest.requestURI} },
+	breadName = ${ {'플레이 보드', engName + ' 목록'} }"></th:block>,<th:block 
+	th:insert="~{/incl/meta_fragment::schemaWebSite}"
+	th:with="urlList = ${ {'/board/'+engName+'/view/'} }"></th:block>]
+</script>	
+
+<link rel="stylesheet" th:href="@{/css/app/playboard.css}">
+<link rel="stylesheet" th:href="@{/css/app/comment.css}">
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	// [앱 컨셉바 설명 펼치기]---------------------------------------------------------
+	$(".toggleAppConceptBar").click(function(){
+		$(this).find(".detail").toggle(100);
+	});
+	
+	//[게시글 검색시]----------------------------------------------------------
+	$('.search-article').click(function(e){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[초기 sortMark 디스플레이 설정]--------------------------------------------
+	var defaultSortBy= $('#sortName').val();
+	var target = $('a[data-value='+defaultSortBy+']');
+	$('a[data-value='+defaultSortBy+']').next().css("display", "inline");
+	
+	//[next pagination 링크 전송]---------------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	//[ajax 전송 : 2) 테이블 컬럼 헤더 검색]---------------------------------------
+	$("#articleListByDefault a[class=thlink]").click(function(e) {
+		console.log("#articleListByDefault a[class=thlink]");
+		
+		//단순조회에서는 searchType은 불필요하다.
+		$('#searchType2').val('all');
+		
+		console.log("#end of articleListByDefault");
+	});
+});
+</script>
+</head>
+
+<div layout:fragment="widget-content" class="AdSense-y">
+	<img src="https://tpc.googlesyndication.com/simgad/13756663538836168259?sqp=4sqPyQQlQiMqIQhaEAEdAAC0QiABKAEwCTgDQPCTCUgAUAFYAWBacAJ4AQ&rs=AOga4qnAcBZtbGP4siSPDdYH4Qwu4d7dLQ">
+</div>
+
+<section layout:fragment="content"><div class="mt-lg-5">
+
+<!--/* ------------------------[게시글 상세보기 표시 영역]------------------------ */-->
+<div id="viewArticle"></div>
+
+<!--/* ------------------------[플레이보드 타이틀 영역]-------------------------- */-->
+<div class="introduction-section">
+	<h3 class="article-title row no-gutters">
+		<span class="col-auto">
+			[[${engName}]]
+			<span class="d-none d-md-inline-block">Board</span>
+		</span>
+		<span th:if="${engName} != 'Notice' AND ${engName} != 'Event'" 
+			class="search-button-section col text-right d-md-none">
+			<a th:href="@{/board/free/add}" class="new-article">
+				<i class="fa fa-pen fa-flip-horizontal fa-fw"></i></a>
+			<a href="javascript:void(0)" class="search-article">
+				<i class="fa fa-search"></i></a>
+		</span>
+	</h3>
+	<div class="sub">Record your daily life or interesting stories</div>
+</div>
+
+<div class="introduction-section" th:with="boardName = ${#strings.replace(engName,' ','')}">
+	<div th:insert="~{/board/incl/intro_playboard2::menu_board}"></div>
+</div>
+
+<!-- -----------------------[include : Search Article Form]----------------- -->
+<div id="searchFormDiv" th:insert="~{/board/incl/search_article2::search_article}" 
+	 class="search-form-section" style="display: none;"></div>
+	
+<!--/* ---------------------------[2. 게시글 목록]---------------------------- */-->
+<div id="articleListByDefault" class="board-article-list-section">
+	<!--/* 검색과 등록 아이콘 */-->
+	<div th:if="${engName} != 'Notice' AND ${engName} != 'Event'" 
+		class="d-none d-lg-block"><div class="search-add-button-section row no-gutters">
+		<div class="col-6 text-left">
+			<a href="javascript:void(0)" class="search-article">
+				<i class="fas fa-search fa-fw"></i>
+				<span class="guide-quote">게시글 검색</span>
+			</a>
+		</div>
+		<div th:unless="${#strings.equals(engName, 'Attention Please')} OR
+			${#strings.equals(engName, 'Event')}" class="col-6 text-right">
+			<a th:href="@{/board/free/add}" class="new-article">
+				<i class="fas fa-edit fa-fw"></i>
+				<span class="guide-quote">게시글 작성</span>
+			</a>
+		</div>
+	</div></div>
+	
+	<!-- [2.1 PC & Tablet ver.] -->
+	<div class="d-none d-md-block">
+	<table id="boardTable" class="board-table-l table table-sm table-bordered table-hover text-center">
+		<thead>
+		<tr class="thead">
+			<th style="width: 60px;">번호</th>
+			<th>제목</th>
+			<th style="width: 60px;"><!-- N or P label --></th>
+			<th style="width: 60px;">등록일<span class="sortMark">▼</span></th>
+			<th style="width: 60px;">조회수</th>
+			<th style="width: 60px;">추천수</th>
+			<th style="width: 110px;">작성자</th>
+		</tr></thead>
+		
+		<tbody>
+		<!-- -------------------------/* 베스트 목록 */------------------------- -->
+		<tr>
+			<td class="t-number"><span class="badge badge-danger best">BEST</span></td>
+			<!--/*제목*/-->
+			<td class="t-title text-left" title="제목">
+				<a th:href="@{/board/free/view}" class="articleLink">
+					<span class="subject">제목</span>
+					<span class="comment-badge">
+						<span class="badge badge-pill reply-count">
+							23
+						</span>
+					</span>
+				</a>
+			</td>
+			<td class="t-info text-right">
+				<span class="badge badge-danger new-label" title="new">N</span>
+				<span class="badge badge-warning pic-label" title="picture">P</span>
+			</td>
+			
+			<td class="t-date">11-21</td>
+			
+			<td class="t-hits">238</td>
+			<td class="t-likes">46</td>
+			
+			<td class="t-writer">
+				<span>lazyhysong</span>
+			</td>
+		</tr>
+		<!-- ------------------------/* 관리자 안내문 */------------------------- -->
+		<tr class="admin">
+			<!--/*번호*/-->
+			<td class="t-number"><i class="fa fa-bell"></i></td>
+			
+			<!--/*제목*/-->
+			<td class="t-title text-left">
+				<a th:href="@{/qna/app/view}" class="articleLink">
+					<span class="subject">
+						자유게시판 필수 준수 사항
+					</span>
+				</a>
+			</td>
+			<td class="t-info text-right">
+				<span class="badge badge-danger new-label">N</span>
+			</td>
+			<!--/*등록일*/-->
+			<td class="t-date">08-21</td>
+			<!--/*등록일*/-->
+			<td class="t-likes">20</td>
+			<!--/*조회수*/-->
+			<td class="t-hits">23423</td>
+			<!--/*작성자*/-->
+			<td class="t-writer">
+				<img th:replace="~{/incl/playvoice_logo::white_seonbi_logo_noLink}">
+				<span>playvoice</span>
+			</td>
+		</tr>
+		<!-- ------------------------/* 게시글 목록 */-------------------------- -->
+		<tr>
+			<!--/*번호*/-->
+			<td class="t-number">2546</td>
+			
+			<!--/*제목*/-->
+			<td class="t-title text-left" title="제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~!">
+				<a th:href="@{/board/free/view}" class="articleLink">
+					<span class="subject">
+						제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 제목이다하하항!!~! 
+					</span>
+					<span class="comment-badge">
+						<span class="badge badge-pill reply-count">
+							235
+						</span>
+					</span>
+				</a>
+			</td>
+			<td class="t-info text-right">
+				<span class="badge badge-danger new-label">N</span>
+				<span class="badge badge-warning video-label">V</span>
+			</td>
+		
+			<!--/*등록일*/-->
+			<td class="t-date">11-24</td>
+			
+			<!--/*조회수*/-->
+			<td class="t-hits">23423</td>
+			
+			<!--/*추천수*/-->
+			<td class="t-likes">34</td>
+			
+			<!--/*작성자*/-->
+			<td class="t-writer">
+				<span>lazyhysonglazyhysong</span>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!-- [2.2 Mobile & Tablet ver.] -->
+	<div class="d-md-none">
+	<table id="boardTable" th:with="today='2019-11-27(목)'" 
+		class="board-table-l table table-sm table-bordered table-hover text-center tboby-xs">
+		<tbody>
+		<!------------/*베스트 목록*/------------>
+		<tr>
+			<td class="text-left">
+				<div class="t-title-xs">
+					<a th:href="@{/board/free/view}" class="articleLink">
+						<span class="subject-xs">
+							<span class="badge badge-danger best mr-2">BEST</span>제목이다하아항~!!
+						</span>
+						<span class="comment-badge">
+							<span class="badge badge-pill reply-count">
+								23
+							</span>
+						</span>
+					</a>
+				</div>
+				<div class="t-info-xs">
+					<span class="t-writer-xs">
+						lazyhysong
+					</span> 
+					<span class="t-date-xs">10-21</span> 
+					<span class="t-hits-xs"><i class="fa fa-eye"></i> 12355</span>
+					<span class="t-likes-xs"><i class="fa fa-heart"></i> 654</span>
+				</div>
+			</td>
+			<td class="text-right" style="width: 50px; padding-left:0;">
+				<span class="badge badge-warning pic-label">P</span>
+				<span class="badge video-label">V</span>
+			</td>
+		</tr>
+		<!------------/*게시글 목록*/------------>
+		<tr>
+			<td class="text-left">
+				<div class="t-title-xs">
+					<a th:href="@{/board/free/view}" class="articleLink">
+						<span class="subject-xs">
+							<span class="new-point"></span>
+							제헤모옥~! 히히히
+						</span>
+						<span class="comment-badge">
+							<span class="badge badge-pill reply-count">
+								21
+							</span>
+						</span>
+					</a>
+				</div>
+				<div class="t-info-xs">
+					<span class="t-writer-xs">lazyhysong</span> 
+					<span class="t-date-xs">10-21</span> 
+					<span class="t-hits-xs"><i class="fa fa-eye"></i> 조회수</span>
+					<span class="t-likes-xs"><i class="fa fa-heart"></i> 좋아요</span>
+				</div>
+			</td>
+			<td class="text-right" style="width: 50px; padding-left:0;">
+				<span class="badge badge-warning pic-label">P</span>
+				<span class="badge video-label">V</span>
+			</td>
+		</tr>
+		</tbody>
+	</table></div>
+	
+	<!--/* Paging */-->
+	<nav class="article-list-pagenation-section mt-3">
+		<ul class="pagination pagination-sm justify-content-center">
+			<li class="page-item">
+				<a class="page-link">
+					PREV
+				</a>
+			</li>
+			<li class="page-item active">
+				<a class="page-link">1</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">2</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">3</a>
+			</li>
+			<li class="page-item">
+				<a class="page-link">
+					NEXT
+				</a>
+			</li>
+		</ul>
+	</nav>
+</div> <!-- end of articleListByDefault -->
+
+	
+</div></section><!-- end of content -->

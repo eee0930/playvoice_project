@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+
+<!--/*=====================================================================*/-->
+<!--/*  						main Index menu							   */-->
+<!--/*=====================================================================*/-->
+<th:block th:fragment="main_menu">
+	<!-- ------------------------[1. 플레이 잉글리시]---------------------------- -->
+	<div class="main-menu1 first col-auto align-self-center text-center">
+		<span id="appMenuOn" onclick="displayPlayvoiceAppMenu()">
+			<i class="fa fa-bars fa-lg fa-fw"></i>플레이잉글리시
+		</span>
+		<span id="appMenuOff" onclick="disappearPlayvoiceAppMenu()" style="display: none;">
+			<i class="fa fa-times fa-lg fa-fw"></i>플레이잉글리시
+		</span>
+	</div>	
+	<!-- --------------------------[2. 플레이스퀘어]---------------------------- -->	
+	<div class="main-menu1 col-auto align-self-center text-center">
+		<a th:href="@{/square}">플레이스퀘어 </a>
+		<ul class="playvoice-dropdown-mainmenu">
+			<li><a th:href="@{/square}">
+				<i class="fa fa-home fa-fw"></i><span>HOME</span>
+			</a></li>
+			
+			<li class="title in">BABEL 카페 <i class="fa fa-coffee fa-fw"></i></li>
+			<li><a th:href="@{/square/babel/list/eng}">
+				<i class="fa fa-coffee fa-fw"></i><span>잉글리시 스택</span>
+			</a></li>
+			<li><a th:href="@{/square/babel/list/kor}">
+				<i class="fa fa-mug-hot fa-fw"></i><span>코리안 스택</span>
+			</a></li>
+		
+			<li class="title in">PLVO 북스토어 <i class="fa fa-book fa-fw"></i></li>
+			<li><a th:href="@{/square/digest/list}">
+				<i class="fa fa-book fa-fw"></i><span>다이제스트</span>
+			</a></li>
+			<li><a th:href="@{/square/grammarBook/list}">
+				<i class="fa fa-atlas fa-fw"></i><span>그래머 북</span>
+			</a></li>
+			
+			<li class="title in">OCTOPUS 펍 <i class="fa fa-beer fa-fw"></i></li>
+			<li><a th:href="@{/square/smalltalk}">
+				<i class="fa fa-cocktail fa-fw"></i><span>스몰톡</span>
+			</a></li>
+		</ul>
+	</div>
+	<!-- --------------------------[3. 플레이보드]----------------------------- -->
+	<div class="main-menu1 col-auto align-self-center text-center">
+		<a th:href="@{/board}">플레이보드 </a>
+		<ul class="playvoice-dropdown-mainmenu">
+			<li><a th:href="@{/board}">
+				<i class="fas fa-home fa-fw"></i><span>HOME</span>
+			</a></li>
+			<li th:if="${session.userContainer}"><a th:href="@{/board/free/add}">
+				<i class="fas fa-pen-fancy fa-fw"></i><span>게시글 작성하기</span>
+			</a></li>
+			
+			<li class="title in">Play Board</li>
+			<li><a th:href="@{/board/free/list}">
+				<i class="fas fa-hamburger fa-fw"></i><span>일상의 관찰</span>
+			</a></li>
+			<li><a th:href="@{/board/humor/list}">
+				<i class="far fa-grin-squint-tears fa-fw"></i><span>웃음과 유머</span>
+			</a></li>
+			<li><a th:href="@{/board/culture/list}">
+				<i class="fas fa-globe-americas fa-fw"></i><span>컬쳐 로드</span>
+			</a></li>
+			<li><a th:href="@{/board/people/list}">
+				<i class="far fa-grin-stars fa-fw"></i><span>피플 인사이드</span>
+			</a></li>
+			<li><a th:href="@{/board/creative/list}">
+				<i class="fas fa-parachute-box fa-fw"></i><span>상상력 사전</span>
+			</a></li>
+					
+			<li class="title in">Attention Please</li>
+			<li><a th:href="@{/board/notice/list}">
+				<i class="fas fa-user-ninja fa-fw"></i><span>공지 게시판</span>
+			</a></li>
+			<li><a th:href="@{/board/event/list}">
+				<i class="far fa-snowflake fa-fw"></i><span>이벤트 게시판</span>
+			</a></li>
+		</ul>
+	</div>
+	<th:block th:if="${session?.userContainer}" 
+		th:with="personacon = ${session?.userContainer?.personacon}">
+		<!-- -------------------------[4. 마이 팀]----------------------------- -->
+		<div class="main-menu1 mymenu1 col-auto align-self-center text-center">
+			<a th:href="@{/myteam}" class="loginRequired">My Team </a>
+			<ul class="playvoice-dropdown-mainmenu">
+				<li><a th:href="@{/myteam}">
+					<i class="fa fa-home fa-fw"></i><span>HOME</span>
+				</a></li>
+				<li><a th:href="@{/myteam/trunk/add}">
+					<i class="fa fa-child fa-fw"></i><span>친구 추가</span>
+				</a></li>
+			</ul>
+		</div>
+		<!-- ------------------------[5. 마이 페이지]--------------------------- -->
+		<div class="main-menu1 mymenu2 col-auto align-self-center text-center">
+			<a th:href="@{/mypage}" class="loginRequired">My Page </a>
+			<ul class="playvoice-dropdown-mainmenu">
+				<li><a th:href="@{/mypage}">
+					<i class="fa fa-home fa-fw"></i><span>HOME</span>
+				</a></li>
+				
+				<li class="title in">Account Info
+					<i class="fa fa-comment-dollar fa-fw"></i></li>
+				<li><a th:href="@{/mypage/study/today}">
+					<i class="fa fa-chalkboard-teacher fa-fw"></i><span>오늘의 학습 입출금</span>
+				</a></li>
+				<li><a th:href="@{/mypage/study/mypoint}">
+					<i class="fa fa-comment-dollar fa-fw"></i><span>플레이 어카운트</span>
+				</a></li>
+				
+				<li class="title in">Journey Info 
+					<i class="fa fa-passport fa-fw"></i></li>
+				<li><a th:href="@{/mypage/journey/study}">
+					<i class="fa fa-pen-nib fa-fw"></i><span>학습 여정 정보</span>
+				</a></li>
+				<li><a th:href="@{/mypage/journey/log}">
+					<i class="fa fa-pen-nib fa-fw"></i><span>여정 로그 정보</span>
+				</a></li>
+				
+				<li class="title in">Profile Settings 
+					<i class="far fa-id-card fa-fw"></i></li>
+				<li><a th:href="@{/mypage/profile/view/{midStr} 
+					(midStr=${personacon.id56})}" class="loginRequired">
+					<i class="far fa-id-card fa-fw"></i><span>프로필 정보</span>
+				</a></li>
+				<li class="openProfile loginRequired" th:data-mid="${personacon.id56}">
+					<i class="fa fa-fw fa-user-astronaut"></i><span>나의 프로필 팝업</span>
+				</li>
+				
+				<li class="title in">Purchase Info 
+					<i class="far fa-credit-card fa-fw"></i></li>
+				<li><a th:href="@{/mypage/payment/list}">
+					<i class="far fa-credit-card fa-fw"></i><span>구매 내역</span>
+				</a></li>
+						
+				<li class="title in">Contact Us 
+					<i class="fa fa-bell fa-fw"></i></li>
+				<li><a th:href="@{/qna/app/list}">
+					<i class="fa fa-mobile-alt fa-fw"></i><span>앱 서비스 문의</span>
+				</a></li>
+				<li><a th:href="@{/qna/report/list}">
+					<i class="fa fa-flag-checkered fa-fw"></i><span>신고 문의</span>
+				</a></li>
+			</ul>
+		</div>
+	</th:block>
+	<div th:unless="${session.userContainer}" 
+		class="main-menu1 login col-auto align-self-center text-center">
+		<a onclick="self.location='/auth/login?destPage=' + location.pathname + location.search">
+			<i class="icon-sign-in"></i> sign in
+		</a>
+	</div>
+</th:block>
+
+
+
+<!--/*=====================================================================*/-->
+<!--/*  					primary menu : nabvar						   */-->
+<!--/*=====================================================================*/-->
+<div th:fragment="primary_menu2" class="nav-main-menu row no-gutters">
+	<div class="col"></div>
+	<div class="main-menu1 first col-auto align-self-center text-center">
+		<span id="appMenuOn2" onclick="displayNavbarAppMenu()">
+			<i class="fa fa-bars fa-lg fa-fw"></i>플레이잉글리시
+		</span>
+		<span id="appMenuOff2" onclick="disappearNavbarAppMenu()" style="display: none;">
+			<i class="fa fa-times fa-lg fa-fw"></i>플레이잉글리시
+		</span>
+	</div>
+	<div class="main-menu1 col-auto align-self-center text-center">
+		<a th:href="@{/square}">플레이스퀘어 </a>
+		<ul class="playvoice-dropdown-mainmenu">
+			<li><a th:href="@{/square}">
+				<i class="fa fa-home fa-fw"></i><span>HOME</span>
+			</a></li>
+			
+			<li class="title in">BABEL 카페 <i class="fa fa-coffee fa-fw"></i></li>
+			<li><a th:href="@{/square/babel/list/eng}">
+				<i class="fa fa-coffee fa-fw"></i><span>잉글리시 스택</span>
+			</a></li>
+			<li><a th:href="@{/square/babel/list/kor}">
+				<i class="fa fa-mug-hot fa-fw"></i><span>코리안 스택</span>
+			</a></li>
+		
+			<li class="title in">PLVO 북스토어 <i class="fa fa-book fa-fw"></i></li>
+			<li><a th:href="@{/square/digest/list}">
+				<i class="fa fa-book fa-fw"></i><span>다이제스트</span>
+			</a></li>
+			<li><a th:href="@{/square/grammarBook/list}">
+				<i class="fa fa-atlas fa-fw"></i><span>그래머 북</span>
+			</a></li>
+			
+			<li class="title in">OCTOPUS 펍 <i class="fa fa-beer fa-fw"></i></li>
+			<li><a th:href="@{/square/smalltalk}">
+				<i class="fa fa-cocktail fa-fw"></i><span>스몰톡</span>
+			</a></li>
+		</ul>
+	</div>		
+	<div class="main-menu1 col-auto align-self-center text-center">
+		<a th:href="@{/board}">플레이보드 </a>
+		<ul class="playvoice-dropdown-mainmenu">
+			<li><a th:href="@{/board}">
+				<i class="fas fa-home fa-fw"></i><span>HOME</span>
+			</a></li>
+			<li th:if="${session.userContainer}"><a th:href="@{/board/free/add}">
+				<i class="fas fa-pen-fancy fa-fw"></i><span>게시글 작성하기</span>
+			</a></li>
+			
+			<li class="title in">Play Board</li>
+			<li><a th:href="@{/board/free/list}">
+				<i class="fas fa-hamburger fa-fw"></i><span>일상의 관찰</span>
+			</a></li>
+			<li><a th:href="@{/board/humor/list}">
+				<i class="far fa-grin-squint-tears fa-fw"></i><span>웃음과 유머</span>
+			</a></li>
+			<li><a th:href="@{/board/culture/list}">
+				<i class="fas fa-globe-americas fa-fw"></i><span>컬쳐 로드</span>
+			</a></li>
+			<li><a th:href="@{/board/people/list}">
+				<i class="far fa-grin-stars fa-fw"></i><span>피플 인사이드</span>
+			</a></li>
+			<li><a th:href="@{/board/creative/list}">
+				<i class="fas fa-parachute-box fa-fw"></i><span>상상력 사전</span>
+			</a></li>
+					
+			<li class="title in">Attention Please</li>
+			<li><a th:href="@{/board/notice/list}">
+				<i class="fas fa-user-ninja fa-fw"></i><span>공지 게시판</span>
+			</a></li>
+			<li><a th:href="@{/board/event/list}">
+				<i class="far fa-snowflake fa-fw"></i><span>이벤트 게시판</span>
+			</a></li>
+		</ul>
+	</div>
+	<th:block th:if="${session.userContainer != null}" >
+		<div class="main-menu1 col-auto align-self-center text-center">
+			<a th:href="@{/myteam}" class="loginRequired">My Team </a>
+			<ul class="playvoice-dropdown-mainmenu">
+				<li><a th:href="@{/myteam}" class="loginRequired">
+					<i class="fa fa-home fa-fw"></i><span>HOME</span>
+				</a></li>
+				<li><a th:href="@{/myteam/trunk/add}" class="loginRequired">
+					<i class="fa fa-child fa-fw"></i><span>친구 추가</span>
+				</a></li>
+			</ul>
+		</div>
+		<div class="main-menu1 col-auto align-self-center text-center">
+			<a th:href="@{/mypage}" class="loginRequired">My Page </a>
+			<ul class="playvoice-dropdown-mainmenu" 
+				th:with="personacon=${session.userContainer.personacon}">
+				<li><a th:href="@{/mypage}">
+					<i class="fa fa-home fa-fw"></i><span>HOME</span>
+				</a></li>
+					
+				<li class="title in">Account Info
+					<i class="fa fa-comment-dollar fa-fw"></i></li>
+				<li><a th:href="@{/mypage/study/today}">
+					<i class="fa fa-chalkboard-teacher fa-fw"></i><span>오늘의 학습 입출금</span>
+				</a></li>
+				<li><a th:href="@{/mypage/study/mypoint}">
+					<i class="fa fa-comment-dollar fa-fw"></i><span>플레이 어카운트</span>
+				</a></li>
+			
+				<li class="title in">Journey Info 
+					<i class="fa fa-passport fa-fw"></i></li>
+				<li><a th:href="@{/mypage/journey/study}">
+					<i class="fa fa-pen-nib fa-fw"></i><span>학습 여정 정보</span>
+				</a></li>
+				<li><a th:href="@{/mypage/journey/log}">
+					<i class="fa fa-pen-nib fa-fw"></i><span>여정 로그 정보</span>
+				</a></li>
+			
+				<li class="title in">Profile Settings 
+					<i class="far fa-id-card fa-fw"></i></li>
+				<li><a th:href="@{/mypage/profile/view/{midStr} 
+					(midStr=${personacon.id56})}" class="loginRequired">
+					<i class="far fa-id-card fa-fw"></i><span>프로필 정보</span>
+				</a></li>
+				<li class="openProfile loginRequired" th:data-mid="${personacon.id56}">
+					<i class="fa fa-fw fa-user-astronaut"></i><span>나의 프로필 팝업</span>
+				</li>
+		
+				<li class="title in">Purchase Info 
+					<i class="far fa-credit-card fa-fw"></i></li>
+				<li><a th:href="@{/mypage/payment/list}">
+					<i class="far fa-credit-card fa-fw"></i><span>구매 내역</span>
+				</a></li>
+					
+				<li class="title in">Contact Us 
+					<i class="fa fa-bell fa-fw"></i></li>
+				<li><a th:href="@{/qna/app/list}">
+					<i class="fa fa-mobile-alt fa-fw"></i><span>앱 서비스 문의</span>
+				</a></li>
+				<li><a th:href="@{/qna/report/list}">
+					<i class="fa fa-flag-checkered fa-fw"></i><span>신고 문의</span>
+				</a></li>
+			</ul>
+		</div>
+	</th:block>
+	<div th:unless="${session.userContainer}" 
+		class="main-menu1 login col-auto align-self-center text-center">
+		<a onclick="self.location='/auth/login?destPage=' + location.pathname + location.search">
+			<i class="icon-sign-in"></i> sign in
+		</a>
+	</div>
+</div>
+
+
+
+	
+<!--/*=====================================================================*/-->
+<!--/*  						admin menu							   */-->
+<!--/*=====================================================================*/-->
+<div th:fragment="admin_menu" class="col pl-5 align-self-center"><div class="row no-gutters">
+	<div class="main-menu1 first col-auto px-2 align-self-center text-center">
+		<a onclick="displayPlayvoiceAppMenu()" id="appMenuOn">
+			<i class="fa fa-bars fa-lg fa-fw"></i> 플레이잉글리시
+		</a>
+		<a onclick="disappearPlayvoiceAppMenu()" id="appMenuOff" style="display: none;">
+			<i class="fa fa-times fa-lg fa-fw"></i> 플레이잉글리시
+		</a>
+	</div>
+	<div class="main-menu1 col-auto px-2 align-self-center text-center">
+		<a th:href="@{/square}">플레이스퀘어</a>
+	</div>		
+	<div class="main-menu1 col-auto px-2 align-self-center text-center">
+		<a th:href="@{/board}">플레이보드</a>
+	</div>
+	<th:block th:if="${session.userContainer != null}" >
+		<div class="main-menu1 col-auto px-2 align-self-center text-center">
+			<a th:href="@{/myteam}">마이 팀</a>
+		</div>
+		<div class="main-menu1 col-auto px-2 align-self-center text-center">
+			<a th:href="@{/mypage}">마이 페이지</a>
+		</div>
+	</th:block>
+</div></div>
+
+</html>

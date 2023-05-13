@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/playvoice_basic_layout}">
+
+<head>
+
+<script th:inline="javascript">
+$(document).ready(function() {
+	
+	// [모달 닫기]-----------------------------------------------------------------
+	$(".closeReportModal").click(function(){
+		$("#playvoiceReportModal").hide();
+	});
+	
+	// [신고하기]-----------------------------------------------------------------
+	$("#submitReportBtn").click(function(){
+		
+	});
+	
+});//end of ready
+
+
+</script>
+</head>
+
+<section layout:fragment="content">
+
+
+
+<div id="playvoiceReportModal" class="report-modal-section">
+	<div class="closeReportModal report-modal-back"></div>
+	<div class="report-modal-content">
+		<h5>
+			Report <i class="fa fa-exclamation-triangle fa-fw"></i>
+			<i class="closeReportModal fa fa-times fa-lg text-white float-right jsAction" title="닫기"></i>
+		</h5>
+		<div class="report-from">
+			신고 대상자 : <span class="alias">별명</span>
+		</div>
+		<div class="report-select-section">
+			<div class="guide">
+				신고 사유를 선택해 주세요.<br>
+				여러 사유에 해당되는 경우, 대표적인 사유 1개를 선택해 주세요.
+			</div>
+			<div class="select-section">
+				<label><input type="radio" name="report" class="option-input radio" value="I"/>
+					욕설 및 비방</label><br>
+				<label><input type="radio" name="report" class="option-input radio" value="R"/>
+					댓글 및 게시물 반복 게재 (도배)</label><br>
+				<label><input type="radio" name="report" class="option-input radio" value="A"/>
+					부적절한 홍보나 광고</label><br>
+				<label><input type="radio" name="report" class="option-input radio" value="O"/>
+					음란물 또는 청소년에게 부적합한 내용</label><br>
+				<label><input type="radio" name="report" class="option-input radio" value="C"/>
+					저작권 및 명예훼손</label><br>
+				<label><input type="radio" name="report" class="etc-select option-input radio" 
+					value="E"/> 기타 <br>
+					<textarea class="etc-text form-control playvoice-form"></textarea>
+				</label>
+			</div>
+		</div>
+		<div class="report-button-section">
+			<button id="submitReportBtn" class="btn btn-sm btn-main-submit" type="button">신고하기</button>
+			<button class="closeReportModal btn btn-sm btn-main" type="button">취소</button>
+		</div>
+	</div>
+</div>
+
+
+
+
+
+</section>

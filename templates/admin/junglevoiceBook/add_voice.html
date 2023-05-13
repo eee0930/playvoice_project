@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"	
+	xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+	layout:decorate="~{/layout/admin_basic_layout}">
+
+<!--/* 
+주요 구성 
+1. [Search Sentence Form] <div id="searchSentenceDiv" th:insert="~{/admin/sentenceBook/incl/search_sentence::search_sentence}" style="display: none"></div>
+2. [voice미등록 결과 목록] <div th:insert="~{/admin/sentenceBook/list_sentences_fragment::content}"></div>
+3. [Add Voice Form]
+	3.1 Sentence 상세 정보 폼
+
+
+*/-->
+<head>
+	<title>Add Voice</title>
+	<link rel="stylesheet" th:href="@{/css/app/sentencebook.css}">
+	
+	<!-- datepicker -->
+	<link rel="stylesheet" th:href="@{/css/bootstrap/datepicker3.css}">
+	
+	<script th:src="@{/js/public/bootstrap-datepicker.js}"></script>
+	<script th:src="@{/js/public/bootstrap-datepicker.kr.js}"></script>
+	<script th:src="@{/js/app/junglebook.js}"></script>
+	
+<script th:inline="javascript">
+var targetFoldingList="";
+
+$(document).ready(function() {
+	$('[data-toggle="tooltip"]').tooltip();
+
+	//['전체 체크' 체크시 해당 테이블 속의 체크박스를 모두 토글]-------------------------------------
+	$(document).on('click','.all-checkbox',function(){
+		//.all-checkbox는 admin/jungleBook/list_select_sentences_fragment.html에 있음
+		var columnIndex = $(this).closest('th').index();
+		var rows = $(this).closest('table').find('tbody tr');
+		rows.each(function(i, element) {
+			$(element).find('td:eq(' + columnIndex + ') :checkbox')
+			.prop('checked',function(){
+				return !$(this).prop('checked');
+			});
+		});
+	});
+	
+	//[보이스 등록하기 버튼 클릭시 ]
+	$(document).on('click','.addJungleVoiceBtn',function(){
+		var page = $('#searchFormHidden_list_fragment #page').val();
+		//jungleBook.js 파일에 정의된 함수.
+		addJungleVoice($(":checkbox[name='chkList']:checked"), page);
+		//checkbox는 list_select_sentences_fragment/list_select_sentences에 있음
+	});
+	
+	//[요청URL을 통해 searchType 구하기]-----------------------------------------
+	var query = $(location).attr('search');
+	if(query.indexOf('=') == -1){
+		var tagetLink = $('th').find("a[data-value='regDate']");
+		var targetSpan = tagetLink.next();
+		targetSpan.css("display", "inline");
+	}
+	
+	//[검색폼 보이기]---------------------------------------------------------------
+	$('#showSearchForm').click(function(){
+		$('#searchFormDiv').toggle();
+	});
+	
+	//[보이스 폼 추가]--------------------------------------------------------------
+	$("#additioinal").click(function(e){
+		var voiceDiv = createVoiceDiv();
+		$("#submitDiv").before(voiceDiv);
+	});
+	
+	
+	//[예문 상세보기 클릭 시 (ref: list_sentence.html)]-----------------------------
+	$('.resultWrapper').on('click', '.sentenceDetail', function(e) {
+		e.preventDefault();
+		
+		//success버튼 숨기기
+		$('#addVoiceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'none');
+		//기존 파일 정보 지우기
+		$('input[type=file]').val("");
+		
+		
+		//1. 예문 상세 정보 폼 채우기
+		$('#voiceList').empty();
+		//$('#sentenceListStatic, #sentenceListDynamic').css('display','none');	//검색된 미등록 예문 목록 접기
+		var sentenceList = $(this).parent().parent().parent().parent().parent().parent();
+		targetFoldingList = sentenceList.attr("id");
+		
+		//alert("targetFoldingList="+targetFoldingList);
+		//$('#'+targetFoldingList).css('display','none');
+		$('#editSentenceForm, #existingVoiceList').css('display','block');
+		
+		var sentenceTr = $(this).parent().parent();
+		var sentenceNo = sentenceTr.children().first().next();
+		var jid = sentenceNo.next();
+		var eng = jid.next();
+		var kor = eng.next();
+		var voiceExist = kor.next();
+		var cateExist = voiceExist.next();
+		var source = cateExist.next();
+		var firstWriter = source.next();
+	
+		$('#jid').val(jid.text());
+		$('#addVoiceForm .sentenceId').val(jid.text());
+		$('#eng').val(eng.text().trim());
+		$('#kor').val(kor.text().trim());
+		$('#voiceExist').val(voiceExist.text());
+		$('#cateExist').val(cateExist.text());
+		$('#source').val(source.text());
+		$('#firstWriter').val(firstWriter.text());
+		
+		//2. 해당 예문의 기존 보이스 목록 조회
+		$.getJSON("/admin/jungleVoiceBook/list/"+jid.text(),function(result){
+			var voiceResourcePath='/resource/jungleVoice/';
+			
+			$('#voiceList').empty();
+			result.forEach(function(voice,index) {
+				var tr = document.createElement("tr");
+				tr.className = "contents";
+				
+				var demo="";
+				if(voice.demo ==true){
+					demo='<i class="fas fa-check"></i>';
+				}
+				tr.innerHTML +=
+				"<td>"+voice.vid+"</td>"
+				+"<td>"+demo+"</td>"
+				+"<td>"+voice.voiceType+"</td>"
+				+"<td>"+voice.voiceRate+"</td>"
+				+"<td>"+voice.voiceSex+"</td>"
+				+"<td>"+voice.accent+"</td>"
+				+"<td>"+voice.source+"</td>"
+				+"<td><i class='fas fa-volume-up' onclick='playVoice(\""+voiceResourcePath+voice.path+"\", this)'></i><i class=\'fas fa-stop\' onclick=\'stopVoice(this)\' style=\'display:none\'></td>"
+				+"<td>"+voice.regDate+"</td>"
+				+"<td><i class=\"fas fa-edit\" onclick=\"showVoiceForm(this)\"></i> " 
+				+"<i class=\"fas fa-file-excel\" onclick=\"changeVoiceFiles('"+voice.vid+"')\"></i> "
+				+"<i class=\"fas fa-trash-alt\" onclick=\"deleteVoiceFile('"+voice.vid+"')\"></i></td>"
+				+"<td style='display:none'>"+voice.description+"</td>"
+				$('#voiceList').append(tr);
+			});
+			$('[data-toggle="tooltip"]').tooltip();
+		});
+
+	});
+	
+	
+	//[보이스 등록]---------------------------------------------------------------
+	$("#addVoiceBtn").click(function(e){
+		e.preventDefault();
+		$(':file').on('change', function() {
+			var file = this.files[0];
+			if (file.size > 1024 * 1000 * 5) {
+				alert('max upload size is 5MB')
+			}
+			if(file.type.indexOf('audio') == -1){
+				alert(file.name+'('+file.type+') is not audio file. sorry only audio files allowed');
+			}
+		});
+
+		var form = $('#addVoiceForm')[0];
+		var sentenceId = $('#jid').val();
+		var data = new FormData(form);
+		//data.append("sentenceId", sentenceId);
+		$("#addVoiceBtn").prop("disabled", true);
+
+		$.ajax({
+			type: "POST",
+			url: '/admin/jungleVoiceBook/add/'+sentenceId,
+			enctype: 'multipart/form-data',            
+			data: data,
+			processData: false,
+			contentType: false,
+			cache: false,
+			timeout: 600000,
+			success: function (data) {
+				$("#addVoiceBtn").prop("disabled", false);
+				alert("success");
+				$('#addVoiceFormContainer button[class="btn btn-info btn-xs"]').css("display", 'inline');
+				
+				
+				//2. 해당 예문의 기존 보이스 목록 조회
+				$.getJSON("/admin/jungleVoiceBook/list/"+jid.text(),function(result){
+					var voiceResourcePath='/resource/voice/';
+					
+					$('#voiceList').empty();
+					result.forEach(function(voice,index) {
+						var tr = document.createElement("tr");
+						tr.className = "contents";
+						
+						var demo="";
+						if(voice.demo ==true){
+							demo='<i class="fas fa-check"></i>';
+						}
+						tr.innerHTML +=
+						"<td>"+voice.vid+"</td>"
+						+"<td>"+demo+"</td>"
+						+"<td>"+voice.voiceType+"</td>"
+						+"<td>"+voice.voiceRate+"</td>"
+						+"<td>"+voice.voiceSex+"</td>"
+						+"<td>"+voice.accent+"</td>"
+						+"<td>"+voice.source+"</td>"
+						+"<td><i class='fas fa-volume-up' onclick='playVoice(\""+voiceResourcePath+voice.path+"\", this)'></i><i class=\'fas fa-stop\' onclick=\'stopVoice(this)\' style=\'display:none\'></td>"
+						+"<td>"+voice.regDate+"</td>"
+						+"<td><i class=\"fas fa-edit\" onclick=\"showVoiceForm(this)\"></i> " 
+						+"<i class=\"fas fa-file-excel\" onclick=\"changeVoiceFiles('"+voice.vid+"')\"></i> "
+						+"<i class=\"fas fa-trash-alt\" onclick=\"deleteVoiceFile('"+voice.vid+"')\"></i></td>"
+						+"<td style='display:none'>"+voice.description+"</td>"
+						$('#voiceList').append(tr);
+					});
+					$('[data-toggle="tooltip"]').tooltip();
+				});
+				
+				
+			},
+			error: function (e) {
+				//$("#result").text(e.responseText);
+				console.log("ERROR : ", e);
+				$("#addVoiceBtn").prop("disabled", false);
+			}
+		});
+	});
+	
+	//[예문 검색창 토글]---------------------------------------------------
+	$('.searchIcon').click(function(e){
+		$('#searchSentenceDiv').toggle();
+	});
+	
+	
+	//[악센트 기타 작성부분]------------------------------------------------
+	$(document).on('change','.accent-etc',function(){
+		$(this).siblings(':text').focus();
+	});
+	$(document).on('click','.accent-text',function(){
+		var radio = $(this).siblings(':radio');
+		radio.prop('checked',true);
+	});
+	$(document).on('input','.accent-text',function(){
+		$(this).siblings(':radio').val($(this).val());
+	});
+});//end of ready
+
+var formNum = 0;
+
+function createVoiceDiv(){
+	var formText = $("#copyVoiceForm").clone();
+	formText.appendTo("#pasteVoiceForm"); //end of copy
+	formNum++;
+	
+	var sentenceDiv = $(".sentenceDiv").eq(formNum - 1);
+	sentenceDiv.attr("id", "sentenceDiv" + formNum);
+	sentenceDiv.css("display", "");
+	var delBtn = $(".deleteVoiceFormBtn").eq(formNum - 1);
+	delBtn.attr("id", "delete_btn" + formNum);
+	delBtn.attr("onclick", "deleteVoiceForm(this.id)");
+	var demo = $(".voices-demo").eq(formNum - 1);
+	demo.attr("id", "voices[" + formNum + "].demo");
+	demo.attr("name", "voices[" + formNum + "].demo");
+	var sentenceId = $(".voices-sentenceId").eq(formNum - 1);
+	sentenceId.attr("name", "voices[" + formNum + "].sentenceId");
+	
+	var jid = document.getElementsByName("voices[0].sentenceId")[0].value;
+	document.getElementsByName("voices[" + formNum + "].sentenceId")[0].value=jid;
+	
+	var demo2 = $("._voices-demo").eq(formNum - 1);
+	demo2.attr("name", "_voices[" + formNum + "].demo");
+	var voiceFile = $(".voices-voiceFile").eq(formNum - 1);
+	voiceFile.attr("id", "voices[" + formNum + "].voiceFile");
+	voiceFile.attr("name", "voices[" + formNum + "].voiceFile");
+	
+	//각각의 라디오 버튼 갯수
+	var voicetype_size = sentenceDiv.find(".voicetype-size").length;
+	var voicerate_size = sentenceDiv.find(".voicerate-size").length;
+	var accent_size = sentenceDiv.find(".accent-size").length;
+	var voicesex_size = sentenceDiv.find(".voicesex-size").length;
+	for(var i = 0; i < voicetype_size; i++){
+		var voiceType = $(".voices-voiceType" + i).eq(formNum - 1);
+		voiceType.attr("name", "voices[" + formNum + "].voiceType");
+	}
+	for(var i = 0; i < voicerate_size; i++){
+		var voiceRate = $(".voices-voiceRate" + i).eq(formNum - 1);
+		voiceRate.attr("name", "voices[" + formNum + "].voiceRate");
+	}
+	for(var i = 0; i < accent_size; i++){
+		var accent = $(".voices-accent" + i).eq(formNum - 1);
+		accent.attr("name", "voices[" + formNum + "].accent");
+	}
+	for(var i = 0; i < voicesex_size; i++){
+		var voiceSex = $(".voices-voiceSex" + i).eq(formNum - 1);
+		voiceSex.attr("name", "voices[" + formNum + "].voiceSex");
+	}
+	
+	var source = $(".voices-source").eq(formNum - 1);
+	source.attr("name", "voices[" + formNum + "].source");
+	var description = $(".voices-description").eq(formNum - 1);
+	description.attr("name", "voices[" + formNum + "].description");
+}
+
+function deleteVoiceForm(id) {
+	for(var i = 1; i <= formNum; i++) {
+		if(id == "delete_btn" + i){
+			$("#sentenceDiv" + i).remove();
+			break;
+		}
+	}
+	var sentenceDiv = document.getElementsByClassName("sentenceDiv");
+	var demo = document.getElementsByClassName("voices-demo");
+	var demo2 = document.getElementsByClassName("_voices-demo");
+	var sentenceId = document.getElementsByClassName("voices-sentenceId");
+	var file = document.getElementsByClassName("voices-voiceFile");
+	var source = document.getElementsByClassName("voices-source");
+	var description = document.getElementsByClassName("voices-description");
+	var del_btn = document.getElementsByClassName("deleteVoiceFormBtn");
+	
+	//각각의 라디오 버튼 갯수
+	var voicetype_size = $("#copyVoiceForm").find(".voicetype-size").length;
+	var voicerate_size = $("#copyVoiceForm").find(".voicerate-size").length;
+	var accent_size = $("#copyVoiceForm").find(".accent-size").length;
+	var voicesex_size = $("#copyVoiceForm").find(".voicesex-size").length;
+	
+	for(var k = 1; k < formNum; k++) {
+		sentenceDiv[k-1].id = "sentenceDiv" + k;
+		del_btn[k-1].id = "delete_btn" + k;
+		demo[k-1].id = "voices[" + k + "].demo";
+		demo[k-1].name = "voices[" + k + "].demo";
+		sentenceId[k-1].name = "voices[" + k + "].sentenceId";
+		demo2[k-1].name = "_voices[" + k + "].demo";
+		file[k-1].id = "voices[" + k + "].voiceFile";
+		file[k-1].name = "voices[" + k + "].voiceFile";
+		source[k-1].name = "voices[" + k + "].source";
+		description[k-1].name = "voices[" + k + "].description";
+		
+		for(var j = 0; j < voicetype_size; j++) {
+			var type = document.getElementsByClassName("voices-voiceType" + j); //속도
+			type[k-1].name = "voices[" + k + "].voiceType";
+		}
+		for(var j = 0; j < voicerate_size; j++) {
+			var rate = document.getElementsByClassName("voices-voiceRate" + j); //속도
+			rate[k-1].name = "voices[" + k + "].voiceRate";
+		}
+		for(var j = 0; j < accent_size; j++) {
+			var accent = document.getElementsByClassName("voices-accent" + j); //악센트
+			accent[k-1].name = "voices[" + k + "].accent";
+		}
+		for(var j = 0; j < voicesex_size; j++) {
+			var voiceSex = document.getElementsByClassName("voices-voiceSex" + j); //성별
+			voiceSex[k-1].name = "voices[" + k + "].voiceSex";
+		}
+	}
+	formNum--;
+}
+	
+</script>
+</head>
+
+<!-- <div layout:fragment="jide-menu">
+	<div th:insert="~{/admin/sentenceBook/incl/sentenceBook_menu::adminMenu}">관리자 메뉴</div>
+</div> -->
+
+<section layout:fragment="content">
+
+<!-- <h3>보이스 등록 (Add Voice)</h3> --> 
+
+<!--/* ----------------[inclule : 1. Search Sentence Form]---------------- */-->
+<div id="searchSentenceDiv" style="display: none"
+	th:insert="~{/admin/junglevoiceBook/incl/search_sentence::search_sentence}" ></div>
+<!--/* ------------------------------------------------------------------- */-->
+
+
+<h3 th:text="${tableTitle}" id="listTitle">예문 전체 목록</h3>
+
+<!--/* 1. 예문 목록 Table  */-->
+<div id="sentenceListStatic">
+	<div th:with="result=${pageMaker.result}">
+		<div class="text-left"><i  lang="fa" class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+		<table class="table table-striped table-sm table-bordered table-hover text-center resultWrapper admin-sentencebook-board">
+			<thead>
+			<tr class="thead">
+				<th style="width: 50px;">
+					<a href="javascript:void(0)" class="allCheckbox"> </a><br>
+					<input type="checkbox" class="all-checkbox" name="allChk" >
+				</th>
+				<th style="width: 70px;"><a href="javascript:void(0)" class="thlink2">번호</a></th>
+				<th style="width: 70px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='jid'>JID</a>
+					<span class="sortMark">▼</span></th>
+				<th>
+					<a href="javascript:void(0)" class="thlink2" data-value='eng'>영어</a>
+					<span class="sortMark">▼</span></th>
+				<th >
+					<a href="javascript:void(0)" class="thlink2" data-value='kor'>한국어</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 60px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='added'>센텐스북 추가여부</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 150px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='appCode'>앱코드</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 90px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='regDate'>등록일</a>
+					<span class="sortMark" data-orderBy="default">▼</span></th>
+			</tr></thead>
+			<!--/* 1-1.결과 목록 */-->
+			<tr th:each="sentence, status : ${result.content}">
+				<td style="width: 50px;">
+					<input type="checkbox" th:id="${sentence.jid}" name="chkList">
+				</td>
+				 <td th:text="${( pageMaker.result.totalElements - status.count+1) - ((pageMaker.currentPageNum -1) * 10)} "></td> 
+				<td th:text="${sentence.jid}">
+					JID</td> 
+				<td th:text="${sentence.eng}" class="text-left"> </td>
+				<td th:text="${sentence.kor}">한국어</td>		
+				<td th:text="${sentence.added}">센텐스북 추가여부</td>
+				<th:block th:each="appCodeOption : ${appCodeOptions}"> 
+					<td th:if= "${appCodeOption.value} == ${sentence.appCode}"
+					 	th:utext="${appCodeOption.name} + '<br>' + ${appCodeOption.value}">
+					</td>
+				</th:block>
+				<td th:text="${#dates.format(sentence.regDate, 'yyyy-MM-dd')}">날짜</td>
+			</tr>
+		</table>
+	</div>
+	
+	
+	<div class="text-left col-4">
+		<i class="addJungleVoiceBtn fas fa-save" style="font-size:15px; color: #5bc0de;" lang="fa">
+		</i> 
+		Amazon Polly로 보이스 등록
+	</div>
+	
+	<!--/* 1-2.paging */-->
+	<nav class="row my-3">
+		<div class="col-12" id="paginationFragment">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item" th:if="${pageMaker.prevPage}">
+					<a class="page-link" th:href="${pageMaker.prevPage.pageNumber} + 1">PREV[[${pageMaker.prevPage.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:each="p:${pageMaker.pageList}"
+					th:classappend="${p.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+					<a class="page-link" th:href="${p.pageNumber} +1">[[${p.pageNumber}+1]]</a>
+				</li>
+				<li class="page-item" th:if="${pageMaker.nextPage}">
+					<a class="page-link" th:href="${pageMaker.nextPage.pageNumber} + 1">NEXT [[${pageMaker.nextPage.pageNumber}+1]]</a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+</div>
+
+<!--/* 2. 예문 목록 Table By Ajax */-->
+<div id="sentenceListDynamic" style="display: none">
+	<div>
+		<div class="text-left"><i lang="fa" class="fas fa-search-plus searchIcon" style="font-size:15px; color: #5bc0de;"></i></div>
+		<table class="table table-striped table-bordered table-sm table-hover text-center resultWrapper admin-sentencebook-board" id="searchResultTable2">
+			<thead>
+			<tr class="thead">
+						<th style="width: 50px;">
+					<a href="javascript:void(0)" class="allCheckbox"> </a><br>
+					<input type="checkbox" class="all-checkbox" name="allChk" >
+				</th>
+				<th style="width: 70px;"><a href="javascript:void(0)" class="thlink2">번호</a></th>
+				<th style="width: 70px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='jid'>JID</a>
+					<span class="sortMark">▼</span></th>
+				<th>
+					<a href="javascript:void(0)" class="thlink2" data-value='eng'>영어</a>
+					<span class="sortMark">▼</span></th>
+				<th >
+					<a href="javascript:void(0)" class="thlink2" data-value='kor'>한국어</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 80px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='added'>센텐스북 추가여부</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 150px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='appCode'>앱코드</a>
+					<span class="sortMark">▼</span></th>
+				<th style="width: 90px;">
+					<a href="javascript:void(0)" class="thlink2" data-value='regDate'>등록일</a>
+					<span class="sortMark" data-orderBy="default">▼</span></th>
+			</tr></thead>
+			<tbody><!--/* 2-1.결과 목록 */--></tbody>
+		</table>
+	</div>
+	
+	<div class="text-left col-1"><i class="addJungleVoice fas fa-save" style="font-size:15px; color: #5bc0de;" lang="fa"></i></div>
+	
+	<!--/* 2-2. paging */-->
+	<nav id="searchResultPageNavi2" class="row my-3">
+		<div class="col-12">
+			<ul class="pagination pagination-sm justify-content-center">
+				
+			</ul>
+		</div>
+	</nav>
+</div> <!-- end of searchResult -->
+
+
+
+<!-- paging hidden values-->
+
+<div class="row">
+<div id="searchFormHidden_list_fragment" class="col-12 text-center" style="display:none; padding:0px 20px 20px 20px;">
+	<form id='pageForm' action="/admin/jungleBook/list" method="get">
+		Page : <input type='text' th:value="${searchRequest?.page}" style="width:5%" id="page" name="page">
+		Size : <input type='text' th:value="${searchRequest?.size}" style="width:7%" id="size" name="size">
+		S-Type : <input type='text' th:value="${searchRequest?.searchType}" style="width:10%" id="searchType" name="searchType">
+		Keyword : <input type='text' th:value="${searchRequest?.keyword}" style="width:20%" id="keyword" name="keyword">
+		S-Name : <input type='text' th:value="${searchRequest?.sortName}" style="width:10%" id="sortName" name="sortName">
+		ASC : <input type='text' th:value="${searchRequest?.asc}" style="width:5%" id="asc" name="asc">
+	</form>
+</div></div>
+
+	
+<script th:inline="javascript">
+var dynamicOn=false;
+
+$(document).ready(function() {
+	//[테이블 컬럼 헤더 클릭시]-----------------------------------------
+	$(".resultWrapper .thlink2").click(function(e) {
+		//searchSentence2();
+		//displaySearchMark($(this));
+	
+		var target = $(this);
+		var sortName = target.attr('data-value');
+		var sortMark = target.next();
+		var searchType=$('#searchType').val();
+		var page=1;
+		
+		//선택한 타이틀을 제외한 나머지의 sortMark를 보이지 않도록 한다.
+		$('#sentenceListDynamic .sortMark').css('display', 'none');
+		
+		//현재 선택한 sortName이 이전과 같다면
+		if(sortName == $('#searchFormHidden_list_fragment #sortName').val()){
+			//현재 설정된 정렬방향을 가져온다.
+			var direction = $('#searchFormHidden_list_fragment #asc').val();
+			
+			//정렬방향을 반대로 변경한다.
+			if(direction == 'false'){
+				$('#searchFormHidden_list_fragment #asc').val('true');
+				sortMark.text('▲');
+			}else{
+				$('#searchFormHidden_list_fragment #asc').val('false');
+				sortMark.text('▼');
+				
+			}
+			console.log("이전과 동일=");
+			
+		}else{
+			//새로운 sortName으로 교체
+			$('#searchFormHidden_list_fragment #sortName').val(sortName);
+			
+			//기본값을 desc로 설정한다.
+			$('#searchFormHidden_list_fragment #asc').val('false');
+			
+			console.log("이전과 다름=");
+		}
+		sortMark.css('display', 'inline');
+		searchSentence2();
+		
+	});
+	
+	
+	
+	//[페이지 번호 클릭시 next page 전송]-----------------------------------------
+	var formObj = $("#pageForm");
+	$(".pagination a").click(function(e) {
+		e.preventDefault();
+		formObj.find('[name="page"]').val($(this).attr('href'));
+		formObj.submit();
+	});
+	
+	
+	
+	//[목록 토글]------------------------------------------------------------
+	$('#listTitle').click(function(){
+		if(!dynamicOn){
+			$('#listTitle').next().toggle();
+		}else{
+			$('#sentenceListDynamic').toggle();
+		}
+	});
+	
+	
+});//end of ready
+
+
+function searchSentence2(page){
+	
+	if(page==undefined){
+		page = 1;
+	}
+	
+	
+	$.getJSON({
+		//type: "GET",
+		url : '/admin/jungleBook/search',
+		data : {
+			searchType : $('#searchType').val(),
+			keyword : $('#keyword').val(),
+			fromDate : $('#fromDate2').val(),
+			toDate : $('#toDate2').val(),
+			page : page,
+			size : $('#size').val(),
+			sortName : $('#searchFormHidden_list_fragment #sortName').val(),
+			asc : $('#searchFormHidden_list_fragment #asc').val()
+		}, 
+		success : function(pageMaker){ 
+			//resetDefault();
+			var page = pageMaker.result;
+			displaySentenceList2(page.content, pageMaker.currentPageNum, page.totalElements);				
+			displayPageNavigation2(pageMaker);
+ 
+			//if open, 에러 패널 닫기
+			$('#errorDiv').css("display",'none');
+			//기존 테이블 닫기
+			$('#sentenceListStatic').css("display",'none');
+			//신규 테이블 show
+			$('#sentenceListDynamic').css("display",'block');
+			
+			dynamicOn=true;
+		},
+		error : function (e) {
+			$('#errorDiv').css("display",'inline');
+			$('#errorDiv > pre').text(e.responseText);
+
+            console.log("ERROR : ", e);
+        }
+	});
+}
+
+function displaySentenceList2(sentenceList, currentPageNum, total){
+	$('#searchResultTable2').children('tbody').children("tr").remove();
+	var output = ''
+	var num=1;
+	var fetchSize = $('#size').val();
+	var appCodeOptions = /*[[${appCodeOptions}]]*/[];
+	var optionLength = appCodeOptions.length;
+	
+	$.each(sentenceList, function(index, sentence){
+		num = (total-index)-(currentPageNum-1)*fetchSize;
+		
+		//index++;
+		var regDate = new Date(sentence.regDate);
+		output += '<tr>';
+		output += '<td><input type="checkbox" id="'+sentence.jid+'" name="chkList"></td>';
+		output += '<td>'+num+'</td>';
+		output += '<td>'+sentence.jid+'</td>';
+		output += '<td class="text-left"><a href="javascript:void(0)" class="sentenceDetail">'+sentence.eng+'</a><input type=\'hidden\' value=\"'+sentence.kor+'\"/></td>';
+		output += '<td class="text-left">'+sentence.kor+'</td>';
+		output += '<td>'+sentence.added +'</td>';
+		
+		//output += '<td>'+sentence.appCode+'</td>';
+		
+		for(var i=0; i< optionLength; i++){
+			if(appCodeOptions[i].value == sentence.appCode){
+				output += '<td>' + appCodeOptions[i].name + '</td>';
+			}
+		}
+		
+		output += '<td>'+regDate.getFullYear()+"-"+parseInt(regDate.getMonth() +1)+"-"+regDate.getDate()+'</td>';
+		output += '</tr>';
+		$('#searchResultTable2 > tbody:last').append(output)	
+		output =''; 
+	});
+}
+
+function displayPageNavigation2(pageMaker){
+	var prevPage = pageMaker.prevPage;
+	var nextPage = pageMaker.nextPage;
+	var currentPage = pageMaker.currentPage;
+	var pageList = pageMaker.pageList;
+	var currentPageNum = parseInt(pageMaker.currentPageNum);
+	
+	var ul = $('#searchResultPageNavi2 ul');
+	ul.empty();
+	
+	if(prevPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+			html('PREV'+parseInt(prevPage.pageNumber+1));
+		link.attr('onclick','searchSentence2('+parseInt(prevPage.pageNumber+1)+')');
+		link.appendTo(li);
+		li.appendTo(ul);
+		
+	}
+	$.each(pageList, function(index, page){
+		var li = $('<li class="page-item"></li>');
+		if(parseInt(page.pageNumber+1) == (currentPageNum)){
+			li.addClass("active");
+		}
+		var link = $('<a class="page-link"></a>');
+		link.attr('href', 'javascript:void(0)');
+		link.attr('onclick', 'searchSentence2('+parseInt(page.pageNumber+1)+')');
+		link.html(parseInt(page.pageNumber+1));
+		
+		li.append(link);
+		li.appendTo(ul);
+	});
+	
+	if(nextPage != null){
+		//ul.add('li').addClass('page-item');
+		var li = $('<li></li>');
+		li.addClass('page-item');
+		
+		var link = $('<a class="page-link"></a>').attr('href', '#' ).
+		html('NEXT'+parseInt(nextPage.pageNumber+1));
+		link.attr('onclick','searchSentence2('+parseInt(nextPage.pageNumber+1)+')');
+		
+		link.appendTo(li);
+		li.appendTo(ul);
+	}
+}
+
+
+</script>
+
+
+
+	
+<div class="text-right" style="color:red;">
+	source :: add_voice.html	
+</div>	
+
+
+
+
+
+
+</section><!-- end of section -->
+

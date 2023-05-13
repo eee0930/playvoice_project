@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"   
+   xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+   layout:decorate="~{/layout/dictationbook_layout2}">
+<head>
+<title>Theme List of DictationBook - playvoice</title>
+
+<!-- search console & sns meta tags -->
+<th:block th:insert="~{/incl/meta_fragment2::meta}"
+	th:with="metaRobot = null, 
+	metaTitle = '딕테이션북 (DictationBook) - 플레이보이스 (playvoice)', 
+	metaDescription = '플레이보이스 딕테이션북에서는 일상 생활에서 자주 접할 수 있는 영어 문장들을 받아쓰기로 연습할 수 있습니다.', 
+	metaImage = '/images/common/characters/dictationbook.jpg', metaRegDate = null"></th:block>
+	
+<link rel="stylesheet" th:href="@{/css/app/dictationbook.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_sponsor.css}">
+<link rel="stylesheet" th:href="@{/css/app/playvoice_ad.css}">
+<script th:src="@{/js/common.js}"></script>
+	
+<script th:inline="javascript">
+
+/* ----------------------------------------------------------------------------- 
+*							Handling page move event
+* --------------------------------------------------------------------------- */
+
+/**
+ * 해당 테마의 딕테이션 테스트 페이지로 이동
+ */
+function moveToTest(themeId) {
+	location.replace("/dictationBook/test/800/" + themeId);
+}
+
+</script>	
+</head>
+<body>
+<section layout:fragment="content">
+
+
+<!-- title & menu -->
+<div id="menuSection" th:insert="~{/dictationBook/incl/dictationbook_menu2::menu}"></div>
+
+
+<div id="themeListSection" class="list-themes-section row no-gutters mt-4">
+<div class="col-12 px-lg-3">
+	<h3>
+		<span class="pv-tm">DictationBook</span> Themes<br>
+		<small>Choose one of the themes and take a test.</small>
+	</h3>
+	<div id="themeListDiv" class="theme-list-cover row no-gutters">
+		<div class="theme-list col-md-4 col-sm-6 col-12">
+			<div onclick="moveToTest(this.getAttribute('data'))" th:data="100" 
+				class="theme-cover d-flex align-content-between flex-wrap">
+				<div class="theme-img-cover">
+					<img src="/images/app/dictationbook/theme_paper3.png" class="theme-img" 
+						style="background: url('/images/app/dictationbook/theme_0.jpg') no-repeat;
+						background-size: 100% auto; background-position: center;">
+					<div class="go-test">
+						<div class="mb-2">Practice is Fun</div>
+						<div><i class="far fa-smile"></i></div>
+					</div>
+					<div class="stars"><i class="fa fa-star"></i></div>
+				</div>
+				<div class="theme-info-cover" title="이젠 구분해서 알아들어야한다! can vs can't">
+					<div class="title">
+						이젠 구분해서 알아들어야한다! can vs can't
+					</div>
+				</div>
+				<div class="q-num">
+					<span class="name">Number of Questions</span>
+					<span class="num">30</span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="theme-list col-md-4 col-sm-6 col-12">
+			<div onclick="moveToTest(this.getAttribute('data'))" th:data="100" 
+				class="theme-cover d-flex align-content-between flex-wrap">
+				<div class="theme-img-cover">
+					<img src="/images/app/dictationbook/theme_paper3.png" class="theme-img" 
+						style="background: url('/images/app/dictationbook/theme_1.jpg') no-repeat;
+						background-size: 100% auto; background-position: center;">
+					<div class="go-test">
+						<div class="mb-2">Practice is Fun</div>
+						<div><i class="far fa-smile"></i></div>
+					</div>
+					<div class="stars"><i class="fa fa-star"></i></div>
+				</div>
+				<div class="theme-info-cover" title="여자들이 듣기 좋아하는 말들을 익혀보자">
+					<div class="title">
+						여자들이 듣기 좋아하는 말들을 익혀보자
+					</div>
+				</div>
+				<div class="q-num">
+					<span class="name">Number of Questions</span>
+					<span class="num">30</span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="theme-list col-md-4 col-sm-6 col-12">
+			<div onclick="moveToTest(this.getAttribute('data'))" th:data="100" 
+				class="theme-cover d-flex align-content-between flex-wrap">
+				<div class="theme-img-cover">
+					<img src="/images/app/dictationbook/theme_paper3.png" class="theme-img" 
+						style="background: url('/images/app/dictationbook/theme_8.jpg') no-repeat;
+						background-size: 100% auto; background-position: center;">
+					<div class="go-test">
+						<div class="mb-2">Practice is Fun</div>
+						<div><i class="far fa-smile"></i></div>
+					</div>
+					<div class="stars"><i class="fa fa-star"></i></div>
+				</div>
+				<div class="theme-info-cover" title="생사의 갈림길 - 위급한 상황에 당신이 꼭 알아들어야하는 말들">
+					<div class="title">
+						생사의 갈림길 - 위급한 상황에 당신이 꼭 알아들어야하는 말들
+						생사의 갈림길 - 위급한 상황에 당신이 꼭 알아들어야하는 말들
+					</div>
+				</div>
+				<div class="q-num">
+					<span class="name">Number of Questions</span>
+					<span class="num">30</span>
+				</div>
+			</div>
+		</div>
+		
+		<div class="theme-list sponsor col-md-4 col-sm-6 col-12">
+			<div class="theme-cover">
+				<img src="/images/common/ads/dictationbook.jpg" width="100%">
+			</div>
+		</div>
+	</div><!-- end of themeListDiv -->
+	
+	<!-- pagination -->
+	<div class="theme-list-page row no-gutters my-3">
+		<div class="col-md-3 col-6 text-md-center text-left align-self-center">
+			<a th:if="${pageMaker?.prevPage}" th:href="${pageMaker.prevPage.pageNumber} + 1" 
+				class="btn btn-dictation">
+				<i lang="fa" class="fa fa-angle-left"></i> prev
+			</a>
+		</div>
+		<div class="col-md-6 d-none d-md-inline text-center align-self-center">
+			<ul class="pagination pagination-sm justify-content-center">
+				<li class="page-item" th:each="page:${pageMaker?.pageList}"
+					th:classappend="${page.pageNumber == pageMaker.currentPageNum -1} ? active: '' ">
+					<a class="page-link" th:href="${page.pageNumber} +1">[[${page.pageNumber}+1]]</a>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-3 col-6 text-md-center text-right align-self-center">
+			<a th:if="${pageMaker?.nextPage}" th:href="${pageMaker.nextPage.pageNumber} + 1" 
+				class="btn btn-dictation">
+				next <i lang="fa" class="fa fa-angle-right"></i>
+			</a>
+		</div>
+	</div>
+</div>
+
+</div><!-- end of themeListSection -->
+
+<div class="text-right" style="color: red;">
+source :: list_themes.html
+</div>
+
+</section>
+</body>

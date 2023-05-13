@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<script src="/js/public/jquery-3.3.1.min.js"></script>
+<script src='https://unpkg.com/tesseract.js@2.1.4/dist/tesseract.min.js'></script>
+<script src="/js/common.js"></script>
+<script type="text/javascript">
+$(document).ready(function(){
+	// Tesseract.js 초기화
+	$('#time').text('스크립트 초기화중')
+	const worker = Tesseract.createWorker();
+	(async () => {
+				  await worker.load();
+		  await worker.loadLanguage('eng+kor');
+		  await worker.initialize('eng+kor');
+	})();
+	$('#time').text('스크립트 초기화 완료');
+	$("#inputFile").on('input', function(e){
+		// 파일이 입력 되었을 때만 동작
+		if(e.target.files.length > 0){
+			
+			
+			// 불러온 파일 미리보기 표시-------------------------------------------------
+			var loader = new FileReader();
+			loader.onload = function(){
+				$('img').attr('src', loader.result);
+				URL.revokeObjectURL(loader.result);
+			}
+			loader.readAsDataURL(e.target.files[0]);
+			// -----------------------------------------------------------------
+			
+			
+			// 출력부 초기화
+			$('#output').html('');
+			
+			// OCR 처리중. 이 때 Ajax를 통해 광고 페이지를 가져와 표시--------------------------
+			$('#time').text('Tesseract.js를 통해 처리 중...');
+			
+			// OCR 처리 코드. 텍스트 인식 후 한글 제거 체크박스가 체크돼있으면 한글제거를 후처리함.--------
+			(async () => {
+				// 시작 시간
+				var start = new Date();
+				// text: 결과 텍스트
+				const { data: { text } } = await worker.recognize(e.target.files[0]);
+			  
+				// 걸린 시간
+				$('#time').text((new Date() - start) / 1000);
+			  
+				// 결과 텍스트를 표시
+				if($('#cleanKor').prop('checked')){
+					$('#output').val(replaceQuotes(text.replace(/[\u005B-\u0060|\u007B-\u007F|\u1100-\u11FF|\u3131-\u318E|\uAC00-\uD7A3]/gi,'')));
+				}else{
+					$('#output').val(replaceQuotes(text));
+				}
+			  	//await worker.terminate();
+			})();
+		}
+		
+	})
+})
+</script>
+</head>
+<body>
+<label>한글 제거<input id="cleanKor" type="checkbox"></label><input type="file" id="inputFile" >
+<img alt="" src="" height="400">
+<div>걸린 시간(초) : <span id="time"></span></div>
+<textarea id="output"></textarea>
+</body>
+</html>

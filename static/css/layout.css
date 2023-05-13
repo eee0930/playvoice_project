@@ -1,0 +1,9 @@
+/* playvoice_basic_onepage_layout */
+.logo-section{padding: 30px; padding-top: 40px; font-size: 50px; text-align: center;}
+.logo-section img{height: 100px;}
+
+@media (max-width: 767px) {
+	.logo-section{padding: 20px; font-size: 40px;r;}
+	.logo-section img{height: 60px;}
+}
+

@@ -1,0 +1,214 @@
+ 
+/* 키보드가 alpahbet을 입력 하는 부분 */
+.inputPlayKeyboard {
+	width: 100%;
+	min-height: 32px;
+	text-align: left !important;
+}
+.inputPlayKeyboard.focus::after {
+	content: '\007C';
+	opacity: 0;
+	animation: inputFocusStyle 1.2s linear infinite;
+	font-size: 1em;
+	color: #9596b0;
+	font-weight: 400 !important;
+	margin-left: 2px;
+}
+@keyframes inputFocusStyle {
+	0%, 100% {opacity: 0;}
+	40% {opacity: 1;}
+}
+
+
+
+
+/* 키보드 */
+.playvoice-keyboard-section .playvoice-keyboard-cover {
+	width: 100vw;
+	background-color: #303672;
+	padding: 0.5rem 0;
+	position: relative;
+	left: 50%;
+	transform: translateX(-50%);
+	box-shadow: 2px 2px 5px #2a2f63;
+	z-index: 10;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line {
+	justify-content: center;
+	display: flex;
+	flex-wrap: wrap;
+	user-select: none;
+	text-align: center;
+	padding: 2px 0;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section {
+	padding: 2px;
+	display: inline-flex;
+	flex-direction: column;
+	justify-content: center;
+	font-family: 'Roboto','Nunito Sans';
+}
+.playvoice-keyboard-cover.code-line .playvoice-keyboard-line .key-section button {
+	font-family: 'Nunito Sans';
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key-cover {
+	border-radius: 3rem;
+	top: 0;
+	box-shadow: 5px 5px 8px #1e2147, 
+				-5px -5px 8px #41499a;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section:active .key-cover {
+	box-shadow: 1px 1px 3px #1e2147, 
+				-1px -1px 3px #41499a;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {
+	position: relative;
+	border-radius: 0.9em;
+	border: none;
+	min-width: calc(10vw - 5px);
+	height: calc(10vw - 3px);
+	font-weight: 600;
+	font-size: 1.2rem;
+	padding: 1px;
+	background: linear-gradient(145deg, #d9dbdf, #ffffff);
+	z-index: 1;
+	-ms-user-select: none; 
+	-moz-user-select: -moz-none; 
+	-webkit-user-select: none; 
+	-khtml-user-select: none; 
+	user-select: none;
+	box-shadow: inset -1px -1px 3px 0 rgba(13,39,80,0.3), 
+				inset 1px 1px 3px 0 #fff;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section:active .key {
+	background: #cad1df;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+	background: linear-gradient(145deg, #b2bae2, #d4ddff);
+	color: #303672;
+	box-shadow: inset -1px -1px 3px 0 rgba(13,39,80,0.5), 
+				inset 1px 1px 3px 0 rgba(255,255,255,0.7);
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key {
+	line-height: 1;	
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+	font-size: 1rem;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key {
+	width: 12vw;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key {
+	width: 18vw;
+	font-size: 0.8rem;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key {
+	margin-right: 4px;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key {
+	color: #4c54a9;
+	margin-left: 4px;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key {
+	width: 36vw;
+	padding: 0 10px;
+	text-align: right;
+	font-size: 1rem;
+	text-shadow: 0.5px 0.5px 0.5px #fff, -0.5px -0.5px 0.5px rgba(0, 0, 0, 0.25);
+	color: rgba(0, 0, 0, 0.25);
+	background-color: #f5f5f6;
+	background-image: url('/images/common/characters/bird_face.png');
+	background-size: auto 70%;
+	background-repeat: no-repeat;
+	background-position: 25% center;
+}
+.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+	width: 30vw;
+}
+
+@media (max-width: 767.5px) {
+	.playvoice-keyboard-section .playvoice-keyboard-cover {padding: 1rem 0.5rem;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section {padding: 4px;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {
+		min-width: calc(10vw - 11px);
+		height: calc(10vw - 9px);
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {font-size: 1.8rem;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+		font-size: 1.5rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key {
+		font-size: 1.2rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key {
+		padding: 0 1.5rem;
+	}
+}
+@media (max-width: 575.5px) {
+	.playvoice-keyboard-section .playvoice-keyboard-cover {padding: 0.5rem 0;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section {padding: 2.5px;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {
+		min-width: calc(10vw - 5.5px);
+		height: calc(10vw - 3px);
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {font-size: 1.35rem;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+		font-size: 1.1rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key {
+		font-size: 0.9rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key {
+		padding: 0 10px;
+	}
+}
+@media (max-width: 376px) {
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section {padding: 2px;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {
+		min-width: calc(10vw - 4.5px);
+		height: calc(10vw - 1px);
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {font-size: 1.3rem;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+		font-size: 1.1rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key {
+		font-size: 0.8rem;
+	}
+}
+@media (max-width: 320px) {
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section {padding: 1.5px;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {
+		min-width: calc(10vw - 3.5px);
+		height: calc(10vw - 1.2px);
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .key {font-size: 1rem;}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .upper .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .back-space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .space .key,
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .enter .key {
+		font-size: 0.85rem;
+	}
+	.playvoice-keyboard-cover .playvoice-keyboard-line .key-section .unicode .key {
+		font-size: 0.7rem;
+	}
+}
+
+
+

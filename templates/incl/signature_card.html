@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- gold -->
+<th:block th:href="@{/}" th:fragment="gold">
+	<div class="name-tag-cover"><div class="name-tag-inset">
+		<div class="text-cover">
+			<!-- sentence -->
+			<div align="center">
+				<!-- 퍼스나콘 / 별명 -->
+				<div class="card-personacon mt-3" style="background: url('/images/app/member/profile_ex5.jpg') no-repeat;
+					background-position: center; background-size: cover;">
+				</div>
+				<div class="alias mt-3 mb-2">
+					<a onclick="window.open('/board','profile','width=991, height=620')">
+					lazyhysong</a>
+				</div>
+			</div>
+		</div>
+		<div class="button-section row no-gutters">
+			<!-- 선비 로고 -->
+			<div class="col align-self-center text-left">
+				<img src="/images/logo/logo_trans_seonbi.png" class="logo1">
+			</div>
+			<!-- text 로고 -->
+			<div class="col-auto text-right align-self-center">
+				<img src="/images/logo/card_logo2.png" class="logo2">
+			</div>
+		</div>
+		
+	</div></div>
+</th:block>
+
+
+<!-- platinum -->
+<th:block th:href="@{/}" th:fragment="platinum">
+	<div class="name-tag-cover"><div class="name-tag-inset">
+		<div class="text-cover">
+			<!-- 선비 로고 -->
+			<div class="text-center mb-2">
+				<img src="/images/logo/logo_trans_seonbi.png" class="logo1">
+			</div>
+			<!-- sentence -->
+			<div onclick="displayMemberProfileText()" class="sentence-cover jsAction">
+				I'd better <b>go home</b> and take a break. 
+				I wanna watch a movie.
+			</div>
+		</div>
+		<div class="button-section row no-gutters">
+			<!-- sound button -->
+			<div class="col align-self-center">
+				<a><i lang="fa" class="fa fa-headphones-alt fa-lg"></i></a>
+			</div>
+			<!-- text 로고 -->
+			<div class="col-auto text-right align-self-center">
+				<img src="/images/logo/card_logo2.png" class="logo2">
+			</div>
+		</div>
+		<div class="mt-2" align="center">
+			<!-- 퍼스나콘 / 별명 -->
+			<div class="card-personacon" style="background: url('/images/app/member/profile_ex5.jpg') no-repeat;
+				background-position: center; background-size: cover;">
+			</div>
+			<div class="alias mt-3 mb-2">
+				<a onclick="window.open('/board','profile','width=991, height=620')">
+				lazyhysong</a>
+			</div>
+		</div>
+	</div></div>
+</th:block>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
