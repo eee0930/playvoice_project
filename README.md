@@ -52,8 +52,10 @@
 
 ## Play Square
 ### 영어 커뮤니티 앱 [플레이스퀘어]
+### Small talk
 ![스몰톡](https://github.com/eee0930/playvoice_project/assets/37135523/cb63ccee-5b21-4b52-991c-cdc713dfa948)
-<img width="597" alt="스몰톡2" src="https://github.com/eee0930/playvoice_project/assets/37135523/35584ee8-62fc-4ebb-bab5-4aaa5eb37048">
+
+### Babel Eng
 <img width="723" alt="바벨-eng" src="https://github.com/eee0930/playvoice_project/assets/37135523/509b5eb4-b888-42f6-a427-082df787ba07">
 
 <br><br>
