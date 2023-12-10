@@ -7,7 +7,7 @@
 ![logo_seonbi](https://github.com/eee0930/playvoice_project/assets/37135523/fb80efed-398e-417f-9b80-b1f37235e443)
 <br>
 
-#playvoice
+# playvoice
 
 </div>
 
