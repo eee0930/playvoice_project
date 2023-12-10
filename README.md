@@ -41,8 +41,10 @@
 ### 게이미케이션 학습앱 [플레이킥]
 ### Egg Shot
 <img width="813" alt="에그샷" src="https://github.com/eee0930/playvoice_project/assets/37135523/2370a61a-456b-4fec-bb98-95365cf2a2ca">
+
 ### Johny Deck
 <img width="398" alt="죠니덱" src="https://github.com/eee0930/playvoice_project/assets/37135523/c333e020-dc8e-4cf4-80df-4bd630b3799b">
+
 ### Detective Julie
 <img width="350" alt="탐정쥴리" src="https://github.com/eee0930/playvoice_project/assets/37135523/3f453274-dfc4-43c4-97b6-9cac1d171b6a">
 
